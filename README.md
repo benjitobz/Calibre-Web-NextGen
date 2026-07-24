@@ -591,7 +591,7 @@ The interface ships with the locales below. Completion is auto-refreshed on ever
 | Language | Completion | Strings | Fuzzy |
 |---|---|---:|---:|
 | English (source) | 100% | source | — |
-| Russian (`ru`) | `████████████████████` 100% | 2603/2605 | 0 |
+| Russian (`ru`) | `████████████████████` 100% | 2605/2605 | 0 |
 | French (`fr`) | `██████████████░░░░░░` 68% | 1768/2605 | 129 |
 | Hungarian (`hu`) | `██████████████░░░░░░` 68% | 1769/2605 | 123 |
 | German (`de`) | `█████████████░░░░░░░` 66% | 1710/2605 | 126 |
