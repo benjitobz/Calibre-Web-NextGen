@@ -59,6 +59,15 @@ test('Classic and New UI consume the canonical rule schema and date rules previe
   await expect(page.locator('main#main h1')).toBeVisible();
   const spaField = page.locator('main#main select:has(option[value="pubdate"])').first();
   const spaOperator = page.locator('main#main select:has(option[value="in_last_days"])').first();
+  // Wait for the schema to populate before reading the options. The heading
+  // renders before the rule schema resolves, so `selectOptions` could snapshot
+  // a select holding a single placeholder and compare 1 entry against 18.
+  // Reliably green when this spec runs alone and reliably red in a batch —
+  // i.e. a race that only loses under parallel load, which is exactly what CI
+  // does (`fullyParallel: true`). It was one of the failures in #1130.
+  await expect
+    .poll(async () => (await selectOptions(spaField)).length, { timeout: 15_000 })
+    .toBeGreaterThan(1);
   const spaFields = await selectOptions(spaField);
   expect(spaFields.map(({ value }) => value)).toEqual(expectedFieldIds);
   expect(spaFields.every(({ text }) => text.length > 0)).toBe(true);
