@@ -245,6 +245,24 @@
   border-color: var(--accent);
 }
 
+/* The pencil floats over the bottom-right corner while .readNow spans the full
+   card width, so a centred label runs underneath it. Measured at 360px in a
+   touch context: 52px of the label sat under the button, clipping the tail of
+   "Read now" (#1112, reported by @Andrew-H2O). On touch it is always visible —
+   the coarse-pointer block below sets both to opacity 1 — so this is the
+   default state on a phone, not a hover edge case.
+
+   Reserve the corner rather than moving the label. Left-aligning it (the
+   reporter's suggestion) still collides once the title's button label is long,
+   and it changes the look on desktop where nothing collides. Padding keeps the
+   label centred within the space actually available.
+
+   Only applied when the pencil is rendered, so a card without edit permission
+   keeps a truly centred label. */
+.readNowInset {
+  padding-right: calc(24px + var(--sp-2) * 2);
+}
+
 .readNow {
   min-height: 32px;
   margin-top: auto;
@@ -272,6 +290,10 @@
    trackpad): touch must not lose actions merely because a fine pointer exists. */
 @media (any-hover: none), (any-pointer: coarse) {
   .readNow { min-height: 44px; opacity: 1; }
+  /* The pencil grows to a 44px touch target here, so the reserved corner has
+     to grow with it or the overlap comes straight back on the exact devices
+     where both controls are permanently visible. */
+  .readNowInset { padding-right: calc(44px + var(--sp-2) * 2); }
   .removeBtn, .quickEditBtn {
     width: 44px;
     height: 44px;
