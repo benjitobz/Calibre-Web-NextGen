@@ -3,9 +3,21 @@ import { test, expect, type Page } from '@playwright/test';
 type BooksPage = { items: Array<Record<string, unknown>>; total: number };
 
 async function search(page: Page, title: string) {
-  const input = page.getByRole('searchbox', { name: 'Search books' });
+  // Accessible name, not placeholder: #679's WCAG pass renamed this from
+  // "Search books" to "Search the library" on 2026-07-04 and this helper was
+  // not updated, so the spec has been failing on `locator.fill` ever since —
+  // unnoticed, because the e2e suite did not run on PRs until #953.
+  //
+  // Scoped to the searchbox role deliberately: the mobile search *button*
+  // carries the same aria-label, so a name-only lookup matches two elements.
+  const input = page.getByRole('searchbox', { name: 'Search the library' });
   await input.fill(title);
-  await page.waitForTimeout(350); // Catalog debounces the query by 300 ms.
+  // Submit, don't wait. This helper used to fill and sleep 350ms on the basis
+  // that "Catalog debounces the query by 300 ms" — the TopBar search is a
+  // <form onSubmit={onSearch}>, so typing alone issues no request at all and
+  // the wait was sleeping through nothing. Verified against a running instance:
+  // filling the box produced zero /api/v1/books requests.
+  await input.press('Enter');
 }
 
 test('editing removes a restored book from old-title search results', async ({ page }) => {
