@@ -2181,7 +2181,25 @@ def get_series_cover(series_id, resolution=None):
 
 @web.route("/robots.txt")
 def get_robots():
+    """Serve the crawl policy, preferring an admin-supplied one.
+
+    This route is inherited from janeczku/calibre-web, where the file it
+    points at has never existed — not there and not here — so it has been a
+    guaranteed 404 in every deployment of both (#1104). A crawler that gets no
+    answer applies its own default and crawls whatever it can reach, which on
+    a server with anonymous browsing enabled is the catalogue, and by extension
+    what the people using the server read.
+
+    The shipped default disallows everything, because a personal library is not
+    a public website. Publishing one is a deliberate choice, so it gets a
+    documented escape hatch rather than a code change: a robots.txt in the
+    config directory (next to app.db) wins over the shipped one and survives
+    upgrades.
+    """
+    override = os.path.join(constants.CONFIG_DIR, "robots.txt")
     try:
+        if os.path.isfile(override):
+            return send_from_directory(constants.CONFIG_DIR, "robots.txt")
         return send_from_directory(constants.STATIC_DIR, "robots.txt")
     except PermissionError:
         log.error("No permission to access robots.txt file.")

@@ -1,0 +1,12 @@
+# Calibre-Web NextGen — default crawl policy.
+#
+# A personal library server is not a public website. With anonymous browsing
+# enabled the catalogue is reachable without logging in, and an indexed
+# catalogue tells anyone who searches for it what the people using this server
+# read. Crawling is therefore disallowed by default.
+#
+# To publish your library deliberately, put your own robots.txt in the config
+# directory (alongside app.db) — it is served in preference to this file and
+# survives upgrades.
+User-agent: *
+Disallow: /
