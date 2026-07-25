@@ -6454,7 +6454,7 @@ msgstr ""
 msgid "Hardcover Sync"
 msgstr "Povolit Kobo synchronizaci"
 
-#: cps/tasks/mail.py:289
+#: cps/tasks/mail.py:331
 #, fuzzy
 msgid "E-mail"
 msgstr "E-mail"

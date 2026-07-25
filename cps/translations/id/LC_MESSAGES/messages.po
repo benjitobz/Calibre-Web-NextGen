@@ -6483,7 +6483,7 @@ msgstr ""
 msgid "Hardcover Sync"
 msgstr "Aktifkan sinkronisasi Kobo"
 
-#: cps/tasks/mail.py:289
+#: cps/tasks/mail.py:331
 msgid "E-mail"
 msgstr "Email"
 

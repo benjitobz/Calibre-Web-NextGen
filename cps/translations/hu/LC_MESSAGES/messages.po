@@ -6507,7 +6507,7 @@ msgstr ""
 msgid "Hardcover Sync"
 msgstr "Hardcover szinkronizáció engedélyezése"
 
-#: cps/tasks/mail.py:289
+#: cps/tasks/mail.py:331
 msgid "E-mail"
 msgstr "E-mail"
 

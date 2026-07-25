@@ -6424,7 +6424,7 @@ msgstr ""
 msgid "Hardcover Sync"
 msgstr "Mở thay đổi thứ tự"
 
-#: cps/tasks/mail.py:289
+#: cps/tasks/mail.py:331
 #, fuzzy
 msgid "E-mail"
 msgstr "Test e-mail"

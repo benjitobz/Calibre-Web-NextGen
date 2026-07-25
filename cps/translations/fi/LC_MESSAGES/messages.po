@@ -6439,7 +6439,7 @@ msgstr ""
 msgid "Hardcover Sync"
 msgstr ""
 
-#: cps/tasks/mail.py:289
+#: cps/tasks/mail.py:331
 #, fuzzy
 msgid "E-mail"
 msgstr "Sähköposti"

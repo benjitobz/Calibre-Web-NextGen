@@ -6529,7 +6529,7 @@ msgstr ""
 msgid "Hardcover Sync"
 msgstr "Omogoči sinhronizacijo s Kobo"
 
-#: cps/tasks/mail.py:289
+#: cps/tasks/mail.py:331
 msgid "E-mail"
 msgstr "E-naslov"
 

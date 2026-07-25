@@ -6412,7 +6412,7 @@ msgstr ""
 msgid "Hardcover Sync"
 msgstr "Kobo sync 활성화"
 
-#: cps/tasks/mail.py:289
+#: cps/tasks/mail.py:331
 msgid "E-mail"
 msgstr "이메일"
 

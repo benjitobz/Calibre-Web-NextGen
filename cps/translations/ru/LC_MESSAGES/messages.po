@@ -6602,7 +6602,7 @@ msgstr "Синхронизация добавлений на полку с Hardc
 msgid "Hardcover Sync"
 msgstr "Синхронизация с Hardcover"
 
-#: cps/tasks/mail.py:289
+#: cps/tasks/mail.py:331
 msgid "E-mail"
 msgstr "Электронная почта"
 

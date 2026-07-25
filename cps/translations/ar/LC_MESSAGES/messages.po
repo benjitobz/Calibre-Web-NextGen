@@ -6434,7 +6434,7 @@ msgstr ""
 msgid "Hardcover Sync"
 msgstr "تمكين مزامنة Kobo"
 
-#: cps/tasks/mail.py:289
+#: cps/tasks/mail.py:331
 msgid "E-mail"
 msgstr "بريد إلكتروني"
 

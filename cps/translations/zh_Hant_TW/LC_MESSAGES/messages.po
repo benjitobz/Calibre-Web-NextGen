@@ -6430,7 +6430,7 @@ msgstr ""
 msgid "Hardcover Sync"
 msgstr "啟用Kobo同步"
 
-#: cps/tasks/mail.py:289
+#: cps/tasks/mail.py:331
 #, fuzzy
 msgid "E-mail"
 msgstr "郵箱地址"

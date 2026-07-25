@@ -6500,7 +6500,7 @@ msgstr ""
 msgid "Hardcover Sync"
 msgstr "Hardcover同期を有効にする"
 
-#: cps/tasks/mail.py:289
+#: cps/tasks/mail.py:331
 msgid "E-mail"
 msgstr "メール"
 

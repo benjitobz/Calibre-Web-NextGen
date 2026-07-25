@@ -6555,7 +6555,7 @@ msgstr ""
 msgid "Hardcover Sync"
 msgstr "Activar la sincronización con Hardcover"
 
-#: cps/tasks/mail.py:289
+#: cps/tasks/mail.py:331
 msgid "E-mail"
 msgstr "Correo electrónico"
 
