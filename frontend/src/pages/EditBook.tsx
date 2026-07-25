@@ -654,6 +654,11 @@ function CoverManager({ id }: { id: string }) {
     });
   };
 
+  // setCover.data is the response to the most recent successful replacement,
+  // which carries a ?t=<ts> cache-buster. Falls back to the book's stable URL
+  // before any upload has happened, so a normal page load stays cacheable.
+  const previewUrl = setCover.data?.cover_url ?? book?.cover_url;
+
   const onUrl = () => {
     if (!url.trim()) return;
     setMsg(null);
@@ -666,8 +671,14 @@ function CoverManager({ id }: { id: string }) {
   return (
     <section className={styles.coverSection}>
       <div className={styles.coverPreview}>
-        {book?.cover_url
-          ? <img src={resourceUrl(book.cover_url)} alt={t('Current cover')} className={styles.coverImg} />
+        {/* Prefer the URL the upload returned. The cover lives at a stable
+            path (/cover/<id>/og), so after a replacement the refetched book
+            hands back a byte-identical src — React re-renders, the browser
+            serves its cached copy, and the upload looks like it did nothing
+            (#989, reported by @chloeroform). The API already answers with a
+            cache-busted URL for exactly this; it was simply being discarded. */}
+        {previewUrl
+          ? <img src={resourceUrl(previewUrl)} alt={t('Current cover')} className={styles.coverImg} />
           : <div className={styles.coverPlaceholder}><ImageIcon size={28} /></div>}
       </div>
       <div className={styles.coverControls}>
