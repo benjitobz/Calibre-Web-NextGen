@@ -765,6 +765,33 @@ def _is_ascii_book_id(document: str) -> bool:
     return document.isascii() and document.isdecimal() and len(document) <= 18
 
 
+_ASCII_LOWER = {codepoint: codepoint + 32 for codepoint in range(ord("A"), ord("Z") + 1)}
+
+
+def _nocase_key(identifier_type: str) -> str:
+    """
+    Fold an identifier type to its export key, folding ASCII A-Z and nothing else.
+
+    The invariant this has to hold is that two identifier types which can
+    coexist on one book never collide on the same key, or the export silently
+    drops a value. Calibre's ``identifiers`` table is ``UNIQUE(book, type)``
+    under SQLite's NOCASE collation, which folds ASCII A-Z only, so folding the
+    same range is enough: any two types sharing a key are NOCASE-equal, and
+    NOCASE-equal types cannot both exist on a book.
+
+    Python's ``str.lower()`` is not enough. It also folds non-ASCII: U+212A
+    KELVIN SIGN lowercases to ASCII ``"k"``. A book can legally carry both that
+    code point and ASCII ``"k"`` as separate types, and ``str.lower()`` would
+    collapse them onto one key and drop a value, with no ``ORDER BY`` deciding
+    which survives.
+
+    This is finer than NOCASE at embedded NUL, where SQLite compares only up to
+    the NUL. That is the safe direction: it distinguishes types the database
+    already refuses to store side by side, so it can never merge two rows.
+    """
+    return identifier_type.translate(_ASCII_LOWER)
+
+
 @csrf.exempt
 @kosync.route("/kosync/export", methods=["GET"])
 def export_progress():
@@ -789,6 +816,11 @@ def export_progress():
             "authors": [...],       # [] for books without authors
             "identifiers": {...},   # {type: value} map, {} when none found
         }
+
+    Author names are handed out in display form, with Calibre's escaped "|"
+    turned back into the comma it stands for. Identifier values are verbatim;
+    their type keys are ASCII-lowercased, which keeps two types the library
+    stores separately from collapsing onto one key.
 
     Timestamps are UTC, ISO 8601 with explicit offset. Rows that don't resolve
     to a Calibre library book (checksum-keyed records that never converged after
@@ -892,6 +924,8 @@ def export_progress():
                     entry = calibre_books.setdefault(
                         book_id, {"title": title, "authors": [], "identifiers": {}}
                     )
+                    # Names are accumulated as stored and un-escaped on the way
+                    # out, so two rows the library keeps apart stay apart here.
                     if author_name and author_name not in entry["authors"]:
                         entry["authors"].append(author_name)
 
@@ -908,7 +942,7 @@ def export_progress():
                     for book_id, identifier_type, identifier_value in identifier_rows:
                         if identifier_type and identifier_value:
                             calibre_books[book_id]["identifiers"][
-                                identifier_type.lower()
+                                _nocase_key(identifier_type)
                             ] = identifier_value
 
         def utc_isoformat(value):
@@ -929,7 +963,13 @@ def export_progress():
                     "created_at": utc_isoformat(row.created_at),
                     "last_modified": utc_isoformat(row.timestamp),
                     "percentage": row.percentage,
-                    "authors": book["authors"],
+                    # Calibre escapes a comma inside a single author name as
+                    # "|", so "William H. Keith, Jr." is stored as
+                    # "William H. Keith| Jr.". Every other serializing path
+                    # un-escapes it before handing the name out (#730/#732);
+                    # this export predates that sweep, and a raw "|" defeats the
+                    # author matching an ingesting service does.
+                    "authors": [name.replace("|", ",") for name in book["authors"]],
                     "title": book["title"],
                     "identifiers": book["identifiers"],
                 }
