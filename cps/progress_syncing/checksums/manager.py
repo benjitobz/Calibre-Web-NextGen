@@ -143,7 +143,8 @@ def calculate_and_store_checksum(
     book_id: int,
     book_format: str,
     file_path: str,
-    db_connection=None
+    db_connection=None,
+    filename_for_matching: Optional[str] = None
 ) -> Optional[str]:
     """
     Calculate and store a checksum for a book file.
@@ -153,6 +154,11 @@ def calculate_and_store_checksum(
         book_format: File format (EPUB, AZW3, etc.)
         file_path: Absolute path to the book file
         db_connection: Optional database connection (SQLAlchemy or sqlite3)
+        filename_for_matching: Name the CLIENT will see, when it differs from
+            this file's basename. Delivery paths that stage a temp export
+            (metadata embedding) must pass it: the device matches on the name
+            it holds, and our temp basename is a name no device will ever see.
+            Defaults to the basename, so existing callers are unaffected.
 
     Returns:
         The calculated checksum string, or None if failed
@@ -180,7 +186,9 @@ def calculate_and_store_checksum(
     # clients in 'filename' document-matching mode (kosync plugin option,
     # Crossink/x4) resolve this book too. Fork #525 / #627. Failure here
     # must not disturb the binary-channel result.
-    filename_digest = calculate_koreader_filename_md5(os.path.basename(file_path))
+    filename_digest = calculate_koreader_filename_md5(
+        filename_for_matching or os.path.basename(file_path)
+    )
     if filename_digest:
         store_checksum(
             book_id=book_id,

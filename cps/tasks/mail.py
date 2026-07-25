@@ -241,6 +241,46 @@ class TaskEmail(CalibreTask):
             self.asyncSMTP = None
             self._progress = x
 
+    def _register_kosync_checksum(self, file_path, book_format, attachment_name):
+        """Register the sync fingerprint of the file we are about to email.
+
+        KOReader identifies a book by hashing the file it holds. The download
+        path already registers the exact file it serves; this path registered
+        nothing, so a book delivered by "Send to Reader" was a file the server
+        had never hashed. The device's progress push arrived carrying a
+        checksum nothing matched, the position was stored orphaned, and it
+        never appeared in the library — logged as `No book found for checksum`
+        (#627). Users whose main workflow is emailing books to a reader had
+        sync that silently did nothing.
+
+        Two digests are registered and the distinction matters. The CONTENT
+        digest covers the bytes actually attached, which with metadata
+        embedding turned on are NOT the library file's bytes. The FILENAME
+        digest covers the attachment name the recipient sees — deliberately
+        not this file's basename, which for a staged export is a temp name no
+        device will ever know.
+
+        Gated on is_koreader_sync_enabled(): without sync the checksum table
+        is never created and every write raises "no such table" (CWA #1183).
+        Never fatal — failing to register a sync hint must not cost the user
+        the email itself.
+        """
+        try:
+            from cps.progress_syncing import calculate_and_store_checksum
+            from cps.progress_syncing.settings import is_koreader_sync_enabled
+
+            if not is_koreader_sync_enabled():
+                return
+            calculate_and_store_checksum(
+                book_id=self.book_id,
+                book_format=(book_format or "").upper(),
+                file_path=file_path,
+                filename_for_matching=attachment_name,
+            )
+        except Exception as ex:
+            log.error("Failed to register KOReader checksum for emailed book %s: %s",
+                      self.book_id, ex)
+
     def _get_attachment(self, book_path, filename):
         """Get file as MIMEBase message"""
         calibre_path = config.get_book_path()
@@ -260,6 +300,7 @@ class TaskEmail(CalibreTask):
                     datafile = os.path.join(data_path, data_file + "." + extension)
                 else:
                     log.warning('Metadata export produced no file, sending without embedded metadata')
+            self._register_kosync_checksum(datafile, extension, filename)
             with open(datafile, 'rb') as file_:
                 data = file_.read()
             os.remove(datafile)
@@ -274,6 +315,7 @@ class TaskEmail(CalibreTask):
                             datafile = export_file
                         else:
                             log.warning('Metadata export produced no file, sending without embedded metadata')
+                self._register_kosync_checksum(datafile, extension, filename)
                 with open(datafile, 'rb') as file_:
                     data = file_.read()
                 if config.config_binariesdir and config.config_embed_metadata and datafile != os.path.join(calibre_path, book_path, filename):
