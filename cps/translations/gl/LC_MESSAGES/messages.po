@@ -442,7 +442,7 @@ msgstr ""
 #: cps/admin.py:2894 cps/admin.py:3155 cps/editbooks.py:1157
 #: cps/editbooks.py:2040 cps/shelf.py:148 cps/shelf.py:226 cps/shelf.py:297
 #: cps/shelf.py:332 cps/shelf.py:389 cps/shelf.py:464 cps/shelf.py:547
-#: cps/shelf.py:672 cps/tasks/convert.py:145 cps/web.py:3088
+#: cps/shelf.py:672 cps/tasks/convert.py:145 cps/web.py:3106
 #, python-format
 msgid "Oops! Database Error: %(error)s."
 msgstr "Error na base de datos: %(error)s."
@@ -539,12 +539,12 @@ msgstr "Indicada unha duracción incorrecta para a tarefa"
 msgid "Scheduled tasks settings updated"
 msgstr "Actualizouse a configuración das tarefas programadas"
 
-#: cps/admin.py:2107 cps/admin.py:2251 cps/admin.py:3151 cps/web.py:2520
+#: cps/admin.py:2107 cps/admin.py:2251 cps/admin.py:3151 cps/web.py:2538
 msgid "Oops! An unknown error occurred. Please try again later."
 msgstr "Sucedeu un erro descoñecido. Por favor volva a intentalo máis tarde."
 
 #: cps/admin.py:2130 cps/opds.py:316 cps/opds.py:354 cps/opds.py:357
-#: cps/web.py:3004 cps/web.py:3139
+#: cps/web.py:3022 cps/web.py:3157
 #, fuzzy
 msgid "title"
 msgstr "Título"
@@ -711,7 +711,7 @@ msgstr "Actualizados os axustes da base de datos"
 msgid "Database Configuration"
 msgstr "Configuración da base de datos"
 
-#: cps/admin.py:2849 cps/web.py:2485
+#: cps/admin.py:2849 cps/web.py:2503
 msgid "Oops! Please complete all fields."
 msgstr "Por favor, cubra todos os campos!"
 
@@ -746,7 +746,7 @@ msgstr "Non se pode borrar ao Usuario Invitado"
 msgid "No admin user remaining, can't delete user"
 msgstr "Non queda ningún usuario administrador, non se pode borrar ao usuario"
 
-#: cps/admin.py:3106 cps/web.py:2819
+#: cps/admin.py:3106 cps/web.py:2837
 msgid "Email can't be empty and has to be a valid Email"
 msgstr ""
 
@@ -1384,8 +1384,8 @@ msgstr "Non se permite subir arquivos coa extensión '%(ext)s' a este servidor"
 msgid "File to be uploaded must have an extension"
 msgstr "O arquivo que se vai cargar debe ter unha extensión"
 
-#: cps/editbooks.py:940 cps/editbooks.py:1679 cps/web.py:783 cps/web.py:3269
-#: cps/web.py:3450 cps/web.py:3600
+#: cps/editbooks.py:940 cps/editbooks.py:1679 cps/web.py:783 cps/web.py:3287
+#: cps/web.py:3468 cps/web.py:3618
 msgid ""
 "Oops! Selected book is unavailable. File does not exist or is not accessible"
 msgstr ""
@@ -2135,7 +2135,7 @@ msgstr "Buscar"
 
 #: cps/remotelogin.py:76 cps/spa_strings.py:638 cps/templates/layout.html:344
 #: cps/templates/layout.html:391 cps/templates/login.html:11
-#: cps/templates/login.html:39 cps/web.py:2593
+#: cps/templates/login.html:39 cps/web.py:2611
 msgid "Login"
 msgstr "Inicio de sesión"
 
@@ -6155,74 +6155,74 @@ msgstr "Descargas"
 msgid "File formats list"
 msgstr "Lista de formatos"
 
-#: cps/web.py:2349 cps/web.py:2387
+#: cps/web.py:2367 cps/web.py:2405
 #, fuzzy
 msgid "Please configure the SMTP mail settings first..."
 msgstr "Configura primeiro os parámetros do servidor SMTP..."
 
-#: cps/web.py:2353
+#: cps/web.py:2371
 #, fuzzy
 msgid "Oops! Please update your profile with a valid eReader Email."
 msgstr ""
 "Por favor actualiza o teu perfil co enderezo de correo do teu kindle..."
 
-#: cps/web.py:2375
+#: cps/web.py:2393
 #, python-format
 msgid "Success! Book queued for sending to %(eReadermail)s"
 msgstr "Libro posto na cola de envío a %(eReadermail)s"
 
-#: cps/web.py:2378 cps/web.py:2455
+#: cps/web.py:2396 cps/web.py:2473
 #, python-format
 msgid "Oops! There was an error sending book: %(res)s"
 msgstr "Oh, oh! Houbo un erro no envío do libro: %(res)s"
 
-#: cps/web.py:2395 cps/web.py:2405
+#: cps/web.py:2413 cps/web.py:2423
 msgid "No email addresses selected"
 msgstr ""
 
-#: cps/web.py:2426
+#: cps/web.py:2444
 msgid "Additional email addresses are disabled for your account."
 msgstr ""
 
-#: cps/web.py:2453
+#: cps/web.py:2471
 #, fuzzy
 msgid "Success! Book queued for sending to the selected address(es)!"
 msgstr "Libro posto na cola de envío a %(eReadermail)s"
 
-#: cps/web.py:2472
+#: cps/web.py:2490
 msgid "Please wait one minute to register next user"
 msgstr ""
 
 #: cps/templates/layout.html:345 cps/templates/layout.html:392
-#: cps/templates/login.html:48 cps/templates/register.html:17 cps/web.py:2473
-#: cps/web.py:2477 cps/web.py:2482 cps/web.py:2486 cps/web.py:2492
-#: cps/web.py:2521 cps/web.py:2525 cps/web.py:2538 cps/web.py:2541
+#: cps/templates/login.html:48 cps/templates/register.html:17 cps/web.py:2491
+#: cps/web.py:2495 cps/web.py:2500 cps/web.py:2504 cps/web.py:2510
+#: cps/web.py:2539 cps/web.py:2543 cps/web.py:2556 cps/web.py:2559
 msgid "Register"
 msgstr "Rexistro"
 
-#: cps/web.py:2476 cps/web.py:2649
+#: cps/web.py:2494 cps/web.py:2667
 #, fuzzy
 msgid "Connection error to limiter backend, please contact your administrator"
 msgstr ""
 "O servidor de correo non está configurado, por favor, avisa ao teu "
 "administrador!"
 
-#: cps/web.py:2481 cps/web.py:2537
+#: cps/web.py:2499 cps/web.py:2555
 msgid ""
 "Oops! Email server is not configured, please contact your administrator."
 msgstr ""
 "O servidor de correo non está configurado, por favor, avisa ao teu "
 "administrador!"
 
-#: cps/web.py:2523
+#: cps/web.py:2541
 msgid "Oops! Your Email is not allowed."
 msgstr "O seu correo electrónico non está permitido para rexistrarse"
 
-#: cps/web.py:2526
+#: cps/web.py:2544
 msgid "Success! Confirmation Email has been sent."
 msgstr "Mandouse un correo electrónico de verificación á súa conta de correo."
 
-#: cps/web.py:2574
+#: cps/web.py:2592
 #, fuzzy
 msgid ""
 "Authentication loop detected. If you're experiencing login issues, please "
@@ -6231,7 +6231,7 @@ msgstr ""
 "A instancia de Calibre-Web non está configurada, por favor contacta co teu "
 "administrador"
 
-#: cps/web.py:2623
+#: cps/web.py:2641
 #, fuzzy
 msgid ""
 "OAuth authentication is not properly configured. Please contact "
@@ -6240,36 +6240,36 @@ msgstr ""
 "O servidor de correo non está configurado, por favor, avisa ao teu "
 "administrador!"
 
-#: cps/web.py:2628 cps/web.py:2655
+#: cps/web.py:2646 cps/web.py:2673
 #, fuzzy
 msgid "Cannot activate LDAP authentication"
 msgstr "Non se pode activar a autenticación LDAP"
 
-#: cps/web.py:2637
+#: cps/web.py:2655
 msgid "Standard login is disabled."
 msgstr ""
 
-#: cps/web.py:2645
+#: cps/web.py:2663
 msgid "Please wait one minute before next login"
 msgstr ""
 
-#: cps/web.py:2663
+#: cps/web.py:2681
 msgid "Username cannot be empty"
 msgstr ""
 
-#: cps/web.py:2675
+#: cps/web.py:2693
 #, fuzzy, python-format
 msgid "you are now logged in as: '%(nickname)s'"
 msgstr "Iniciou sesión como : '%(nickname)s'"
 
-#: cps/web.py:2694
+#: cps/web.py:2712
 #, fuzzy, python-format
 msgid ""
 "Welcome! Your account has been automatically created. You are now logged in "
 "as: '%(nickname)s'"
 msgstr "Iniciou sesión como : '%(nickname)s'"
 
-#: cps/web.py:2699 cps/web.py:2702
+#: cps/web.py:2717 cps/web.py:2720
 #, fuzzy
 msgid ""
 "Authentication successful, but account creation failed. Please contact your "
@@ -6278,13 +6278,13 @@ msgstr ""
 "A instancia de Calibre-Web non está configurada, por favor contacta co teu "
 "administrador"
 
-#: cps/web.py:2706
+#: cps/web.py:2724
 msgid ""
 "Authentication successful, but no local account found. Please contact your "
 "administrator to create your account."
 msgstr ""
 
-#: cps/web.py:2714
+#: cps/web.py:2732
 #, fuzzy, python-format
 msgid ""
 "Fallback Login as: '%(nickname)s', LDAP Server not reachable, or user not "
@@ -6293,55 +6293,55 @@ msgstr ""
 "Fallback login como: '%(nickname)s', non se pode acceder ao servidor LDAP ou "
 "usuario descoñecido"
 
-#: cps/web.py:2720
+#: cps/web.py:2738
 #, fuzzy, python-format
 msgid "Could not login: %(message)s"
 msgstr "Non se puido entrar: %(message)s"
 
-#: cps/web.py:2742 cps/web.py:2743 cps/web.py:2785
+#: cps/web.py:2760 cps/web.py:2761 cps/web.py:2803
 #, fuzzy
 msgid "Wrong Username or Password"
 msgstr "Usuario ou contrasinal no válido"
 
-#: cps/web.py:2751
+#: cps/web.py:2769
 #, fuzzy
 msgid "New Password was sent to your email address"
 msgstr "Unha nova contrasinal enviouse ao seu enderezo de correo electrónico"
 
-#: cps/web.py:2755
+#: cps/web.py:2773
 #, fuzzy
 msgid "An unknown error occurred. Please try again later."
 msgstr "Sucedeu un erro descoñecido. Por favor volva a intentalo máis tarde."
 
-#: cps/web.py:2757
+#: cps/web.py:2775
 #, fuzzy
 msgid "Please enter valid username to reset password"
 msgstr "Por favor, introduce un usuario válido para restablecer a contrasinal"
 
-#: cps/web.py:2765
+#: cps/web.py:2783
 #, fuzzy, python-format
 msgid "You are now logged in as: '%(nickname)s'"
 msgstr "Iniciou sesión como : '%(nickname)s'"
 
-#: cps/web.py:3077
+#: cps/web.py:3095
 #, fuzzy
 msgid "Success! Profile Updated"
 msgstr "Perfil actualizado"
 
-#: cps/web.py:3083
+#: cps/web.py:3101
 msgid "Oops! An account already exists for this Email."
 msgstr "Atopada unha conta existente para ese enderezo de correo electrónico"
 
-#: cps/web.py:3217
+#: cps/web.py:3235
 msgid "App-password label must be 1-64 characters."
 msgstr ""
 
-#: cps/web.py:3252
+#: cps/web.py:3270
 #, python-format
 msgid "App password '%(label)s' revoked."
 msgstr ""
 
-#: cps/web.py:3463
+#: cps/web.py:3481
 #, fuzzy
 msgid "Invalid book ID."
 msgstr "Rol non válido"
