@@ -443,7 +443,7 @@ msgstr "Sucesso ! Conta Gmail Verificada."
 #: cps/admin.py:2894 cps/admin.py:3155 cps/editbooks.py:1157
 #: cps/editbooks.py:2040 cps/shelf.py:148 cps/shelf.py:226 cps/shelf.py:297
 #: cps/shelf.py:332 cps/shelf.py:389 cps/shelf.py:464 cps/shelf.py:547
-#: cps/shelf.py:672 cps/tasks/convert.py:145 cps/web.py:3090
+#: cps/shelf.py:672 cps/tasks/convert.py:145 cps/web.py:3088
 #, python-format
 msgid "Oops! Database Error: %(error)s."
 msgstr "Ops ! Erro de banco de dados: %(error)s."
@@ -546,7 +546,7 @@ msgstr ""
 "Ops ! Ocorreu um erro desconhecido. Por favor, tente novamente mais tarde."
 
 #: cps/admin.py:2130 cps/opds.py:316 cps/opds.py:354 cps/opds.py:357
-#: cps/web.py:3006 cps/web.py:3141
+#: cps/web.py:3004 cps/web.py:3139
 #, fuzzy
 msgid "title"
 msgstr "Título"
@@ -742,7 +742,7 @@ msgstr "Impossível excluir Convidado"
 msgid "No admin user remaining, can't delete user"
 msgstr "Nenhum usuário administrador restante, não é possível apagar o usuário"
 
-#: cps/admin.py:3106 cps/web.py:2821
+#: cps/admin.py:3106 cps/web.py:2819
 msgid "Email can't be empty and has to be a valid Email"
 msgstr "O Email não pode ser vazio e deve ter endereço válido"
 
@@ -1393,8 +1393,8 @@ msgstr ""
 msgid "File to be uploaded must have an extension"
 msgstr "O arquivo a ser carregado deve ter uma extensão"
 
-#: cps/editbooks.py:940 cps/editbooks.py:1679 cps/web.py:783 cps/web.py:3271
-#: cps/web.py:3453 cps/web.py:3603
+#: cps/editbooks.py:940 cps/editbooks.py:1679 cps/web.py:783 cps/web.py:3269
+#: cps/web.py:3450 cps/web.py:3600
 msgid ""
 "Oops! Selected book is unavailable. File does not exist or is not accessible"
 msgstr ""
@@ -2965,7 +2965,6 @@ msgstr "Capa atualizada"
 msgid "Create smart shelf"
 msgstr "Criar estante inteligente"
 
-
 #: cps/spa_strings.py:189
 msgid "Create your account"
 msgstr "Criar sua conta"
@@ -3217,7 +3216,6 @@ msgstr ""
 #: cps/templates/listenmp3.html:159
 msgid "Read"
 msgstr "Lido"
-
 
 #: cps/spa_strings.py:251
 msgid "Reading progress"
@@ -4068,7 +4066,6 @@ msgstr "Copiar link"
 msgid "Could not create shelf."
 msgstr "Não foi possível criar a estante."
 
-
 #: cps/spa_strings.py:482
 msgid "Could not create the shelf."
 msgstr "Não foi possível criar a estante."
@@ -4344,7 +4341,6 @@ msgstr "Duplicar"
 #: cps/spa_strings.py:549
 msgid "Duplicate books"
 msgstr "Livros duplicados"
-
 
 #: cps/spa_strings.py:551 cps/templates/cover_picker.html:94
 msgid "E-reader preview"
@@ -5429,7 +5425,6 @@ msgstr "Sair"
 msgid "Signing in…"
 msgstr "Entrando…"
 
-
 #: cps/spa_strings.py:823
 msgid "Site title"
 msgstr "Título do site"
@@ -5457,7 +5452,6 @@ msgstr ""
 #: cps/spa_strings.py:829
 msgid "Some sources need a key for better covers"
 msgstr "Algumas fontes necessitam de uma chave para obter capas melhores"
-
 
 #: cps/spa_strings.py:830 cps/templates/cover_picker.html:226
 msgid "Something went wrong. Try again."
@@ -5487,7 +5481,6 @@ msgstr "Estado"
 msgid "Sync only selected shelves to Kobo"
 msgstr "Sincronizar apenas as estantes selecionadas com o Kobo"
 
-
 #: cps/spa_strings.py:838
 msgid "Table view"
 msgstr "Visualização em tabela"
@@ -5505,11 +5498,9 @@ msgstr "Tags"
 msgid "Tags — exclude"
 msgstr "Tags — excluir"
 
-
 #: cps/spa_strings.py:842
 msgid "Tags — include"
 msgstr "Tags — incluir"
-
 
 #: cps/spa_strings.py:843 cps/templates/config_edit.html:231
 #: cps/templates/cover_picker.html:104
@@ -5580,7 +5571,6 @@ msgstr "URL do token"
 #: cps/spa_strings.py:858
 msgid "Top Rated"
 msgstr "Melhores avaliados"
-
 
 #: cps/spa_strings.py:859
 msgid "Trust authentication header"
@@ -5685,7 +5675,6 @@ msgstr ""
 #: cps/spa_strings.py:882 cps/templates/cover_picker.html:40
 msgid "When locked, fetching metadata will not overwrite this cover."
 msgstr "Quando bloqueada, a busca de metadados não substituirá esta capa."
-
 
 #: cps/spa_strings.py:883 cps/templates/detail.html:1023
 msgid "When reading progress was first synced"
@@ -5849,7 +5838,6 @@ msgstr "{count} resultados para \"{query}\""
 #, python-brace-format
 msgid "{n} found"
 msgstr "{n} encontrados"
-
 
 #: cps/spa_strings.py:921
 #, python-brace-format
@@ -6339,50 +6327,50 @@ msgstr ""
 msgid "Could not login: %(message)s"
 msgstr "Não foi possível fazer o login: %(message)s"
 
-#: cps/web.py:2743 cps/web.py:2744 cps/web.py:2787
+#: cps/web.py:2742 cps/web.py:2743 cps/web.py:2785
 #, fuzzy
 msgid "Wrong Username or Password"
 msgstr "Nome de Usuário ou Senha incorretos"
 
-#: cps/web.py:2752
+#: cps/web.py:2751
 #, fuzzy
 msgid "New Password was sent to your email address"
 msgstr "Nova Senha foi enviada para seu endereço de e-mail"
 
-#: cps/web.py:2756
+#: cps/web.py:2755
 #, fuzzy
 msgid "An unknown error occurred. Please try again later."
 msgstr "Ocorreu um erro desconhecido. Por favor, tente novamente mais tarde."
 
-#: cps/web.py:2758
+#: cps/web.py:2757
 #, fuzzy
 msgid "Please enter valid username to reset password"
 msgstr "Por favor, digite um nome de usuário válido para redefinir a senha"
 
-#: cps/web.py:2766
+#: cps/web.py:2765
 #, fuzzy, python-format
 msgid "You are now logged in as: '%(nickname)s'"
 msgstr "Agora você está logado como: '%(nickname)s'"
 
-#: cps/web.py:3079
+#: cps/web.py:3077
 #, fuzzy
 msgid "Success! Profile Updated"
 msgstr "Perfil atualizado"
 
-#: cps/web.py:3085
+#: cps/web.py:3083
 msgid "Oops! An account already exists for this Email."
 msgstr "Encontrada uma conta existente para este endereço de e-mail."
 
-#: cps/web.py:3219
+#: cps/web.py:3217
 msgid "App-password label must be 1-64 characters."
 msgstr ""
 
-#: cps/web.py:3254
+#: cps/web.py:3252
 #, python-format
 msgid "App password '%(label)s' revoked."
 msgstr ""
 
-#: cps/web.py:3466
+#: cps/web.py:3463
 #, fuzzy
 msgid "Invalid book ID."
 msgstr "ID de livro inválido."
@@ -10716,7 +10704,6 @@ msgstr "Apagar livros selecionados"
 #: cps/templates/layout.html:812 cps/templates/layout.html:825
 msgid "Formats:"
 msgstr "Formatos:"
-
 
 #: cps/templates/layout.html:821
 msgid "Will be kept"

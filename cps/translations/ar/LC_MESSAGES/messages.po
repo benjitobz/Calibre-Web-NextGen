@@ -431,7 +431,7 @@ msgstr "تم التحقق بنجاح! تم التحقق من حساب Gmail."
 #: cps/admin.py:2894 cps/admin.py:3155 cps/editbooks.py:1157
 #: cps/editbooks.py:2040 cps/shelf.py:148 cps/shelf.py:226 cps/shelf.py:297
 #: cps/shelf.py:332 cps/shelf.py:389 cps/shelf.py:464 cps/shelf.py:547
-#: cps/shelf.py:672 cps/tasks/convert.py:145 cps/web.py:3090
+#: cps/shelf.py:672 cps/tasks/convert.py:145 cps/web.py:3088
 #, python-format
 msgid "Oops! Database Error: %(error)s."
 msgstr "عفواً! خطأ في قاعدة البيانات: %(error)s."
@@ -533,7 +533,7 @@ msgid "Oops! An unknown error occurred. Please try again later."
 msgstr "عفواً! حدث خطأ غير معروف. يُرجى المحاولة لاحقًا."
 
 #: cps/admin.py:2130 cps/opds.py:316 cps/opds.py:354 cps/opds.py:357
-#: cps/web.py:3006 cps/web.py:3141
+#: cps/web.py:3004 cps/web.py:3139
 #, fuzzy
 msgid "title"
 msgstr "العنوان"
@@ -729,7 +729,7 @@ msgstr "لا يمكن حذف المستخدم الضيف"
 msgid "No admin user remaining, can't delete user"
 msgstr "لم يتبق مستخدم مسؤول، لا يمكن حذف المستخدم"
 
-#: cps/admin.py:3106 cps/web.py:2821
+#: cps/admin.py:3106 cps/web.py:2819
 msgid "Email can't be empty and has to be a valid Email"
 msgstr ""
 "لا يمكن أن يكون البريد الإلكتروني فارغًا ويجب أن يكون بريدًا إلكترونيًا صالحًا"
@@ -1366,8 +1366,8 @@ msgstr "لا يُسمح بتحميل ملحق الملف '%(ext)s' إلى هذا
 msgid "File to be uploaded must have an extension"
 msgstr "يجب أن يكون للملف المراد تحميله امتداد"
 
-#: cps/editbooks.py:940 cps/editbooks.py:1679 cps/web.py:783 cps/web.py:3271
-#: cps/web.py:3453 cps/web.py:3603
+#: cps/editbooks.py:940 cps/editbooks.py:1679 cps/web.py:783 cps/web.py:3269
+#: cps/web.py:3450 cps/web.py:3600
 msgid ""
 "Oops! Selected book is unavailable. File does not exist or is not accessible"
 msgstr "عفواً! الكتاب المحدد غير متوفر. الملف غير موجود أو غير قابل للوصول"
@@ -6234,45 +6234,45 @@ msgstr ""
 msgid "Could not login: %(message)s"
 msgstr "تعذر تسجيل الدخول: %(message)s"
 
-#: cps/web.py:2743 cps/web.py:2744 cps/web.py:2787
+#: cps/web.py:2742 cps/web.py:2743 cps/web.py:2785
 msgid "Wrong Username or Password"
 msgstr "اسم المستخدم أو كلمة المرور خاطئة"
 
-#: cps/web.py:2752
+#: cps/web.py:2751
 msgid "New Password was sent to your email address"
 msgstr "تم إرسال كلمة مرور جديدة إلى عنوان بريدك الإلكتروني"
 
-#: cps/web.py:2756
+#: cps/web.py:2755
 msgid "An unknown error occurred. Please try again later."
 msgstr "حدث خطأ غير معروف. يرجى المحاولة مرة أخرى لاحقًا."
 
-#: cps/web.py:2758
+#: cps/web.py:2757
 msgid "Please enter valid username to reset password"
 msgstr "يرجى إدخال اسم مستخدم صالح لإعادة تعيين كلمة المرور"
 
-#: cps/web.py:2766
+#: cps/web.py:2765
 #, python-format
 msgid "You are now logged in as: '%(nickname)s'"
 msgstr "لقد قمت الآن بتسجيل الدخول باسم: '%(nickname)s'"
 
-#: cps/web.py:3079
+#: cps/web.py:3077
 msgid "Success! Profile Updated"
 msgstr "نجاح! تم تحديث الملف الشخصي"
 
-#: cps/web.py:3085
+#: cps/web.py:3083
 msgid "Oops! An account already exists for this Email."
 msgstr "عفوًا! يوجد حساب بالفعل لهذا البريد الإلكتروني."
 
-#: cps/web.py:3219
+#: cps/web.py:3217
 msgid "App-password label must be 1-64 characters."
 msgstr ""
 
-#: cps/web.py:3254
+#: cps/web.py:3252
 #, python-format
 msgid "App password '%(label)s' revoked."
 msgstr ""
 
-#: cps/web.py:3466
+#: cps/web.py:3463
 #, fuzzy
 msgid "Invalid book ID."
 msgstr "دور غير صالح"

@@ -419,7 +419,7 @@ msgstr "Gmail 账户验证成功"
 #: cps/admin.py:2894 cps/admin.py:3155 cps/editbooks.py:1157
 #: cps/editbooks.py:2040 cps/shelf.py:148 cps/shelf.py:226 cps/shelf.py:297
 #: cps/shelf.py:332 cps/shelf.py:389 cps/shelf.py:464 cps/shelf.py:547
-#: cps/shelf.py:672 cps/tasks/convert.py:145 cps/web.py:3090
+#: cps/shelf.py:672 cps/tasks/convert.py:145 cps/web.py:3088
 #, python-format
 msgid "Oops! Database Error: %(error)s."
 msgstr "数据库错误：%(error)s"
@@ -515,7 +515,7 @@ msgid "Oops! An unknown error occurred. Please try again later."
 msgstr "发生一个未知错误，请稍后再试"
 
 #: cps/admin.py:2130 cps/opds.py:316 cps/opds.py:354 cps/opds.py:357
-#: cps/web.py:3006 cps/web.py:3141
+#: cps/web.py:3004 cps/web.py:3139
 #, fuzzy
 msgid "title"
 msgstr "标题"
@@ -712,7 +712,7 @@ msgstr "无法删除游客用户"
 msgid "No admin user remaining, can't delete user"
 msgstr "管理员账户不存在，无法删除用户"
 
-#: cps/admin.py:3106 cps/web.py:2821
+#: cps/admin.py:3106 cps/web.py:2819
 msgid "Email can't be empty and has to be a valid Email"
 msgstr "电子邮件地址不能为空，并且必须是有效的电子邮件"
 
@@ -1355,8 +1355,8 @@ msgstr "不能上传文件扩展名为“%(ext)s”的文件到此服务器"
 msgid "File to be uploaded must have an extension"
 msgstr "要上传的文件必须具有扩展名"
 
-#: cps/editbooks.py:940 cps/editbooks.py:1679 cps/web.py:783 cps/web.py:3271
-#: cps/web.py:3453 cps/web.py:3603
+#: cps/editbooks.py:940 cps/editbooks.py:1679 cps/web.py:783 cps/web.py:3269
+#: cps/web.py:3450 cps/web.py:3600
 msgid ""
 "Oops! Selected book is unavailable. File does not exist or is not accessible"
 msgstr "糟糕！选择书名无法打开。文件不存在或者文件不可访问"
@@ -6223,45 +6223,45 @@ msgstr "后备登录“%(nickname)s”：无法访问 LDAP 服务器，或用户
 msgid "Could not login: %(message)s"
 msgstr "无法登录：%(message)s"
 
-#: cps/web.py:2743 cps/web.py:2744 cps/web.py:2787
+#: cps/web.py:2742 cps/web.py:2743 cps/web.py:2785
 msgid "Wrong Username or Password"
 msgstr "用户名或密码错误"
 
-#: cps/web.py:2752
+#: cps/web.py:2751
 msgid "New Password was sent to your email address"
 msgstr "新密码已发送到您的邮箱"
 
-#: cps/web.py:2756
+#: cps/web.py:2755
 msgid "An unknown error occurred. Please try again later."
 msgstr "发生一个未知错误，请稍后再试"
 
-#: cps/web.py:2758
+#: cps/web.py:2757
 msgid "Please enter valid username to reset password"
 msgstr "请输入有效的用户名进行密码重置"
 
-#: cps/web.py:2766
+#: cps/web.py:2765
 #, python-format
 msgid "You are now logged in as: '%(nickname)s'"
 msgstr "您现在已以“%(nickname)s”身份登录"
 
-#: cps/web.py:3079
+#: cps/web.py:3077
 msgid "Success! Profile Updated"
 msgstr "资料已更新"
 
-#: cps/web.py:3085
+#: cps/web.py:3083
 msgid "Oops! An account already exists for this Email."
 msgstr "使用此邮箱的账号已经存在"
 
-#: cps/web.py:3219
+#: cps/web.py:3217
 msgid "App-password label must be 1-64 characters."
 msgstr ""
 
-#: cps/web.py:3254
+#: cps/web.py:3252
 #, python-format
 msgid "App password '%(label)s' revoked."
 msgstr ""
 
-#: cps/web.py:3466
+#: cps/web.py:3463
 #, fuzzy
 msgid "Invalid book ID."
 msgstr "无效角色"

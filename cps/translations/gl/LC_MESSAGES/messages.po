@@ -442,7 +442,7 @@ msgstr ""
 #: cps/admin.py:2894 cps/admin.py:3155 cps/editbooks.py:1157
 #: cps/editbooks.py:2040 cps/shelf.py:148 cps/shelf.py:226 cps/shelf.py:297
 #: cps/shelf.py:332 cps/shelf.py:389 cps/shelf.py:464 cps/shelf.py:547
-#: cps/shelf.py:672 cps/tasks/convert.py:145 cps/web.py:3090
+#: cps/shelf.py:672 cps/tasks/convert.py:145 cps/web.py:3088
 #, python-format
 msgid "Oops! Database Error: %(error)s."
 msgstr "Error na base de datos: %(error)s."
@@ -544,7 +544,7 @@ msgid "Oops! An unknown error occurred. Please try again later."
 msgstr "Sucedeu un erro descoñecido. Por favor volva a intentalo máis tarde."
 
 #: cps/admin.py:2130 cps/opds.py:316 cps/opds.py:354 cps/opds.py:357
-#: cps/web.py:3006 cps/web.py:3141
+#: cps/web.py:3004 cps/web.py:3139
 #, fuzzy
 msgid "title"
 msgstr "Título"
@@ -746,7 +746,7 @@ msgstr "Non se pode borrar ao Usuario Invitado"
 msgid "No admin user remaining, can't delete user"
 msgstr "Non queda ningún usuario administrador, non se pode borrar ao usuario"
 
-#: cps/admin.py:3106 cps/web.py:2821
+#: cps/admin.py:3106 cps/web.py:2819
 msgid "Email can't be empty and has to be a valid Email"
 msgstr ""
 
@@ -1384,8 +1384,8 @@ msgstr "Non se permite subir arquivos coa extensión '%(ext)s' a este servidor"
 msgid "File to be uploaded must have an extension"
 msgstr "O arquivo que se vai cargar debe ter unha extensión"
 
-#: cps/editbooks.py:940 cps/editbooks.py:1679 cps/web.py:783 cps/web.py:3271
-#: cps/web.py:3453 cps/web.py:3603
+#: cps/editbooks.py:940 cps/editbooks.py:1679 cps/web.py:783 cps/web.py:3269
+#: cps/web.py:3450 cps/web.py:3600
 msgid ""
 "Oops! Selected book is unavailable. File does not exist or is not accessible"
 msgstr ""
@@ -6298,50 +6298,50 @@ msgstr ""
 msgid "Could not login: %(message)s"
 msgstr "Non se puido entrar: %(message)s"
 
-#: cps/web.py:2743 cps/web.py:2744 cps/web.py:2787
+#: cps/web.py:2742 cps/web.py:2743 cps/web.py:2785
 #, fuzzy
 msgid "Wrong Username or Password"
 msgstr "Usuario ou contrasinal no válido"
 
-#: cps/web.py:2752
+#: cps/web.py:2751
 #, fuzzy
 msgid "New Password was sent to your email address"
 msgstr "Unha nova contrasinal enviouse ao seu enderezo de correo electrónico"
 
-#: cps/web.py:2756
+#: cps/web.py:2755
 #, fuzzy
 msgid "An unknown error occurred. Please try again later."
 msgstr "Sucedeu un erro descoñecido. Por favor volva a intentalo máis tarde."
 
-#: cps/web.py:2758
+#: cps/web.py:2757
 #, fuzzy
 msgid "Please enter valid username to reset password"
 msgstr "Por favor, introduce un usuario válido para restablecer a contrasinal"
 
-#: cps/web.py:2766
+#: cps/web.py:2765
 #, fuzzy, python-format
 msgid "You are now logged in as: '%(nickname)s'"
 msgstr "Iniciou sesión como : '%(nickname)s'"
 
-#: cps/web.py:3079
+#: cps/web.py:3077
 #, fuzzy
 msgid "Success! Profile Updated"
 msgstr "Perfil actualizado"
 
-#: cps/web.py:3085
+#: cps/web.py:3083
 msgid "Oops! An account already exists for this Email."
 msgstr "Atopada unha conta existente para ese enderezo de correo electrónico"
 
-#: cps/web.py:3219
+#: cps/web.py:3217
 msgid "App-password label must be 1-64 characters."
 msgstr ""
 
-#: cps/web.py:3254
+#: cps/web.py:3252
 #, python-format
 msgid "App password '%(label)s' revoked."
 msgstr ""
 
-#: cps/web.py:3466
+#: cps/web.py:3463
 #, fuzzy
 msgid "Invalid book ID."
 msgstr "Rol non válido"
