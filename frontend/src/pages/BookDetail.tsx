@@ -5,6 +5,7 @@ import {
   useBook, useToggleRead, useToggleFavorite, useToggleArchived, useToggleHidden,
   useSendToEreader, useMe, useAccount, useUpdateMetadata, useDeleteBook, useReloadMetadata,
 } from '../lib/queries';
+import { MetadataTypeahead } from '../components/MetadataTypeahead';
 import { Pill } from '../components/Pill';
 import { AddToShelf } from '../components/AddToShelf';
 import { StarRating } from '../components/StarRating';
@@ -194,14 +195,23 @@ function TagEditor({ bookId, tags, canEdit }:
       )}
       {adding ? (
         <span className={styles.tagAddRow}>
-          <input
-            className={styles.tagAddInput}
+          {/* Suggests tags the library already has, so quick-add stops minting
+              near-duplicates from typos (#741, #572). The full editor got this
+              in #741; this field was left on a bare input, which is what both
+              reporters came back about. Enter/Escape stay ours — the combobox
+              hands on any key it did not consume, so arrow-key navigation
+              through the suggestions still works. */}
+          <MetadataTypeahead
+            field="tags"
+            multi={false}
             value={input}
-            autoFocus
+            onChange={setInput}
+            excludeValues={names}
+            inputClassName={styles.tagAddInput}
             placeholder={t('New tag')}
             aria-label={t('Add tag')}
+            autoFocus
             disabled={update.isPending}
-            onChange={(e) => setInput(e.target.value)}
             onKeyDown={(e) => {
               if (e.key === 'Enter') { e.preventDefault(); addTag(); }
               else if (e.key === 'Escape') { setInput(''); setAdding(false); }

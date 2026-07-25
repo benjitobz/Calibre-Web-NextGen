@@ -18,6 +18,17 @@ interface Props {
   placeholder?: string;
   id?: string;
   'aria-label'?: string;
+  /** Values to keep out of the suggestion list regardless of what is typed.
+   *  A host that already holds the chosen values elsewhere (chips, pills) needs
+   *  this: `multi={false}` parses no tokens out of the field, so without it the
+   *  menu offers values the host will silently discard on commit. */
+  excludeValues?: string[];
+  /** Keys the combobox did not consume are handed on, so a host can own Enter
+   *  and Escape without losing suggestion navigation. */
+  onKeyDown?: (e: React.KeyboardEvent<HTMLInputElement>) => void;
+  onBlur?: (e: React.FocusEvent<HTMLInputElement>) => void;
+  autoFocus?: boolean;
+  disabled?: boolean;
 }
 
 interface Segment { start: number; end: number; query: string; }
@@ -51,7 +62,8 @@ export function applySuggestion(
  *  offers what already exists; typing a genuinely new value still works.
  *  Implements the WAI-ARIA editable combobox + listbox pattern. */
 export function MetadataTypeahead(props: Props) {
-  const { value, onChange, field, multi, sep = ', ', inputClassName, placeholder, id } = props;
+  const { value, onChange, field, multi, sep = ', ', inputClassName, placeholder, id,
+          excludeValues, autoFocus, disabled } = props;
   const t = useT();
   const delim = multi ? sep.trim() : null;
   const [open, setOpen] = useState(false);
@@ -95,8 +107,14 @@ export function MetadataTypeahead(props: Props) {
   };
 
   const tokensExcludingActive = (val: string, seg: Segment): Set<string> => {
-    if (!delim) return new Set();
     const set = new Set<string>();
+    // Host-supplied exclusions apply in both modes — they describe values the
+    // host already has, which the field itself cannot reveal in single mode.
+    (excludeValues ?? []).forEach((v) => {
+      const trimmed = v.trim().toLowerCase();
+      if (trimmed) set.add(trimmed);
+    });
+    if (!delim) return set;
     val.split(delim).forEach((tok, _i, _arr) => {
       const trimmed = tok.trim().toLowerCase();
       if (trimmed && trimmed !== seg.query.toLowerCase()) set.add(trimmed);
@@ -173,6 +191,12 @@ export function MetadataTypeahead(props: Props) {
         if (open) { e.preventDefault(); setOpen(false); }
         break;
     }
+    // The switch above calls preventDefault only when it actually consumed the
+    // key — accepted a suggestion, moved the active option, closed an open
+    // menu. Everything it left alone belongs to the host, which is what lets a
+    // caller bind Enter to "commit" and Escape to "cancel" without breaking
+    // arrow-key navigation through the suggestions.
+    if (!e.defaultPrevented) props.onKeyDown?.(e);
   };
 
   const activeDescendant = open && suggestions[activeIndex] ? optionId(activeIndex) : undefined;
@@ -192,10 +216,13 @@ export function MetadataTypeahead(props: Props) {
         aria-label={props['aria-label']}
         placeholder={placeholder}
         autoComplete="off"
+        autoFocus={autoFocus}
+        disabled={disabled}
         onChange={onInput}
         onFocus={openAndFetch}
         onClick={() => { caretRef.current = inputRef.current?.selectionStart ?? value.length; }}
         onKeyDown={onKeyDown}
+        onBlur={props.onBlur}
       />
       {open && suggestions.length > 0 && (
         <ul className={styles.menu} role="listbox" id={listId} aria-label={props['aria-label'] || field}>
