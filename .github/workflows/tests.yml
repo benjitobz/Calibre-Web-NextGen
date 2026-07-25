@@ -302,6 +302,43 @@ jobs:
           username: GitHub Actions
 
   # ============================================================================
+  # JOB 2b: Which parts of the tree did this PR touch?
+  # Runs on: pull requests only. Duration: ~20s.
+  # Purpose: let the SPA e2e job gate frontend PRs without charging a .po-only
+  #   or docs-only PR half an hour for a suite that cannot tell it anything.
+  #   Deliberately plain checkout + git rather than a paths-filter action —
+  #   this repo does not take new third-party dependencies for convenience.
+  # ============================================================================
+  changed_paths:
+    name: Detect changed paths
+    runs-on: ubuntu-latest
+    if: github.event_name == 'pull_request'
+    timeout-minutes: 5
+    outputs:
+      frontend: ${{ steps.detect.outputs.frontend }}
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v7
+        with:
+          fetch-depth: 0
+
+      - name: Detect
+        id: detect
+        env:
+          BASE_SHA: ${{ github.event.pull_request.base.sha }}
+          HEAD_SHA: ${{ github.event.pull_request.head.sha }}
+        run: |
+          # Three-dot: what this branch changed relative to the merge base, so a
+          # busy main does not make every PR look like it touched everything.
+          files="$(git diff --name-only "${BASE_SHA}...${HEAD_SHA}" || git diff --name-only "${BASE_SHA}" "${HEAD_SHA}")"
+          echo "$files"
+          if echo "$files" | grep -qE '^(frontend/|cps/static/app/)'; then
+            echo "frontend=true" >> "$GITHUB_OUTPUT"
+          else
+            echo "frontend=false" >> "$GITHUB_OUTPUT"
+          fi
+
+  # ============================================================================
   # JOB 3: E2E Tests (Full Stack)
   # Runs on: Manual trigger, all release tags (v3.2.0, v3.2.0-rc1, etc.)
   # Duration: ~30-45 minutes
@@ -311,6 +348,11 @@ jobs:
   e2e-tests:
     name: E2E Tests (SPA)
     runs-on: ubuntu-latest
+    # `always()` matters: changed_paths only runs on PRs, and without it a
+    # skipped dependency would drag the tag and dispatch runs down with it —
+    # silently turning the release gate off, which is the exact class of
+    # failure this whole change exists to remove.
+    needs: [changed_paths]
     # Release gate + manual dispatch. The SPA e2e matrix (Layer 2 of the
     # verification system, frontend/e2e/) is the "earn the release" gate;
     # /CWNG_verify runs the same harness on-demand in dev. Tag runs test the
@@ -320,12 +362,32 @@ jobs:
     # is a follow-up (workflow_run after the :dev image build).
     # ADVISORY: a failure warns in test-summary + alerts Discord on tag runs,
     # but does not block. Promote to a hard gate once several tag runs are green.
+    #
+    # PRs touching frontend/** now run too (#953). They cannot be handled the
+    # same way: the resolver below tests a PUBLISHED image, and a pull request
+    # has none. Running the suite against :dev on a PR would test main's build
+    # regardless of what the PR did to the SPA — green either way, and worse
+    # than skipping because it would look like a gate.
+    #
+    # So PR runs take the API from :dev and overlay the PR's OWN SPA bundle
+    # into the container. The specs here assert frontend behaviour and the SPA
+    # is a static bundle under cps/static/app, so this gates exactly what they
+    # cover, with no from-source image build (the resolver comment explains why
+    # that path is avoided). Limit, stated rather than glossed: it will not
+    # catch a regression that needs the PR's BACKEND changes. It is an SPA
+    # gate, not a full-stack one — and the alternative today is no gate at all.
     if: |
+      always() && (
       startsWith(github.ref, 'refs/tags/v') ||
       github.ref == 'refs/heads/dev' ||
-      (github.event_name == 'workflow_dispatch' && inputs.run_e2e)
+      (github.event_name == 'workflow_dispatch' && inputs.run_e2e) ||
+      (github.event_name == 'pull_request' && needs.changed_paths.outputs.frontend == 'true')
+      )
     # Tag runs may wait up to ~40 min for the GHCR release build to publish
     # the image (see the pull loop below) before the ~15 min harness run.
+    # Advisory on PRs until several runs are green, matching the ADVISORY
+    # stance above. Promote to a hard gate once it has earned it.
+    continue-on-error: ${{ github.event_name == 'pull_request' }}
     timeout-minutes: 75
     permissions:
       contents: read
@@ -358,6 +420,8 @@ jobs:
           if [[ "${GITHUB_REF}" == refs/tags/v* ]]; then
             echo "image=ghcr.io/new-usemame/calibre-web-nextgen:${GITHUB_REF_NAME}" >> "$GITHUB_OUTPUT"
           else
+            # PRs land here too: :dev supplies the API, and the overlay step
+            # below replaces its SPA with the one built from this PR (#953).
             echo "image=ghcr.io/new-usemame/calibre-web-nextgen:dev" >> "$GITHUB_OUTPUT"
           fi
 
@@ -389,16 +453,26 @@ jobs:
           echo "Waiting for the app to answer..."
           timeout 240 bash -c 'until curl -fsS http://localhost:8083/ -o /dev/null; do sleep 5; done'
 
-      - name: Seed a book and wait for ingest
+      - name: Seed books and wait for ingest
         run: |
-          # Drop a public-domain EPUB into the ingest folder; auto-ingest imports it.
-          # The container's init chowns the bind-mounted /cwa-book-ingest to uid
-          # 1000, so the runner can't write to it from the host. Use `docker cp`
-          # (root inside the container) and hand the file to uid 1000, which the
-          # ingest service needs to process and then remove it.
-          docker cp tests/fixtures/sample_books/alice_in_wonderland.epub \
-            cwn-e2e:/cwa-book-ingest/alice_in_wonderland.epub
-          docker exec -u 0 cwn-e2e chown 1000:1000 /cwa-book-ingest/alice_in_wonderland.epub
+          # Drop public-domain EPUBs into the ingest folder; auto-ingest imports
+          # them. The container's init chowns the bind-mounted /cwa-book-ingest
+          # to uid 1000, so the runner can't write to it from the host. Use
+          # `docker cp` (root inside the container) and hand each file to uid
+          # 1000, which the ingest service needs to process and then remove it.
+          #
+          # THREE books, not one. A single-book library silently failed 24 specs
+          # on every run of this job — "the catalog fixture needs at least two
+          # books" — and because the job is advisory, nobody ever read it. A
+          # release gate that cannot tell a real failure from a fixture that was
+          # never big enough is not a gate. pride_and_prejudice.epub is left out
+          # deliberately: at 24 MB it dominates ingest time for no extra
+          # coverage.
+          for book in alice_in_wonderland christmas_carol metamorphosis; do
+            docker cp "tests/fixtures/sample_books/${book}.epub" \
+              "cwn-e2e:/cwa-book-ingest/${book}.epub"
+            docker exec -u 0 cwn-e2e chown 1000:1000 "/cwa-book-ingest/${book}.epub"
+          done
           echo "Polling for the imported book via the API..."
           jar=$(mktemp); total=0
           for i in $(seq 1 60); do
@@ -408,11 +482,13 @@ jobs:
               -d '{"username":"admin","password":"admin123"}' -o /dev/null || true
             total=$(curl -s -b "$jar" 'http://localhost:8083/api/v1/books?limit=1' | python3 -c 'import sys,json;print(json.load(sys.stdin).get("total",0))' 2>/dev/null || echo 0)
             echo "  attempt $i: books total=$total"
-            [ "${total:-0}" -gt 0 ] && break
+            # Wait for ALL of them: breaking at the first import is what left
+            # the library at one book while the step reported success.
+            [ "${total:-0}" -ge 3 ] && break
             sleep 5
           done
-          if [ "${total:-0}" -eq 0 ]; then
-            echo "::error::ingest never imported the seed book (books total=0) — dumping ingest logs"
+          if [ "${total:-0}" -lt 3 ]; then
+            echo "::error::ingest imported only ${total:-0} of 3 seed books — dumping ingest logs"
             docker logs cwn-e2e 2>&1 | grep -iE 'ingest|convert|import|error|watch' | tail -40 || true
             exit 1
           fi
@@ -422,6 +498,21 @@ jobs:
         run: |
           npm ci
           npx playwright install --with-deps chromium
+
+      # The whole point of running on a PR: without this the container serves
+      # main's SPA and the suite says nothing about the change under review.
+      - name: Overlay this PR's SPA bundle into the container
+        if: github.event_name == 'pull_request'
+        working-directory: frontend
+        run: |
+          npm ci
+          npm run build          # writes ../cps/static/app
+          docker cp ../cps/static/app/. cwn-e2e:/app/calibre-web-automated/cps/static/app/
+          # The bundle is static; no restart needed. Confirm the shell still
+          # answers so a broken overlay fails here rather than as 30 confusing
+          # spec failures.
+          curl -fsS http://localhost:8083/app/ -o /dev/null
+          echo "PR bundle in place"
 
       - name: Run SPA e2e harness
         working-directory: frontend
