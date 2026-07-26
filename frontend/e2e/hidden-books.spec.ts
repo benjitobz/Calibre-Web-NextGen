@@ -3,6 +3,41 @@ import { assertNoHorizontalOverflow, collectPageErrors, assertNoPageErrors } fro
 
 test.describe.configure({ mode: 'serial' });
 
+// Hiding is PERSISTENT per-user state on the server, and these specs hide
+// books. Without a restore, a run that fails part-way — or is interrupted —
+// leaves a book hidden forever, and from then on every spec that counts books
+// sees a library one short. That is not hypothetical: it is exactly how these
+// specs were failing (`Expected: 41, Received: 42`), and the poisoned instance
+// then mis-attributes the failure to whichever spec happens to count next.
+//
+// afterAll, not afterEach: this file is `mode: 'serial'`, so later tests build
+// on state earlier ones establish — unhiding between them breaks the chain.
+// afterAll still runs when a test fails, which is the case that matters.
+test.afterAll(async ({ browser }) => {
+  const page = await browser.newPage();
+  try {
+    const csrf = await page.request.get('/api/v1/auth/csrf')
+      .then((r) => r.json() as Promise<{ csrf_token: string }>)
+      .then((b) => b.csrf_token);
+    const visible = await page.request.get('/api/v1/books?per_page=500')
+      .then((r) => r.json() as Promise<{ items: Array<{ id: number }> }>);
+    const all = await page.request.get('/api/v1/books?per_page=500&show_hidden=1')
+      .then((r) => r.json() as Promise<{ items: Array<{ id: number }> }>);
+    const shown = new Set(visible.items.map((b) => b.id));
+    for (const book of all.items) {
+      if (shown.has(book.id)) continue;
+      await page.request.post(`/api/v1/books/${book.id}/hidden`, {
+        headers: { 'X-CSRFToken': csrf },
+        data: { hidden: false },
+      });
+    }
+  } catch {
+    /* best effort — never fail the run in cleanup, only avoid poisoning the next */
+  } finally {
+    await page.close();
+  }
+});
+
 async function firstBook(page: Page): Promise<{ id: number; title: string } | null> {
   return page.evaluate(async () => {
     const response = await fetch('/api/v1/books?per_page=1');
