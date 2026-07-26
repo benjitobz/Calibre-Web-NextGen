@@ -107,8 +107,13 @@
  * author line so the title stays the visual anchor; one line, ellipsised. */
 .series {
   font-size: var(--fs-sm);
+  /* No opacity here. --text-muted IS the muted colour (#54606b in light,
+     5.71:1 on the light surface); stacking 0.85 on top blended it to #6e7881
+     and dropped it to 3.99:1, under the 4.5:1 AA floor at this 13px size
+     (#1135). Double-muting an already-muted token is how a value that passes
+     when you read the stylesheet fails when you measure the pixels — static
+     contrast math on the token says 5.71 and never sees it. */
   color: var(--text-muted);
-  opacity: 0.85;
   overflow: hidden;
   display: -webkit-box;
   -webkit-line-clamp: 1;
