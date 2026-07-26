@@ -6,7 +6,15 @@ test.describe('Discover reshuffle', () => {
     let releaseSecond: (() => void) | undefined;
     const secondHeld = new Promise<void>((resolve) => { releaseSecond = resolve; });
 
-    await page.route('**/api/v1/books?filter=discover&per_page=12', async (route) => {
+    // Match on the parts that identify the request, not on an exact query
+    // string. The pattern here was '**/api/v1/books?filter=discover&per_page=12',
+    // which pins BOTH the page size and the parameter order — so it silently
+    // stops matching if either changes, `requests` stays 0, and the spec fails
+    // with "Expected: 2, Received: 0" while looking like a product bug.
+    // Discover's count is configurable (#705), so pinning 12 was never safe.
+    await page.route((url) =>
+      url.pathname === '/api/v1/books' && url.searchParams.get('filter') === 'discover',
+    async (route) => {
       requests += 1;
       if (requests === 2) await secondHeld;
       await route.continue();
