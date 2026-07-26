@@ -493,7 +493,7 @@ jobs:
             exit 1
           fi
 
-      - name: Seed shelves
+      - name: Seed shelves and series
         run: |
           # The library the harness gets had three books and NO shelves, so
           # every spec asserting shelf grouping failed on the fixture rather
@@ -527,6 +527,32 @@ jobs:
             | python3 -c 'import sys,json;d=json.load(sys.stdin);print(len(d.get("items",d if isinstance(d,list) else [])))' 2>/dev/null || echo 0)
           echo "shelves now: $total"
           [ "${total:-0}" -ge 1 ] || { echo "::error::no shelves after seeding"; exit 1; }
+
+          # Give two books a series. Without one, no book CARD renders a series
+          # line — and the card series line is where #1135's contrast failure
+          # lives, so the a11y gate could only catch that class of bug by luck
+          # of fixture. A gate that depends on the seed happening to contain the
+          # right shape of data is not a gate.
+          csrf=$(curl -s -b "$jar" -c "$jar" http://localhost:8083/api/v1/auth/csrf \
+            | python3 -c 'import sys,json;print(json.load(sys.stdin)["csrf_token"])')
+          ids=$(curl -s -b "$jar" 'http://localhost:8083/api/v1/books?per_page=2' \
+            | python3 -c 'import sys,json;print(" ".join(str(b["id"]) for b in json.load(sys.stdin)["items"]))')
+          idx=1
+          for bid in $ids; do
+            code=$(curl -s -o /tmp/md.json -w '%{http_code}' \
+              -b "$jar" -c "$jar" -X POST "http://localhost:8083/api/v1/books/$bid/metadata" \
+              -H 'Content-Type: application/json' -H "X-CSRFToken: $csrf" \
+              -d "{\"series\": \"E2E Fixture Series\", \"series_index\": $idx}")
+            echo "  book $bid series -> $code"
+            if [ "$code" != "200" ]; then
+              echo "::error::could not set series on book $bid (HTTP $code)"; cat /tmp/md.json; exit 1
+            fi
+            idx=$((idx + 1))
+          done
+          series_count=$(curl -s -b "$jar" http://localhost:8083/api/v1/series \
+            | python3 -c 'import sys,json;d=json.load(sys.stdin);print(len(d.get("items",[])))' 2>/dev/null || echo 0)
+          echo "series now: $series_count"
+          [ "${series_count:-0}" -ge 1 ] || { echo "::error::no series after seeding"; exit 1; }
 
       - name: Install Playwright
         working-directory: frontend
