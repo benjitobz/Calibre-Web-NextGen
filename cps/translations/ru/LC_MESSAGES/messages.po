@@ -143,7 +143,7 @@ msgstr "Основные настройки"
 msgid "UI Configuration"
 msgstr "Настройка интерфейса"
 
-#: cps/admin.py:686 cps/admin.py:1458 cps/db.py:1408 cps/search.py:153
+#: cps/admin.py:686 cps/admin.py:1458 cps/db.py:1575 cps/search.py:153
 #: cps/web.py:673 cps/web.py:1003
 #, python-format
 msgid "Custom Column No.%(column)d does not exist in calibre database"
@@ -1333,7 +1333,7 @@ msgstr ""
 "Система управления профильными изображениями Calibre-Web NextGen (в "
 "разработке)"
 
-#: cps/db.py:1783 cps/spa_strings.py:57 cps/spa_strings.py:702
+#: cps/db.py:1950 cps/spa_strings.py:57 cps/spa_strings.py:702
 #: cps/templates/config_edit.html:359 cps/templates/config_view_edit.html:79
 #: cps/templates/config_view_edit.html:90 cps/templates/email_edit.html:41
 #: cps/web.py:816 cps/web.py:850 cps/web.py:895 cps/web.py:935 cps/web.py:964
