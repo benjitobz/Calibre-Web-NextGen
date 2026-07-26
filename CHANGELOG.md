@@ -16,6 +16,11 @@ is for things you can see or feel when running the app.
 
 ## [Unreleased]
 
+### Changed
+
+- **The "read" mark on a book cover is now a green "Read" label at the bottom-left, instead of a small tick in the corner.** It was a 22-pixel checkmark circle in the top-right with no wording, which was easy to miss at a glance — the reporter, who reads in the light theme because of their eyesight, pointed out that the classic view's labelled green badge was far easier to spot. It now says what it means, sits where the classic one sits, and gets larger again on phones and tablets. The wording follows your language, so a German library reads "Gelesen" exactly as the classic view does. Reported by [@uschi1](https://github.com/new-usemame/Calibre-Web-NextGen/issues/351) ([#1117](https://github.com/new-usemame/Calibre-Web-NextGen/issues/1117)).
+
+
 ### Fixed
 
 - **Two people using the library at once no longer break each other's pages.** The server kept one working copy of your library data and shared it across every request it was handling. As soon as any one page finished, it closed that copy, so any other page still being built lost the books it had already read and failed. In the log it showed up as `Instance ... is not persistent within this Session`, pointing at whatever the unlucky page happened to be doing at the time, which made it look like a different bug on every occurrence. It got likelier the busier the server was, so it hit big libraries, shared instances and anything running during an import hardest. Each request now keeps its own working copy ([#1150](https://github.com/new-usemame/Calibre-Web-NextGen/issues/1150)).

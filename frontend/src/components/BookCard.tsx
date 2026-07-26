@@ -64,27 +64,41 @@ export function BookCard({
   const cover = (
     <div className={styles.coverWrap}>
       <BookCover coverUrl={book.cover_url} title={book.title} authors={book.authors} />
-      {book.read && (
-        <span className={styles.readBadge} role="img" aria-label={t('Read')}>
-          <Check size={14} strokeWidth={3} aria-hidden="true" />
-        </span>
-      )}
-      {book.hidden && (
-        <span className={styles.hiddenBadge} role="img" aria-label={t('Hidden')}
-          data-testid="hidden-book-badge">
-          <EyeOff size={12} aria-hidden="true" focusable={false} />
-          {t('Hidden')}
-        </span>
-      )}
-      {seriesIndexLabel && (
-        <span
-          className={styles.seriesBadge}
-          role="img"
-          aria-label={t('Series position {n}', { n: seriesIndexLabel })}
-        >
-          #{seriesIndexLabel}
-        </span>
-      )}
+      {/* One bottom-left row rather than three independently-positioned badges.
+          `hiddenBadge` and `seriesBadge` were BOTH pinned to bottom-left, so a
+          hidden book in a series view stacked them on top of each other; and
+          the read badge moving down here (#1117) would have made a third.
+          A flex row makes overlap impossible by construction instead of by
+          each badge hoping the others are absent. */}
+      <div className={styles.badgeRow}>
+        {/* role=img + aria-label on these badges is the established pattern from
+            the WCAG pass: it announces the badge once, rather than letting the
+            icon and the adjacent text be read as two separate things. Keep it
+            even now that the label is visible. */}
+        {book.read && (
+          <span className={styles.readBadge} role="img" aria-label={t('Read')}
+            data-testid="read-badge">
+            <Check size={13} strokeWidth={3} aria-hidden="true" focusable={false} />
+            {t('Read')}
+          </span>
+        )}
+        {book.hidden && (
+          <span className={styles.hiddenBadge} role="img" aria-label={t('Hidden')}
+            data-testid="hidden-book-badge">
+            <EyeOff size={12} aria-hidden="true" focusable={false} />
+            {t('Hidden')}
+          </span>
+        )}
+        {seriesIndexLabel && (
+          <span
+            className={styles.seriesBadge}
+            role="img"
+            aria-label={t('Series position {n}', { n: seriesIndexLabel })}
+          >
+            #{seriesIndexLabel}
+          </span>
+        )}
+      </div>
       {selectable && (
         <span className={selected ? styles.checkboxOn : styles.checkboxOff} aria-hidden="true">
           {selected && <Check size={14} strokeWidth={3} />}

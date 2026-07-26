@@ -120,29 +120,65 @@
   -webkit-box-orient: vertical;
 }
 
-.readBadge {
+/* Cover badges live in ONE bottom-left row. Previously .readBadge sat at
+   top-right while .hiddenBadge and .seriesBadge both claimed bottom-left —
+   which meant a hidden book in a series view stacked two badges on the same
+   spot. A flex row makes that impossible rather than relying on each badge's
+   comment asserting the others are elsewhere.
+
+   max-width reserves the bottom-right corner for the quick-edit pencil, so
+   the row can never grow under it (the #1112 collision, avoided by
+   construction this time). */
+.badgeRow {
   position: absolute;
-  top: var(--sp-2);
-  right: var(--sp-2);
-  width: 22px;
-  height: 22px;
-  border-radius: var(--r-full);
-  background: var(--accent);
-  color: var(--on-accent);
-  box-shadow: var(--elev-1);
+  bottom: var(--sp-2);
+  left: var(--sp-2);
+  max-width: calc(100% - var(--sp-2) * 2 - 34px);
   display: flex;
+  flex-wrap: wrap;
   align-items: center;
-  justify-content: center;
+  gap: var(--sp-1);
+  pointer-events: none;
+}
+
+/* "Read" is the one badge users actively look FOR, and it was the hardest to
+   see: a bare 22px checkmark circle at top-right, no label (#1117, reported by
+   @uschi1, who reads in the light theme because of eyesight and compared it
+   unfavourably with the classic view's labelled green pill).
+
+   So: labelled, larger, bottom-left, green — the classic affordance. The label
+   is the `Read` msgid, which already renders "Gelesen" in German, i.e. exactly
+   the word in the reporter's classic screenshot. Green rather than --accent
+   because "done" reads as green far more universally than amber, and because
+   the amber circle was competing with the accent-coloured hover actions. */
+.readBadge {
+  min-height: 24px;
+  padding: 0 var(--sp-2);
+  border-radius: var(--r-full);
+  /* Fixed green, NOT var(--success). The badge sits on a cover image, so its
+     legibility has to be self-contained — it cannot borrow contrast from the
+     page background the way page text can. --success is theme-aware and flips
+     to a light green (#6cc08a) in dark mode, where white-on-it measures
+     2.20:1: an accessibility regression inside an accessibility fix. This
+     pairing is 5.35:1 in every theme, and the shadow separates it from dark
+     covers. */
+  background: #1f7a44;
+  color: #fff;
+  box-shadow: var(--elev-1);
+  display: inline-flex;
+  align-items: center;
+  gap: var(--sp-1);
+  font-size: var(--fs-xs);
+  font-weight: var(--fw-semi);
+  line-height: 1;
+  white-space: nowrap;
   pointer-events: none;
 }
 
 /* Personal-library state: quiet but explicit when Show hidden books is on.
-   Bottom-left avoids the read badge and the catalog's quick-edit affordance. */
+   Sits in .badgeRow. */
 .hiddenBadge {
-  position: absolute;
-  bottom: var(--sp-2);
-  left: var(--sp-2);
-  min-height: 22px;
+  min-height: 24px;
   padding: 0 var(--sp-2);
   border-radius: var(--r-full);
   background: var(--cover-control-bg);
@@ -158,15 +194,10 @@
   pointer-events: none;
 }
 
-/* Series position (#573): pinned to the bottom-left of the cover so it never
-   collides with the read badge (top-right) or the select/remove controls
-   (top-left). Shown only in a series view. */
+/* Series position (#573). Sits in .badgeRow; shown only in a series view. */
 .seriesBadge {
-  position: absolute;
-  bottom: var(--sp-2);
-  left: var(--sp-2);
-  min-width: 22px;
-  height: 22px;
+  min-width: 24px;
+  height: 24px;
   padding: 0 var(--sp-2);
   border-radius: var(--r-full);
   background: var(--cover-control-bg);
@@ -295,6 +326,10 @@
    trackpad): touch must not lose actions merely because a fine pointer exists. */
 @media (any-hover: none), (any-pointer: coarse) {
   .readNow { min-height: 44px; opacity: 1; }
+  /* Bigger where legibility is worst — a phone held at arm's length is the
+     case the reporter was describing. */
+  .readBadge, .hiddenBadge { min-height: 28px; font-size: var(--fs-sm); }
+  .seriesBadge { min-width: 28px; height: 28px; font-size: var(--fs-sm); }
   /* The pencil grows to a 44px touch target here, so the reserved corner has
      to grow with it or the overlap comes straight back on the exact devices
      where both controls are permanently visible. */
