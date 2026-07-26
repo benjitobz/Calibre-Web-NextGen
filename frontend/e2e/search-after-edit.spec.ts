@@ -11,6 +11,15 @@ async function search(page: Page, title: string) {
   // Scoped to the searchbox role deliberately: the mobile search *button*
   // carries the same aria-label, so a name-only lookup matches two elements.
   const input = page.getByRole('searchbox', { name: 'Search the library' });
+  // At narrow widths the search field is collapsed behind a toggle button
+  // (TopBar's mobileSearchBtn), so filling it directly times out — this spec
+  // passed on desktop and failed on mobile for that reason alone, testing
+  // nothing at all on phones. The button carries the same accessible name as
+  // the field, hence the explicit role.
+  if (!(await input.isVisible().catch(() => false))) {
+    await page.getByRole('button', { name: 'Search the library' }).first().click();
+    await input.waitFor({ state: 'visible' });
+  }
   await input.fill(title);
   // Submit, don't wait. This helper used to fill and sleep 350ms on the basis
   // that "Catalog debounces the query by 300 ms" — the TopBar search is a
