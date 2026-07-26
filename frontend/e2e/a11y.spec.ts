@@ -131,7 +131,12 @@ test('reader: TOC traps focus + Escape, named progressbar, no critical/serious',
 test.describe('login (unauthenticated)', () => {
   test.use({ storageState: { cookies: [], origins: [] } });
   test('login: no critical/serious a11y violations', async ({ page }) => {
-    await page.goto('/app');
+    // /app/login, not /app: the shell only renders a login form when the
+    // instance requires auth to browse. With anonymous browsing enabled it
+    // serves the guest library instead, so the username field never appears
+    // and this scan dies on a 45s timeout without auditing anything — the
+    // same trap that took out global.setup.ts until it was fixed.
+    await page.goto('/app/login');
     await page.locator('input[autocomplete="username"]').waitFor({ state: 'visible' });
     await axeScan(page, 'login');
   });

@@ -187,7 +187,11 @@ test.describe('public authentication guards', () => {
       contentType: 'application/json',
       body: JSON.stringify({ error: { code: 'invalid_credentials', message: 'Invalid username or password' } }),
     }));
-    await page.goto('/app');
+    // /app/login: /app only renders the login form when the instance requires
+    // auth to browse. With anonymous browsing on it serves the guest library,
+    // the username field never appears, and this dies on a 45s timeout without
+    // testing the auth guard at all.
+    await page.goto('/app/login');
     await page.locator('input[autocomplete="username"]').fill('wrong');
     await page.locator('input[autocomplete="current-password"]').fill('wrong');
     await page.getByRole('button', { name: /sign in/i }).click();
@@ -205,7 +209,11 @@ test.describe('public authentication guards', () => {
       }
     });
     await page.route('**/api/v1/auth/login', (route) => route.abort());
-    await page.goto('/app');
+    // /app/login: /app only renders the login form when the instance requires
+    // auth to browse. With anonymous browsing on it serves the guest library,
+    // the username field never appears, and this dies on a 45s timeout without
+    // testing the auth guard at all.
+    await page.goto('/app/login');
     await page.locator('input[autocomplete="username"]').fill('offline');
     await page.locator('input[autocomplete="current-password"]').fill('offline');
     await page.getByRole('button', { name: /sign in/i }).click();
