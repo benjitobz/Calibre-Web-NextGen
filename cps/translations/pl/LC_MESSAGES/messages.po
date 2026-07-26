@@ -1285,7 +1285,7 @@ msgstr "Zdjęcie profilowe zostało pomyślnie zaktualizowane."
 msgid "Calibre-Web NextGen Profile Picture Management (WIP)"
 msgstr ""
 
-#: cps/db.py:1950 cps/spa_strings.py:57 cps/spa_strings.py:702
+#: cps/db.py:1985 cps/spa_strings.py:57 cps/spa_strings.py:702
 #: cps/templates/config_edit.html:359 cps/templates/config_view_edit.html:79
 #: cps/templates/config_view_edit.html:90 cps/templates/email_edit.html:41
 #: cps/web.py:816 cps/web.py:850 cps/web.py:895 cps/web.py:935 cps/web.py:964
