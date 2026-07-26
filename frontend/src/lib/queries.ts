@@ -193,9 +193,20 @@ export function useBooks(q: BooksQuery) {
   params.set('page', String(page));
   params.set('per_page', String(perPage));
   params.set('sort', sort);
-  // The API's search path is separate from entity/read filtering, so search is
-  // only sent in the unfiltered library view (the UI hides the search box when
-  // an entity filter is active).
+  // The API's search path is separate from entity/read filtering, so `search`
+  // is only sent in the unfiltered library view.
+  //
+  // The previous wording claimed "the UI hides the search box when an entity
+  // filter is active". It does not — TopBar renders the field unconditionally
+  // (no entityKind/view reference in that component at all). The reason this is
+  // nonetheless safe is different and worth stating correctly: the TopBar
+  // search is a <form onSubmit>, and submitting navigates to the unfiltered
+  // library, so a term is never typed into a still-filtered query. Verified
+  // against a running instance — typing alone issues no /api/v1/books request
+  // regardless of the active view.
+  //
+  // It matters that this is right, because the wrong version reads as "there is
+  // a guard elsewhere", which invites someone to remove this condition.
   if (search && !entityKind && !view) params.set('search', search);
   // A discovery view (hot/discover/rated/favorites/archived) owns ?filter=;
   // otherwise the read/unread segmented control does.
