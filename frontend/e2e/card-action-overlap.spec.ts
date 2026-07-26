@@ -16,7 +16,13 @@ import { test, expect } from '@playwright/test';
  * pixel diff would also fire on every unrelated restyle.
  */
 
-const OVERLAP = `() => {
+// IIFE, not a bare arrow function. page.evaluate() given a STRING evaluates it
+// as an expression, so `() => {...}` returns the function itself — which is not
+// serializable, so it arrives as undefined and every assertion dies on
+// "Cannot read properties of undefined". Shipped that way in #1112 and caught
+// by the e2e gate the first time it ran (#953), which is the gate earning its
+// keep on its first outing.
+const OVERLAP = `(() => {
   const labels = [...document.querySelectorAll('*')].filter(
     (e) => typeof e.className === 'string' && /readNow/.test(e.className));
   let checked = 0, worst = 0;
@@ -33,7 +39,7 @@ const OVERLAP = `() => {
     worst = Math.max(worst, Math.round(contentRight - pb.left));
   }
   return { checked, worst };
-}`;
+})()`;
 
 for (const [name, width, height] of [['phone', 360, 760], ['tablet', 768, 1024]] as const) {
   test(`the Edit control never covers the "Read now" label (${name}, #1112)`, async ({ page }) => {

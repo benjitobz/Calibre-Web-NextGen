@@ -493,6 +493,41 @@ jobs:
             exit 1
           fi
 
+      - name: Seed shelves
+        run: |
+          # The library the harness gets had three books and NO shelves, so
+          # every spec asserting shelf grouping failed on the fixture rather
+          # than on anything real (#1130). Reuse the session the ingest poll
+          # above already logged in with.
+          #
+          # Verification fixture only: these shelves exist so the sidebar has
+          # something to group. Nothing here changes product behaviour, and the
+          # e2e job stays advisory on PRs.
+          jar=$(mktemp)
+          csrf=$(curl -s -c "$jar" http://localhost:8083/api/v1/auth/csrf \
+            | python3 -c 'import sys,json;print(json.load(sys.stdin)["csrf_token"])')
+          curl -s -b "$jar" -c "$jar" -X POST http://localhost:8083/api/v1/auth/login \
+            -H 'Content-Type: application/json' -H "X-CSRFToken: $csrf" \
+            -d '{"username":"admin","password":"admin123"}' -o /dev/null
+          csrf=$(curl -s -b "$jar" -c "$jar" http://localhost:8083/api/v1/auth/csrf \
+            | python3 -c 'import sys,json;print(json.load(sys.stdin)["csrf_token"])')
+          for shelf in "Reading now" "To read"; do
+            code=$(curl -s -o /tmp/shelf.json -w '%{http_code}' \
+              -b "$jar" -c "$jar" -X POST http://localhost:8083/api/v1/shelves \
+              -H 'Content-Type: application/json' -H "X-CSRFToken: $csrf" \
+              -d "{\"name\": \"$shelf\"}")
+            echo "  create shelf '$shelf' -> $code"
+            # 409 is fine (already there); anything else is a broken fixture and
+            # should fail loudly rather than resurface as confusing spec failures.
+            if [ "$code" != "201" ] && [ "$code" != "409" ]; then
+              echo "::error::could not create shelf '$shelf' (HTTP $code)"; cat /tmp/shelf.json; exit 1
+            fi
+          done
+          total=$(curl -s -b "$jar" http://localhost:8083/api/v1/shelves \
+            | python3 -c 'import sys,json;d=json.load(sys.stdin);print(len(d.get("items",d if isinstance(d,list) else [])))' 2>/dev/null || echo 0)
+          echo "shelves now: $total"
+          [ "${total:-0}" -ge 1 ] || { echo "::error::no shelves after seeding"; exit 1; }
+
       - name: Install Playwright
         working-directory: frontend
         run: |
