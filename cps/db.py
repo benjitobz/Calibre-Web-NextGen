@@ -23,7 +23,7 @@ from sqlalchemy import String, Integer, Boolean, TIMESTAMP, Float
 from sqlalchemy.orm import relationship, sessionmaker, scoped_session, joinedload, object_session
 from sqlalchemy.orm.collections import InstrumentedList
 from sqlalchemy.ext.declarative import DeclarativeMeta
-from sqlalchemy.exc import OperationalError
+from sqlalchemy.exc import OperationalError, SQLAlchemyError
 try:
     # Compatibility with sqlalchemy 2.0
     from sqlalchemy.orm import declarative_base
@@ -1887,8 +1887,43 @@ class CalibreDB:
             .filter(or_(*filter_expression))
 
     def get_cc_columns(self, config, filter_config_custom_read=False):
-        self.ensure_session()
-        tmp_cc = self.session.query(CustomColumns).filter(CustomColumns.datatype.notin_(cc_exceptions)).all()
+        """Custom-column display definitions, or ``[]`` if they can't be read.
+
+        Degrading here rather than at each callsite is deliberate: five callers
+        (book detail page, book detail API, books table, and both search
+        surfaces) all want "the custom columns, if there are any", and none of
+        them can do anything useful with a DB error. Letting it propagate meant
+        an unreadable ``custom_columns`` table took whole pages down with a 500
+        over supplementary fields -- while the rest of the library read fine.
+
+        That happens whenever the metadata DB opens but its schema does not:
+        a library mid-write, a moved or renamed library path, ``custom_columns``
+        mid-migration, a partly restored library. An empty list is the same
+        thing these callers already handle for a library with no custom columns
+        at all, so the degraded page is a shape they all render correctly.
+        """
+        try:
+            self.ensure_session()
+            session = self.session
+            # no_autoflush because this is a read of definitions, and the
+            # session may be carrying a caller's pending mutation. With
+            # autoflush on, our SELECT would flush *their* write first, so an
+            # unrelated IntegrityError would surface here, get swallowed as
+            # "no custom columns", and leave the session needing a rollback for
+            # the rest of the request. Not reachable from today's five callers
+            # (all read paths), but the failure would be silent and remote from
+            # its cause, so don't leave it available to the sixth.
+            with session.no_autoflush:
+                tmp_cc = (session.query(CustomColumns)
+                          .filter(CustomColumns.datatype.notin_(cc_exceptions)).all())
+        except (SQLAlchemyError, AttributeError):
+            # AttributeError: the session is absent rather than unreadable --
+            # `session` is None whenever session_factory is (before init_db, or
+            # after an explicit `session = None`), and None.query() is an
+            # AttributeError rather than a SQLAlchemyError.
+            log.warning("Custom-column definitions unavailable; continuing without them",
+                        exc_info=True)
+            return []
         cc = []
         r = None
         if config.config_columns_to_ignore:
