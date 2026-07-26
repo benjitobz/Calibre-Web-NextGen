@@ -13,9 +13,15 @@ const PASS = process.env.E2E_PASS || 'admin123';
 setup('authenticate', async ({ page }) => {
   fs.mkdirSync('e2e/.auth', { recursive: true });
 
-  // The SPA renders its own login client-side at /app (the bare /login route is
-  // the legacy Jinja page). Go to the SPA shell and drive its login form.
-  await page.goto('/app');
+  // Go to the SPA's login ROUTE, not the shell. /app only shows a login form
+  // when the instance requires auth to browse; with anonymous browsing enabled
+  // (config_anonbrowse=1) it renders the guest library instead, so there is no
+  // username field and every spec in the run dies here on a 45s timeout before
+  // one of them executes. /app/login renders the form in both configurations.
+  //
+  // The bare /login route is the legacy Jinja page and is not what the SPA
+  // specs should be exercising.
+  await page.goto('/app/login');
   await page.locator('input[autocomplete="username"]').fill(USER);
   await page.locator('input[autocomplete="current-password"]').fill(PASS);
   await page.getByRole('button', { name: /sign in/i }).click();
