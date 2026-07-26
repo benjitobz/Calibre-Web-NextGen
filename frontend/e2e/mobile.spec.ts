@@ -47,13 +47,27 @@ test.describe('library gear menu at 360px', () => {
     await expect(gear).toBeVisible();
     await gear.click();
 
-    const menu = page.getByRole('menu');
+    // The panel is a plain <div>, not role="menu" — getByRole('menu') has never
+    // matched it, so this spec has been failing on mobile without ever
+    // measuring the geometry it exists to measure (#628: the menu must not
+    // extend past the left viewport edge when the gear wraps).
+    //
+    // Targeted by test id rather than by asserting a role, because which role
+    // this panel SHOULD carry is an open question: the trigger declares
+    // aria-haspopup="true" (i.e. "menu") while the popup has no role at all,
+    // so assistive tech is promised a menu and finds none. Picking between
+    // menu+menuitemcheckbox, dialog, or group is a design decision — tracked
+    // separately rather than guessed at here.
+    const menu = page.getByTestId('catalog-view-settings-menu');
     await expect(menu).toBeVisible();
     const box = (await menu.boundingBox())!;
     expect(box.x, 'menu extends past the left viewport edge (#628)').toBeGreaterThanOrEqual(0);
     expect(box.x + box.width, 'menu extends past the right viewport edge').toBeLessThanOrEqual(360);
 
     // The menu is still functional where it lands: the Discover toggle is clickable.
-    await expect(menu.getByRole('checkbox')).toBeVisible();
+    // .first(): the panel has grown a second toggle since this was written, so
+    // an unscoped checkbox lookup is a strict-mode violation. The assertion
+    // only needs the panel's content to be rendered, not a specific control.
+    await expect(menu.getByRole('checkbox').first()).toBeVisible();
   });
 });

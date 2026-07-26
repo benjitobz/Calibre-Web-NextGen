@@ -60,6 +60,13 @@ test('book detail exposes imported name, tag disclosure, and semantic progress',
 
 test('Customize panel can restore hidden Table view', async ({ page }) => {
   await page.goto('/app');
+  // The Customize control lives in the sidebar, which is a drawer at mobile
+  // widths — the button exists in the DOM but never becomes visible, so the
+  // click times out at 45s. Open the drawer first when it is there. (Same
+  // shape as the collapsed search field; the suite's sidebar spec already
+  // drives the hamburger this way.)
+  const hamburger = page.getByRole('button', { name: /open navigation/i });
+  if (await hamburger.isVisible().catch(() => false)) await hamburger.click();
   await page.getByRole('button', { name: 'Customize navigation' }).click();
   const table = page.getByRole('checkbox', { name: 'Show Table view' });
   await expect(table).toBeVisible();

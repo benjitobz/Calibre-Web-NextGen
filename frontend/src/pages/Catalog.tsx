@@ -697,7 +697,7 @@ export function Catalog({ entityKind, entityId, view, defaultFilter }: CatalogPr
               <Settings size={15} />
             </button>
             {settingsOpen && (
-              <div className={styles.settingsMenu}>
+              <div className={styles.settingsMenu} data-testid="catalog-view-settings-menu">
                 <p className={styles.settingsHead}>{t('View settings')}</p>
                 <label className={styles.settingsItem}>
                   <input
