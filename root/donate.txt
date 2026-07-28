@@ -1,2 +1,7 @@
-Calibre-Web NextGen: https://ko-fi.com/calibrewebnextgen
+Calibre-Web NextGen
+  GitHub Sponsors (0% fees, one-time or monthly): https://github.com/sponsors/new-usemame
+  Ko-fi:                                          https://ko-fi.com/calibrewebnextgen
+
+Nothing is paywalled. Every feature is GPL-3.0 and free whether you contribute or not.
+
 Built on Calibre-Web Automated by crocodilestick: https://ko-fi.com/crocodilestick/tip
