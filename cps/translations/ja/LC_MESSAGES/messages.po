@@ -586,19 +586,19 @@ msgstr "アップデート完了、OKを押してページを再読み込みし�
 msgid "Update failed:"
 msgstr "アップデート失敗:"
 
-#: cps/admin.py:2348 cps/updater.py:446 cps/updater.py:685 cps/updater.py:687
+#: cps/admin.py:2348 cps/updater.py:449 cps/updater.py:688 cps/updater.py:690
 msgid "HTTP Error"
 msgstr "HTTPエラー"
 
-#: cps/admin.py:2349 cps/updater.py:448 cps/updater.py:689
+#: cps/admin.py:2349 cps/updater.py:451 cps/updater.py:692
 msgid "Connection error"
 msgstr "接続エラー"
 
-#: cps/admin.py:2350 cps/updater.py:450 cps/updater.py:691
+#: cps/admin.py:2350 cps/updater.py:453 cps/updater.py:694
 msgid "Timeout while establishing connection"
 msgstr "接続確立中にタイムアウトしました"
 
-#: cps/admin.py:2351 cps/updater.py:452 cps/updater.py:693
+#: cps/admin.py:2351 cps/updater.py:455 cps/updater.py:696
 msgid "General error"
 msgstr "エラー発生"
 
@@ -898,111 +898,111 @@ msgstr ""
 msgid "Annotations: %(title)s"
 msgstr ""
 
-#: cps/constants.py:209
+#: cps/constants.py:214
 msgid "Czech"
 msgstr "チェコ語"
 
-#: cps/constants.py:210
+#: cps/constants.py:215
 msgid "German"
 msgstr "ドイツ語"
 
-#: cps/constants.py:211
+#: cps/constants.py:216
 msgid "Greek"
 msgstr "ギリシャ語"
 
-#: cps/constants.py:212
+#: cps/constants.py:217
 msgid "Spanish"
 msgstr "スペイン語"
 
-#: cps/constants.py:213
+#: cps/constants.py:218
 msgid "Finnish"
 msgstr "フィンランド語"
 
-#: cps/constants.py:214
+#: cps/constants.py:219
 msgid "French"
 msgstr "フランス語"
 
-#: cps/constants.py:215
+#: cps/constants.py:220
 msgid "Galician"
 msgstr "ガリシア語"
 
-#: cps/constants.py:216
+#: cps/constants.py:221
 msgid "Hungarian"
 msgstr "ハンガリー語"
 
-#: cps/constants.py:217
+#: cps/constants.py:222
 msgid "Indonesian"
 msgstr "インドネシア語"
 
-#: cps/constants.py:218
+#: cps/constants.py:223
 msgid "Italian"
 msgstr "イタリア語"
 
-#: cps/constants.py:219
+#: cps/constants.py:224
 msgid "Japanese"
 msgstr "日本語"
 
-#: cps/constants.py:220
+#: cps/constants.py:225
 msgid "Khmer"
 msgstr "クメール語"
 
-#: cps/constants.py:221
+#: cps/constants.py:226
 msgid "Korean"
 msgstr "韓国語"
 
-#: cps/constants.py:222
+#: cps/constants.py:227
 msgid "Dutch"
 msgstr "オランダ語"
 
-#: cps/constants.py:223
+#: cps/constants.py:228
 msgid "Norwegian"
 msgstr "ノルウェー語"
 
-#: cps/constants.py:224
+#: cps/constants.py:229
 msgid "Polish"
 msgstr "ポーランド語"
 
-#: cps/constants.py:225
+#: cps/constants.py:230
 msgid "Portuguese"
 msgstr "ポルトガル語"
 
-#: cps/constants.py:226
+#: cps/constants.py:231
 msgid "Portuguese (Brazil)"
 msgstr "ポルトガル語（ブラジル）"
 
-#: cps/constants.py:227
+#: cps/constants.py:232
 msgid "Russian"
 msgstr "ロシア語"
 
-#: cps/constants.py:228
+#: cps/constants.py:233
 msgid "Slovak"
 msgstr "スロバキア語"
 
-#: cps/constants.py:229
+#: cps/constants.py:234
 msgid "Slovenian"
 msgstr "スロベニア語"
 
-#: cps/constants.py:230
+#: cps/constants.py:235
 msgid "Swedish"
 msgstr "スウェーデン語"
 
-#: cps/constants.py:231
+#: cps/constants.py:236
 msgid "Turkish"
 msgstr "トルコ語"
 
-#: cps/constants.py:232
+#: cps/constants.py:237
 msgid "Ukrainian"
 msgstr "ウクライナ語"
 
-#: cps/constants.py:233
+#: cps/constants.py:238
 msgid "Vietnamese"
 msgstr "ベトナム語"
 
-#: cps/constants.py:234
+#: cps/constants.py:239
 msgid "Chinese (Simplified, China)"
 msgstr "中国語（簡体字、中国）"
 
-#: cps/constants.py:235
+#: cps/constants.py:240
 msgid "Chinese (Traditional, Taiwan)"
 msgstr "中国語（繁体字、台湾）"
 
@@ -1411,7 +1411,7 @@ msgid "Error editing book: {}"
 msgstr "本編集中のエラー: {}"
 
 #: cps/editbooks.py:1255 cps/editbooks.py:1305 cps/editbooks.py:2088
-#: cps/updater.py:674 cps/uploader.py:142 cps/uploader.py:151
+#: cps/updater.py:677 cps/uploader.py:142 cps/uploader.py:151
 msgid "Unknown"
 msgstr "不明"
 
@@ -2260,12 +2260,12 @@ msgstr "重複"
 msgid "Show Duplicate Books"
 msgstr "重複する書籍を表示"
 
-#: cps/render_template.py:252
+#: cps/render_template.py:259
 #, python-format
 msgid "Calibre-Web NextGen %(latest)s is available — you're on %(current)s."
 msgstr ""
 
-#: cps/render_template.py:262
+#: cps/render_template.py:269
 #, python-format
 msgid ""
 "Help improve Calibre-Web NextGen's %(language)s translations — %(count)s "
@@ -5932,17 +5932,17 @@ msgstr "キャンセル"
 msgid "Unknown Status"
 msgstr "不明"
 
-#: cps/updater.py:488 cps/updater.py:499 cps/updater.py:599 cps/updater.py:606
-#: cps/updater.py:621
+#: cps/updater.py:491 cps/updater.py:502 cps/updater.py:602 cps/updater.py:609
+#: cps/updater.py:624
 msgid "Unexpected data while reading update information"
 msgstr "アップデート情報の読み込み中に予期しないデータが見つかりました"
 
-#: cps/updater.py:495 cps/updater.py:613
+#: cps/updater.py:498 cps/updater.py:616
 msgid "No update available. You already have the latest version installed"
 msgstr ""
 "アップデートはありません。すでに最新バージョンがインストールされています"
 
-#: cps/updater.py:514
+#: cps/updater.py:517
 msgid ""
 "A new update is available. Click on the button below to update to the latest "
 "version."
@@ -5951,16 +5951,16 @@ msgstr ""
 "新してください。アップデートが利用可能です。下のボタンをクリックして最新バー"
 "ジョンにアップデートしてください。"
 
-#: cps/updater.py:531
+#: cps/updater.py:534
 msgid "Could not fetch update information"
 msgstr "アップデート情報を取得できません"
 
-#: cps/updater.py:542
+#: cps/updater.py:545
 msgid "Click on the button below to update to the latest stable version."
 msgstr ""
 "下のボタンをクリックして最新の安定バージョンにアップデートしてください。"
 
-#: cps/updater.py:550 cps/updater.py:565 cps/updater.py:576
+#: cps/updater.py:553 cps/updater.py:568 cps/updater.py:579
 #, python-format
 msgid ""
 "A new update is available. Click on the button below to update to version: "
@@ -5970,7 +5970,7 @@ msgstr ""
 "新してください。アップデートが利用可能です。下のボタンをクリックしてバージョ"
 "ン: %(version)s にアップデートしてください。"
 
-#: cps/updater.py:594
+#: cps/updater.py:597
 msgid "No release information available"
 msgstr "リリース情報がありません"
 

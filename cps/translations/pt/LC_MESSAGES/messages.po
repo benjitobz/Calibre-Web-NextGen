@@ -608,19 +608,19 @@ msgstr "Atualização concluída, pressione OK e refresque a página"
 msgid "Update failed:"
 msgstr "Atualização falhou:"
 
-#: cps/admin.py:2348 cps/updater.py:446 cps/updater.py:685 cps/updater.py:687
+#: cps/admin.py:2348 cps/updater.py:449 cps/updater.py:688 cps/updater.py:690
 msgid "HTTP Error"
 msgstr "Erro HTTP"
 
-#: cps/admin.py:2349 cps/updater.py:448 cps/updater.py:689
+#: cps/admin.py:2349 cps/updater.py:451 cps/updater.py:692
 msgid "Connection error"
 msgstr "Erro de ligação"
 
-#: cps/admin.py:2350 cps/updater.py:450 cps/updater.py:691
+#: cps/admin.py:2350 cps/updater.py:453 cps/updater.py:694
 msgid "Timeout while establishing connection"
 msgstr "Tempo limite ao estabelecer a ligação"
 
-#: cps/admin.py:2351 cps/updater.py:452 cps/updater.py:693
+#: cps/admin.py:2351 cps/updater.py:455 cps/updater.py:696
 msgid "General error"
 msgstr "Erro geral"
 
@@ -905,113 +905,113 @@ msgstr ""
 msgid "Annotations: %(title)s"
 msgstr ""
 
-#: cps/constants.py:209
+#: cps/constants.py:214
 msgid "Czech"
 msgstr ""
 
-#: cps/constants.py:210
+#: cps/constants.py:215
 msgid "German"
 msgstr ""
 
-#: cps/constants.py:211
+#: cps/constants.py:216
 msgid "Greek"
 msgstr ""
 
-#: cps/constants.py:212
+#: cps/constants.py:217
 msgid "Spanish"
 msgstr ""
 
-#: cps/constants.py:213
+#: cps/constants.py:218
 #, fuzzy
 msgid "Finnish"
 msgstr "Concluído"
 
-#: cps/constants.py:214
+#: cps/constants.py:219
 msgid "French"
 msgstr ""
 
-#: cps/constants.py:215
+#: cps/constants.py:220
 msgid "Galician"
 msgstr ""
 
-#: cps/constants.py:216
+#: cps/constants.py:221
 msgid "Hungarian"
 msgstr ""
 
-#: cps/constants.py:217
+#: cps/constants.py:222
 msgid "Indonesian"
 msgstr ""
 
-#: cps/constants.py:218
+#: cps/constants.py:223
 msgid "Italian"
 msgstr ""
 
-#: cps/constants.py:219
+#: cps/constants.py:224
 msgid "Japanese"
 msgstr ""
 
-#: cps/constants.py:220
+#: cps/constants.py:225
 msgid "Khmer"
 msgstr ""
 
-#: cps/constants.py:221
+#: cps/constants.py:226
 msgid "Korean"
 msgstr ""
 
-#: cps/constants.py:222
+#: cps/constants.py:227
 msgid "Dutch"
 msgstr ""
 
-#: cps/constants.py:223
+#: cps/constants.py:228
 msgid "Norwegian"
 msgstr ""
 
-#: cps/constants.py:224
+#: cps/constants.py:229
 #, fuzzy
 msgid "Polish"
 msgstr "Editora"
 
-#: cps/constants.py:225
+#: cps/constants.py:230
 msgid "Portuguese"
 msgstr ""
 
-#: cps/constants.py:226
+#: cps/constants.py:231
 msgid "Portuguese (Brazil)"
 msgstr ""
 
-#: cps/constants.py:227
+#: cps/constants.py:232
 msgid "Russian"
 msgstr ""
 
-#: cps/constants.py:228
+#: cps/constants.py:233
 msgid "Slovak"
 msgstr ""
 
-#: cps/constants.py:229
+#: cps/constants.py:234
 msgid "Slovenian"
 msgstr ""
 
-#: cps/constants.py:230
+#: cps/constants.py:235
 msgid "Swedish"
 msgstr ""
 
-#: cps/constants.py:231
+#: cps/constants.py:236
 msgid "Turkish"
 msgstr ""
 
-#: cps/constants.py:232
+#: cps/constants.py:237
 msgid "Ukrainian"
 msgstr ""
 
-#: cps/constants.py:233
+#: cps/constants.py:238
 msgid "Vietnamese"
 msgstr ""
 
-#: cps/constants.py:234
+#: cps/constants.py:239
 msgid "Chinese (Simplified, China)"
 msgstr ""
 
-#: cps/constants.py:235
+#: cps/constants.py:240
 msgid "Chinese (Traditional, Taiwan)"
 msgstr ""
 
@@ -1433,7 +1433,7 @@ msgid "Error editing book: {}"
 msgstr "Erro ao editar o livro: {}"
 
 #: cps/editbooks.py:1255 cps/editbooks.py:1305 cps/editbooks.py:2088
-#: cps/updater.py:674 cps/uploader.py:142 cps/uploader.py:151
+#: cps/updater.py:677 cps/uploader.py:142 cps/uploader.py:151
 msgid "Unknown"
 msgstr "Desconhecido"
 
@@ -2285,12 +2285,12 @@ msgstr ""
 msgid "Show Duplicate Books"
 msgstr "Mostrar livros mais bem pontuados"
 
-#: cps/render_template.py:252
+#: cps/render_template.py:259
 #, python-format
 msgid "Calibre-Web NextGen %(latest)s is available — you're on %(current)s."
 msgstr ""
 
-#: cps/render_template.py:262
+#: cps/render_template.py:269
 #, python-format
 msgid ""
 "Help improve Calibre-Web NextGen's %(language)s translations — %(count)s "
@@ -5947,17 +5947,17 @@ msgstr "Cancelado"
 msgid "Unknown Status"
 msgstr "Estado desconhecido"
 
-#: cps/updater.py:488 cps/updater.py:499 cps/updater.py:599 cps/updater.py:606
-#: cps/updater.py:621
+#: cps/updater.py:491 cps/updater.py:502 cps/updater.py:602 cps/updater.py:609
+#: cps/updater.py:624
 msgid "Unexpected data while reading update information"
 msgstr "Dados inesperados ao ler informações de atualização"
 
-#: cps/updater.py:495 cps/updater.py:613
+#: cps/updater.py:498 cps/updater.py:616
 msgid "No update available. You already have the latest version installed"
 msgstr ""
 "Não existem atualizações disponíveis. Você já tem instalada a última versão"
 
-#: cps/updater.py:514
+#: cps/updater.py:517
 msgid ""
 "A new update is available. Click on the button below to update to the latest "
 "version."
@@ -5965,15 +5965,15 @@ msgstr ""
 "Uma nova atualização está disponível. Clique no botão abaixo para atualizar "
 "para a versão mais recente."
 
-#: cps/updater.py:531
+#: cps/updater.py:534
 msgid "Could not fetch update information"
 msgstr "Não foi possível obter informações sobre atualizações"
 
-#: cps/updater.py:542
+#: cps/updater.py:545
 msgid "Click on the button below to update to the latest stable version."
 msgstr "Clique no botão abaixo para atualizar para a última versão estável."
 
-#: cps/updater.py:550 cps/updater.py:565 cps/updater.py:576
+#: cps/updater.py:553 cps/updater.py:568 cps/updater.py:579
 #, python-format
 msgid ""
 "A new update is available. Click on the button below to update to version: "
@@ -5982,7 +5982,7 @@ msgstr ""
 "Uma nova atualização está disponível. Clique no botão abaixo para atualizar "
 "para a versão: %(version)s"
 
-#: cps/updater.py:594
+#: cps/updater.py:597
 msgid "No release information available"
 msgstr "Não existem informações disponíveis sobre o lançamento"
 
