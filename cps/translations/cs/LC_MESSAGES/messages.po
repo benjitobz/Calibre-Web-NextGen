@@ -5861,6 +5861,19 @@ msgstr ""
 msgid "Starting scan…"
 msgstr ""
 
+#: cps/spa_strings.py:951
+msgid "Custom columns"
+msgstr ""
+
+#: cps/spa_strings.py:952
+msgid "Not set"
+msgstr ""
+
+#: cps/spa_strings.py:953
+#, python-brace-format
+msgid "{field} (comma separated)"
+msgstr ""
+
 #: cps/tasks_status.py:54
 msgid "Waiting"
 msgstr "Čekám"
