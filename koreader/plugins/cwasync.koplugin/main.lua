@@ -1569,9 +1569,12 @@ function CWASync:syncAnnotations(interactive)
             -- Whether we can actually enumerate the device's annotations. When
             -- we cannot, `localList` below is a placeholder, NOT an empty set —
             -- reading it as "the user deleted everything" would destroy the
-            -- library (#920).
-            local local_set_known = (provider.push_all_local or volume_id) and true or false
-            local localList = local_set_known and provider.readAll(volume_id) or {}
+            -- library (#920). The provider is picked before the pull and read
+            -- after it, so the reader can be torn down in between; only the read
+            -- itself can answer this, never a capability flag.
+            local plan = SyncLogic.planLocalContribution(
+                provider, volume_id, self:readAnnotationWatermark())
+            local localList = plan.list
             local diff = SyncLogic.diffAnnotations(localList, remote)
             if provider.push_all_local then
                 -- Phase 1 native KOReader provider: retries the complete local
@@ -1595,16 +1598,14 @@ function CWASync:syncAnnotations(interactive)
             -- only thing that carries a device-side delete (#905) — and the
             -- reason a second device can no longer wipe the first one's
             -- highlights by simply opening the book (#920).
-            local deleted = local_set_known
-                and SyncLogic.computeDeletions(self:readAnnotationWatermark(), localList)
-                or {}
+            local deleted = plan.deletions
             if #diff.send_to_server > 0 or #deleted > 0 then
                 client:push_annotations(self.settings.username, self.settings.password, digest,
                     diff.send_to_server, deleted,
                     function(ok2, _body2, reason)
                         -- Only once the server has it: a failed push must leave
                         -- the deletion pending, not forget it.
-                        if ok2 and local_set_known then
+                        if ok2 and plan.may_save_watermark then
                             self:saveAnnotationWatermark(localList)
                         end
                         if interactive then
