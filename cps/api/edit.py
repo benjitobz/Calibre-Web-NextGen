@@ -9,6 +9,7 @@ series/language parsing, activity logging, commit/rollback). The SPA edit form
 presents all fields together; we apply each changed field through that core.
 """
 import json
+from datetime import datetime
 
 from flask import jsonify, request, Response
 from flask_babel import get_locale
@@ -29,6 +30,10 @@ EDITABLE_FIELDS = [
     "title", "authors", "series", "series_index",
     "tags", "publishers", "languages", "comments", "rating", "pubdate",
 ]
+
+# Custom columns (#pages, #status, …) are addressed by their calibre table name,
+# the same key the classic editor's form fields and inline table editor use.
+CUSTOM_COLUMN_PREFIX = "custom_column_"
 
 
 def _err(code, message, status):
@@ -57,6 +62,149 @@ def _parse_edit_result(result):
     if isinstance(result, tuple):  # (message, status) — an error
         return False, str(result[0])
     return True, ""  # "" / None — success with no body
+
+
+def _custom_column_defs():
+    """The custom columns the editor offers, or ``[]`` if they can't be read.
+
+    ``filter_config_custom_read=False`` keeps the configured read-status column
+    in the list, because the classic editor has always let you set it and
+    dropping it here would be a silent parity loss. ``get_cc_columns`` already
+    excludes the datatypes calibre itself can't edit (``db.cc_exceptions`` --
+    composite and series) and degrades to ``[]`` on an unreadable metadata
+    schema rather than taking the editor down over supplementary fields (#1153).
+    """
+    return calibre_db.get_cc_columns(config, filter_config_custom_read=False)
+
+
+def _custom_column_value(book, column):
+    """One custom column's current value as the string ``edit_cc_data`` parses.
+
+    This is the inverse of the write path, so the shapes are not free choices:
+    ``''`` means "no value", bool is ``'True'``/``'False'``, datetime is
+    ``%Y-%m-%d`` (what ``edit_cc_data_value`` strptimes), rating is half-stars
+    0-5 (``edit_cc_data_string`` multiplies by two on the way back), and a
+    multi-value column is comma-joined (``edit_cc_data`` splits on ``,``).
+    Anything that doesn't round trip corrupts the value on the next save.
+    """
+    rows = getattr(book, CUSTOM_COLUMN_PREFIX + str(column.id), None) or []
+    if column.is_multiple:
+        return ", ".join(str(row.value) for row in rows if row.value is not None)
+    if not rows or rows[0].value is None:
+        return ""
+    value = rows[0].value
+    if column.datatype == "bool":
+        return "True" if value else "False"
+    if column.datatype == "datetime":
+        # Year <= 101 is calibre's DEFAULT_PUBDATE "no date" sentinel; render it
+        # blank so the date input shows empty rather than 0101-01-01 (#689).
+        if getattr(value, "year", 0) <= 101:
+            return ""
+        return value.date().isoformat() if hasattr(value, "date") else str(value)
+    if column.datatype == "rating":
+        # calibre stores 0-10; the editor speaks the same 0-5 half-stars the
+        # classic form shows. Emitting the raw value doubles it on every save.
+        return "%g" % (value / 2)
+    return str(value)
+
+
+def _custom_column_payload(book):
+    """Definitions + current values for every editable custom column."""
+    payload = []
+    for column in _custom_column_defs():
+        entry = {
+            "id": column.id,
+            "key": CUSTOM_COLUMN_PREFIX + str(column.id),
+            "label": column.label,
+            "name": column.name,
+            "datatype": column.datatype,
+            "is_multiple": bool(column.is_multiple),
+            "value": _custom_column_value(book, column),
+        }
+        if column.datatype == "enumeration":
+            # Allowed values live in the column's JSON `display` blob and were
+            # only reachable through the classic /ajax/getcustomenum route, so
+            # without them the SPA could only offer free text for a fixed set.
+            try:
+                entry["enum_values"] = list(column.get_display_dict().get("enum_values") or [])
+            except (ValueError, TypeError, AttributeError):
+                entry["enum_values"] = []
+        payload.append(entry)
+    return payload
+
+
+def _custom_write_value(column, raw):
+    """Normalize and validate a JSON custom-column value into the string
+    ``edit_cc_data`` parses. Returns ``(value, error)``; ``error`` is None on OK.
+
+    ``None`` clears (same as the classic form's empty field). Booleans are
+    spelled out because ``edit_cc_data_value`` compares against the literal
+    ``'True'``/``'False'`` -- ``str(False)`` happens to match, but a falsy
+    collapse to ``''`` would clear the column instead of setting it to No.
+    A list (how the SPA sends a multi-value column) is comma-joined.
+
+    Validation belongs here rather than in the core, because the core is shared
+    with the classic editor and only ever sees browser-constrained form input.
+    This endpoint takes arbitrary JSON, and the core reacts badly to values a
+    form could not produce:
+
+    * a non-numeric rating raises ``ValueError`` out of ``edit_cc_data_string``
+      (``int(float(v) * 2)``) -- an unhandled 500, and because every field
+      commits individually, one sent earlier in the same body has already landed;
+    * an unparseable datetime is swallowed into calibre's year-101 DEFAULT_PUBDATE
+      sentinel, so a stored date is erased and the caller is told nothing;
+    * a non-numeric string handed to an int/float column is stored as-is, because
+      SQLite's type affinity accepts text in a numeric column.
+
+    Rejecting is the right call over coercing: the value is user data, and
+    guessing what someone meant by a malformed date is how you lose the real one.
+    """
+    if raw is None:
+        return "", None
+    if isinstance(raw, bool):
+        return ("True" if raw else "False"), None
+    if isinstance(raw, dict):
+        return "", "Expected a single value, not an object"
+    if isinstance(raw, (list, tuple)):
+        if not column.is_multiple:
+            return "", "This column holds a single value"
+        if any(isinstance(v, (list, tuple, dict)) for v in raw):
+            return "", "Expected a list of plain values"
+        return ", ".join(str(v).strip() for v in raw if str(v).strip()), None
+
+    value = str(raw).strip()
+    if not value or column.is_multiple:
+        return value, None  # '' clears; multi-value entries are free text
+
+    datatype = column.datatype
+    if datatype in ("int", "float", "rating"):
+        try:
+            number = float(value)
+        except (TypeError, ValueError):
+            return "", "Expected a number"
+        if number != number or number in (float("inf"), float("-inf")):
+            return "", "Expected a number"  # NaN/inf survive float() but not int()
+        if datatype == "int":
+            if number != int(number):
+                return "", "Expected a whole number"
+            return str(int(number)), None
+        if datatype == "rating":
+            # The classic editor's control is 1-5 in half steps, and the store is
+            # 0-10; anything outside that writes a rating no UI can render back.
+            if not 0 <= number <= 5:
+                return "", "Expected a rating between 0 and 5"
+        return value, None
+    if datatype == "datetime":
+        try:
+            datetime.strptime(value, "%Y-%m-%d")
+        except ValueError:
+            return "", "Expected a date as YYYY-MM-DD"
+        return value, None
+    if datatype == "bool":
+        if value not in ("True", "False"):
+            return "", "Expected true or false"
+        return value, None
+    return value, None
 
 
 def _editable_metadata(book):
@@ -97,6 +245,10 @@ def _editable_metadata(book):
             {"type": i.type, "val": i.val}
             for i in (getattr(book, "identifiers", None) or [])
         ],
+        # User-defined calibre columns (#pages, #status, …). The SPA has shown
+        # these on the book page since v4.1.11 but had no way to change one, so
+        # setting a page count meant switching back to the classic view (#997).
+        "custom_columns": _custom_column_payload(book),
     }
 
 
@@ -191,6 +343,29 @@ def update_metadata(book_id):
         ok, message = _parse_edit_result(edit_book_param(field, vals))
         if not ok:
             errors[field] = message
+
+    # Custom columns (#997). edit_book_param already has a custom_column_ branch
+    # feeding edit_single_cc_data — the core the classic inline table editor has
+    # always used — so this is a routing gap, not missing write support. The id
+    # is checked against the real definitions first: edit_single_cc_data filters
+    # by id and simply does nothing when it matches no column, which would make
+    # a bad key look like a successful save.
+    custom_keys = [k for k in data if isinstance(k, str) and k.startswith(CUSTOM_COLUMN_PREFIX)]
+    if custom_keys:
+        editable = {CUSTOM_COLUMN_PREFIX + str(c.id): c for c in _custom_column_defs()}
+        for key in custom_keys:
+            column = editable.get(key)
+            if column is None:
+                errors[key] = "Unknown or non-editable custom column"
+                continue
+            value, invalid = _custom_write_value(column, data[key])
+            if invalid:
+                errors[key] = invalid
+                continue
+            ok, message = _parse_edit_result(
+                edit_book_param(key, {"pk": str(book_id), "value": value}))
+            if not ok:
+                errors[key] = message
 
     # Identifiers (ISBN/ASIN/…) — a list of {type, val}, reconciled against the
     # book's existing rows via the same helper the legacy editor uses (fork #580).
