@@ -19,7 +19,7 @@ msgstr ""
 "Plural-Forms: nplurals=1; plural=0;\n"
 "Generated-By: Babel 2.13.1\n"
 
-#: cps/about.py:65 cps/spa_strings.py:835
+#: cps/about.py:59 cps/spa_strings.py:835
 msgid "Statistics"
 msgstr "统计"
 
@@ -115,308 +115,308 @@ msgstr "未找到带有封面的书籍进行处理。"
 msgid "Failed to start thumbnail refresh: {}"
 msgstr "启动缩略图刷新失败：{}"
 
-#: cps/admin.py:596
+#: cps/admin.py:590
 msgid "Admin page"
 msgstr "管理页"
 
-#: cps/admin.py:616
+#: cps/admin.py:610
 #, fuzzy
 msgid "Hardcover token expires"
 msgstr "Hardcover API token"
 
-#: cps/admin.py:624
+#: cps/admin.py:618
 msgid "Basic Configuration"
 msgstr "基本配置"
 
-#: cps/admin.py:662
+#: cps/admin.py:656
 msgid "UI Configuration"
 msgstr "界面配置"
 
-#: cps/admin.py:686 cps/admin.py:1458 cps/db.py:1575 cps/search.py:153
+#: cps/admin.py:680 cps/admin.py:1452 cps/db.py:1575 cps/search.py:153
 #: cps/web.py:673 cps/web.py:1003
 #, python-format
 msgid "Custom Column No.%(column)d does not exist in calibre database"
 msgstr "自定义列号：%(column)d 在 Calibre 数据库中不存在"
 
-#: cps/admin.py:704 cps/templates/admin.html:55
+#: cps/admin.py:698 cps/templates/admin.html:55
 msgid "Edit Users"
 msgstr "管理用户"
 
-#: cps/admin.py:748 cps/opds.py:1311 cps/spa_strings.py:411
+#: cps/admin.py:742 cps/opds.py:1311 cps/spa_strings.py:411
 #: cps/templates/grid.html:14 cps/templates/list.html:19
 msgid "All"
 msgstr "全部"
 
-#: cps/admin.py:775 cps/admin.py:2180
+#: cps/admin.py:769 cps/admin.py:2174
 msgid "User not found"
 msgstr "找不到用户"
 
-#: cps/admin.py:789
+#: cps/admin.py:783
 #, python-brace-format
 msgid "{} users deleted successfully"
 msgstr "成功删除 {} 个用户"
 
-#: cps/admin.py:812 cps/api/account.py:70
+#: cps/admin.py:806 cps/api/account.py:70
 #: cps/templates/config_view_edit.html:186 cps/templates/user_edit.html:270
 #: cps/templates/user_edit.html:292 cps/templates/user_table.html:81
 msgid "Show All"
 msgstr "显示全部"
 
-#: cps/admin.py:836 cps/admin.py:842
+#: cps/admin.py:830 cps/admin.py:836
 msgid "Malformed request"
 msgstr "格式错误的请求"
 
-#: cps/admin.py:854 cps/admin.py:3112
+#: cps/admin.py:848 cps/admin.py:3106
 msgid "Guest Name can't be changed"
 msgstr "访客名称无法更改"
 
-#: cps/admin.py:874
+#: cps/admin.py:868
 msgid "Guest can't have this role"
 msgstr "游客无法拥有此角色"
 
-#: cps/admin.py:886 cps/admin.py:2937
+#: cps/admin.py:880 cps/admin.py:2931
 msgid "No admin user remaining, can't remove admin role"
 msgstr "没有其余管理员账户，无法删除管理员角色"
 
-#: cps/admin.py:890 cps/admin.py:904
+#: cps/admin.py:884 cps/admin.py:898
 msgid "Value has to be true or false"
 msgstr "值必须为 true 或 false"
 
-#: cps/admin.py:892
+#: cps/admin.py:886
 msgid "Invalid role"
 msgstr "无效角色"
 
-#: cps/admin.py:896
+#: cps/admin.py:890
 msgid "Guest can't have this view"
 msgstr "游客无法查看此页面"
 
-#: cps/admin.py:906
+#: cps/admin.py:900
 msgid "Invalid view"
 msgstr "无效页面"
 
-#: cps/admin.py:909
+#: cps/admin.py:903
 msgid "Guest's Locale is determined automatically and can't be set"
 msgstr "无法设置游客的本地化，该项设置的值将自动检测"
 
-#: cps/admin.py:913
+#: cps/admin.py:907
 msgid "No Valid Locale Given"
 msgstr "无可用本地化"
 
-#: cps/admin.py:924
+#: cps/admin.py:918
 msgid "No Valid Book Language Given"
 msgstr "无有效书籍语言"
 
-#: cps/admin.py:926 cps/editbooks.py:682
+#: cps/admin.py:920 cps/editbooks.py:682
 msgid "Parameter not found"
 msgstr "参数未找到"
 
-#: cps/admin.py:946 cps/admin.py:2111
+#: cps/admin.py:940 cps/admin.py:2105
 msgid "Settings DB is not Writeable"
 msgstr "设置数据库不可写"
 
-#: cps/admin.py:992
+#: cps/admin.py:986
 msgid ""
 "The title-sort rule was saved, but reordering the existing library failed — "
 "books may keep their previous order until you retry or edit them."
 msgstr ""
 
-#: cps/admin.py:997
+#: cps/admin.py:991
 msgid "Invalid Read Column"
 msgstr "无效的阅读栏目"
 
-#: cps/admin.py:1003
+#: cps/admin.py:997
 msgid "Invalid Restricted Column"
 msgstr "无效的限制栏目"
 
-#: cps/admin.py:1032 cps/admin.py:2793
+#: cps/admin.py:1026 cps/admin.py:2787
 msgid "Calibre-Web NextGen configuration updated"
 msgstr ""
 
-#: cps/admin.py:1044
+#: cps/admin.py:1038
 msgid "Do you really want to delete the Kobo Token?"
 msgstr "您确定删除 Kobo 令牌吗？"
 
-#: cps/admin.py:1046
+#: cps/admin.py:1040
 msgid "Do you really want to delete this domain?"
 msgstr "您确定要删除此域吗？"
 
-#: cps/admin.py:1048
+#: cps/admin.py:1042
 msgid "Do you really want to delete this user?"
 msgstr "您确定要删除此用户吗？"
 
-#: cps/admin.py:1050
+#: cps/admin.py:1044
 msgid "Are you sure you want to delete this shelf?"
 msgstr "您确定要删除此书架吗？"
 
-#: cps/admin.py:1052
+#: cps/admin.py:1046
 msgid "Are you sure you want to change locales of selected user(s)?"
 msgstr "您确定要修改选定用户的本地化设置吗？"
 
-#: cps/admin.py:1054
+#: cps/admin.py:1048
 msgid ""
 "Are you sure you want to change visible book languages for selected user(s)?"
 msgstr "您确定要修改选定用户的可见书籍语言吗？"
 
-#: cps/admin.py:1056
+#: cps/admin.py:1050
 msgid ""
 "Are you sure you want to change the selected role for the selected user(s)?"
 msgstr "您确定要修改选定用户的选定角色吗？"
 
-#: cps/admin.py:1058
+#: cps/admin.py:1052
 msgid ""
 "Are you sure you want to change the selected restrictions for the selected "
 "user(s)?"
 msgstr "您确定要修改选定用户的选定限制吗？"
 
-#: cps/admin.py:1060
+#: cps/admin.py:1054
 msgid ""
 "Are you sure you want to change the selected visibility restrictions for the "
 "selected user(s)?"
 msgstr "您确定要修改选定用户的选定可视化限制吗？"
 
-#: cps/admin.py:1063
+#: cps/admin.py:1057
 msgid ""
 "Are you sure you want to change shelf sync behavior for the selected user(s)?"
 msgstr "您确定要更改所选用户的书架同步行为吗？"
 
-#: cps/admin.py:1065
+#: cps/admin.py:1059
 #, fuzzy
 msgid ""
 "Are you sure you want to change OPDS shelf exposure for the selected user(s)?"
 msgstr "您确定要更改所选用户的书架同步行为吗？"
 
-#: cps/admin.py:1067
+#: cps/admin.py:1061
 msgid "Are you sure you want to change Calibre library location?"
 msgstr "您确定要更改 Calibre 库位置吗？"
 
-#: cps/admin.py:1069
+#: cps/admin.py:1063
 msgid ""
 "Calibre-Web NextGen will search for updated Covers and update Cover "
 "Thumbnails, this may take a while?"
 msgstr ""
 
-#: cps/admin.py:1072
+#: cps/admin.py:1066
 msgid ""
 "Are you sure you want delete Calibre-Web NextGen's sync database to force a "
 "full sync with your Kobo Reader?"
 msgstr ""
 
-#: cps/admin.py:1311 cps/admin.py:1317 cps/admin.py:1327 cps/admin.py:1337
+#: cps/admin.py:1305 cps/admin.py:1311 cps/admin.py:1321 cps/admin.py:1331
 #: cps/templates/modal_dialogs.html:29 cps/templates/user_table.html:41
 #: cps/templates/user_table.html:58
 msgid "Deny"
 msgstr "拒绝"
 
-#: cps/admin.py:1313 cps/admin.py:1319 cps/admin.py:1329 cps/admin.py:1339
+#: cps/admin.py:1307 cps/admin.py:1313 cps/admin.py:1323 cps/admin.py:1333
 #: cps/templates/modal_dialogs.html:28 cps/templates/user_table.html:44
 #: cps/templates/user_table.html:61
 msgid "Allow"
 msgstr "允许"
 
-#: cps/admin.py:1372
+#: cps/admin.py:1366
 #, python-brace-format
 msgid "{} sync entries deleted"
 msgstr "{} 同步项目被删除"
 
-#: cps/admin.py:1392
+#: cps/admin.py:1386
 #, fuzzy, python-brace-format
 msgid "Book {} not found"
 msgstr "找不到令牌"
 
-#: cps/admin.py:1402
+#: cps/admin.py:1396
 #, python-brace-format
 msgid ""
 "Cleared sync state for book {0} (user {1}); the device will re-receive the "
 "book on next sync"
 msgstr ""
 
-#: cps/admin.py:1405
+#: cps/admin.py:1399
 #, python-brace-format
 msgid ""
 "Book {0} was not in the sync record for user {1}; last_modified bumped so "
 "the device will receive on next sync"
 msgstr ""
 
-#: cps/admin.py:1449 cps/api/browse.py:79 cps/spa_strings.py:84
+#: cps/admin.py:1443 cps/api/browse.py:79 cps/spa_strings.py:84
 msgid "Tag not found"
 msgstr "标签未找到"
 
-#: cps/admin.py:1467
+#: cps/admin.py:1461
 msgid "Invalid Action"
 msgstr "无效的动作"
 
-#: cps/admin.py:1594
+#: cps/admin.py:1588
 msgid "client_secrets.json Is Not Configured For Web Application"
 msgstr "client_secrets.json 未为 Web 应用程序配置"
 
-#: cps/admin.py:1751
+#: cps/admin.py:1745
 msgid "Logfile Location is not Valid, Please Enter Correct Path"
 msgstr "日志文件路径无效，请输入正确的路径"
 
-#: cps/admin.py:1757
+#: cps/admin.py:1751
 msgid "Access Logfile Location is not Valid, Please Enter Correct Path"
 msgstr "访问日志路径无效，请输入正确的路径"
 
-#: cps/admin.py:1792
+#: cps/admin.py:1786
 msgid "Please Enter a LDAP Provider, Port, DN and User Object Identifier"
 msgstr "请输入 LDAP 主机、端口、DN 和用户对象标识符"
 
-#: cps/admin.py:1798
+#: cps/admin.py:1792
 msgid "Please Enter a LDAP Service Account and Password"
 msgstr "请输入一个 LDAP 服务账号和密码 "
 
-#: cps/admin.py:1801
+#: cps/admin.py:1795
 msgid "Please Enter a LDAP Service Account"
 msgstr "请输入一个 LDAP 服务账号"
 
-#: cps/admin.py:1806
+#: cps/admin.py:1800
 #, python-format
 msgid "LDAP Group Object Filter Needs to Have One \"%s\" Format Identifier"
 msgstr "LDAP 组对象过滤器需要一个具有“%s”格式标识符"
 
-#: cps/admin.py:1808
+#: cps/admin.py:1802
 msgid "LDAP Group Object Filter Has Unmatched Parenthesis"
 msgstr "LDAP 组对象过滤器的括号不匹配"
 
-#: cps/admin.py:1812
+#: cps/admin.py:1806
 #, python-format
 msgid "LDAP User Object Filter needs to Have One \"%s\" Format Identifier"
 msgstr "LDAP 用户对象过滤器需要一个具有“%s”格式标识符"
 
-#: cps/admin.py:1814
+#: cps/admin.py:1808
 msgid "LDAP User Object Filter Has Unmatched Parenthesis"
 msgstr "LDAP 用户对象过滤器的括号不匹配"
 
-#: cps/admin.py:1821
+#: cps/admin.py:1815
 #, python-format
 msgid "LDAP Member User Filter needs to Have One \"%s\" Format Identifier"
 msgstr "LDAP 成员用户过滤器需要有一个“%s”格式标识符"
 
-#: cps/admin.py:1823
+#: cps/admin.py:1817
 msgid "LDAP Member User Filter Has Unmatched Parenthesis"
 msgstr "LDAP 成员用户过滤器中有不匹配的括号"
 
-#: cps/admin.py:1830
+#: cps/admin.py:1824
 msgid ""
 "LDAP CACertificate, Certificate or Key Location is not Valid, Please Enter "
 "Correct Path"
 msgstr "LDAP CA证书、证书或密钥位置无效，请输入正确的路径"
 
-#: cps/admin.py:1863 cps/templates/admin.html:57
+#: cps/admin.py:1857 cps/templates/admin.html:57
 msgid "Add New User"
 msgstr "添加新用户"
 
-#: cps/admin.py:1878 cps/templates/admin.html:105
+#: cps/admin.py:1872 cps/templates/admin.html:105
 #: cps/templates/broadcast_email.html:9
 msgid "Edit Email Server Settings"
 msgstr "编辑邮件服务器设置"
 
-#: cps/admin.py:1897
+#: cps/admin.py:1891
 msgid "Success! Gmail Account Verified."
 msgstr "Gmail 账户验证成功"
 
-#: cps/admin.py:1921 cps/admin.py:1924 cps/admin.py:2533 cps/admin.py:2769
-#: cps/admin.py:2894 cps/admin.py:3155 cps/editbooks.py:1157
+#: cps/admin.py:1915 cps/admin.py:1918 cps/admin.py:2527 cps/admin.py:2763
+#: cps/admin.py:2888 cps/admin.py:3149 cps/editbooks.py:1157
 #: cps/editbooks.py:2040 cps/shelf.py:148 cps/shelf.py:226 cps/shelf.py:297
 #: cps/shelf.py:332 cps/shelf.py:389 cps/shelf.py:464 cps/shelf.py:547
 #: cps/shelf.py:672 cps/tasks/convert.py:145 cps/web.py:3106
@@ -424,234 +424,234 @@ msgstr "Gmail 账户验证成功"
 msgid "Oops! Database Error: %(error)s."
 msgstr "数据库错误：%(error)s"
 
-#: cps/admin.py:1931
+#: cps/admin.py:1925
 #, python-format
 msgid ""
 "Test e-mail queued for sending to %(email)s, please check Tasks for result"
 msgstr "发送给 %(email)s 的测试邮件已加入队列。请检查任务结果"
 
-#: cps/admin.py:1934
+#: cps/admin.py:1928
 #, python-format
 msgid "There was an error sending the Test e-mail: %(res)s"
 msgstr "发送测试邮件时出错：%(res)s"
 
-#: cps/admin.py:1936
+#: cps/admin.py:1930
 msgid "Please configure your e-mail address first..."
 msgstr "请先配置您的邮箱地址..."
 
-#: cps/admin.py:1938
+#: cps/admin.py:1932
 msgid "Email Server Settings updated"
 msgstr "邮件服务器设置已更新"
 
-#: cps/admin.py:1978 cps/templates/admin.html:106
+#: cps/admin.py:1972 cps/templates/admin.html:106
 #, fuzzy
 msgid "Email Your Users"
 msgstr "管理用户"
 
-#: cps/admin.py:2004
+#: cps/admin.py:1998
 #, fuzzy
 msgid ""
 "Please configure the email server under Edit Email Server Settings first."
 msgstr "请先配置 SMTP 邮箱设置..."
 
-#: cps/admin.py:2009
+#: cps/admin.py:2003
 msgid "Please enter a subject for the announcement email."
 msgstr ""
 
-#: cps/admin.py:2012
+#: cps/admin.py:2006
 msgid "Please enter a message body for the announcement email."
 msgstr ""
 
-#: cps/admin.py:2018
+#: cps/admin.py:2012
 #, fuzzy
 msgid "Please set an email address on your own account first..."
 msgstr "请先配置您的邮箱地址..."
 
-#: cps/admin.py:2031
+#: cps/admin.py:2025
 #, fuzzy
 msgid "Please select at least one recipient."
 msgstr "新密码已发送到您的邮箱"
 
-#: cps/admin.py:2037
+#: cps/admin.py:2031
 msgid "No valid recipients — nothing was sent."
 msgstr ""
 
-#: cps/admin.py:2041
+#: cps/admin.py:2035
 #, fuzzy, python-format
 msgid ""
 "Test announcement email queued to %(email)s — check Tasks for the result."
 msgstr "发送给 %(email)s 的测试邮件已加入队列。请检查任务结果"
 
-#: cps/admin.py:2045
+#: cps/admin.py:2039
 #, fuzzy, python-format
 msgid ""
 "Announcement email queued for %(num)s recipient(s) — check Tasks for "
 "delivery."
 msgstr "发送给 %(email)s 的测试邮件已加入队列。请检查任务结果"
 
-#: cps/admin.py:2047
+#: cps/admin.py:2041
 #, python-format
 msgid "%(num)s address(es) were skipped as invalid or duplicate."
 msgstr ""
 
-#: cps/admin.py:2070 cps/templates/admin.html:202
+#: cps/admin.py:2064 cps/templates/admin.html:202
 msgid "Edit Scheduled Tasks Settings"
 msgstr "编辑计划任务设置"
 
-#: cps/admin.py:2082
+#: cps/admin.py:2076
 msgid "Invalid start time for task specified"
 msgstr "指定任务的开始时间无效"
 
-#: cps/admin.py:2087
+#: cps/admin.py:2081
 msgid "Invalid duration for task specified"
 msgstr "指定任务的持续时间无效"
 
-#: cps/admin.py:2097
+#: cps/admin.py:2091
 msgid "Scheduled tasks settings updated"
 msgstr "已更新计划任务设置"
 
-#: cps/admin.py:2107 cps/admin.py:2251 cps/admin.py:3151 cps/web.py:2538
+#: cps/admin.py:2101 cps/admin.py:2245 cps/admin.py:3145 cps/web.py:2538
 msgid "Oops! An unknown error occurred. Please try again later."
 msgstr "发生一个未知错误，请稍后再试"
 
-#: cps/admin.py:2130 cps/opds.py:316 cps/opds.py:354 cps/opds.py:357
+#: cps/admin.py:2124 cps/opds.py:316 cps/opds.py:354 cps/opds.py:357
 #: cps/web.py:3022 cps/web.py:3157
 #, fuzzy
 msgid "title"
 msgstr "标题"
 
-#: cps/admin.py:2236 cps/admin.py:3143
+#: cps/admin.py:2230 cps/admin.py:3137
 #, python-format
 msgid "Edit User %(nick)s"
 msgstr "编辑用户 %(nick)s"
 
-#: cps/admin.py:2248
+#: cps/admin.py:2242
 #, python-format
 msgid "Success! Password for user %(user)s reset"
 msgstr "用户 %(user)s 的密码已重置"
 
-#: cps/admin.py:2254
+#: cps/admin.py:2248
 msgid "Oops! Please configure the SMTP mail settings."
 msgstr "请先配置 SMTP 邮箱设置..."
 
-#: cps/admin.py:2265
+#: cps/admin.py:2259
 msgid "Logfile viewer"
 msgstr "日志文件查看器"
 
-#: cps/admin.py:2341
+#: cps/admin.py:2335
 msgid "Requesting update package"
 msgstr "正在请求更新包"
 
-#: cps/admin.py:2342
+#: cps/admin.py:2336
 msgid "Downloading update package"
 msgstr "正在下载更新包"
 
-#: cps/admin.py:2343
+#: cps/admin.py:2337
 msgid "Unzipping update package"
 msgstr "正在解压更新包"
 
-#: cps/admin.py:2344
+#: cps/admin.py:2338
 msgid "Replacing files"
 msgstr "正在替换文件"
 
-#: cps/admin.py:2345
+#: cps/admin.py:2339
 msgid "Database connections are closed"
 msgstr "数据库连接已关闭"
 
-#: cps/admin.py:2346
+#: cps/admin.py:2340
 msgid "Stopping server"
 msgstr "正在停止服务器"
 
-#: cps/admin.py:2347
+#: cps/admin.py:2341
 msgid "Update finished, please press okay and reload page"
 msgstr "更新完成，请点击确定并刷新页面"
 
-#: cps/admin.py:2348 cps/admin.py:2349 cps/admin.py:2350 cps/admin.py:2351
-#: cps/admin.py:2352 cps/admin.py:2353
+#: cps/admin.py:2342 cps/admin.py:2343 cps/admin.py:2344 cps/admin.py:2345
+#: cps/admin.py:2346 cps/admin.py:2347
 msgid "Update failed:"
 msgstr "更新失败："
 
-#: cps/admin.py:2348 cps/updater.py:449 cps/updater.py:688 cps/updater.py:690
+#: cps/admin.py:2342 cps/updater.py:457 cps/updater.py:696 cps/updater.py:698
 msgid "HTTP Error"
 msgstr "HTTP 错误"
 
-#: cps/admin.py:2349 cps/updater.py:451 cps/updater.py:692
+#: cps/admin.py:2343 cps/updater.py:459 cps/updater.py:700
 msgid "Connection error"
 msgstr "连接错误"
 
-#: cps/admin.py:2350 cps/updater.py:453 cps/updater.py:694
+#: cps/admin.py:2344 cps/updater.py:461 cps/updater.py:702
 msgid "Timeout while establishing connection"
 msgstr "建立连接超时"
 
-#: cps/admin.py:2351 cps/updater.py:455 cps/updater.py:696
+#: cps/admin.py:2345 cps/updater.py:463 cps/updater.py:704
 msgid "General error"
 msgstr "一般错误"
 
-#: cps/admin.py:2352
+#: cps/admin.py:2346
 msgid "Update file could not be saved in temp dir"
 msgstr "更新文件无法保存在临时目录中"
 
-#: cps/admin.py:2353
+#: cps/admin.py:2347
 msgid "Files could not be replaced during update"
 msgstr "更新期间无法替换文件"
 
-#: cps/admin.py:2377
+#: cps/admin.py:2371
 msgid "Failed to extract at least One LDAP User"
 msgstr "未能获得任何 LDAP 用户"
 
-#: cps/admin.py:2426
+#: cps/admin.py:2420
 msgid "Failed to Create at Least One LDAP User"
 msgstr "未能创建任何 LDAP 用户"
 
-#: cps/admin.py:2439
+#: cps/admin.py:2433
 #, python-format
 msgid "Error: %(ldaperror)s"
 msgstr "错误：%(ldaperror)s"
 
-#: cps/admin.py:2443
+#: cps/admin.py:2437
 msgid "Error: No user returned in response of LDAP server"
 msgstr "错误：在 LDAP 服务器的响应中没有返回用户"
 
-#: cps/admin.py:2479
+#: cps/admin.py:2473
 msgid "At Least One LDAP User Not Found in Database"
 msgstr "数据库中没有找到任何 LDAP 用户"
 
-#: cps/admin.py:2481
+#: cps/admin.py:2475
 #, python-brace-format
 msgid "{} User Successfully Imported"
 msgstr "{} 用户被成功导入"
 
-#: cps/admin.py:2545
+#: cps/admin.py:2539
 msgid "Books path not valid"
 msgstr "书籍路径无效"
 
-#: cps/admin.py:2552
+#: cps/admin.py:2546
 msgid "DB Location is not Valid, Please Enter Correct Path"
 msgstr "数据库路径无效，请输入正确的路径"
 
-#: cps/admin.py:2577
+#: cps/admin.py:2571
 msgid "DB is not Writeable"
 msgstr "数据库不可写入"
 
-#: cps/admin.py:2592
+#: cps/admin.py:2586
 msgid "Keyfile Location is not Valid, Please Enter Correct Path"
 msgstr "密钥文件路径无效，请输入正确的路径"
 
-#: cps/admin.py:2596
+#: cps/admin.py:2590
 msgid "Certfile Location is not Valid, Please Enter Correct Path"
 msgstr "证书文件路径无效，请输入正确的路径"
 
-#: cps/admin.py:2690
+#: cps/admin.py:2684
 msgid ""
 "Auto-create users cannot be enabled without enabling reverse proxy "
 "authentication"
 msgstr "在未启用反向代理身份验证的情况下，无法启用自动创建用户"
 
-#: cps/admin.py:2693
+#: cps/admin.py:2687
 msgid "Auto-create users requires a valid reverse proxy header name"
 msgstr "自动创建用户需要有效的反向代理标头名称"
 
-#: cps/admin.py:2712 cps/admin.py:2719
+#: cps/admin.py:2706 cps/admin.py:2713
 msgid ""
 "Invalid OAuth Redirect Host format. Please include the full URL with "
 "protocol (e.g., https://your-domain.com)"
@@ -659,185 +659,185 @@ msgstr ""
 "OAuth 重定向主机格式无效。请包含带有协议的完整 URL（例如，https://your-"
 "domain.com）"
 
-#: cps/admin.py:2716
+#: cps/admin.py:2710
 msgid ""
 "OAuth Redirect Host should not include a path. Use only the base URL (e.g., "
 "https://your-domain.com)"
 msgstr ""
 "OAuth 重定向主机不应包含路径。仅使用基本 URL（例如，https://your-domain.com）"
 
-#: cps/admin.py:2752
+#: cps/admin.py:2746
 msgid "Password length has to be between 1 and 40"
 msgstr "密码长度必须在1到40之间"
 
-#: cps/admin.py:2820
+#: cps/admin.py:2814
 msgid "Database Settings updated"
 msgstr "数据库设置已更新"
 
-#: cps/admin.py:2828
+#: cps/admin.py:2822
 msgid "Database Configuration"
 msgstr "数据库配置"
 
-#: cps/admin.py:2849 cps/web.py:2503
+#: cps/admin.py:2843 cps/web.py:2503
 msgid "Oops! Please complete all fields."
 msgstr "请填写所有字段！"
 
-#: cps/admin.py:2858
+#: cps/admin.py:2852
 msgid "E-mail is not from valid domain"
 msgstr "邮箱不在有效域中"
 
-#: cps/admin.py:2866
+#: cps/admin.py:2860
 msgid "Add new user"
 msgstr "添加新用户"
 
-#: cps/admin.py:2884
+#: cps/admin.py:2878
 #, python-format
 msgid "User '%(user)s' created"
 msgstr "用户“%(user)s”已创建"
 
-#: cps/admin.py:2890
+#: cps/admin.py:2884
 msgid "Oops! An account already exists for this Email. or name."
 msgstr "使用此邮箱或用户名的账号已经存在"
 
-#: cps/admin.py:2916
+#: cps/admin.py:2910
 #, python-format
 msgid "User '%(nick)s' deleted"
 msgstr "用户“%(nick)s”已删除"
 
-#: cps/admin.py:2919
+#: cps/admin.py:2913
 msgid "Can't delete Guest User"
 msgstr "无法删除游客用户"
 
-#: cps/admin.py:2922
+#: cps/admin.py:2916
 msgid "No admin user remaining, can't delete user"
 msgstr "管理员账户不存在，无法删除用户"
 
-#: cps/admin.py:3106 cps/web.py:2837
+#: cps/admin.py:3100 cps/web.py:2837
 msgid "Email can't be empty and has to be a valid Email"
 msgstr "电子邮件地址不能为空，并且必须是有效的电子邮件"
 
-#: cps/admin.py:3147
+#: cps/admin.py:3141
 #, python-format
 msgid "User '%(nick)s' updated"
 msgstr "用户“%(nick)s”已更新"
 
-#: cps/admin.py:3212
+#: cps/admin.py:3206
 #, python-format
 msgid ""
 "Connection successful! OIDC discovery endpoint is accessible.%(endpoints)s"
 msgstr "连接成功！OIDC 发现端点可访问。%(endpoints)s"
 
-#: cps/admin.py:3217
+#: cps/admin.py:3211
 msgid ""
 "Connection failed: OIDC discovery endpoint not found (404). Check if the "
 "base URL is correct."
 msgstr "连接失败：未找到 OIDC 发现端点 (404)。请检查基本 URL 是否正确。"
 
-#: cps/admin.py:3219 cps/admin.py:3276
+#: cps/admin.py:3213 cps/admin.py:3270
 #, python-format
 msgid "Connection failed: Server returned status code %(code)s"
 msgstr "连接失败：服务器返回状态码 %(code)s"
 
-#: cps/admin.py:3221
+#: cps/admin.py:3215
 #, fuzzy
 msgid ""
 "Connection failed: Could not connect to server. Check the URL and network "
 "connectivity."
 msgstr "连接失败：无法连接到服务器。"
 
-#: cps/admin.py:3223
+#: cps/admin.py:3217
 #, fuzzy
 msgid ""
 "Connection failed: Request timed out. The server may be slow or unreachable."
 msgstr "连接失败：请求超时。"
 
-#: cps/admin.py:3225
+#: cps/admin.py:3219
 #, fuzzy
 msgid ""
 "Connection failed: Server returned invalid JSON. This may not be an OIDC "
 "endpoint."
 msgstr "连接失败：响应中的 JSON 无效。"
 
-#: cps/admin.py:3228
+#: cps/admin.py:3222
 #, fuzzy, python-format
 msgid "Connection failed: %(error)s"
 msgstr "连接错误"
 
-#: cps/admin.py:3254
+#: cps/admin.py:3248
 #, fuzzy, python-format
 msgid ""
 "Metadata is missing required OIDC fields: %(fields)s. This may not be a "
 "valid OIDC metadata endpoint."
 msgstr "元数据缺少必填字段：%(fields)s"
 
-#: cps/admin.py:3265
+#: cps/admin.py:3259
 #, fuzzy, python-format
 msgid "Metadata URL is valid! Found %(count)s OAuth endpoints."
 msgstr "元数据 URL 有效！找到 %(count)s 个端点。"
 
-#: cps/admin.py:3267
+#: cps/admin.py:3261
 #, fuzzy
 msgid " User info endpoint is available."
 msgstr "无可用发布信息"
 
-#: cps/admin.py:3269
+#: cps/admin.py:3263
 msgid ""
 " Note: User info endpoint not found - this may cause authentication issues."
 msgstr " 注意：未找到用户信息端点 - 这可能会导致身份验证问题。"
 
-#: cps/admin.py:3274
+#: cps/admin.py:3268
 msgid "Metadata URL not found (404). Please check the URL is correct."
 msgstr "未找到元数据 URL (404)。请检查 URL 是否正确。"
 
-#: cps/admin.py:3278
+#: cps/admin.py:3272
 #, fuzzy
 msgid ""
 "Connection failed: Could not connect to metadata URL. Check the URL and "
 "network connectivity."
 msgstr "连接失败：无法连接到服务器。"
 
-#: cps/admin.py:3280
+#: cps/admin.py:3274
 msgid "Connection failed: Request timed out."
 msgstr "连接失败：请求超时。"
 
-#: cps/admin.py:3282
+#: cps/admin.py:3276
 msgid "Connection failed: Invalid JSON in response."
 msgstr "连接失败：响应中的 JSON 无效。"
 
-#: cps/admin.py:3285
+#: cps/admin.py:3279
 #, fuzzy
 msgid "An unknown error occurred."
 msgstr "发生一个未知错误，请稍后再试"
 
-#: cps/admin.py:3297
+#: cps/admin.py:3291
 #, fuzzy
 msgid "Restore already in progress."
 msgstr "连接错误"
 
-#: cps/admin.py:3301
+#: cps/admin.py:3295
 msgid "Restore failed: Calibre library path is not configured."
 msgstr "还原失败：未配置 Calibre 书库路径。"
 
-#: cps/admin.py:3306
+#: cps/admin.py:3300
 #, python-format
 msgid "Restore failed: metadata.db not found at %(path)s"
 msgstr "还原失败：在 %(path)s 未找到 metadata.db"
 
-#: cps/admin.py:3311
+#: cps/admin.py:3305
 #, python-format
 msgid "Restore failed: app.db not found at %(path)s"
 msgstr "还原失败：在 %(path)s 未找到 app.db"
 
-#: cps/admin.py:3383 cps/admin.py:3426
+#: cps/admin.py:3377 cps/admin.py:3420
 #, fuzzy, python-format
 msgid "Restore failed: %(err)s"
 msgstr "连接错误"
 
-#: cps/admin.py:3403
+#: cps/admin.py:3397
 msgid "Restore completed but app.db cleanup failed. See logs for details."
 msgstr "还原已完成，但清理 app.db 失败。详情请查看日志。"
 
-#: cps/admin.py:3422
+#: cps/admin.py:3416
 #, python-format
 msgid ""
 "Restore complete. Backups and restore log saved to %(dir)s. All book-linked "
@@ -867,113 +867,113 @@ msgstr ""
 msgid "Annotations: %(title)s"
 msgstr ""
 
-#: cps/constants.py:214
+#: cps/constants.py:231
 msgid "Czech"
 msgstr "捷克语"
 
-#: cps/constants.py:215
+#: cps/constants.py:232
 msgid "German"
 msgstr "德语"
 
-#: cps/constants.py:216
+#: cps/constants.py:233
 msgid "Greek"
 msgstr "希腊语"
 
-#: cps/constants.py:217
+#: cps/constants.py:234
 msgid "Spanish"
 msgstr "西班牙语"
 
-#: cps/constants.py:218
+#: cps/constants.py:235
 #, fuzzy
 msgid "Finnish"
 msgstr "已完成"
 
-#: cps/constants.py:219
+#: cps/constants.py:236
 msgid "French"
 msgstr "法语"
 
-#: cps/constants.py:220
+#: cps/constants.py:237
 msgid "Galician"
 msgstr "加利西亚语"
 
-#: cps/constants.py:221
+#: cps/constants.py:238
 msgid "Hungarian"
 msgstr "匈牙利语"
 
-#: cps/constants.py:222
+#: cps/constants.py:239
 msgid "Indonesian"
 msgstr "印尼语"
 
-#: cps/constants.py:223
+#: cps/constants.py:240
 msgid "Italian"
 msgstr "意大利语"
 
-#: cps/constants.py:224
+#: cps/constants.py:241
 msgid "Japanese"
 msgstr "日语"
 
-#: cps/constants.py:225
+#: cps/constants.py:242
 msgid "Khmer"
 msgstr "高棉语"
 
-#: cps/constants.py:226
+#: cps/constants.py:243
 msgid "Korean"
 msgstr "韩语"
 
-#: cps/constants.py:227
+#: cps/constants.py:244
 msgid "Dutch"
 msgstr "荷兰语"
 
-#: cps/constants.py:228
+#: cps/constants.py:245
 msgid "Norwegian"
 msgstr "挪威语"
 
-#: cps/constants.py:229
+#: cps/constants.py:246
 #, fuzzy
 msgid "Polish"
 msgstr "出版社"
 
-#: cps/constants.py:230
+#: cps/constants.py:247
 msgid "Portuguese"
 msgstr "葡萄牙语"
 
-#: cps/constants.py:231
+#: cps/constants.py:248
 msgid "Portuguese (Brazil)"
 msgstr "葡萄牙语（巴西）"
 
-#: cps/constants.py:232
+#: cps/constants.py:249
 msgid "Russian"
 msgstr "俄语"
 
-#: cps/constants.py:233
+#: cps/constants.py:250
 msgid "Slovak"
 msgstr "斯洛伐克语"
 
-#: cps/constants.py:234
+#: cps/constants.py:251
 msgid "Slovenian"
 msgstr "斯洛文尼亚语"
 
-#: cps/constants.py:235
+#: cps/constants.py:252
 msgid "Swedish"
 msgstr "瑞典语"
 
-#: cps/constants.py:236
+#: cps/constants.py:253
 msgid "Turkish"
 msgstr "土耳其语"
 
-#: cps/constants.py:237
+#: cps/constants.py:254
 msgid "Ukrainian"
 msgstr "乌克兰语"
 
-#: cps/constants.py:238
+#: cps/constants.py:255
 msgid "Vietnamese"
 msgstr "越南语"
 
-#: cps/constants.py:239
+#: cps/constants.py:256
 msgid "Chinese (Simplified, China)"
 msgstr "简体中文"
 
-#: cps/constants.py:240
+#: cps/constants.py:257
 msgid "Chinese (Traditional, Taiwan)"
 msgstr "繁体中文"
 
@@ -1388,7 +1388,7 @@ msgid "Error editing book: {}"
 msgstr "编辑书籍时出错: {}"
 
 #: cps/editbooks.py:1255 cps/editbooks.py:1305 cps/editbooks.py:2088
-#: cps/updater.py:677 cps/uploader.py:142 cps/uploader.py:151
+#: cps/updater.py:685 cps/uploader.py:142 cps/uploader.py:151
 msgid "Unknown"
 msgstr "未知"
 
@@ -5883,37 +5883,37 @@ msgstr "已取消"
 msgid "Unknown Status"
 msgstr "未知状态"
 
-#: cps/updater.py:491 cps/updater.py:502 cps/updater.py:602 cps/updater.py:609
-#: cps/updater.py:624
+#: cps/updater.py:499 cps/updater.py:510 cps/updater.py:610 cps/updater.py:617
+#: cps/updater.py:632
 msgid "Unexpected data while reading update information"
 msgstr "读取更新信息时出现异常数据"
 
-#: cps/updater.py:498 cps/updater.py:616
+#: cps/updater.py:506 cps/updater.py:624
 msgid "No update available. You already have the latest version installed"
 msgstr "无可用更新。您已经安装了最新版本"
 
-#: cps/updater.py:517
+#: cps/updater.py:525
 msgid ""
 "A new update is available. Click on the button below to update to the latest "
 "version."
 msgstr "有新的更新。单击下面的按钮以更新到最新版本"
 
-#: cps/updater.py:534
+#: cps/updater.py:542
 msgid "Could not fetch update information"
 msgstr "无法获取更新信息"
 
-#: cps/updater.py:545
+#: cps/updater.py:553
 msgid "Click on the button below to update to the latest stable version."
 msgstr "点击下面按钮更新到最新稳定版本"
 
-#: cps/updater.py:553 cps/updater.py:568 cps/updater.py:579
+#: cps/updater.py:561 cps/updater.py:576 cps/updater.py:587
 #, python-format
 msgid ""
 "A new update is available. Click on the button below to update to version: "
 "%(version)s"
 msgstr "有新的更新。单击下面的按钮以更新到版本: %(version)s"
 
-#: cps/updater.py:597
+#: cps/updater.py:605
 msgid "No release information available"
 msgstr "无可用发布信息"
 
