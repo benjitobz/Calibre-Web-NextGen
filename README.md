@@ -639,6 +639,7 @@ The interface ships with the locales below. Completion is auto-refreshed on ever
 | Language | Completion | Strings | Fuzzy |
 |---|---|---:|---:|
 | English (source) | 100% | source | — |
+| Polish (`pl`) | `████████████████████` 100% | 2609/2609 | 0 |
 | Russian (`ru`) | `████████████████████` 100% | 2606/2609 | 0 |
 | French (`fr`) | `█████████████████░░░` 84% | 2187/2609 | 129 |
 | Dutch (`nl`) | `█████████████░░░░░░░` 66% | 1723/2609 | 292 |
@@ -651,7 +652,6 @@ The interface ships with the locales below. Completion is auto-refreshed on ever
 | Chinese (Simplified, China) (`zh_Hans_CN`) | `█████████░░░░░░░░░░░` 45% | 1175/2609 | 350 |
 | Italian (`it`) | `███████░░░░░░░░░░░░░` 37% | 958/2609 | 269 |
 | Korean (`ko`) | `███████░░░░░░░░░░░░░` 36% | 949/2609 | 269 |
-| Polish (`pl`) | `███████░░░░░░░░░░░░░` 36% | 950/2609 | 273 |
 | Arabic (`ar`) | `██████░░░░░░░░░░░░░░` 30% | 791/2609 | 286 |
 | Slovak (`sk`) | `██████░░░░░░░░░░░░░░` 29% | 750/2609 | 315 |
 | Portuguese (`pt`) | `█████░░░░░░░░░░░░░░░` 27% | 702/2609 | 362 |
