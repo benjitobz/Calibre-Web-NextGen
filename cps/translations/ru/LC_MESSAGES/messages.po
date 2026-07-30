@@ -463,7 +463,7 @@ msgstr "Успех! Учётная запись Gmail подтверждена."
 
 #: cps/admin.py:1915 cps/admin.py:1918 cps/admin.py:2527 cps/admin.py:2763
 #: cps/admin.py:2888 cps/admin.py:3149 cps/editbooks.py:1157
-#: cps/editbooks.py:2040 cps/shelf.py:148 cps/shelf.py:226 cps/shelf.py:297
+#: cps/editbooks.py:2048 cps/shelf.py:148 cps/shelf.py:226 cps/shelf.py:297
 #: cps/shelf.py:332 cps/shelf.py:389 cps/shelf.py:464 cps/shelf.py:547
 #: cps/shelf.py:672 cps/tasks/convert.py:145 cps/web.py:3106
 #, python-format
@@ -1414,16 +1414,16 @@ msgstr "Книга поставлена в очередь для конверт�
 msgid "There was an error converting this book: %(res)s"
 msgstr "Произошла ошибка при конвертации книги: %(res)s"
 
-#: cps/editbooks.py:377 cps/editbooks.py:1408 cps/editbooks.py:1987
+#: cps/editbooks.py:377 cps/editbooks.py:1408 cps/editbooks.py:1995
 msgid "File type isn't allowed to be uploaded to this server"
 msgstr "Данный тип файлов не разрешён для загрузки на сервер"
 
-#: cps/editbooks.py:382 cps/editbooks.py:1414 cps/editbooks.py:1998
+#: cps/editbooks.py:382 cps/editbooks.py:1414 cps/editbooks.py:2006
 #, python-format
 msgid "File extension '%(ext)s' is not allowed to be uploaded to this server"
 msgstr "Расширение файла '%(ext)s' не разрешено для загрузки на сервер"
 
-#: cps/editbooks.py:386 cps/editbooks.py:1418 cps/editbooks.py:2003
+#: cps/editbooks.py:386 cps/editbooks.py:1418 cps/editbooks.py:2011
 msgid "File to be uploaded must have an extension"
 msgstr "Загружаемый файл должен иметь расширение"
 
@@ -1433,7 +1433,7 @@ msgid ""
 "Oops! Selected book is unavailable. File does not exist or is not accessible"
 msgstr "Выбранная книга недоступна. Файл не существует или недоступен"
 
-#: cps/editbooks.py:980 cps/editbooks.py:2070
+#: cps/editbooks.py:980 cps/editbooks.py:2078
 msgid "User has no rights to upload cover"
 msgstr "У пользователя нет прав для загрузки обложки"
 
@@ -1462,7 +1462,7 @@ msgstr "Метаданные успешно обновлены"
 msgid "Error editing book: {}"
 msgstr "Ошибка редактирования книги: {}"
 
-#: cps/editbooks.py:1255 cps/editbooks.py:1305 cps/editbooks.py:2088
+#: cps/editbooks.py:1255 cps/editbooks.py:1305 cps/editbooks.py:2096
 #: cps/updater.py:685 cps/uploader.py:142 cps/uploader.py:151
 msgid "Unknown"
 msgstr "Неизвестно"
@@ -1507,44 +1507,44 @@ msgid "Seriesindex: %(seriesindex)s is not a valid number, skipping"
 msgstr ""
 "Индекс серии: %(seriesindex)s не является допустимым числом, пропускаем"
 
-#: cps/editbooks.py:1992
+#: cps/editbooks.py:2000
 msgid "User has no rights to upload additional file formats"
 msgstr "У пользователя нет прав для загрузки дополнительных форматов файлов"
 
-#: cps/editbooks.py:2016
+#: cps/editbooks.py:2024
 #, python-format
 msgid "Failed to create path %(path)s (Permission denied)."
 msgstr "Не удалось создать путь %(path)s (Доступ запрещён)."
 
-#: cps/editbooks.py:2023
+#: cps/editbooks.py:2031
 #, python-format
 msgid "Failed to store file %(file)s."
 msgstr "Не удалось сохранить файл %(file)s."
 
-#: cps/editbooks.py:2047
+#: cps/editbooks.py:2055
 #, python-format
 msgid "File format %(ext)s added to %(book)s"
 msgstr "Формат файла %(ext)s добавлен к %(book)s"
 
-#: cps/editbooks.py:2349
+#: cps/editbooks.py:2357
 msgid "Book not found"
 msgstr "Книга не найдена"
 
-#: cps/editbooks.py:2353
+#: cps/editbooks.py:2361
 msgid "Book has no file formats on disk to reload from"
 msgstr "У книги нет файлов на диске для перезагрузки"
 
-#: cps/editbooks.py:2374
+#: cps/editbooks.py:2382
 #, python-format
 msgid "Book file not found on disk: %(path)s"
 msgstr "Файл книги не найден на диске: %(path)s"
 
-#: cps/editbooks.py:2394
+#: cps/editbooks.py:2402
 #, python-format
 msgid "Could not parse metadata from %(format)s file: %(err)s"
 msgstr "Не удалось извлечь метаданные из файла %(format)s: %(err)s"
 
-#: cps/editbooks.py:2515
+#: cps/editbooks.py:2523
 #, python-format
 msgid ""
 "Could not rename the book folder to match the reloaded metadata: %(err)s"
@@ -1552,17 +1552,17 @@ msgstr ""
 "Не удалось переименовать папку книги в соответствии с обновленными "
 "метаданными: %(err)s"
 
-#: cps/editbooks.py:2537
+#: cps/editbooks.py:2545
 #, python-format
 msgid "Could not save reloaded metadata: %(err)s"
 msgstr "Не удалось сохранить перезагруженные метаданные: %(err)s"
 
-#: cps/editbooks.py:2543
+#: cps/editbooks.py:2551
 #, python-format
 msgid "Reloaded %(n)d field(s) from on-disk %(fmt)s"
 msgstr "Перезагружено %(n)d поле(й) из %(fmt)s на диске"
 
-#: cps/editbooks.py:2546
+#: cps/editbooks.py:2554
 msgid "On-disk metadata matches current — no fields updated"
 msgstr "Метаданные на диске совпадают с текущими - поля не обновлены"
 

@@ -426,7 +426,7 @@ msgstr "成功！Gmailアカウントが確認されました。"
 
 #: cps/admin.py:1915 cps/admin.py:1918 cps/admin.py:2527 cps/admin.py:2763
 #: cps/admin.py:2888 cps/admin.py:3149 cps/editbooks.py:1157
-#: cps/editbooks.py:2040 cps/shelf.py:148 cps/shelf.py:226 cps/shelf.py:297
+#: cps/editbooks.py:2048 cps/shelf.py:148 cps/shelf.py:226 cps/shelf.py:297
 #: cps/shelf.py:332 cps/shelf.py:389 cps/shelf.py:464 cps/shelf.py:547
 #: cps/shelf.py:672 cps/tasks/convert.py:145 cps/web.py:3106
 #, python-format
@@ -1363,18 +1363,18 @@ msgstr "本の %(book_format)s への変換がキューに追加されました"
 msgid "There was an error converting this book: %(res)s"
 msgstr "この本の変換中にエラーが発生しました: %(res)s"
 
-#: cps/editbooks.py:377 cps/editbooks.py:1408 cps/editbooks.py:1987
+#: cps/editbooks.py:377 cps/editbooks.py:1408 cps/editbooks.py:1995
 msgid "File type isn't allowed to be uploaded to this server"
 msgstr "このファイル形式はこのサーバーへのアップロードが許可されていません"
 
-#: cps/editbooks.py:382 cps/editbooks.py:1414 cps/editbooks.py:1998
+#: cps/editbooks.py:382 cps/editbooks.py:1414 cps/editbooks.py:2006
 #, python-format
 msgid "File extension '%(ext)s' is not allowed to be uploaded to this server"
 msgstr ""
 "ファイル拡張子 '%(ext)s' をこのサーバーにアップロードすることは許可されていま"
 "せん"
 
-#: cps/editbooks.py:386 cps/editbooks.py:1418 cps/editbooks.py:2003
+#: cps/editbooks.py:386 cps/editbooks.py:1418 cps/editbooks.py:2011
 msgid "File to be uploaded must have an extension"
 msgstr "アップロードするファイルには拡張子が必要です"
 
@@ -1384,7 +1384,7 @@ msgid ""
 "Oops! Selected book is unavailable. File does not exist or is not accessible"
 msgstr "選択した本は利用できません。ファイルが存在しないか、アクセスできません"
 
-#: cps/editbooks.py:980 cps/editbooks.py:2070
+#: cps/editbooks.py:980 cps/editbooks.py:2078
 msgid "User has no rights to upload cover"
 msgstr "ユーザーは表紙をアップロードする権限がありません"
 
@@ -1410,7 +1410,7 @@ msgstr "メタデータを更新しました"
 msgid "Error editing book: {}"
 msgstr "本編集中のエラー: {}"
 
-#: cps/editbooks.py:1255 cps/editbooks.py:1305 cps/editbooks.py:2088
+#: cps/editbooks.py:1255 cps/editbooks.py:1305 cps/editbooks.py:2096
 #: cps/updater.py:685 cps/uploader.py:142 cps/uploader.py:151
 msgid "Unknown"
 msgstr "不明"
@@ -1456,61 +1456,61 @@ msgid "Seriesindex: %(seriesindex)s is not a valid number, skipping"
 msgstr ""
 "シリーズ番号: %(seriesindex)s は有効な数字ではありません。スキップします"
 
-#: cps/editbooks.py:1992
+#: cps/editbooks.py:2000
 msgid "User has no rights to upload additional file formats"
 msgstr "新たなファイル形式をアップロードする権限がありません"
 
-#: cps/editbooks.py:2016
+#: cps/editbooks.py:2024
 #, python-format
 msgid "Failed to create path %(path)s (Permission denied)."
 msgstr "%(path)s の作成に失敗しました (Permission denied)。"
 
-#: cps/editbooks.py:2023
+#: cps/editbooks.py:2031
 #, python-format
 msgid "Failed to store file %(file)s."
 msgstr "ファイル %(file)s を保存できません。"
 
-#: cps/editbooks.py:2047
+#: cps/editbooks.py:2055
 #, python-format
 msgid "File format %(ext)s added to %(book)s"
 msgstr "ファイル形式 %(ext)s が %(book)s に追加されました"
 
-#: cps/editbooks.py:2349
+#: cps/editbooks.py:2357
 #, fuzzy
 msgid "Book not found"
 msgstr "トークンが見つかりません"
 
-#: cps/editbooks.py:2353
+#: cps/editbooks.py:2361
 msgid "Book has no file formats on disk to reload from"
 msgstr ""
 
-#: cps/editbooks.py:2374
+#: cps/editbooks.py:2382
 #, fuzzy, python-format
 msgid "Book file not found on disk: %(path)s"
 msgstr "EPUBファイルがディスク上に見つかりません。"
 
-#: cps/editbooks.py:2394
+#: cps/editbooks.py:2402
 #, python-format
 msgid "Could not parse metadata from %(format)s file: %(err)s"
 msgstr ""
 
-#: cps/editbooks.py:2515
+#: cps/editbooks.py:2523
 #, python-format
 msgid ""
 "Could not rename the book folder to match the reloaded metadata: %(err)s"
 msgstr ""
 
-#: cps/editbooks.py:2537
+#: cps/editbooks.py:2545
 #, python-format
 msgid "Could not save reloaded metadata: %(err)s"
 msgstr ""
 
-#: cps/editbooks.py:2543
+#: cps/editbooks.py:2551
 #, python-format
 msgid "Reloaded %(n)d field(s) from on-disk %(fmt)s"
 msgstr ""
 
-#: cps/editbooks.py:2546
+#: cps/editbooks.py:2554
 msgid "On-disk metadata matches current — no fields updated"
 msgstr ""
 

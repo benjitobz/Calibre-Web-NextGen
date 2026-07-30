@@ -449,7 +449,7 @@ msgstr "Siker! A Gmail-fiók hitelesítve."
 
 #: cps/admin.py:1915 cps/admin.py:1918 cps/admin.py:2527 cps/admin.py:2763
 #: cps/admin.py:2888 cps/admin.py:3149 cps/editbooks.py:1157
-#: cps/editbooks.py:2040 cps/shelf.py:148 cps/shelf.py:226 cps/shelf.py:297
+#: cps/editbooks.py:2048 cps/shelf.py:148 cps/shelf.py:226 cps/shelf.py:297
 #: cps/shelf.py:332 cps/shelf.py:389 cps/shelf.py:464 cps/shelf.py:547
 #: cps/shelf.py:672 cps/tasks/convert.py:145 cps/web.py:3106
 #, python-format
@@ -1389,18 +1389,18 @@ msgstr ""
 msgid "There was an error converting this book: %(res)s"
 msgstr "Hiba történt a könyv átalakításakor: %(res)s"
 
-#: cps/editbooks.py:377 cps/editbooks.py:1408 cps/editbooks.py:1987
+#: cps/editbooks.py:377 cps/editbooks.py:1408 cps/editbooks.py:1995
 msgid "File type isn't allowed to be uploaded to this server"
 msgstr "A fájlformátum feltöltése nem engedélyezett ezen a szerveren"
 
-#: cps/editbooks.py:382 cps/editbooks.py:1414 cps/editbooks.py:1998
+#: cps/editbooks.py:382 cps/editbooks.py:1414 cps/editbooks.py:2006
 #, python-format
 msgid "File extension '%(ext)s' is not allowed to be uploaded to this server"
 msgstr ""
 "A(z) \"%(ext)s\" kiterjesztésű fájlok feltöltése nincs engedélyezve ezen a "
 "szerveren"
 
-#: cps/editbooks.py:386 cps/editbooks.py:1418 cps/editbooks.py:2003
+#: cps/editbooks.py:386 cps/editbooks.py:1418 cps/editbooks.py:2011
 msgid "File to be uploaded must have an extension"
 msgstr "A feltöltendő fájlnak kiterjesztéssel kell rendelkeznie!"
 
@@ -1411,7 +1411,7 @@ msgid ""
 msgstr ""
 "Hiba történt az e-könyv megnyitásakor. A fájl nem létezik vagy nem érhető el"
 
-#: cps/editbooks.py:980 cps/editbooks.py:2070
+#: cps/editbooks.py:980 cps/editbooks.py:2078
 msgid "User has no rights to upload cover"
 msgstr "A felhasználónak nincs joga borítót feltölteni"
 
@@ -1439,7 +1439,7 @@ msgstr "A metaadatok sikeresen frissültek"
 msgid "Error editing book: {}"
 msgstr "Hiba a könyv szerkesztésénél: {}"
 
-#: cps/editbooks.py:1255 cps/editbooks.py:1305 cps/editbooks.py:2088
+#: cps/editbooks.py:1255 cps/editbooks.py:1305 cps/editbooks.py:2096
 #: cps/updater.py:685 cps/uploader.py:142 cps/uploader.py:151
 msgid "Unknown"
 msgstr "Ismeretlen"
@@ -1483,62 +1483,62 @@ msgstr "Metaadatok szerkesztése"
 msgid "Seriesindex: %(seriesindex)s is not a valid number, skipping"
 msgstr "Sorozatindex: %(seriesindex)s nem érvényes szám, kihagyva"
 
-#: cps/editbooks.py:1992
+#: cps/editbooks.py:2000
 msgid "User has no rights to upload additional file formats"
 msgstr "A felhasználónak nincs joga további fájlformátumokat feltölteni"
 
-#: cps/editbooks.py:2016
+#: cps/editbooks.py:2024
 #, python-format
 msgid "Failed to create path %(path)s (Permission denied)."
 msgstr ""
 "Nem sikerült létrehozni az elérési utat (hozzáférés megtagadva): %(path)s."
 
-#: cps/editbooks.py:2023
+#: cps/editbooks.py:2031
 #, python-format
 msgid "Failed to store file %(file)s."
 msgstr "Nem sikerült elmenteni a %(file)s fájlt."
 
-#: cps/editbooks.py:2047
+#: cps/editbooks.py:2055
 #, python-format
 msgid "File format %(ext)s added to %(book)s"
 msgstr "A(z) %(ext)s fájlformátum hozzáadva a könyvhöz: %(book)s"
 
-#: cps/editbooks.py:2349
+#: cps/editbooks.py:2357
 #, fuzzy
 msgid "Book not found"
 msgstr "Könyv nem található."
 
-#: cps/editbooks.py:2353
+#: cps/editbooks.py:2361
 msgid "Book has no file formats on disk to reload from"
 msgstr ""
 
-#: cps/editbooks.py:2374
+#: cps/editbooks.py:2382
 #, fuzzy, python-format
 msgid "Book file not found on disk: %(path)s"
 msgstr "EPUB fájl nem található a lemezen."
 
-#: cps/editbooks.py:2394
+#: cps/editbooks.py:2402
 #, python-format
 msgid "Could not parse metadata from %(format)s file: %(err)s"
 msgstr ""
 
-#: cps/editbooks.py:2515
+#: cps/editbooks.py:2523
 #, fuzzy, python-format
 msgid ""
 "Could not rename the book folder to match the reloaded metadata: %(err)s"
 msgstr "Nem sikerült menteni a zárolási állapotot."
 
-#: cps/editbooks.py:2537
+#: cps/editbooks.py:2545
 #, fuzzy, python-format
 msgid "Could not save reloaded metadata: %(err)s"
 msgstr "Nem sikerült menteni a zárolási állapotot."
 
-#: cps/editbooks.py:2543
+#: cps/editbooks.py:2551
 #, python-format
 msgid "Reloaded %(n)d field(s) from on-disk %(fmt)s"
 msgstr ""
 
-#: cps/editbooks.py:2546
+#: cps/editbooks.py:2554
 msgid "On-disk metadata matches current — no fields updated"
 msgstr ""
 

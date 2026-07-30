@@ -444,7 +444,7 @@ msgstr "Tutto OK! Account Gmail verificato."
 
 #: cps/admin.py:1915 cps/admin.py:1918 cps/admin.py:2527 cps/admin.py:2763
 #: cps/admin.py:2888 cps/admin.py:3149 cps/editbooks.py:1157
-#: cps/editbooks.py:2040 cps/shelf.py:148 cps/shelf.py:226 cps/shelf.py:297
+#: cps/editbooks.py:2048 cps/shelf.py:148 cps/shelf.py:226 cps/shelf.py:297
 #: cps/shelf.py:332 cps/shelf.py:389 cps/shelf.py:464 cps/shelf.py:547
 #: cps/shelf.py:672 cps/tasks/convert.py:145 cps/web.py:3106
 #, python-format
@@ -1373,17 +1373,17 @@ msgstr "Libro accodato correttamente per essere convertito in %(book_format)s"
 msgid "There was an error converting this book: %(res)s"
 msgstr "Si è verificato un errore durante la conversione del libro: %(res)s"
 
-#: cps/editbooks.py:377 cps/editbooks.py:1408 cps/editbooks.py:1987
+#: cps/editbooks.py:377 cps/editbooks.py:1408 cps/editbooks.py:1995
 msgid "File type isn't allowed to be uploaded to this server"
 msgstr "Non è consentito caricare questo tipo di file su questo server"
 
-#: cps/editbooks.py:382 cps/editbooks.py:1414 cps/editbooks.py:1998
+#: cps/editbooks.py:382 cps/editbooks.py:1414 cps/editbooks.py:2006
 #, python-format
 msgid "File extension '%(ext)s' is not allowed to be uploaded to this server"
 msgstr ""
 "Non è consentito caricare l'estensione del file '%(ext)s' su questo server"
 
-#: cps/editbooks.py:386 cps/editbooks.py:1418 cps/editbooks.py:2003
+#: cps/editbooks.py:386 cps/editbooks.py:1418 cps/editbooks.py:2011
 msgid "File to be uploaded must have an extension"
 msgstr "Il file da caricare deve avere un'estensione"
 
@@ -1395,7 +1395,7 @@ msgstr ""
 "Il libro selezionato non è disponibile. Il file non esiste o non è "
 "accessibile"
 
-#: cps/editbooks.py:980 cps/editbooks.py:2070
+#: cps/editbooks.py:980 cps/editbooks.py:2078
 msgid "User has no rights to upload cover"
 msgstr "L'utente non ha i permessi per caricare le copertine"
 
@@ -1423,7 +1423,7 @@ msgstr "Metadati aggiornati correttamente"
 msgid "Error editing book: {}"
 msgstr "Errore nella modifica del libro: {}"
 
-#: cps/editbooks.py:1255 cps/editbooks.py:1305 cps/editbooks.py:2088
+#: cps/editbooks.py:1255 cps/editbooks.py:1305 cps/editbooks.py:2096
 #: cps/updater.py:685 cps/uploader.py:142 cps/uploader.py:151
 msgid "Unknown"
 msgstr "Sconosciuto"
@@ -1467,61 +1467,61 @@ msgstr "modifica i metadati"
 msgid "Seriesindex: %(seriesindex)s is not a valid number, skipping"
 msgstr "Indice serie: %(seriesindex)s non è un numero valido, lo salto"
 
-#: cps/editbooks.py:1992
+#: cps/editbooks.py:2000
 msgid "User has no rights to upload additional file formats"
 msgstr "L'utente non ha i permessi per caricare formati di file aggiuntivi"
 
-#: cps/editbooks.py:2016
+#: cps/editbooks.py:2024
 #, python-format
 msgid "Failed to create path %(path)s (Permission denied)."
 msgstr "Impossibile creare il percorso %(path)s (autorizzazione negata)."
 
-#: cps/editbooks.py:2023
+#: cps/editbooks.py:2031
 #, python-format
 msgid "Failed to store file %(file)s."
 msgstr "Impossibile archiviare il file %(file)s."
 
-#: cps/editbooks.py:2047
+#: cps/editbooks.py:2055
 #, python-format
 msgid "File format %(ext)s added to %(book)s"
 msgstr "Formato file %(ext)s aggiunto a %(book)s"
 
-#: cps/editbooks.py:2349
+#: cps/editbooks.py:2357
 #, fuzzy
 msgid "Book not found"
 msgstr "Token non trovato"
 
-#: cps/editbooks.py:2353
+#: cps/editbooks.py:2361
 msgid "Book has no file formats on disk to reload from"
 msgstr ""
 
-#: cps/editbooks.py:2374
+#: cps/editbooks.py:2382
 #, fuzzy, python-format
 msgid "Book file not found on disk: %(path)s"
 msgstr "Formato %(format)s non trovato sul disco"
 
-#: cps/editbooks.py:2394
+#: cps/editbooks.py:2402
 #, python-format
 msgid "Could not parse metadata from %(format)s file: %(err)s"
 msgstr ""
 
-#: cps/editbooks.py:2515
+#: cps/editbooks.py:2523
 #, python-format
 msgid ""
 "Could not rename the book folder to match the reloaded metadata: %(err)s"
 msgstr ""
 
-#: cps/editbooks.py:2537
+#: cps/editbooks.py:2545
 #, python-format
 msgid "Could not save reloaded metadata: %(err)s"
 msgstr ""
 
-#: cps/editbooks.py:2543
+#: cps/editbooks.py:2551
 #, python-format
 msgid "Reloaded %(n)d field(s) from on-disk %(fmt)s"
 msgstr ""
 
-#: cps/editbooks.py:2546
+#: cps/editbooks.py:2554
 msgid "On-disk metadata matches current — no fields updated"
 msgstr ""
 
