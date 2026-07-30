@@ -16,7 +16,31 @@ is for things you can see or feel when running the app.
 
 ## [Unreleased]
 
+### Added
+
+- **You can give ComicVine your own API key.** ComicVine searches have always
+  gone out on a single key shipped inside the app that every install shares, so
+  one busy install can use up the allowance for everyone and searches quietly
+  come back empty. You can now put your own free key in the 🔑 Keys panel of the
+  metadata search window and get your own allowance. Nothing changes if you
+  don't: ComicVine keeps working out of the box on the shared key. If you prefer
+  to configure it at the container level, `COMICVINE_API_KEY` and
+  `COMICVINE_API_KEY_FILE` work too. When ComicVine does refuse a search, the log
+  now says so and tells you which key was used, instead of looking like the book
+  simply wasn't found. Reported by
+  [@tomaioo](https://github.com/new-usemame/Calibre-Web-NextGen/pull/1242)
+  ([#1242](https://github.com/new-usemame/Calibre-Web-NextGen/pull/1242)).
+
 ### Fixed
+
+- **A mistyped API-key file path can no longer hang or crash the whole server.**
+  If you supply a provider token by pointing `HARDCOVER_TOKEN_FILE` or
+  `COMICVINE_API_KEY_FILE` at a file (the Docker-secrets style), the app reads
+  that file when it needs the token. Point it at something that isn't a plain
+  file — a named pipe nothing is writing to, or a device like `/dev/zero` — and
+  the read never finished: the whole app froze, or memory climbed until it was
+  killed. Both now fail cleanly with a log line naming the file, and the read is
+  size-limited. A correctly configured secret file behaves exactly as before.
 
 - **A custom column holding just the word "None" no longer erases itself when
   you save.** Type `None` into a notes or comments column — on its own, as the
