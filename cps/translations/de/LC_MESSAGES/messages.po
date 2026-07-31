@@ -226,10 +226,11 @@ msgstr "Einstellungsdatenbank ist nicht schreibbar"
 msgid ""
 "The title-sort rule was saved, but reordering the existing library failed — "
 "books may keep their previous order until you retry or edit them."
-msgstr "" 
-"Die Regel für die Titelsortierung wurde gespeichert, aber das Neusortieren der bestehenden Bibliothek ist" 
-"fehlgeschlagen – Bücher behalten möglicherweise ihre vorherige Reihenfolge bei, bis Sie es erneut versuchen" 
-"oder sie bearbeiten."
+msgstr ""
+"Die Regel für die Titelsortierung wurde gespeichert, aber das Neusortieren "
+"der bestehenden Bibliothek istfehlgeschlagen – Bücher behalten "
+"möglicherweise ihre vorherige Reihenfolge bei, bis Sie es erneut "
+"versuchenoder sie bearbeiten."
 
 #: cps/admin.py:991
 msgid "Invalid Read Column"
@@ -311,24 +312,25 @@ msgstr ""
 #: cps/admin.py:1061
 msgid "Are you sure you want to change Calibre library location?"
 msgstr ""
-"Sind Sie sicher, dass Sie den Speicherort für die" 
-"Calibre Bibliothek ändern möchten?"
+"Sind Sie sicher, dass Sie den Speicherort für dieCalibre Bibliothek ändern "
+"möchten?"
 
 #: cps/admin.py:1063
 msgid ""
 "Calibre-Web NextGen will search for updated Covers and update Cover "
 "Thumbnails, this may take a while?"
 msgstr ""
-"Calibre-Web NextGen wird nach aktualisierten Covern suchen und die Cover-Miniaturansichten aktualisieren. "
-"Dies kann eine Weile dauern."
+"Calibre-Web NextGen wird nach aktualisierten Covern suchen und die Cover-"
+"Miniaturansichten aktualisieren. Dies kann eine Weile dauern."
 
 #: cps/admin.py:1066
 msgid ""
 "Are you sure you want delete Calibre-Web NextGen's sync database to force a "
 "full sync with your Kobo Reader?"
 msgstr ""
-"Sind Sie sicher, dass Sie die Synchronisationsdatenbank von Calibre-Web NextGen löschen möchten, "
-"um eine vollständige Synchronisation mit Ihrem Kobo-Reader zu erzwingen?"
+"Sind Sie sicher, dass Sie die Synchronisationsdatenbank von Calibre-Web "
+"NextGen löschen möchten, um eine vollständige Synchronisation mit Ihrem Kobo-"
+"Reader zu erzwingen?"
 
 #: cps/admin.py:1305 cps/admin.py:1311 cps/admin.py:1321 cps/admin.py:1331
 #: cps/templates/modal_dialogs.html:29 cps/templates/user_table.html:41
@@ -358,8 +360,8 @@ msgid ""
 "Cleared sync state for book {0} (user {1}); the device will re-receive the "
 "book on next sync"
 msgstr ""
-"Synchronisationsstatus für Buch {0} (Benutzer {1}) zurückgesetzt; "
-"das Gerät wird das Buch bei der nächsten Synchronisation erneut einlesen."
+"Synchronisationsstatus für Buch {0} (Benutzer {1}) zurückgesetzt; das Gerät "
+"wird das Buch bei der nächsten Synchronisation erneut einlesen."
 
 #: cps/admin.py:1399
 #, python-brace-format
@@ -367,8 +369,9 @@ msgid ""
 "Book {0} was not in the sync record for user {1}; last_modified bumped so "
 "the device will receive on next sync"
 msgstr ""
-"Buch {0} war nicht im Synchronisationsprotokoll für Benutzer {1}; "
-"der Zeitstempel für last_modified wurde erhöht, sodass das Gerät es bei der nächsten Synchronisation empfangen wird."
+"Buch {0} war nicht im Synchronisationsprotokoll für Benutzer {1}; der "
+"Zeitstempel für last_modified wurde erhöht, sodass das Gerät es bei der "
+"nächsten Synchronisation empfangen wird."
 
 #: cps/admin.py:1443 cps/api/browse.py:79 cps/spa_strings.py:84
 msgid "Tag not found"
@@ -435,8 +438,8 @@ msgid ""
 "LDAP CACertificate, Certificate or Key Location is not Valid, Please Enter "
 "Correct Path"
 msgstr ""
-"Der angegebene Speicherort für LDAP-CA-Zertifikat, -Zertifikat oder -Schlüsseldatei ist falsch,"
-"Bitte den korrekten Pfad eingeben."
+"Der angegebene Speicherort für LDAP-CA-Zertifikat, -Zertifikat oder -"
+"Schlüsseldatei ist falsch,Bitte den korrekten Pfad eingeben."
 
 #: cps/admin.py:1857 cps/templates/admin.html:57
 msgid "Add New User"
@@ -606,7 +609,8 @@ msgstr "Stoppe den Server"
 
 #: cps/admin.py:2341
 msgid "Update finished, please press okay and reload page"
-msgstr "Aktualisierung abgeschlossen, bitte okay drücken und die Seite neu laden"
+msgstr ""
+"Aktualisierung abgeschlossen, bitte okay drücken und die Seite neu laden"
 
 #: cps/admin.py:2342 cps/admin.py:2343 cps/admin.py:2344 cps/admin.py:2345
 #: cps/admin.py:2346 cps/admin.py:2347
@@ -631,7 +635,8 @@ msgstr "Allgemeiner Fehler"
 
 #: cps/admin.py:2346
 msgid "Update file could not be saved in temp dir"
-msgstr "Aktualisierungsdatei konnte nicht in temporärem Ordner gespeichert werden"
+msgstr ""
+"Aktualisierungsdatei konnte nicht in temporärem Ordner gespeichert werden"
 
 #: cps/admin.py:2347
 msgid "Files could not be replaced during update"
@@ -1206,7 +1211,8 @@ msgstr "Calibre-Web NextGen - alle EPUB-Fixer Aktionen anzeigen"
 
 #: cps/cwa_functions.py:1808
 msgid "Calibre-Web NextGen - Full EPUB Fixer History (w/ Paths & Fixes)"
-msgstr "Calibre-Web NextGen - alle EPUB-Fixer Aktionen anzeigen (w/ Paths & Fixes)"
+msgstr ""
+"Calibre-Web NextGen - alle EPUB-Fixer Aktionen anzeigen (w/ Paths & Fixes)"
 
 #: cps/cwa_functions.py:1826
 msgid "✅ All Monitoring Services are running as intended! 👍"
@@ -1423,7 +1429,8 @@ msgstr "Benutzer hat keine Berechtigung Cover hochzuladen"
 
 #: cps/editbooks.py:988
 msgid "Cover is locked. Unlock it on the cover-picker page first."
-msgstr "Cover ist gesperrt. Bitte erst auf der Buchumschlag ändern Seite entsperren."
+msgstr ""
+"Cover ist gesperrt. Bitte erst auf der Buchumschlag ändern Seite entsperren."
 
 #: cps/editbooks.py:1011 cps/editbooks.py:1396
 msgid "Identifiers are not Case Sensitive, Overwriting Old Identifier"
@@ -1516,7 +1523,9 @@ msgstr "Buch wurde nicht gefunden."
 
 #: cps/editbooks.py:2361
 msgid "Book has no file formats on disk to reload from"
-msgstr "Das Buch hat keine Dateiformate auf dem Datenträger, aus denen neu geladen werden kann."
+msgstr ""
+"Das Buch hat keine Dateiformate auf dem Datenträger, aus denen neu geladen "
+"werden kann."
 
 #: cps/editbooks.py:2382
 #, fuzzy, python-format
@@ -1526,13 +1535,16 @@ msgstr "EPUB-Datei wurde nicht auf dem Datenträger gefunden."
 #: cps/editbooks.py:2402
 #, python-format
 msgid "Could not parse metadata from %(format)s file: %(err)s"
-msgstr "Metadaten aus der %(format)s-Datei konnten nicht eingelesen werden: %(err)s"
+msgstr ""
+"Metadaten aus der %(format)s-Datei konnten nicht eingelesen werden: %(err)s"
 
 #: cps/editbooks.py:2523
 #, python-format
 msgid ""
 "Could not rename the book folder to match the reloaded metadata: %(err)s"
-msgstr "Der Buchordner konnte nicht umbenannt werden, um ihn an die neu geladenen Metadaten anzupassen: %(err)s "
+msgstr ""
+"Der Buchordner konnte nicht umbenannt werden, um ihn an die neu geladenen "
+"Metadaten anzupassen: %(err)s "
 
 #: cps/editbooks.py:2545
 #, python-format
@@ -1892,7 +1904,8 @@ msgstr ""
 
 #: cps/oauth_bb.py:438
 msgid "Login failed: your account is not allowed to access this application."
-msgstr "Login fehlgeschlagen: Ihr Account kann nicht auf diese Applikation zugreifen."
+msgstr ""
+"Login fehlgeschlagen: Ihr Account kann nicht auf diese Applikation zugreifen."
 
 #: cps/oauth_bb.py:629
 msgid ""
@@ -2314,7 +2327,9 @@ msgstr "Zeige Bücherduplikate"
 #: cps/render_template.py:259
 #, python-format
 msgid "Calibre-Web NextGen %(latest)s is available — you're on %(current)s."
-msgstr "Calibre-Web NextGen %(latest)s ist verfügbar - Sie sind auf Version %(current)s"
+msgstr ""
+"Calibre-Web NextGen %(latest)s ist verfügbar - Sie sind auf Version "
+"%(current)s"
 
 #: cps/render_template.py:269
 #, python-format
@@ -2322,8 +2337,8 @@ msgid ""
 "Help improve Calibre-Web NextGen's %(language)s translations — %(count)s "
 "strings in your language still need translating."
 msgstr ""
-"Helfen Sie, Calibre-Web NextGens %(language)s zu übersetzen - "
-"%(count)s müssen noch übersetzt werden."
+"Helfen Sie, Calibre-Web NextGens %(language)s zu übersetzen - %(count)s "
+"müssen noch übersetzt werden."
 
 #: cps/search.py:204
 msgid "Published after "
@@ -2503,7 +2518,7 @@ msgid "Invalid order mode: %(mode)s"
 msgstr "Ungültiger Sortiermodus: %(mode)s"
 
 #: cps/shelf.py:1020
-msgid "Ungültige Daten: 'order' muss eine Liste sein."
+msgid "Invalid payload: 'order' must be a list"
 msgstr ""
 
 #: cps/shelf.py:1044
@@ -3049,7 +3064,9 @@ msgstr "Löschen des Buches fehlgeschlagen."
 #: cps/spa_strings.py:198
 #, python-brace-format
 msgid "Delete the {fmt} file? The book stays; only this format is removed."
-msgstr "{fmt} Datei löschen? Das Buch bleibt in der Bibliothek, nur dieses Format wird entfernt."
+msgstr ""
+"{fmt} Datei löschen? Das Buch bleibt in der Bibliothek, nur dieses Format "
+"wird entfernt."
 
 #: cps/spa_strings.py:199
 #, python-brace-format
@@ -3193,8 +3210,8 @@ msgstr "Metadaten zu {n} Büchern hinzugefügt."
 #, python-brace-format
 msgid "New password for “{label}” — copy it now, it won’t be shown again:"
 msgstr ""
-"Neues Passwort für “{label}” - kopieren Sie es jetzt," 
-"es wird nicht noch einmal angezeigt."
+"Neues Passwort für “{label}” - kopieren Sie es jetzt,es wird nicht noch "
+"einmal angezeigt."
 
 #: cps/spa_strings.py:237
 msgid "New passwords do not match."
@@ -3498,7 +3515,8 @@ msgstr "Hilfe — neue Aktualisierungen verfügbar"
 
 #: cps/spa_strings.py:314
 msgid "The latest features and fixes in Calibre-Web NextGen — newest first."
-msgstr "Die neuesten Features und Fixes in Calibre-Web NextGen - die Neuesten zuerst."
+msgstr ""
+"Die neuesten Features und Fixes in Calibre-Web NextGen - die Neuesten zuerst."
 
 #: cps/spa_strings.py:315
 #, python-brace-format
@@ -3512,15 +3530,16 @@ msgstr ""
 
 #: cps/spa_strings.py:317
 msgid "No release notes yet — check back after the next update."
-msgstr "Noch keine Versionshinweise - nach dem nächsten Update noch einmal prüfen."
+msgstr ""
+"Noch keine Versionshinweise - nach dem nächsten Update noch einmal prüfen."
 
 #: cps/spa_strings.py:318
 msgid ""
 "The interface is translated into your language; these update notes are "
 "written in English."
 msgstr ""
-"Die Oberfläche wurde in Ihre Sprache übersetzt. Diese Update-Hinweise "
-"sind in Englisch"
+"Die Oberfläche wurde in Ihre Sprache übersetzt. Diese Update-Hinweise sind "
+"in Englisch"
 
 #: cps/spa_strings.py:320 cps/templates/image.html:27
 msgid "Reading"
@@ -3692,7 +3711,9 @@ msgstr "Immer anzeigen"
 
 #: cps/spa_strings.py:367
 msgid "Editing sidebar. Reorder or hide sections, then tap Done."
-msgstr "Seitenleiste bearbeiten. Abschnitte neu anordnen oder verstecken, dann auf Fertig klicken."
+msgstr ""
+"Seitenleiste bearbeiten. Abschnitte neu anordnen oder verstecken, dann auf "
+"Fertig klicken."
 
 #: cps/spa_strings.py:368
 msgid "Editing cancelled."
@@ -3702,8 +3723,8 @@ msgstr "Bearbeiten abgebrochen."
 msgid ""
 "Drag to reorder. Tap ✕ to hide a section. Arrow keys move the focused handle."
 msgstr ""
-"Ziehen um umzusortieren. Klicke X um einen Abschnitt zu verstecken. Pfeiltasten bewegen "
-"den ausgewählten Abschnitt."
+"Ziehen um umzusortieren. Klicke X um einen Abschnitt zu verstecken. "
+"Pfeiltasten bewegen den ausgewählten Abschnitt."
 
 #: cps/spa_strings.py:370
 msgid "Sidebar saved."
@@ -3721,7 +3742,9 @@ msgstr "{label} zu position {pos} von {total} verschoben."
 #: cps/spa_strings.py:373
 #, python-brace-format
 msgid "Reorder {label} (position {pos} of {total}). Use arrow keys to move."
-msgstr "{label} neu anordnen (Position {pos} von {total}). Pfeiltasten zum Verschieben."
+msgstr ""
+"{label} neu anordnen (Position {pos} von {total}). Pfeiltasten zum "
+"Verschieben."
 
 #: cps/spa_strings.py:374
 #, python-brace-format
@@ -3785,8 +3808,8 @@ msgid ""
 "A one-time full duplicate scan is needed. Run it from CWA settings, then "
 "return here."
 msgstr ""
-"Ein einmaliger Duplikat-Scan wird benötigt. Von CWA-Einstellungen ausführen, dann "
-"hierher zurückkehren."
+"Ein einmaliger Duplikat-Scan wird benötigt. Von CWA-Einstellungen ausführen, "
+"dann hierher zurückkehren."
 
 #: cps/spa_strings.py:403 cps/templates/cover_picker.html:81
 msgid "API keys"
@@ -3863,7 +3886,9 @@ msgstr "Ausgewählte hinzufügen"
 #: cps/spa_strings.py:421
 msgid ""
 "Apply to all selected (only filled fields change; replaces existing values):"
-msgstr "Zu allen Markierten hinzufügen (nur gefüllte Felder werden geändert, bestehende Werte werden überschrieben):"
+msgstr ""
+"Zu allen Markierten hinzufügen (nur gefüllte Felder werden geändert, "
+"bestehende Werte werden überschrieben):"
 
 #: cps/spa_strings.py:422 cps/templates/cover_picker.html:224
 msgid "Applying…"
