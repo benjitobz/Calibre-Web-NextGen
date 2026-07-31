@@ -16,6 +16,15 @@ is for things you can see or feel when running the app.
 
 ## [Unreleased]
 
+### Changed
+
+- **Ebook conversion and metadata reading now run on Calibre 9.11.0**, up from
+  9.1.0. Ten minor versions of Calibre fixes land in one step, covering format
+  conversion, metadata extraction and the ingest path — so books that previously
+  converted badly, imported with wrong or missing metadata, or failed to ingest
+  at all are worth retrying. Thanks to @chloeroform for the upgrade and
+  @darkmatterpelican for reporting it.
+
 ### Fixed
 
 - **KOReader's plugin updater kept saying "no new release available" when a newer
