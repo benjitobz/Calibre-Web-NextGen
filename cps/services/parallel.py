@@ -114,6 +114,78 @@ def fan_out(
         yield from _fan_out_stdlib(jobs, workers, fanout_started)
 
 
+def run_blocking(fn: Callable[[], Any]) -> Any:
+    """Run ONE blocking callable without stalling the gevent hub.
+
+    ``fan_out`` covers the many-jobs case. This is the single-job one, and it
+    exists because the #954 root cause reaches the app through plain
+    sequential calls too, not only through fan-outs (fork #1111):
+
+    * ``cps/editbooks.py`` downloads the cover inline on the edit-book POST,
+      so a slow cover CDN froze every other user's page load for up to the
+      ``requests`` read timeout of 30s.
+    * ``cps/search_metadata.py`` runs a single provider inline for the
+      per-provider preview search, which blocks on the provider's own socket
+      reads for as long as that provider takes.
+
+    Neither is a fan-out, so neither was reachable by ``fan_out`` — but both
+    sit on the request greenlet, which is the only thing that matters here.
+
+    The return value is passed through and exceptions are re-raised in the
+    caller (with the worker frame kept in the traceback), so wrapping a call
+    site does not change its control flow.
+
+    Uses ONE bounded, shared pool rather than a pool per call. A pool per call
+    is unbounded native-thread admission: N concurrent cover saves means N OS
+    threads and N outbound sockets, so a burst trades the hub freeze for
+    thread/FD exhaustion. Bounding it does not reintroduce the freeze, because
+    ``spawn()`` on a saturated gevent pool waits COOPERATIVELY — measured at a
+    296ms worst-case hub gap against a 211ms idle baseline while six 1s jobs
+    queued through two slots. The submitting request queues; everyone else is
+    still served. That is backpressure, which is what we want under load.
+    """
+    if not _HAVE_GEVENT_POOL:
+        # gevent is not installed at all, so there is no hub to protect and
+        # the thread hop would only add latency.
+        return fn()
+
+    pool = _offload_pool()
+    if pool is None:
+        # Already off the hub's thread — e.g. a provider reached through
+        # fan_out, whose workers are real OS threads. Blocking here harms
+        # nobody, and hopping again would only add a thread.
+        return fn()
+
+    return pool.spawn(fn).get()
+
+
+# Bound on concurrent offloaded blocking calls. These are network waits, so
+# the number is about capping OS threads and sockets under a burst, not about
+# CPU. Past it, requests queue cooperatively instead of spawning more threads.
+_MAX_OFFLOAD_WORKERS = 16
+
+_OFFLOAD_POOL = None
+_OFFLOAD_POOL_THREAD = None
+
+
+def _offload_pool():
+    """The shared pool, or ``None`` when the caller is not on the thread that
+    owns it.
+
+    A ``gevent.threadpool.ThreadPool`` belongs to the hub of the thread that
+    created it, so it must not be driven from another OS thread. Returning
+    ``None`` for that case lets ``run_blocking`` degrade to a direct call,
+    which is correct there: off the hub's thread nothing is being frozen.
+    """
+    global _OFFLOAD_POOL, _OFFLOAD_POOL_THREAD
+    import threading
+
+    if _OFFLOAD_POOL is None:
+        _OFFLOAD_POOL = _GeventThreadPool(_MAX_OFFLOAD_WORKERS)
+        _OFFLOAD_POOL_THREAD = threading.get_ident()
+    return _OFFLOAD_POOL if _OFFLOAD_POOL_THREAD == threading.get_ident() else None
+
+
 def _timed(fn, fanout_started):
     """Wrap ``fn`` so the finish time is captured in the worker, the instant
     the job returns — see FanOutResult.elapsed_ms for why the consumer's

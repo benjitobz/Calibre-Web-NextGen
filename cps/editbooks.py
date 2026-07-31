@@ -13,9 +13,9 @@ import json
 from shutil import copyfile
 
 from markupsafe import escape, Markup  # dependency of flask
-from functools import wraps
+from functools import partial, wraps
 
-from flask import Blueprint, request, flash, redirect, url_for, abort, Response, jsonify
+from flask import Blueprint, request, flash, redirect, url_for, abort, Response, jsonify, copy_current_request_context
 from flask_babel import gettext as _
 from flask_babel import lazy_gettext as N_
 from flask_babel import get_locale
@@ -29,6 +29,7 @@ from . import user_book_data
 from .clean_html import clean_string
 from . import config, ub, db, calibre_db
 from .services.worker import WorkerThread
+from .services import parallel
 from .tasks.upload import TaskUpload
 from .render_template import render_title_template
 from .kobo_sync_status import change_archived_books
@@ -990,7 +991,18 @@ def do_edit_book(book_id, upload_formats=None):
                 book.has_cover = 0
             else:
                 cover_start = time.monotonic()
-                result, error = helper.save_cover_from_url(to_save["cover_url"].strip(), book.path)
+                # parallel.run_blocking, not a bare call: the download is a
+                # blocking socket read on the request greenlet, and gevent
+                # runs unpatched, so a slow cover CDN froze every other user's
+                # page load for the whole read timeout (fork #1111).
+                #
+                # copy_current_request_context is load-bearing, not decoration:
+                # save_cover_from_url returns flask_babel `_("...")` on all of
+                # its error paths, and off-context gettext does not raise — it
+                # silently returns the English msgid. Without this wrapper every
+                # non-English user gets "Error Downloading Cover" in English.
+                result, error = parallel.run_blocking(copy_current_request_context(partial(
+                    helper.save_cover_from_url, to_save["cover_url"].strip(), book.path)))
                 if result:
                     book.has_cover = 1
                     modify_date = True
