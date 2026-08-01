@@ -37,6 +37,24 @@ is for things you can see or feel when running the app.
 
 ### Fixed
 
+- **The "Duplicates found" popup kept naming books you had already deleted.**
+  If you removed duplicate copies in Calibre itself rather than in the web app,
+  the popup carried on listing them — while the Duplicates page and a fresh
+  scan both correctly reported nothing. The popup was reading a list saved at
+  the time of the last scan and never re-checked it against your actual
+  library, so it was the one place still remembering the deleted books. It now
+  re-checks before it shows, and a group whose books are gone (or archived, or
+  hidden from you) drops out. Groups that merely lost one copy now show the
+  real remaining count instead of the stale one. The sidebar duplicate badge
+  reads the same number, so it was wrong in the same way and is fixed too.
+
+- **A duplicate you dismissed could come back on its own.** Dismissals were
+  being matched against a label built from the title and author of whichever
+  copy happened to sort first, so editing a book's metadata — or importing
+  another copy — quietly changed the label and the dismissal stopped applying.
+  Dismissals now hold onto a stable identity that metadata edits don't move.
+  Thanks to @blahblah57, whose report on the duplicates popup led here.
+
 - **Marking a book unread left its "Started reading" and "Last synced" dates on
   the page.** The percentage cleared, but the two dates stayed — and "Last
   synced" jumped forward to the moment you pressed the button, so a book you had
