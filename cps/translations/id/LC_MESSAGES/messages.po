@@ -3903,7 +3903,7 @@ msgstr ""
 #: cps/templates/book_table.html:215 cps/templates/book_table.html:235
 #: cps/templates/book_table.html:255 cps/templates/book_table.html:275
 #: cps/templates/book_table.html:333 cps/templates/book_table.html:369
-#: cps/templates/config_db.html:110 cps/templates/config_edit.html:733
+#: cps/templates/config_db.html:115 cps/templates/config_edit.html:733
 #: cps/templates/config_view_edit.html:236 cps/templates/cover_picker.html:189
 #: cps/templates/cwa_convert_library.html:23
 #: cps/templates/cwa_epub_fixer.html:40 cps/templates/detail.html:1192
@@ -5193,7 +5193,7 @@ msgid "STARTTLS"
 msgstr "STARTTLS"
 
 #: cps/spa_strings.py:768 cps/templates/book_edit.html:313
-#: cps/templates/config_db.html:111 cps/templates/config_edit.html:734
+#: cps/templates/config_db.html:116 cps/templates/config_edit.html:734
 #: cps/templates/config_view_edit.html:237 cps/templates/email_edit.html:71
 #: cps/templates/read.html:186 cps/templates/schedule_edit.html:47
 #: cps/templates/shelf_edit.html:36 cps/templates/shelf_reorder.html:38
@@ -6962,7 +6962,7 @@ msgid "Are you sure you want to restart?"
 msgstr "Apa Anda yakin untuk memulai ulang?"
 
 #: cps/templates/admin.html:303 cps/templates/admin.html:317
-#: cps/templates/admin.html:337 cps/templates/config_db.html:139
+#: cps/templates/admin.html:337 cps/templates/config_db.html:145
 #: cps/templates/duplicates.html:788 cps/templates/duplicates.html:810
 msgid "OK"
 msgstr "OK"
@@ -7498,102 +7498,102 @@ msgstr "Kembali"
 msgid "Send this announcement to __NUM__ recipient(s)?"
 msgstr ""
 
-#: cps/templates/config_db.html:13
+#: cps/templates/config_db.html:18
 msgid "Troubleshooting your DB"
 msgstr ""
 
-#: cps/templates/config_db.html:14
+#: cps/templates/config_db.html:19
 msgid ""
 "If you have been sent to this page after updating or migrating, there was a "
 "problem mounting your Calibre Database (metadata.db), or less likely, a "
 "problem with your app.db."
 msgstr ""
 
-#: cps/templates/config_db.html:15
+#: cps/templates/config_db.html:20
 msgid "Common causes include:"
 msgstr ""
 
-#: cps/templates/config_db.html:17
+#: cps/templates/config_db.html:22
 msgid ""
 "NextGen and Calibre are using the same database or library at the same time."
 msgstr ""
 
-#: cps/templates/config_db.html:18
+#: cps/templates/config_db.html:23
 #, python-format
 msgid ""
 "NextGen, or part of it, is running over a network share without "
 "%(network_share_mode)s enabled in your Docker Compose configuration."
 msgstr ""
 
-#: cps/templates/config_db.html:19
+#: cps/templates/config_db.html:24
 #, python-format
 msgid ""
 "NextGen is running on %(unionfs)s or %(mergerfs)s without "
 "%(network_share_mode)s enabled."
 msgstr ""
 
-#: cps/templates/config_db.html:20
+#: cps/templates/config_db.html:25
 msgid "The path to your Calibre Database changed or is incorrect."
 msgstr ""
 
-#: cps/templates/config_db.html:21
+#: cps/templates/config_db.html:26
 msgid "The Calibre Database file (metadata.db) is missing or corrupted."
 msgstr ""
 
-#: cps/templates/config_db.html:22
+#: cps/templates/config_db.html:27
 msgid "File permissions prevent access to the Calibre Database."
 msgstr ""
 
-#: cps/templates/config_db.html:24
+#: cps/templates/config_db.html:29
 msgid "To resolve these issues, make sure that:"
 msgstr ""
 
-#: cps/templates/config_db.html:26
+#: cps/templates/config_db.html:31
 msgid ""
 "No other application, including Calibre, accesses the same Calibre Database "
 "while NextGen is running."
 msgstr ""
 
-#: cps/templates/config_db.html:27
+#: cps/templates/config_db.html:32
 #, python-format
 msgid ""
 "If you use a network share, unionfs, or mergerfs, enable "
 "%(network_share_mode)s in your Docker Compose configuration."
 msgstr ""
 
-#: cps/templates/config_db.html:28
+#: cps/templates/config_db.html:33
 msgid ""
 "The Calibre Database path (metadata.db) is correct and accessible to NextGen."
 msgstr ""
 
-#: cps/templates/config_db.html:29
+#: cps/templates/config_db.html:34
 msgid ""
 "The Calibre Database file (metadata.db) exists and is not corrupted. Try "
 "opening it with Calibre to verify its integrity."
 msgstr ""
 
-#: cps/templates/config_db.html:30
+#: cps/templates/config_db.html:35
 msgid "NextGen has permission to access the Calibre Database file."
 msgstr ""
 
-#: cps/templates/config_db.html:32
+#: cps/templates/config_db.html:37
 msgid ""
 "If the problem remains after checking all of the above, restore your Calibre "
 "Database from a backup or create a new one."
 msgstr ""
 
-#: cps/templates/config_db.html:33
+#: cps/templates/config_db.html:38
 msgid ""
 "You can also use Last Resort Restore at the bottom of this page to try "
 "rebuilding your Calibre Database from the OPF files in your library."
 msgstr ""
 
-#: cps/templates/config_db.html:38
+#: cps/templates/config_db.html:43
 #, fuzzy
 msgid "Location of Calibre Database (metadata.db file)"
 msgstr "Lokasi Database Calibre"
 
-#: cps/templates/config_db.html:48
+#: cps/templates/config_db.html:53
 msgid ""
 "NextGen is configured so that your Calibre Database (<code>metadata.db</"
 "code> file) should always be somewhere in <code>/calibre-library</code>.\n"
@@ -7609,13 +7609,13 @@ msgid ""
 "wiki/Configuration#database-configuration\">see here</a>!"
 msgstr ""
 
-#: cps/templates/config_db.html:54
+#: cps/templates/config_db.html:59
 msgid ""
 "Therefore, when configuring your docker-compose file for NextGen, <b>DO NOT "
 "CHANGE THE PATHS IN THE VOLUMES SECTION ON THE RIGHT SIDE OF THE COLONS!</b>"
 msgstr ""
 
-#: cps/templates/config_db.html:55
+#: cps/templates/config_db.html:60
 msgid ""
 "These paths are internal to NextGen only, you can change what they're bind "
 "to to your heart's content on the left-hand side but there's no reason to\n"
@@ -7626,7 +7626,7 @@ msgid ""
 "and there, enter the path to the rest of the library</b>"
 msgstr ""
 
-#: cps/templates/config_db.html:59
+#: cps/templates/config_db.html:64
 msgid ""
 "E.g. As long as your library's <code>metadata.db</code> file is bound "
 "somewhere within <code>/calibre-library</code>, you could bind the dir\n"
@@ -7637,43 +7637,43 @@ msgid ""
 "option."
 msgstr ""
 
-#: cps/templates/config_db.html:63
+#: cps/templates/config_db.html:68
 msgid "Split Library Functionality"
 msgstr ""
 
-#: cps/templates/config_db.html:66
+#: cps/templates/config_db.html:71
 msgid ""
 "<b>Separate Book Files from Library</b> - <code>metadata.db</code> file "
 "should remain in <code>/calibre-library</code>, however your library files "
 "can be wherever you desire"
 msgstr ""
 
-#: cps/templates/config_db.html:79
+#: cps/templates/config_db.html:84
 msgid "Use Google Drive?"
 msgstr "Gunakan Google Drive?"
 
-#: cps/templates/config_db.html:84
+#: cps/templates/config_db.html:89
 msgid "Authenticate Google Drive"
 msgstr "Autentikasi Google Drive"
 
-#: cps/templates/config_db.html:89
+#: cps/templates/config_db.html:94
 msgid "Google Drive Calibre folder"
 msgstr "Silakan tekan simpan untuk melanjutkan penyiapan"
 
-#: cps/templates/config_db.html:97
+#: cps/templates/config_db.html:102
 msgid "Metadata Watch Channel ID"
 msgstr "ID Saluran Metadata Watch"
 
-#: cps/templates/config_db.html:100 cps/templates/user_edit.html:651
+#: cps/templates/config_db.html:105 cps/templates/user_edit.html:651
 msgid "Revoke"
 msgstr "Tarik Kembali"
 
-#: cps/templates/config_db.html:117
+#: cps/templates/config_db.html:123
 #, fuzzy
 msgid "Last Resort: Restore Calibre Database (experimental)"
 msgstr "Sambungkan kembali ke Perpustakaan Caliber"
 
-#: cps/templates/config_db.html:118
+#: cps/templates/config_db.html:124
 msgid ""
 "If your Calibre library is corrupted and cannot be opened, you can attempt "
 "to restore it from the OPF files in your library. This will <b>erase all per-"
@@ -7683,17 +7683,17 @@ msgid ""
 "destructive action.</b> A restore log will be saved alongside the backups."
 msgstr ""
 
-#: cps/templates/config_db.html:121
+#: cps/templates/config_db.html:127
 #, fuzzy
 msgid "Are you sure? This cannot be undone."
 msgstr "Apa Anda yakin untuk mematikan layanan?"
 
-#: cps/templates/config_db.html:121
+#: cps/templates/config_db.html:127
 #, fuzzy
 msgid "Restore Calibre Database (Last Resort)"
 msgstr "Sambungkan kembali ke Perpustakaan Caliber"
 
-#: cps/templates/config_db.html:137
+#: cps/templates/config_db.html:143
 msgid "New db location is invalid, please enter valid path"
 msgstr "Lokasi basis data baru tidak valid, harap masukkan jalur yang valid"
 
