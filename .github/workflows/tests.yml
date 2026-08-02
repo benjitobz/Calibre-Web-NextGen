@@ -48,6 +48,11 @@ jobs:
     steps:
       - name: Checkout code
         uses: actions/checkout@v7
+        with:
+          # Changelog integrity compares every canonical-era release tag. A
+          # shallow checkout would silently fall back to only the committed
+          # What's New ledger and exercise less history than normal CI can.
+          fetch-depth: 0
 
       - name: Remove Python bytecode and pycache
         run: |
@@ -367,6 +372,12 @@ jobs:
         uses: actions/checkout@v7
         with:
           fetch-depth: 0
+
+      - name: Reject changelog structure lost by a stale PR branch
+        env:
+          BASE_SHA: ${{ github.event.pull_request.base.sha }}
+          HEAD_SHA: ${{ github.event.pull_request.head.sha }}
+        run: python3 scripts/check_changelog_diff.py "$BASE_SHA" "$HEAD_SHA"
 
       - name: Detect
         id: detect
