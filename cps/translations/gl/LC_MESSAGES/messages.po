@@ -1347,7 +1347,7 @@ msgstr ""
 
 #: cps/api/upload.py:103 cps/api/upload.py:148 cps/editbooks.py:165
 #: cps/editbooks.py:196 cps/templates/book_edit.html:94
-#: cps/templates/layout.html:362
+#: cps/templates/layout.html:375
 msgid "Upload done, processing, please wait..."
 msgstr "Carga feita, procesando, por favor agarde..."
 
@@ -2096,7 +2096,7 @@ msgstr "Formatos de arquivo"
 msgid "Books ordered by file formats"
 msgstr "Libros ordeados por formato de arquivo"
 
-#: cps/opds.py:254 cps/spa_strings.py:802 cps/templates/layout.html:645
+#: cps/opds.py:254 cps/spa_strings.py:802 cps/templates/layout.html:658
 #: cps/templates/search_form.html:88
 msgid "Shelves"
 msgstr "Andeis"
@@ -2128,13 +2128,13 @@ msgstr "{} Estrelas"
 #: cps/opds.py:1169 cps/search.py:53 cps/search.py:454 cps/spa_strings.py:264
 #: cps/templates/book_edit.html:338 cps/templates/cwa_epub_fixer.html:25
 #: cps/templates/feed.xml:43 cps/templates/index.xml:12
-#: cps/templates/layout.html:313 cps/templates/layout.html:316
+#: cps/templates/layout.html:326 cps/templates/layout.html:329
 #: cps/templates/search_form.html:247
 msgid "Search"
 msgstr "Buscar"
 
-#: cps/remotelogin.py:76 cps/spa_strings.py:639 cps/templates/layout.html:344
-#: cps/templates/layout.html:391 cps/templates/login.html:11
+#: cps/remotelogin.py:76 cps/spa_strings.py:639 cps/templates/layout.html:357
+#: cps/templates/layout.html:404 cps/templates/login.html:11
 #: cps/templates/login.html:39 cps/web.py:2611
 msgid "Login"
 msgstr "Inicio de sesión"
@@ -2304,7 +2304,7 @@ msgid "Error on search for custom columns, please restart Calibre-Web"
 msgstr ""
 "Erro na busca de columnas personalizadas, por favor reinicia Calibre-Web"
 
-#: cps/search.py:398 cps/search.py:430 cps/templates/layout.html:324
+#: cps/search.py:398 cps/search.py:430 cps/templates/layout.html:337
 msgid "Advanced Search"
 msgstr "Búsqueda avanzada"
 
@@ -2455,7 +2455,7 @@ msgstr ""
 msgid "Could not save order"
 msgstr ""
 
-#: cps/shelf.py:1052 cps/templates/layout.html:654
+#: cps/shelf.py:1052 cps/templates/layout.html:667
 #, fuzzy
 msgid "Reorder Shelves"
 msgstr "Excluir andeis"
@@ -2860,7 +2860,7 @@ msgstr ""
 msgid "Book content"
 msgstr ""
 
-#: cps/spa_strings.py:168 cps/templates/layout.html:628
+#: cps/spa_strings.py:168 cps/templates/layout.html:641
 msgid "Browse"
 msgstr "Navegar"
 
@@ -2872,8 +2872,8 @@ msgstr ""
 #: cps/templates/book_edit.html:378 cps/templates/book_table.html:346
 #: cps/templates/cwng_feedback_popup.html:63
 #: cps/templates/cwng_feedback_popup.html:72 cps/templates/duplicates.html:766
-#: cps/templates/layout.html:362 cps/templates/layout.html:738
-#: cps/templates/layout.html:881 cps/templates/modal_dialogs.html:34
+#: cps/templates/layout.html:375 cps/templates/layout.html:751
+#: cps/templates/layout.html:894 cps/templates/modal_dialogs.html:34
 #: cps/templates/shelf.html:110 cps/templates/update_now_modal.html:69
 #: cps/templates/user_edit.html:673
 msgid "Close"
@@ -3360,7 +3360,7 @@ msgid "Update password"
 msgstr ""
 
 #: cps/spa_strings.py:292 cps/tasks/upload.py:28 cps/templates/admin.html:22
-#: cps/templates/layout.html:365 cps/templates/user_table.html:146
+#: cps/templates/layout.html:378 cps/templates/user_table.html:146
 msgid "Upload"
 msgstr "Subir arquivo"
 
@@ -3480,14 +3480,14 @@ msgstr ""
 msgid "Sync"
 msgstr ""
 
-#: cps/spa_strings.py:325 cps/templates/layout.html:342
-#: cps/templates/layout.html:380 cps/templates/user_edit.html:312
+#: cps/spa_strings.py:325 cps/templates/layout.html:355
+#: cps/templates/layout.html:393 cps/templates/user_edit.html:312
 #: cps/templates/user_edit.html:314
 msgid "Account"
 msgstr "Conta"
 
 #: cps/spa_strings.py:326 cps/templates/admin.html:19
-#: cps/templates/layout.html:376 cps/templates/user_table.html:144
+#: cps/templates/layout.html:389 cps/templates/user_table.html:144
 msgid "Admin"
 msgstr "Administrador"
 
@@ -3571,7 +3571,7 @@ msgstr ""
 msgid "Editions"
 msgstr ""
 
-#: cps/spa_strings.py:350 cps/templates/layout.html:335
+#: cps/spa_strings.py:350 cps/templates/layout.html:348
 msgid "Back to New UI"
 msgstr ""
 
@@ -3726,7 +3726,7 @@ msgstr ""
 msgid "API keys"
 msgstr ""
 
-#: cps/spa_strings.py:404 cps/templates/layout.html:668
+#: cps/spa_strings.py:404 cps/templates/layout.html:681
 #: cps/templates/stats.html:3
 msgid "About"
 msgstr "Acerca de"
@@ -3918,8 +3918,8 @@ msgstr ""
 #: cps/templates/cwa_convert_library.html:23
 #: cps/templates/cwa_epub_fixer.html:40 cps/templates/detail.html:1192
 #: cps/templates/duplicates.html:696 cps/templates/duplicates.html:719
-#: cps/templates/duplicates.html:746 cps/templates/layout.html:844
-#: cps/templates/layout.html:999 cps/templates/modal_dialogs.html:64
+#: cps/templates/duplicates.html:746 cps/templates/layout.html:857
+#: cps/templates/layout.html:1012 cps/templates/modal_dialogs.html:64
 #: cps/templates/modal_dialogs.html:99 cps/templates/modal_dialogs.html:117
 #: cps/templates/modal_dialogs.html:135 cps/templates/read.html:187
 #: cps/templates/schedule_edit.html:46 cps/templates/shelf.html:125
@@ -4289,8 +4289,8 @@ msgid "Discover — Random Picks"
 msgstr ""
 
 #: cps/spa_strings.py:543 cps/templates/cwng_feedback_popup.html:24
-#: cps/templates/duplicates.html:618 cps/templates/layout.html:410
-#: cps/templates/layout.html:592
+#: cps/templates/duplicates.html:618 cps/templates/layout.html:423
+#: cps/templates/layout.html:605
 msgid "Dismiss"
 msgstr ""
 
@@ -5485,7 +5485,7 @@ msgstr ""
 msgid "Task"
 msgstr "Tarefa"
 
-#: cps/spa_strings.py:846 cps/tasks_status.py:37 cps/templates/layout.html:373
+#: cps/spa_strings.py:846 cps/tasks_status.py:37 cps/templates/layout.html:386
 #: cps/templates/tasks.html:7
 msgid "Tasks"
 msgstr "Tarefas"
@@ -6091,7 +6091,7 @@ msgstr ""
 msgid "Error creating shelf"
 msgstr "Erro borrando o estante"
 
-#: cps/templates/layout.html:664 cps/web.py:1495
+#: cps/templates/layout.html:677 cps/web.py:1495
 #, fuzzy
 msgid "Create Magic Shelf"
 msgstr "Crear un andel"
@@ -6214,7 +6214,7 @@ msgstr "Libro posto na cola de envío a %(eReadermail)s"
 msgid "Please wait one minute to register next user"
 msgstr ""
 
-#: cps/templates/layout.html:345 cps/templates/layout.html:392
+#: cps/templates/layout.html:358 cps/templates/layout.html:405
 #: cps/templates/login.html:48 cps/templates/register.html:17 cps/web.py:2491
 #: cps/web.py:2495 cps/web.py:2500 cps/web.py:2504 cps/web.py:2510
 #: cps/web.py:2539 cps/web.py:2543 cps/web.py:2556 cps/web.py:2559
@@ -6612,7 +6612,7 @@ msgstr "Engadir ao andel"
 #: cps/templates/detail.html:819 cps/templates/detail.html:989
 #: cps/templates/detail.html:1622 cps/templates/feed.xml:109
 #: cps/templates/feed.xml:111 cps/templates/index.html:162
-#: cps/templates/layout.html:648 cps/templates/layout.html:661
+#: cps/templates/layout.html:661 cps/templates/layout.html:674
 #: cps/templates/listenmp3.html:201 cps/templates/listenmp3.html:218
 #: cps/templates/search.html:23 cps/templates/shelf_reorder.html:31
 msgid "(Public)"
@@ -6956,7 +6956,7 @@ msgstr "Detalles"
 msgid "Update available"
 msgstr "A actualización fallou:"
 
-#: cps/templates/admin.html:263 cps/templates/layout.html:501
+#: cps/templates/admin.html:263 cps/templates/layout.html:514
 #, fuzzy
 msgid "Update now"
 msgstr "Canle de actualización"
@@ -7043,8 +7043,8 @@ msgid "total entries seen"
 msgstr ""
 
 #: cps/templates/annotations_import.html:49 cps/templates/book_edit.html:94
-#: cps/templates/book_edit.html:111 cps/templates/layout.html:362
-#: cps/templates/layout.html:567
+#: cps/templates/book_edit.html:111 cps/templates/layout.html:375
+#: cps/templates/layout.html:580
 msgid "Uploading..."
 msgstr "Cargando..."
 
@@ -7155,7 +7155,7 @@ msgstr "Convertir libro"
 #: cps/templates/hardcover_review_matches.html:369
 #: cps/templates/hardcover_review_matches.html:400
 #: cps/templates/hardcover_review_matches.html:409
-#: cps/templates/layout.html:362
+#: cps/templates/layout.html:375
 msgid "Error"
 msgstr "Erro"
 
@@ -9795,7 +9795,7 @@ msgid "No thanks"
 msgstr ""
 
 #: cps/templates/cwng_feedback_popup.html:39 cps/templates/feed.xml:31
-#: cps/templates/layout.html:696 cps/templates/layout.html:722
+#: cps/templates/layout.html:709 cps/templates/layout.html:735
 msgid "Next"
 msgstr "Seguinte"
 
@@ -10197,7 +10197,7 @@ msgstr ""
 msgid "The following books will be permanently deleted:"
 msgstr "O libro borrarase permanentemente da base de datos"
 
-#: cps/templates/duplicates.html:730 cps/templates/layout.html:796
+#: cps/templates/duplicates.html:730 cps/templates/layout.html:809
 #, fuzzy
 msgid "Merge Books"
 msgstr "Libros non lidos"
@@ -10541,215 +10541,215 @@ msgstr ""
 msgid "Home"
 msgstr "Inicio"
 
-#: cps/templates/layout.html:299
+#: cps/templates/layout.html:312
 msgid "Toggle Navigation"
 msgstr "Alternar navegación"
 
-#: cps/templates/layout.html:314
+#: cps/templates/layout.html:327
 msgid "Search Library"
 msgstr "Buscar na librería"
 
-#: cps/templates/layout.html:331
+#: cps/templates/layout.html:344
 #, fuzzy
 msgid "Switch to the new Calibre-Web NextGen interface"
 msgstr "Catálogo de libros electrónicos de Calibre-Web"
 
-#: cps/templates/layout.html:335
+#: cps/templates/layout.html:348
 msgid "Switch to New UI"
 msgstr ""
 
-#: cps/templates/layout.html:348 cps/templates/layout.html:386
+#: cps/templates/layout.html:361 cps/templates/layout.html:399
 msgid "Logout"
 msgstr "Pechar sesión"
 
-#: cps/templates/layout.html:351 cps/templates/layout.html:384
+#: cps/templates/layout.html:364 cps/templates/layout.html:397
 msgid "Support Calibre-Web NextGen"
 msgstr ""
 
-#: cps/templates/layout.html:376 cps/templates/read.html:103
+#: cps/templates/layout.html:389 cps/templates/read.html:103
 #: cps/templates/readcbr.html:71 cps/templates/readcbr.html:97
 #, fuzzy
 msgid "Settings"
 msgstr "Axustes"
 
-#: cps/templates/layout.html:378
+#: cps/templates/layout.html:391
 #, fuzzy
 msgid "Refresh Library"
 msgstr "Buscar na librería"
 
-#: cps/templates/layout.html:384
+#: cps/templates/layout.html:397
 msgid "Support"
 msgstr ""
 
-#: cps/templates/layout.html:403
+#: cps/templates/layout.html:416
 #, fuzzy
 msgid "New interface available"
 msgstr "Non hai información do lanzamento dispoñible"
 
-#: cps/templates/layout.html:405
+#: cps/templates/layout.html:418
 #, fuzzy
 msgid "A faster, redesigned Calibre-Web NextGen interface is ready."
 msgstr "Catálogo de libros electrónicos de Calibre-Web"
 
-#: cps/templates/layout.html:405
+#: cps/templates/layout.html:418
 msgid "Your classic view stays the default until you switch."
 msgstr ""
 
-#: cps/templates/layout.html:408
+#: cps/templates/layout.html:421
 msgid "Try the new UI"
 msgstr ""
 
-#: cps/templates/layout.html:502
+#: cps/templates/layout.html:515
 msgid "See Changelog"
 msgstr ""
 
-#: cps/templates/layout.html:512
+#: cps/templates/layout.html:525
 #, fuzzy
 msgid "Open Duplicates"
 msgstr "Borrar libro"
 
-#: cps/templates/layout.html:534
+#: cps/templates/layout.html:547
 msgid "Contribute here!"
 msgstr ""
 
-#: cps/templates/layout.html:568
+#: cps/templates/layout.html:581
 msgid "Please do not refresh the page"
 msgstr "Por favor, non actualice a páxina"
 
-#: cps/templates/layout.html:651
+#: cps/templates/layout.html:664
 #, fuzzy
 msgid "Create Shelf"
 msgstr "Crear un andel"
 
-#: cps/templates/layout.html:659
+#: cps/templates/layout.html:672
 msgid "Magic Shelves ✨"
 msgstr ""
 
-#: cps/templates/layout.html:681 cps/templates/layout.html:707
+#: cps/templates/layout.html:694 cps/templates/layout.html:720
 msgid "Previous"
 msgstr "Previo"
 
-#: cps/templates/layout.html:734
+#: cps/templates/layout.html:747
 msgid "Book Details"
 msgstr "Detalles do libro"
 
-#: cps/templates/layout.html:802
+#: cps/templates/layout.html:815
 #, fuzzy
 msgid "This cannot be undone."
 msgstr "De verdade quere deter?"
 
-#: cps/templates/layout.html:808
+#: cps/templates/layout.html:821
 #, fuzzy
 msgid "Will be deleted"
 msgstr "Unir libros seleccionados"
 
-#: cps/templates/layout.html:812 cps/templates/layout.html:825
+#: cps/templates/layout.html:825 cps/templates/layout.html:838
 #, fuzzy
 msgid "Formats:"
 msgstr "Cargar formato"
 
-#: cps/templates/layout.html:821
+#: cps/templates/layout.html:834
 msgid "Will be kept"
 msgstr ""
 
-#: cps/templates/layout.html:833
+#: cps/templates/layout.html:846
 msgid "Format conflicts — choose what to do:"
 msgstr ""
 
-#: cps/templates/layout.html:839
+#: cps/templates/layout.html:852
 #, fuzzy
 msgid "Result will have formats:"
 msgstr "Borrar formatos:"
 
-#: cps/templates/layout.html:848
+#: cps/templates/layout.html:861
 msgid "Merge &amp; Delete Source"
 msgstr ""
 
-#: cps/templates/layout.html:882
+#: cps/templates/layout.html:895
 #, fuzzy
 msgid "Duplicate Books Detected"
 msgstr "Borrar libro"
 
-#: cps/templates/layout.html:883
+#: cps/templates/layout.html:896
 msgid "You have unresolved duplicate books in your library"
 msgstr ""
 
-#: cps/templates/layout.html:888
+#: cps/templates/layout.html:901
 #, fuzzy
 msgid "Duplicate Groups Found"
 msgstr "Non se atoparon resultados"
 
-#: cps/templates/layout.html:896
+#: cps/templates/layout.html:909
 msgid "Remind Me Later"
 msgstr ""
 
-#: cps/templates/layout.html:899
+#: cps/templates/layout.html:912
 msgid "View & Resolve Duplicates"
 msgstr ""
 
-#: cps/templates/layout.html:908
+#: cps/templates/layout.html:921
 #, fuzzy
 msgid "Scroll to top"
 msgstr "Escalar ao mellor"
 
-#: cps/templates/layout.html:910
+#: cps/templates/layout.html:923
 #, fuzzy
 msgid "Top"
 msgstr "Para:"
 
-#: cps/templates/layout.html:1000
+#: cps/templates/layout.html:1013
 #, fuzzy
 msgid "Confirm"
 msgstr "Configuración"
 
-#: cps/templates/layout.html:1006
+#: cps/templates/layout.html:1019
 #, fuzzy, python-brace-format
 msgid "Added {n} books to {shelf}"
 msgstr "Engadir ao andel"
 
-#: cps/templates/layout.html:1007
+#: cps/templates/layout.html:1020
 #, python-brace-format
 msgid "Added {ok} of {n} books to {shelf} (rest were already there)"
 msgstr ""
 
-#: cps/templates/layout.html:1008
+#: cps/templates/layout.html:1021
 #, python-brace-format
 msgid "All {n} book(s) were already on {shelf}."
 msgstr ""
 
-#: cps/templates/layout.html:1009
+#: cps/templates/layout.html:1022
 #, fuzzy, python-brace-format
 msgid "Marked {n} books as read"
 msgstr "Unir libros seleccionados"
 
-#: cps/templates/layout.html:1010
+#: cps/templates/layout.html:1023
 #, fuzzy, python-brace-format
 msgid "Marked {n} books as unread"
 msgstr "Marcar como non lido"
 
-#: cps/templates/layout.html:1011
+#: cps/templates/layout.html:1024
 #, fuzzy, python-brace-format
 msgid "Deleted {n} books"
 msgstr "Borrar libro"
 
-#: cps/templates/layout.html:1012
+#: cps/templates/layout.html:1025
 #, fuzzy
 msgid "Delete books?"
 msgstr "Borrar libro"
 
-#: cps/templates/layout.html:1013
+#: cps/templates/layout.html:1026
 #, python-brace-format
 msgid ""
 "This will permanently delete {n} book(s) from your library. This cannot be "
 "undone."
 msgstr ""
 
-#: cps/templates/layout.html:1014
+#: cps/templates/layout.html:1027
 #, fuzzy
 msgid "Select at least one book first."
 msgstr "Crear un andel"
 
-#: cps/templates/layout.html:1015
+#: cps/templates/layout.html:1028
 #, fuzzy, python-brace-format
 msgid "Request failed: {err}"
 msgstr "Erro de conexión"
