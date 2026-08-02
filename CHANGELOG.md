@@ -68,6 +68,8 @@ is for things you can see or feel when running the app.
   now enforced on the server and the button is hidden in both views. Uploading
   stays on by default, so nothing changes unless you deliberately turned it off.
 
+## [v4.1.27] - 2026-08-02
+
 ### Changed
 
 - **The admin "Version Information" table now reports the Calibre you are
@@ -802,8 +804,6 @@ is for things you can see or feel when running the app.
 - **Reporting an issue from the new UI's Help menu now opens the bug-report form instead of a blank issue.** The "Report Issue on GitHub" link pointed at the blank-issue URL, so reporters landed on an empty textarea rather than the Bug report / Feature request templates defined in the repo. It now opens the issue-template chooser. Thanks to @auspex for the report ([#799](https://github.com/new-usemame/Calibre-Web-NextGen/issues/799)).
 - **The edit pencil on a book card can now be opened in a new tab.** In the new UI, the hover edit pencil on a book card was a button rather than a real link, so ⌘/ctrl-click (or middle-click) didn't open the editor in a new tab the way real links do — there was no `href` for the browser to open. The pencil is now a true link: a plain click still opens the editor in place (no full page reload), and a modified click opens it in a new tab. Thanks to @chloeroform for the report ([#798](https://github.com/new-usemame/Calibre-Web-NextGen/issues/798)).
 - **Hardcover metadata is fetched again when a book is auto-ingested.** After the v4.1.9 change that centralised how the Hardcover token is read, the automatic fetch that runs on ingest aborted with an internal error and skipped Hardcover — even with a `HARDCOVER_TOKEN` set — while manual "Fetch Metadata" kept working. The token is now read safely in the background ingest process, so a `HARDCOVER_TOKEN` (or `HARDCOVER_TOKEN_FILE`) in the environment is applied during ingest again. Thanks to @ghub3297 and @Glalith121 for the reports ([#819](https://github.com/new-usemame/Calibre-Web-NextGen/issues/819)).
-### Fixed
-
 - **Saving a cover for a PDF-only or other non-EPUB/AZW3 book no longer ends with a false enforcement error.** The metadata enforcer now preserves the successful cover save, refreshes the format-independent `metadata.opf` backup, and logs an informational note that only in-file embedding was skipped for the unsupported format (#797).
 - **Author-sort mismatch warnings now name the affected book and link straight to where you fix it.** The warning previously omitted the book title/ID and pointed at an author-admin screen that doesn't exist, so there was no clear way to act on it. It now names the book and gives the direct edit link (`/admin/book/<id>`): opening that page and re-saving the book's Authors field regenerates its author sort and clears the warning (or you can correct the book in Calibre). Thanks to @auspex for the report (#801).
 - **The classic book page's read checkbox now matches the book's actual state.** Unread books previously showed a checked box beside the “Mark As Read” action, while read books showed an empty box. The checkbox is now empty for unread and checked for read; its tooltip continues to describe what clicking will do (#771).
