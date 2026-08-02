@@ -216,7 +216,7 @@ msgstr "Не вказано дійсної локалі"
 msgid "No Valid Book Language Given"
 msgstr "Не вказано дійсної мови для книжок"
 
-#: cps/admin.py:963 cps/editbooks.py:683
+#: cps/admin.py:963 cps/editbooks.py:686
 msgid "Parameter not found"
 msgstr "Параметр не знайдений"
 
@@ -441,8 +441,8 @@ msgid "Success! Gmail Account Verified."
 msgstr "Успіх! Gmail акаунт перевірений."
 
 #: cps/admin.py:1958 cps/admin.py:1961 cps/admin.py:2570 cps/admin.py:2806
-#: cps/admin.py:2931 cps/admin.py:3192 cps/editbooks.py:1169
-#: cps/editbooks.py:2060 cps/shelf.py:148 cps/shelf.py:226 cps/shelf.py:297
+#: cps/admin.py:2931 cps/admin.py:3192 cps/editbooks.py:1172
+#: cps/editbooks.py:2063 cps/shelf.py:148 cps/shelf.py:226 cps/shelf.py:297
 #: cps/shelf.py:332 cps/shelf.py:389 cps/shelf.py:464 cps/shelf.py:547
 #: cps/shelf.py:672 cps/tasks/convert.py:145 cps/web.py:3106
 #, python-format
@@ -1341,186 +1341,186 @@ msgstr ""
 msgid "Invalid resolution strategy"
 msgstr "Не правильна роль"
 
-#: cps/editbooks.py:122 cps/editbooks.py:179
+#: cps/editbooks.py:125 cps/editbooks.py:182
 msgid ""
 "Ingest folder is not writable. Check your /cwa-book-ingest volume "
 "permissions."
 msgstr ""
 
-#: cps/editbooks.py:131
+#: cps/editbooks.py:134
 msgid "Missing or invalid book id for format upload"
 msgstr ""
 
-#: cps/editbooks.py:137
+#: cps/editbooks.py:140
 msgid "Cannot upload format: Book no longer exists in library"
 msgstr ""
 
-#: cps/api/upload.py:75 cps/api/upload.py:117 cps/editbooks.py:162
-#: cps/editbooks.py:193 cps/templates/book_edit.html:94
+#: cps/api/upload.py:103 cps/api/upload.py:148 cps/editbooks.py:165
+#: cps/editbooks.py:196 cps/templates/book_edit.html:94
 #: cps/templates/layout.html:362
 msgid "Upload done, processing, please wait..."
 msgstr ""
 
-#: cps/editbooks.py:167 cps/editbooks.py:197
+#: cps/editbooks.py:170 cps/editbooks.py:200
 msgid "Failed to queue upload for processing"
 msgstr ""
 
-#: cps/editbooks.py:213
+#: cps/editbooks.py:216
 msgid "Source or destination format for conversion missing"
 msgstr ""
 
-#: cps/editbooks.py:221
+#: cps/editbooks.py:224
 #, python-format
 msgid "Book successfully queued for converting to %(book_format)s"
 msgstr ""
 
-#: cps/editbooks.py:225
+#: cps/editbooks.py:228
 #, python-format
 msgid "There was an error converting this book: %(res)s"
 msgstr ""
 
-#: cps/editbooks.py:378 cps/editbooks.py:1420 cps/editbooks.py:2007
+#: cps/editbooks.py:381 cps/editbooks.py:1423 cps/editbooks.py:2010
 msgid "File type isn't allowed to be uploaded to this server"
 msgstr ""
 
-#: cps/editbooks.py:383 cps/editbooks.py:1426 cps/editbooks.py:2018
+#: cps/editbooks.py:386 cps/editbooks.py:1429 cps/editbooks.py:2021
 #, python-format
 msgid "File extension '%(ext)s' is not allowed to be uploaded to this server"
 msgstr ""
 
-#: cps/editbooks.py:387 cps/editbooks.py:1430 cps/editbooks.py:2023
+#: cps/editbooks.py:390 cps/editbooks.py:1433 cps/editbooks.py:2026
 msgid "File to be uploaded must have an extension"
 msgstr "Завантажувальний файл повинен мати розширення"
 
-#: cps/editbooks.py:941 cps/editbooks.py:1691 cps/web.py:783 cps/web.py:3287
+#: cps/editbooks.py:944 cps/editbooks.py:1694 cps/web.py:783 cps/web.py:3287
 #: cps/web.py:3468 cps/web.py:3614
 msgid ""
 "Oops! Selected book is unavailable. File does not exist or is not accessible"
 msgstr "Неможливо відкрити книгу. Файл не існує або немає доступу."
 
-#: cps/editbooks.py:981 cps/editbooks.py:2090
+#: cps/editbooks.py:984 cps/editbooks.py:2093
 msgid "User has no rights to upload cover"
 msgstr ""
 
-#: cps/editbooks.py:989
+#: cps/editbooks.py:992
 msgid "Cover is locked. Unlock it on the cover-picker page first."
 msgstr ""
 
-#: cps/editbooks.py:1023 cps/editbooks.py:1408
+#: cps/editbooks.py:1026 cps/editbooks.py:1411
 msgid "Identifiers are not Case Sensitive, Overwriting Old Identifier"
 msgstr ""
 
-#: cps/editbooks.py:1035 cps/editbooks.py:1382 cps/editbooks.py:1810
+#: cps/editbooks.py:1038 cps/editbooks.py:1385 cps/editbooks.py:1813
 #, python-format
 msgid "'%(langname)s' is not a valid language"
 msgstr ""
 
-#: cps/editbooks.py:1154
+#: cps/editbooks.py:1157
 msgid "Metadata successfully updated"
 msgstr ""
 
-#: cps/editbooks.py:1174
+#: cps/editbooks.py:1177
 #, python-brace-format
 msgid "Error editing book: {}"
 msgstr ""
 
-#: cps/editbooks.py:1267 cps/editbooks.py:1317 cps/editbooks.py:2108
+#: cps/editbooks.py:1270 cps/editbooks.py:1320 cps/editbooks.py:2111
 #: cps/updater.py:685 cps/uploader.py:142 cps/uploader.py:151
 msgid "Unknown"
 msgstr "Невідомий"
 
-#: cps/editbooks.py:1321
+#: cps/editbooks.py:1324
 msgid ""
 "Uploaded book probably exists in the library, consider to change before "
 "upload new: "
 msgstr ""
 
-#: cps/editbooks.py:1438
+#: cps/editbooks.py:1441
 #, python-format
 msgid "File %(filename)s could not saved to temp dir"
 msgstr ""
 
-#: cps/editbooks.py:1458
+#: cps/editbooks.py:1461
 #, python-format
 msgid "Failed to Move Cover File %(file)s: %(error)s"
 msgstr ""
 
-#: cps/editbooks.py:1546 cps/editbooks.py:1548
+#: cps/editbooks.py:1549 cps/editbooks.py:1551
 msgid "Book Format Successfully Deleted"
 msgstr ""
 
-#: cps/editbooks.py:1555 cps/editbooks.py:1557
+#: cps/editbooks.py:1558 cps/editbooks.py:1560
 msgid "Book Successfully Deleted"
 msgstr ""
 
-#: cps/editbooks.py:1672
+#: cps/editbooks.py:1675
 msgid "You are missing permissions to delete books"
 msgstr ""
 
-#: cps/editbooks.py:1715
+#: cps/editbooks.py:1718
 msgid "edit metadata"
 msgstr "змінити метадані"
 
-#: cps/editbooks.py:1769
+#: cps/editbooks.py:1772
 #, python-format
 msgid "Seriesindex: %(seriesindex)s is not a valid number, skipping"
 msgstr ""
 
-#: cps/editbooks.py:2012
+#: cps/editbooks.py:2015
 msgid "User has no rights to upload additional file formats"
 msgstr ""
 
-#: cps/editbooks.py:2036
+#: cps/editbooks.py:2039
 #, python-format
 msgid "Failed to create path %(path)s (Permission denied)."
 msgstr ""
 
-#: cps/editbooks.py:2043
+#: cps/editbooks.py:2046
 #, python-format
 msgid "Failed to store file %(file)s."
 msgstr ""
 
-#: cps/editbooks.py:2067
+#: cps/editbooks.py:2070
 #, python-format
 msgid "File format %(ext)s added to %(book)s"
 msgstr "Формат файлу %(ext)s додано до %(book)s"
 
-#: cps/editbooks.py:2369
+#: cps/editbooks.py:2372
 #, fuzzy
 msgid "Book not found"
 msgstr "Токен не знайдено"
 
-#: cps/editbooks.py:2373
+#: cps/editbooks.py:2376
 msgid "Book has no file formats on disk to reload from"
 msgstr ""
 
-#: cps/editbooks.py:2394
+#: cps/editbooks.py:2397
 #, python-format
 msgid "Book file not found on disk: %(path)s"
 msgstr ""
 
-#: cps/editbooks.py:2414
+#: cps/editbooks.py:2417
 #, python-format
 msgid "Could not parse metadata from %(format)s file: %(err)s"
 msgstr ""
 
-#: cps/editbooks.py:2535
+#: cps/editbooks.py:2538
 #, python-format
 msgid ""
 "Could not rename the book folder to match the reloaded metadata: %(err)s"
 msgstr ""
 
-#: cps/editbooks.py:2557
+#: cps/editbooks.py:2560
 #, python-format
 msgid "Could not save reloaded metadata: %(err)s"
 msgstr ""
 
-#: cps/editbooks.py:2563
+#: cps/editbooks.py:2566
 #, python-format
 msgid "Reloaded %(n)d field(s) from on-disk %(fmt)s"
 msgstr ""
 
-#: cps/editbooks.py:2566
+#: cps/editbooks.py:2569
 msgid "On-disk metadata matches current — no fields updated"
 msgstr ""
 
@@ -5898,6 +5898,10 @@ msgstr ""
 #: cps/spa_strings.py:953
 #, python-brace-format
 msgid "{field} (comma separated)"
+msgstr ""
+
+#: cps/spa_strings.py:958
+msgid "Uploading is not available for your account on this server."
 msgstr ""
 
 #: cps/tasks_status.py:54
