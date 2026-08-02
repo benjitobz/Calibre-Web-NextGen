@@ -27,7 +27,18 @@ jobs:
           git config user.email '248195428+new-usemame@users.noreply.github.com'
       - name: Open revert PR for the head commit
         env:
-          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          # NOT secrets.GITHUB_TOKEN. "Allow GitHub Actions to create and approve
+          # pull requests" is off at the repo level, so the default token cannot
+          # call createPullRequest -- OBSERVED 2026-08-02T06:54Z, when this job
+          # detected a red main, built the revert, pushed auto-revert/76ff555, and
+          # then died on `pull request create failed: GraphQL: GitHub Actions is not
+          # permitted to create or approve pull requests`. The branch was left
+          # orphaned, no PR was opened, nothing paged, and main stayed red.
+          #
+          # That repo setting is a real security control -- it stops a compromised
+          # workflow opening and self-approving a PR -- so it stays off. Scoping the
+          # capability to this one workflow via the PAT is the narrower fix.
+          GH_TOKEN: ${{ secrets.GH_PAT }}
         run: |
           BAD_SHA=${{ github.event.workflow_run.head_sha }}
           BAD_TITLE=$(git log -1 --format='%s' $BAD_SHA)
