@@ -28,6 +28,7 @@ from . import constants, logger, isoLanguages, gdriveutils, uploader, helper, ko
 from . import user_book_data
 from .clean_html import clean_string
 from . import config, ub, db, calibre_db
+from .config_sql import uploads_enabled
 from .services.worker import WorkerThread
 from .services import parallel
 from .tasks.upload import TaskUpload
@@ -50,7 +51,9 @@ log = logger.create()
 def upload_required(f):
     @wraps(f)
     def inner(*args, **kwargs):
-        if current_user.role_upload():
+        # The "Enable Uploads" switch was consulted only by layout.html, which
+        # hid the navbar button while this route kept serving the POST (#1288).
+        if current_user.role_upload() and uploads_enabled(config):
             return f(*args, **kwargs)
         abort(403)
 

@@ -902,3 +902,25 @@ def get_encryption_key(key_path):
         except PermissionError as e:
             error = e
     return key, error
+
+
+def uploads_enabled(config_obj):
+    """Is the admin's "Enable Uploads" switch on? (#1288)
+
+    One predicate for every server-side upload gate — ``editbooks.upload_required``
+    (the classic route), both ``/api/v1`` upload endpoints, and the
+    ``features.uploading`` hint the SPA gates its controls on — so enforcement
+    and the advertised capability can never drift apart. Before #1288 the switch
+    was read only by ``layout.html``, which hid the classic navbar button while
+    every route behind it kept serving.
+
+    **Fails closed.** ``ConfigSQL`` always defines ``config_uploading`` (it is a
+    mapped Column above), so a config object without it is a broken or half-built
+    one, not an admin decision — and an authorization boundary must not read a
+    defect as consent. The ``default=1`` on that Column governs what value a new
+    *row* is created with; it says nothing about what an absent *attribute*
+    should mean. Client-side compatibility is a separate question and stays
+    permissive: an absent ``features.uploading`` key means the peer server
+    predates the flag (see frontend/src/lib/permissions.ts).
+    """
+    return bool(getattr(config_obj, "config_uploading", False))

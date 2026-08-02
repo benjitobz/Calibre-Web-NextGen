@@ -16,6 +16,7 @@ import { formatAuthors } from '../lib/authors';
 import { ApiError, resourceUrl } from '../lib/api';
 import { useT } from '../lib/i18n';
 import styles from './EditBook.module.css';
+import { canUploadBooks } from '../lib/permissions';
 
 interface Ident { type: string; val: string }
 
@@ -758,7 +759,10 @@ function FormatsManager({ id }: { id: string }) {
   const targets = convertOptions?.targets ?? [];
   if (!book) return null;
   const canDelete = !!me?.role?.delete_books;
-  const canUpload = !!me?.role?.upload;
+  // #1288: "Add a format" POSTs to /api/v1/books/<id>/formats, which requires
+  // role_upload and now honours the admin's "Enable Uploads" switch. Gate the
+  // control on the same pair, or the switch turns a hidden button into a 403.
+  const canUpload = canUploadBooks(me);
 
   // Keep the selected source/target normalized to lowercase option values.
   const selectedFrom = (from || sources[0] || '').toLowerCase();

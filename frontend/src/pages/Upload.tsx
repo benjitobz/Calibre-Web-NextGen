@@ -1,8 +1,10 @@
 import { useState, useCallback } from 'react';
 import { Link } from 'wouter';
 import { UploadCloud, CheckCircle2, AlertCircle, Loader2 } from 'lucide-react';
-import { useUploadBooks } from '../lib/queries';
+import { useUploadBooks, useMe } from '../lib/queries';
 import { Button } from '../components/Button';
+import { EmptyState } from '../components/EmptyState';
+import { canUploadBooks } from '../lib/permissions';
 import type { UploadResult } from '../lib/api';
 import { ApiError } from '../lib/api';
 import { useT } from '../lib/i18n';
@@ -10,6 +12,7 @@ import styles from './Upload.module.css';
 
 export function Upload() {
   const t = useT();
+  const me = useMe().data;
   const upload = useUploadBooks();
   const [dragover, setDragover] = useState(false);
   const [result, setResult] = useState<UploadResult | null>(null);
@@ -34,6 +37,25 @@ export function Upload() {
     if (upload.isPending) return;
     send(Array.from(e.dataTransfer.files));
   };
+
+  // #1288 (cross-family review): hiding the links that point here is not the
+  // same as gating the page. A bookmark, browser history, or an admin turning
+  // "Enable Uploads" off while this page is already open all left a fully
+  // working dropzone whose every request the server would refuse. Say so
+  // instead — canUploadBooks is meant to gate ALL upload controls, this
+  // included. (Rendered before the dropzone so drag-and-drop is gone too, not
+  // merely the file input.)
+  if (!canUploadBooks(me)) {
+    return (
+      <main className={styles.container}>
+        <h1 className={styles.title}>{t('Upload books')}</h1>
+        <EmptyState message={t('Uploading is not available for your account on this server.')} />
+        <div className={styles.afterActions}>
+          <Link href="/"><Button variant="ghost">{t('Back to library')}</Button></Link>
+        </div>
+      </main>
+    );
+  }
 
   return (
     <main className={styles.container}>

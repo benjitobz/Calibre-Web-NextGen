@@ -19,6 +19,7 @@ import { usePersistentChoice } from '../lib/usePersistentChoice';
 import { useT } from '../lib/i18n';
 import { useAnnouncer } from '../lib/a11y/announcer';
 import styles from './Catalog.module.css';
+import { canUploadBooks } from '../lib/permissions';
 
 const VIEW_OPTIONS: Record<DiscoveryView, { label: string }> = {
   hot: { label: 'Hot — Most Downloaded' },
@@ -297,7 +298,9 @@ export function Catalog({ entityKind, entityId, view, defaultFilter }: CatalogPr
   const me = useMe().data;
   const canEdit = !!me?.role?.edit;
   const canRenameTag = entityKind === 'tag' && canEdit;
-  const canUpload = !!me?.role?.upload;
+  // #1288: the role is only half the gate — classic also requires the admin's
+  // "Enable Uploads" switch. See lib/permissions.ts.
+  const canUpload = canUploadBooks(me);
 
   // Discover section visibility (persisted; toggled by the gear menu or its ×).
   const [discoverHidden, setDiscoverHidden] = usePersistentBool('cwng_discover_hidden_v1', false);
@@ -657,7 +660,12 @@ export function Catalog({ entityKind, entityId, view, defaultFilter }: CatalogPr
 
       {/* Toolbar */}
       <div className={styles.toolbar}>
-        {!hideLibraryControls && canUpload && (
+        {/* #1288: Upload is a library-wide ACTION, not one of the view-scoped
+            controls hideLibraryControls exists to hide (search box, Advanced,
+            read-status filter). Gating it there made it vanish on every entity
+            and discovery view, leaving no upload affordance outside the plain
+            Library route — classic keeps its navbar button on every page. */}
+        {canUpload && (
           <Link href="/upload" className={styles.uploadLink}>
             <UploadCloud size={16} aria-hidden="true" focusable={false} />
             <span>{t('Upload books')}</span>

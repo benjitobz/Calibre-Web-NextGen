@@ -951,4 +951,9 @@ _("Starting scan…")
 _("Custom columns")
 _("Not set")
 _("{field} (comma separated)")
+
+# #1288 — the /upload page's own refusal state, shown when the account lacks the
+# upload role or the admin has switched "Enable Uploads" off. ("Back to library"
+# and "Upload books" are already anchored above.)
+_("Uploading is not available for your account on this server.")
 # ==== END AUTOGEN ====

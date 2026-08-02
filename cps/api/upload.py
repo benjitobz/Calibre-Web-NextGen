@@ -18,6 +18,7 @@ from markupsafe import escape
 
 from . import api_v1, log
 from .. import config, calibre_db
+from ..config_sql import uploads_enabled
 from ..cw_login import current_user
 from ..usermanagement import login_required_if_no_ano
 from ..services.worker import WorkerThread
@@ -34,6 +35,30 @@ def _err(code, message, status):
     return jsonify({"error": {"code": code, "message": message}}), status
 
 
+def _uploads_disabled():
+    """The admin's "Enable Uploads" switch, enforced (#1288).
+
+    ``_server_features`` describes the split it belongs to: the flag gates the
+    SPA's UI, "authoritative enforcement stays server-side on each endpoint".
+    That second half was missing here — the switch only ever hid the classic
+    navbar button, so an admin who turned uploads off still had a working
+    upload API.
+
+    Delegates the predicate itself to ``config_sql.uploads_enabled`` (which
+    fails closed, and explains why) so the classic route, these two endpoints
+    and the ``features.uploading`` hint can never disagree about what the
+    switch means.
+
+    Returned as a ready error so both endpoints refuse identically, and kept
+    distinct from the role refusal above it so the client can tell "you may not
+    upload" from "nobody may upload right now".
+    """
+    if uploads_enabled(config):
+        return None
+    return _err("uploads_disabled",
+                "Uploading is disabled on this server", 403)
+
+
 @api_v1.route("/upload", methods=["POST"])
 @login_required_if_no_ano
 def upload_books():
@@ -41,6 +66,9 @@ def upload_books():
         return _err("unauthorized", "You must be signed in", 401)
     if not current_user.role_upload():
         return _err("forbidden", "You are not allowed to upload books", 403)
+    disabled = _uploads_disabled()
+    if disabled:
+        return disabled
 
     files = [f for f in request.files.getlist("file") if f and f.filename]
     if not files:
@@ -93,6 +121,9 @@ def add_format(book_id):
         return _err("unauthorized", "You must be signed in", 401)
     if not current_user.role_upload():
         return _err("forbidden", "You are not allowed to upload books", 403)
+    disabled = _uploads_disabled()
+    if disabled:
+        return disabled
     if not calibre_db.get_book(book_id):
         return _err("not_found", "Book not found", 404)
 

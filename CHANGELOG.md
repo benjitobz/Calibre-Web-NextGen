@@ -16,7 +16,20 @@ is for things you can see or feel when running the app.
 
 ## [Unreleased]
 
-## [v4.1.27] - 2026-08-02
+### Fixed
+
+- **The Upload button no longer disappears once you browse anywhere.** In the
+  new UI it only ever showed on the plain Library page, so the moment you opened
+  an author, a series, a tag, Hot, Discover, Top Rated or a book, there was no
+  way to add a book at all — the classic view keeps Upload in the toolbar on
+  every page. Upload now stays put while you browse, and it is also in the
+  account menu (next to Admin), so it is reachable from anywhere including on a
+  phone. Reported through the in-app feedback form.
+- **"Enable Uploads" now actually disables uploads.** Switching it off in Admin
+  hid the button in the classic view but nothing more — the new UI still offered
+  Upload, and the upload request still went through either way. The setting is
+  now enforced on the server and the button is hidden in both views. Uploading
+  stays on by default, so nothing changes unless you deliberately turned it off.
 
 ### Changed
 

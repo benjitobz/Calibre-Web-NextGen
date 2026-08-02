@@ -11,6 +11,7 @@ from werkzeug.security import check_password_hash, generate_password_hash
 from . import api_v1
 from .serializers import serialize_user
 from .. import ub, config, constants, limiter
+from ..config_sql import uploads_enabled
 from ..cw_login import current_user, login_user
 from ..logout import cleanup_local_logout
 from ..ui_themes import config_theme_code
@@ -128,6 +129,12 @@ def _server_features():
         # per-shelf toggle that would otherwise store inert intent (#870).
         "kobo_sync_magic_shelves": bool(
             getattr(config, "config_kobo_sync_magic_shelves", False)),
+        # The admin's "Enable Uploads" switch. Classic gates its navbar upload
+        # button on this (layout.html: role_upload() and g.allow_upload); the
+        # SPA had no way to see it and offered Upload regardless (#1288).
+        # Reports exactly what the enforcement gate will do — same predicate,
+        # so the UI can never advertise an upload the endpoints would refuse.
+        "uploading": uploads_enabled(config),
     }
 
 
