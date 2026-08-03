@@ -6,7 +6,7 @@ import {
   SlidersHorizontal,
 } from 'lucide-react';
 import {
-  type ReaderSettings, useBook, useBookmark, useReaderSettings,
+  type ReaderSettings, isWorthResending, useBook, useBookmark, useReaderSettings,
   useSaveBookmark, useSaveReaderSettings,
 } from '../lib/queries';
 import { apiPost, apiDelete, apiPatch, apiUrl, resourceUrl } from '../lib/api';
@@ -49,6 +49,10 @@ const THEMES: Record<ReaderTheme, { body: Record<string, string> }> = {
 
 const FONT_MIN = 75;
 const FONT_MAX = 200;
+// #1318: how many times a failed position save is re-sent before the reader is
+// told. Three attempts over ~14s covers the SQLite contention window that causes
+// these; past that it is not transient and silence would be the wrong answer.
+const MAX_SAVE_RETRIES = 3;
 const LS_THEME = 'cwng.reader.theme';
 const LS_FONT = 'cwng.reader.font';
 
@@ -106,6 +110,13 @@ export function Reader({ id }: { id: string }) {
   const settingsPendingRef = useRef<Partial<ReaderSettings>>({});
   const lastCfiRef = useRef<string | null>(null);
   const lastPercentRef = useRef<number | null>(null);
+  const saveRetries = useRef(0);
+  // #1318 single-flight bookkeeping: one save in flight at a time, a coalesce
+  // flag for relocations that happen during it, and a latch so a persistent
+  // failure is announced once rather than on every page turn.
+  const saveInFlight = useRef(false);
+  const saveCoalesced = useRef(false);
+  const saveFailureAnnounced = useRef(false);
   // Hold the freshest saved CFI so it survives re-renders without re-running the effect.
   const savedCfiRef = useRef<string | null>(null);
 
@@ -244,6 +255,64 @@ export function Reader({ id }: { id: string }) {
     }, 300);
   }, [saveSettings, announce, t]);
 
+  // #1318: saving the position is SINGLE-FLIGHT, and every send reads the refs
+  // at the moment it goes out.
+  //
+  // The route now reports a write that did not land, which makes re-sending
+  // worthwhile — SQLite contention is exactly what a second attempt clears. But
+  // this route is replace-on-write and its CFI has no ordering or compare-and-set
+  // protection, so two saves in flight at once can land in the wrong order and
+  // move the reader BACKWARDS. That is reachable without any retry (the 800ms
+  // debounce only cancels a save that has not started yet) and a retry would
+  // make it commonplace: under a lock held near SQLite's 30s busy timeout, a
+  // reader turning pages would pile up dozens of waiting writes.
+  //
+  // So at most one request exists at a time. A relocation during a send does not
+  // queue a second request; it just updates the refs, and the coalesced follow-up
+  // that runs on settle picks up wherever the reader has got to by then. One
+  // request, always carrying the newest position, is both correct and less work.
+  const flushCfiSave = useCallback(() => {
+    if (saveInFlight.current) { saveCoalesced.current = true; return; }
+    const cfi = lastCfiRef.current;
+    if (!cfi) return;
+    const pct = lastPercentRef.current;
+    saveInFlight.current = true;
+    // mutateAsync, not mutate(…, {onError}): per-call callbacks only fire for the
+    // latest observed mutation and are dropped entirely if the reader unmounts
+    // first, so the retry bookkeeping would silently stop happening.
+    saveBookmark.mutateAsync(
+      pct != null ? { format: 'epub', bookmark: cfi, percentage: pct }
+                  : { format: 'epub', bookmark: cfi },
+    ).then(() => {
+      saveRetries.current = 0;
+      saveFailureAnnounced.current = false;
+    }).catch((error: unknown) => {
+      if (isWorthResending(error) && saveRetries.current < MAX_SAVE_RETRIES) {
+        saveRetries.current += 1;
+        if (saveTimer.current) clearTimeout(saveTimer.current);
+        saveTimer.current = setTimeout(
+          flushCfiSave, Math.min(1000 * 2 ** saveRetries.current, 8000));
+        return;
+      }
+      // Out of attempts, or a refusal re-sending cannot change. Tell the reader
+      // — this is the only moment they would otherwise never find out — but only
+      // on the transition into a bad state. Assertive announcements repeat even
+      // when identical, so announcing per failed page turn would talk over a
+      // screen-reader user continuously. The latch clears on the next success.
+      saveRetries.current = 0;
+      if (!saveFailureAnnounced.current) {
+        saveFailureAnnounced.current = true;
+        announce(t('Could not save your reading position.'), { assertive: true });
+      }
+    }).finally(() => {
+      saveInFlight.current = false;
+      if (saveCoalesced.current) {
+        saveCoalesced.current = false;
+        flushCfiSave();
+      }
+    });
+  }, [saveBookmark, announce, t]);
+
   const persistCfi = useCallback(
     (cfi: string, percentage?: number) => {
       lastCfiRef.current = cfi;
@@ -260,16 +329,16 @@ export function Reader({ id }: { id: string }) {
         ? percentage
         : null;
       lastPercentRef.current = valid;
+      // A fresh position supersedes any pending retry: the newest place is what
+      // we want on the server, and it resets the attempt budget.
+      saveRetries.current = 0;
       if (saveTimer.current) clearTimeout(saveTimer.current);
       saveTimer.current = setTimeout(() => {
         saveTimer.current = null;
-        saveBookmark.mutate(
-          valid != null ? { format: 'epub', bookmark: cfi, percentage: valid }
-                        : { format: 'epub', bookmark: cfi },
-        );
+        flushCfiSave();
       }, 800);
     },
-    [saveBookmark],
+    [flushCfiSave],
   );
 
   const applyTheme = useCallback((t: ReaderTheme) => {
