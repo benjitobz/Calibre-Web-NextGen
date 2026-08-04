@@ -18,6 +18,11 @@ export function About() {
     );
   }
 
+  // Versions are admin-only and the server enforces that (#1287) -- it sends an
+  // empty map to everyone else. Deriving the section from the payload keeps one
+  // source of truth for the rule, so the UI cannot disagree with the API.
+  const versions = Object.entries(data.versions ?? {});
+
   const stats = [
     { label: t('Books'), value: data.counts.books, icon: BookOpen },
     { label: t('Authors'), value: data.counts.authors, icon: Users },
@@ -42,15 +47,19 @@ export function About() {
         ))}
       </div>
 
-      <h2 className={styles.subTitle}>{t('Versions')}</h2>
-      <dl className={styles.versions}>
-        {Object.entries(data.versions).map(([name, ver]) => (
-          <div key={name} className={styles.verRow}>
-            <dt className={styles.verName}>{name}</dt>
-            <dd className={styles.verVal}>{ver}</dd>
-          </div>
-        ))}
-      </dl>
+      {versions.length > 0 && (
+        <>
+          <h2 className={styles.subTitle}>{t('Versions')}</h2>
+          <dl className={styles.versions}>
+            {versions.map(([name, ver]) => (
+              <div key={name} className={styles.verRow}>
+                <dt className={styles.verName}>{name}</dt>
+                <dd className={styles.verVal}>{ver}</dd>
+              </div>
+            ))}
+          </dl>
+        </>
+      )}
     </main>
   );
 }
