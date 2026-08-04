@@ -384,7 +384,8 @@ msgid ""
 "the device will receive on next sync"
 msgstr ""
 
-#: cps/admin.py:1491 cps/api/browse.py:79 cps/spa_strings.py:84
+#: cps/admin.py:1491 cps/api/browse.py:97 cps/api/browse.py:170
+#: cps/spa_strings.py:84
 msgid "Tag not found"
 msgstr "Étiquette introuvable"
 
@@ -2688,7 +2689,7 @@ msgstr "Renommer l’étiquette {name}"
 msgid "Tag name"
 msgstr "Nom de l’étiquette"
 
-#: cps/api/browse.py:72 cps/spa_strings.py:77
+#: cps/api/browse.py:89 cps/spa_strings.py:77
 msgid "Tag name cannot be empty"
 msgstr "Le nom de l’étiquette ne peut pas être vide"
 
@@ -2709,23 +2710,23 @@ msgstr "Impossible de renommer l’étiquette"
 msgid "Tag renamed to {name}"
 msgstr "Étiquette renommée en {name}"
 
-#: cps/api/browse.py:63 cps/spa_strings.py:82
+#: cps/api/browse.py:61 cps/spa_strings.py:82
 msgid "You must be signed in"
 msgstr "Vous devez être connecté"
 
-#: cps/api/browse.py:65 cps/spa_strings.py:83
+#: cps/api/browse.py:63 cps/spa_strings.py:83
 msgid "You are not allowed to edit metadata"
 msgstr "Vous n’êtes pas autorisé à modifier les métadonnées"
 
-#: cps/api/browse.py:89 cps/api/browse.py:101 cps/spa_strings.py:85
+#: cps/api/browse.py:112 cps/api/browse.py:140 cps/spa_strings.py:85
 msgid "A tag with that name already exists"
 msgstr "Une étiquette portant ce nom existe déjà"
 
-#: cps/api/browse.py:69 cps/spa_strings.py:86
+#: cps/api/browse.py:86 cps/spa_strings.py:86
 msgid "Tag name must be text"
 msgstr "Le nom de l’étiquette doit être du texte"
 
-#: cps/api/browse.py:74 cps/spa_strings.py:87
+#: cps/api/browse.py:91 cps/spa_strings.py:87
 msgid "Tag name cannot contain commas"
 msgstr "Le nom de l’étiquette ne peut pas contenir de virgules"
 
@@ -3074,13 +3075,13 @@ msgstr "Créez votre compte"
 msgid "Dark theme"
 msgstr "Thème sombre"
 
-#: cps/spa_strings.py:192 cps/templates/_book_organizer.html:155
-#: cps/templates/admin.html:27 cps/templates/book_edit.html:59
-#: cps/templates/book_table.html:66 cps/templates/book_table.html:145
-#: cps/templates/book_table.html:194 cps/templates/duplicates.html:718
-#: cps/templates/modal_dialogs.html:63 cps/templates/modal_dialogs.html:116
-#: cps/templates/read.html:188 cps/templates/user_edit.html:333
-#: cps/templates/user_table.html:150
+#: cps/spa_strings.py:192 cps/spa_strings.py:971
+#: cps/templates/_book_organizer.html:155 cps/templates/admin.html:27
+#: cps/templates/book_edit.html:59 cps/templates/book_table.html:66
+#: cps/templates/book_table.html:145 cps/templates/book_table.html:194
+#: cps/templates/duplicates.html:718 cps/templates/modal_dialogs.html:63
+#: cps/templates/modal_dialogs.html:116 cps/templates/read.html:188
+#: cps/templates/user_edit.html:333 cps/templates/user_table.html:150
 msgid "Delete"
 msgstr "Supprimer"
 
@@ -3240,8 +3241,9 @@ msgstr "Marquer comme lu"
 msgid "Mark unread"
 msgstr "Marquer comme non lu"
 
-#: cps/spa_strings.py:234 cps/templates/book_table.html:48
-#: cps/templates/book_table.html:175 cps/templates/duplicates.html:745
+#: cps/spa_strings.py:234 cps/spa_strings.py:968
+#: cps/templates/book_table.html:48 cps/templates/book_table.html:175
+#: cps/templates/duplicates.html:745
 msgid "Merge"
 msgstr "Fusionner"
 
@@ -6112,6 +6114,63 @@ msgstr ""
 msgid "Could not save your reading position."
 msgstr "Impossible d’enregistrer votre position de lecture."
 
+#: cps/spa_strings.py:969
+#, python-brace-format
+msgid "Merge into {name}"
+msgstr "Fusionner avec {name}"
+
+#: cps/spa_strings.py:970
+#, python-brace-format
+msgid "Merged into {name}"
+msgstr "Fusionnée avec {name}"
+
+#: cps/spa_strings.py:972
+#, python-brace-format
+msgid "Delete tag {name}"
+msgstr "Supprimer l’étiquette {name}"
+
+# #973 — consolidating tags from the Tag view (merge on rename collision, delete).
+#: cps/spa_strings.py:973
+#, python-brace-format
+msgid "Confirm delete tag {name}"
+msgstr "Confirmer la suppression de l’étiquette {name}"
+
+#: cps/spa_strings.py:974
+#, python-brace-format
+msgid "Deleted tag {name}"
+msgstr "Étiquette {name} supprimée"
+
+#: cps/spa_strings.py:975
+msgid "Could not delete tag"
+msgstr "Impossible de supprimer l’étiquette"
+
+#: cps/spa_strings.py:976
+#, python-brace-format
+msgid "“{name}” already exists on {count} book. Merge this tag into it?"
+msgstr ""
+"« {name} » existe déjà sur {count} livre. Fusionner cette étiquette avec "
+"celle-ci ?"
+
+#: cps/spa_strings.py:977
+#, python-brace-format
+msgid "“{name}” already exists on {count} books. Merge this tag into it?"
+msgstr ""
+"« {name} » existe déjà sur {count} livres. Fusionner cette étiquette avec "
+"celle-ci ?"
+
+#: cps/spa_strings.py:978
+#, python-brace-format
+msgid "Delete “{name}”? It is removed from {count} book, which is kept."
+msgstr ""
+"Supprimer « {name} » ? Elle sera retirée de {count} livre, qui sera conservé."
+
+#: cps/spa_strings.py:979
+#, python-brace-format
+msgid "Delete “{name}”? It is removed from {count} books, which are kept."
+msgstr ""
+"Supprimer « {name} » ? Elle sera retirée de {count} livres, qui seront "
+"conservés."
+
 #: cps/tasks_status.py:54
 msgid "Waiting"
 msgstr "En attente"
@@ -6551,6 +6610,10 @@ msgstr ""
 #: cps/web.py:3509
 msgid "Invalid book ID."
 msgstr "Identifiant du livre invalide."
+
+#: cps/api/browse.py:183
+msgid "Tag could not be deleted"
+msgstr ""
 
 #: cps/progress_syncing/protocols/kosync.py:649
 msgid "KOReader Sync Plugin"
@@ -13010,35 +13073,3 @@ msgstr "Afficher la section Lu / Non lu"
 #~ msgid "Click the cover to load metadata to the form"
 #~ msgstr ""
 #~ "Cliquer sur la couverture pour importer les métadonnées dans le formulaire"
-
-# #973 — consolidating tags from the Tag view (merge on rename collision, delete).
-msgid "Confirm delete tag {name}"
-msgstr "Confirmer la suppression de l’étiquette {name}"
-
-msgid "Could not delete tag"
-msgstr "Impossible de supprimer l’étiquette"
-
-msgid "Delete tag {name}"
-msgstr "Supprimer l’étiquette {name}"
-
-msgid "Delete “{name}”? It is removed from {count} book, which is kept."
-msgstr "Supprimer « {name} » ? Elle sera retirée de {count} livre, qui sera conservé."
-
-msgid "Delete “{name}”? It is removed from {count} books, which are kept."
-msgstr "Supprimer « {name} » ? Elle sera retirée de {count} livres, qui seront conservés."
-
-msgid "Deleted tag {name}"
-msgstr "Étiquette {name} supprimée"
-
-msgid "Merge into {name}"
-msgstr "Fusionner avec {name}"
-
-msgid "Merged into {name}"
-msgstr "Fusionnée avec {name}"
-
-msgid "“{name}” already exists on {count} book. Merge this tag into it?"
-msgstr "« {name} » existe déjà sur {count} livre. Fusionner cette étiquette avec celle-ci ?"
-
-msgid "“{name}” already exists on {count} books. Merge this tag into it?"
-msgstr "« {name} » existe déjà sur {count} livres. Fusionner cette étiquette avec celle-ci ?"
-

@@ -343,7 +343,8 @@ msgid ""
 "the device will receive on next sync"
 msgstr ""
 
-#: cps/admin.py:1491 cps/api/browse.py:79 cps/spa_strings.py:84
+#: cps/admin.py:1491 cps/api/browse.py:97 cps/api/browse.py:170
+#: cps/spa_strings.py:84
 msgid "Tag not found"
 msgstr ""
 
@@ -2535,7 +2536,7 @@ msgstr ""
 msgid "Tag name"
 msgstr ""
 
-#: cps/api/browse.py:72 cps/spa_strings.py:77
+#: cps/api/browse.py:89 cps/spa_strings.py:77
 msgid "Tag name cannot be empty"
 msgstr ""
 
@@ -2556,23 +2557,23 @@ msgstr ""
 msgid "Tag renamed to {name}"
 msgstr ""
 
-#: cps/api/browse.py:63 cps/spa_strings.py:82
+#: cps/api/browse.py:61 cps/spa_strings.py:82
 msgid "You must be signed in"
 msgstr ""
 
-#: cps/api/browse.py:65 cps/spa_strings.py:83
+#: cps/api/browse.py:63 cps/spa_strings.py:83
 msgid "You are not allowed to edit metadata"
 msgstr ""
 
-#: cps/api/browse.py:89 cps/api/browse.py:101 cps/spa_strings.py:85
+#: cps/api/browse.py:112 cps/api/browse.py:140 cps/spa_strings.py:85
 msgid "A tag with that name already exists"
 msgstr ""
 
-#: cps/api/browse.py:69 cps/spa_strings.py:86
+#: cps/api/browse.py:86 cps/spa_strings.py:86
 msgid "Tag name must be text"
 msgstr ""
 
-#: cps/api/browse.py:74 cps/spa_strings.py:87
+#: cps/api/browse.py:91 cps/spa_strings.py:87
 msgid "Tag name cannot contain commas"
 msgstr ""
 
@@ -2917,13 +2918,13 @@ msgstr ""
 msgid "Dark theme"
 msgstr ""
 
-#: cps/spa_strings.py:192 cps/templates/_book_organizer.html:155
-#: cps/templates/admin.html:27 cps/templates/book_edit.html:59
-#: cps/templates/book_table.html:66 cps/templates/book_table.html:145
-#: cps/templates/book_table.html:194 cps/templates/duplicates.html:718
-#: cps/templates/modal_dialogs.html:63 cps/templates/modal_dialogs.html:116
-#: cps/templates/read.html:188 cps/templates/user_edit.html:333
-#: cps/templates/user_table.html:150
+#: cps/spa_strings.py:192 cps/spa_strings.py:971
+#: cps/templates/_book_organizer.html:155 cps/templates/admin.html:27
+#: cps/templates/book_edit.html:59 cps/templates/book_table.html:66
+#: cps/templates/book_table.html:145 cps/templates/book_table.html:194
+#: cps/templates/duplicates.html:718 cps/templates/modal_dialogs.html:63
+#: cps/templates/modal_dialogs.html:116 cps/templates/read.html:188
+#: cps/templates/user_edit.html:333 cps/templates/user_table.html:150
 msgid "Delete"
 msgstr "Poista"
 
@@ -3079,8 +3080,9 @@ msgstr ""
 msgid "Mark unread"
 msgstr ""
 
-#: cps/spa_strings.py:234 cps/templates/book_table.html:48
-#: cps/templates/book_table.html:175 cps/templates/duplicates.html:745
+#: cps/spa_strings.py:234 cps/spa_strings.py:968
+#: cps/templates/book_table.html:48 cps/templates/book_table.html:175
+#: cps/templates/duplicates.html:745
 msgid "Merge"
 msgstr ""
 
@@ -5878,6 +5880,55 @@ msgstr ""
 msgid "Could not save your reading position."
 msgstr ""
 
+#: cps/spa_strings.py:969
+#, python-brace-format
+msgid "Merge into {name}"
+msgstr ""
+
+#: cps/spa_strings.py:970
+#, python-brace-format
+msgid "Merged into {name}"
+msgstr ""
+
+#: cps/spa_strings.py:972
+#, python-brace-format
+msgid "Delete tag {name}"
+msgstr ""
+
+#: cps/spa_strings.py:973
+#, python-brace-format
+msgid "Confirm delete tag {name}"
+msgstr ""
+
+#: cps/spa_strings.py:974
+#, python-brace-format
+msgid "Deleted tag {name}"
+msgstr ""
+
+#: cps/spa_strings.py:975
+msgid "Could not delete tag"
+msgstr ""
+
+#: cps/spa_strings.py:976
+#, python-brace-format
+msgid "“{name}” already exists on {count} book. Merge this tag into it?"
+msgstr ""
+
+#: cps/spa_strings.py:977
+#, python-brace-format
+msgid "“{name}” already exists on {count} books. Merge this tag into it?"
+msgstr ""
+
+#: cps/spa_strings.py:978
+#, python-brace-format
+msgid "Delete “{name}”? It is removed from {count} book, which is kept."
+msgstr ""
+
+#: cps/spa_strings.py:979
+#, python-brace-format
+msgid "Delete “{name}”? It is removed from {count} books, which are kept."
+msgstr ""
+
 #: cps/tasks_status.py:54
 msgid "Waiting"
 msgstr "Odottaa"
@@ -6306,6 +6357,10 @@ msgstr ""
 
 #: cps/web.py:3509
 msgid "Invalid book ID."
+msgstr ""
+
+#: cps/api/browse.py:183
+msgid "Tag could not be deleted"
 msgstr ""
 
 #: cps/progress_syncing/protocols/kosync.py:649
