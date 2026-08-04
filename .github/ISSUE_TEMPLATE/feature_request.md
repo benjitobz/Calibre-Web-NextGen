@@ -2,7 +2,7 @@
 name: Feature request
 about: Suggest an idea, even a half-formed one. Anything goes.
 title: ""
-labels: feature-request
+labels: enhancement
 assignees: ''
 
 ---
