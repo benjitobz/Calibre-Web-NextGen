@@ -63,6 +63,26 @@ is for things you can see or feel when running the app.
 
 ### Security
 
+- **Requests that change your library are now refused when they come from
+  another website.** Every write the new interface makes already had to carry a
+  one-time token, and a page on another site cannot read that token — but if one
+  ever obtained it, the server would have carried out the write without noticing
+  the request came from somewhere else entirely. It now checks, for the whole
+  `/api/v1` surface at once rather than route by route, and refuses anything that
+  says it came from a site other than yours. Nothing changes for ordinary use:
+  your own browser identifies itself correctly, and tools like `curl` or a script
+  that send no such information keep working as before. If you reach your library
+  through a reverse proxy, it has to tell the server both the address **and**
+  whether the connection is `https` — a proxy that handles TLS but forwards no
+  `X-Forwarded-Proto` leaves the server thinking the request arrived over plain
+  `http`, and writes are refused even though the address matches. Most proxies do
+  this correctly out of the box. If yours does not, either forward
+  `X-Forwarded-Host` and `X-Forwarded-Proto`, or set the existing `PROXY_HOST` and
+  `PROXY_SCHEME` variables, or name the address you actually use in a new optional
+  `CWNG_TRUSTED_ORIGINS` setting, comma-separated. No setting is needed for a
+  normal install, and the same symptom already showed up as `http://` links in
+  emails and redirects, so a install that works today is very likely unaffected.
+
 - **The Statistics page no longer shows your server's version details to
   everyone.** It listed the exact Calibre-Web NextGen release, the host kernel
   build, the Python build and the version of every library the server uses —
