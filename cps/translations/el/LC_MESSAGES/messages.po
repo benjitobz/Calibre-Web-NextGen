@@ -905,113 +905,113 @@ msgstr ""
 msgid "Annotations: %(title)s"
 msgstr ""
 
-#: cps/constants.py:241
+#: cps/constants.py:242
 msgid "Czech"
 msgstr ""
 
-#: cps/constants.py:242
+#: cps/constants.py:243
 msgid "German"
 msgstr ""
 
-#: cps/constants.py:243
+#: cps/constants.py:244
 msgid "Greek"
 msgstr ""
 
-#: cps/constants.py:244
+#: cps/constants.py:245
 msgid "Spanish"
 msgstr ""
 
-#: cps/constants.py:245
+#: cps/constants.py:246
 #, fuzzy
 msgid "Finnish"
 msgstr "Τελείωσε"
 
-#: cps/constants.py:246
+#: cps/constants.py:247
 msgid "French"
 msgstr ""
 
-#: cps/constants.py:247
+#: cps/constants.py:248
 msgid "Galician"
 msgstr ""
 
-#: cps/constants.py:248
+#: cps/constants.py:249
 msgid "Hungarian"
 msgstr ""
 
-#: cps/constants.py:249
+#: cps/constants.py:250
 msgid "Indonesian"
 msgstr ""
 
-#: cps/constants.py:250
+#: cps/constants.py:251
 msgid "Italian"
 msgstr ""
 
-#: cps/constants.py:251
+#: cps/constants.py:252
 msgid "Japanese"
 msgstr ""
 
-#: cps/constants.py:252
+#: cps/constants.py:253
 msgid "Khmer"
 msgstr ""
 
-#: cps/constants.py:253
+#: cps/constants.py:254
 msgid "Korean"
 msgstr ""
 
-#: cps/constants.py:254
+#: cps/constants.py:255
 msgid "Dutch"
 msgstr ""
 
-#: cps/constants.py:255
+#: cps/constants.py:256
 msgid "Norwegian"
 msgstr ""
 
-#: cps/constants.py:256
+#: cps/constants.py:257
 #, fuzzy
 msgid "Polish"
 msgstr "Εκδότης"
 
-#: cps/constants.py:257
+#: cps/constants.py:258
 msgid "Portuguese"
 msgstr ""
 
-#: cps/constants.py:258
+#: cps/constants.py:259
 msgid "Portuguese (Brazil)"
 msgstr ""
 
-#: cps/constants.py:259
+#: cps/constants.py:260
 msgid "Russian"
 msgstr ""
 
-#: cps/constants.py:260
+#: cps/constants.py:261
 msgid "Slovak"
 msgstr ""
 
-#: cps/constants.py:261
+#: cps/constants.py:262
 msgid "Slovenian"
 msgstr ""
 
-#: cps/constants.py:262
+#: cps/constants.py:263
 msgid "Swedish"
 msgstr ""
 
-#: cps/constants.py:263
+#: cps/constants.py:264
 msgid "Turkish"
 msgstr ""
 
-#: cps/constants.py:264
+#: cps/constants.py:265
 msgid "Ukrainian"
 msgstr ""
 
-#: cps/constants.py:265
+#: cps/constants.py:266
 msgid "Vietnamese"
 msgstr ""
 
-#: cps/constants.py:266
+#: cps/constants.py:267
 msgid "Chinese (Simplified, China)"
 msgstr ""
 
-#: cps/constants.py:267
+#: cps/constants.py:268
 msgid "Chinese (Traditional, Taiwan)"
 msgstr ""
 
