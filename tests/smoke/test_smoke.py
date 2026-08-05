@@ -23,8 +23,8 @@ class TestBasicFunctionality:
     """Verify core application can start and basic functions work."""
     
     def test_python_version(self):
-        """Verify Python 3.10+ is being used."""
-        assert sys.version_info >= (3, 10), "Python 3.10 or higher required"
+        """Verify Python 3.11+ is being used."""
+        assert sys.version_info >= (3, 11), "Python 3.11 or higher required"
     
     def test_required_directories_exist(self):
         """Verify critical directories exist."""
@@ -231,15 +231,22 @@ class TestEnvironmentConfiguration:
     """Verify environment variables and configuration work."""
     
     def test_can_read_cwa_version(self):
-        """Verify CWA version file exists and can be read."""
-        if os.path.exists('/app/CWA_RELEASE'):
-            with open('/app/CWA_RELEASE', 'r') as f:
-                version = f.read().strip()
-                assert version, "CWA_RELEASE file is empty"
-                assert version.startswith('V') or version.startswith('v'), \
-                    f"Version format unexpected: {version}"
-        else:
-            pytest.skip("Not in Docker environment - /app/CWA_RELEASE not found")
+        """Verify the image stamped the version it was built from.
+
+        This used to read /app/CWA_RELEASE. That file is gone: the build sets
+        CWA_INSTALLED_VERSION as an env var in the final stage instead. The
+        check has to follow the stamp rather than the old file, or it turns
+        into a permanent skip that asserts nothing in the very environment it
+        exists to cover.
+        """
+        version = os.environ.get('CWA_INSTALLED_VERSION')
+        if not version:
+            pytest.skip(
+                "Not in a built image - CWA_INSTALLED_VERSION is not stamped"
+            )
+        # A release image carries the tag; a dev image carries DEV_BUILD-dev-<n>.
+        assert version.startswith(('V', 'v', 'DEV_BUILD')), \
+            f"Version format unexpected: {version}"
     
     def test_network_share_mode_detection(self):
         """Verify network share mode can be detected from environment."""

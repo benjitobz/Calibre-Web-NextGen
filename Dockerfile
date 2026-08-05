@@ -208,18 +208,20 @@ RUN \
   pip \
   wheel
 
-# STEP 3 - Copy requirements files and install Python packages
-# Copy only requirements files first to leverage Docker layer caching
-COPY --chown=abc:abc requirements.txt optional-requirements.txt /app/calibre-web-automated/
+# STEP 3 - Copy pyproject.toml and install Python dependencies
+# Copy only pyproject.toml first to leverage Docker layer caching
+COPY --chown=abc:abc pyproject.toml /app/calibre-web-automated/
 
 RUN \
-  # STEP 3.1 - Installing the required python packages listed in 'requirements.txt' and 'optional-requirements.txt'
+  # STEP 3.1 - Installing Python dependencies without installing the package
+  # itself, to avoid triggering a rebuild (see STEP 6).
   # HOWEVER, they are not pulled from PyPi directly, they are pulled from linuxserver's Ubuntu Wheel Index
   # This is essentially a repository of precompiled some of the most popular packages with C/C++ source code
   # This provides the install maximum compatibility with multiple different architectures including: x86_64, armv71 and aarch64
   # You can read more about python wheels here: https://realpython.com/python-wheels/
-  /lsiopy/bin/pip install -U --no-cache-dir --find-links https://wheel-index.linuxserver.io/ubuntu/ -r \
-  /app/calibre-web-automated/requirements.txt -r /app/calibre-web-automated/optional-requirements.txt
+  # The `--only-deps` flag was requires pip ≥ 26.2.
+  /lsiopy/bin/pip install -U --no-cache-dir --find-links https://wheel-index.linuxserver.io/ubuntu/ \
+    --only-deps /app/calibre-web-automated
 
 # STEP 4 - Install kepubify from the kepubify_mirror stage (GHCR mirror in CI,
 # public release CDN by default). Either way /kepubify arrives mode 0755 for the
@@ -265,6 +267,27 @@ ARG KEPUBIFY_RELEASE
 LABEL build_version="Version:- ${VERSION}"
 LABEL build_date="${BUILD_DATE}"
 LABEL maintainer="CrocodileStick"
+
+# The version this image was actually built from, stamped straight off the
+# build arg the release workflow passes (`VERSION=${{ steps.ver.outputs.tag }}`)
+# and the dev workflow passes as `DEV_BUILD-dev-<n>`. Like CALIBRE_DBPATH
+# below, one ENV in the final stage reaches every s6 service, so this replaces
+# both the /app/CWA_RELEASE file and the cwa-init block that used to read it.
+#
+# It deliberately does NOT come from the package metadata that
+# cps.constants._get_version() falls back to. That metadata is fixed when pip
+# installs the package (STEP 6) from the checked-in VERSION file, so it can
+# only ever report the version that file happened to hold at commit time —
+# stale for every release after it, which reads at runtime as a permanent
+# "update available" nag on a container that is already current (#1108 in
+# reverse). It also cannot represent a dev build at all: DEV_BUILD-dev-<n> is
+# not a PEP 440 version, so setuptools rejects it outright.
+#
+# So: the build stamps the truth here, and VERSION-file metadata stays a
+# fallback for source checkouts. That keeps the release train free of a
+# "remember to bump VERSION" step, which is the kind of manual gate that
+# silently goes stale.
+ENV CWA_INSTALLED_VERSION=${VERSION}
 
 # Where this install keeps its own state. cps.constants.CONFIG_DIR reads this
 # and otherwise falls back to BASE_DIR — the read-only app tree — so anything
@@ -342,6 +365,11 @@ RUN \
 # Copy the rest of the application code (changes most frequently)
 COPY --chown=abc:abc . /app/calibre-web-automated/
 
+# Install our Python package. The dependencies were installed in STEP 3.1.
+RUN \
+  /lsiopy/bin/pip install -U --no-cache-dir --find-links https://wheel-index.linuxserver.io/ubuntu/ \
+    -e /app/calibre-web-automated
+
 # STEP 6.1 - Copy the Vite-built SPA bundle from the frontend-build stage.
 # The source tree's cps/static/app is .dockerignore'd, so this COPY is the
 # only bundle that ships — guaranteeing the SPA is built in-image rather than
@@ -381,9 +409,7 @@ RUN \
   echo "Moved koplugin.zip to static directory"; \
   else \
   echo "Warning: koplugin.zip not found, skipping move to static directory"; \
-  fi && \
-  # STEP 7.5 - ADD file referencing the version of the installed main package
-  echo "$VERSION" >| /app/CWA_RELEASE
+  fi
 
 # Add unrar from unrar stage
 COPY --from=unrar /usr/bin/unrar-ubuntu /usr/bin/unrar
