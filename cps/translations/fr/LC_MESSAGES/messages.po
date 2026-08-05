@@ -480,7 +480,7 @@ msgstr "Bravo ! Compte Gmail vérifié."
 #: cps/admin.py:2949 cps/admin.py:3210 cps/editbooks.py:1172
 #: cps/editbooks.py:2063 cps/shelf.py:148 cps/shelf.py:226 cps/shelf.py:297
 #: cps/shelf.py:332 cps/shelf.py:389 cps/shelf.py:464 cps/shelf.py:547
-#: cps/shelf.py:672 cps/tasks/convert.py:143 cps/web.py:3134
+#: cps/shelf.py:672 cps/tasks/convert.py:164 cps/web.py:3134
 #, python-format
 msgid "Oops! Database Error: %(error)s."
 msgstr "Erreur de la base de données : %(error)s."
@@ -1642,7 +1642,7 @@ msgstr ""
 msgid "%(format)s format not found for book id: %(book)d"
 msgstr "le format %(format)s est introuvable pour le livre : %(book)d"
 
-#: cps/helper.py:350 cps/tasks/convert.py:75
+#: cps/helper.py:350 cps/tasks/convert.py:88
 #, python-format
 msgid "%(format)s not found on Google Drive: %(fn)s"
 msgstr "le %(format)s est introuvable sur Google Drive : %(fn)s"
@@ -1825,7 +1825,7 @@ msgstr "Contenu du fichier de couverture invalide"
 msgid "Only jpg/jpeg files are supported as coverfile"
 msgstr "Seuls les fichiers jpg/jpeg sont supportés comme fichier de couverture"
 
-#: cps/helper.py:2067 cps/helper.py:2328 cps/spa_strings.py:184
+#: cps/helper.py:2067 cps/helper.py:2337 cps/spa_strings.py:184
 msgid "Cover"
 msgstr "Couverture"
 
@@ -1870,7 +1870,7 @@ msgstr "Permissions d'exécution manquantes : %(missing)s"
 msgid "Error executing Calibre"
 msgstr "Erreur lors de l'exécution de Calibre"
 
-#: cps/helper.py:2330 cps/templates/admin.html:242
+#: cps/helper.py:2339 cps/templates/admin.html:242
 msgid "Queue all books for metadata backup"
 msgstr ""
 "Mettre en file d’attente tous les livres pour la sauvegarde des métadonnées"
@@ -4170,7 +4170,7 @@ msgstr "Configuré"
 msgid "Confirm new password"
 msgstr "Confirmer le nouveau mot de passe"
 
-#: cps/spa_strings.py:477 cps/tasks/convert.py:354
+#: cps/spa_strings.py:477 cps/tasks/convert.py:391
 msgid "Convert"
 msgstr "Convertir"
 
@@ -6669,42 +6669,46 @@ msgstr "Envoi automatique"
 msgid "Delete temp folder contents"
 msgstr "Suppression du contenu du dossier temporaire"
 
-#: cps/tasks/convert.py:96
+#: cps/tasks/convert.py:109
 #, python-format
 msgid "%(book)s send to E-Reader"
 msgstr "%(book)s envoyer à E-Reader"
 
-#: cps/tasks/convert.py:160
+#: cps/tasks/convert.py:181
 #, python-format
 msgid "Calibre ebook-convert %(tool)s not found"
 msgstr "Calibre ebook-convert %(tool)s introuvable"
 
-#: cps/tasks/convert.py:192
+#: cps/tasks/convert.py:213
 #, python-format
 msgid "%(format)s format not found on disk"
 msgstr "Format %(format)s non trouvé sur le disque"
 
-#: cps/tasks/convert.py:196
+#: cps/tasks/convert.py:217
 msgid "Ebook converter failed with unknown error"
 msgstr "Le convertisseur Ebook a échoué avec une erreur inconnue"
 
-#: cps/tasks/convert.py:221
+#: cps/tasks/convert.py:242
 #, python-format
 msgid "Kepubify-converter failed: %(error)s"
 msgstr "La commande Kepubify-converter a échouée : %(error)s"
 
-#: cps/tasks/convert.py:246
+#: cps/tasks/convert.py:268
+msgid "Kepubify produced an invalid KEPUB archive"
+msgstr ""
+
+#: cps/tasks/convert.py:283
 #, python-format
 msgid "Converted file not found or more than one file in folder %(folder)s"
 msgstr ""
 "Fichier converti non trouvé ou plus d'un fichier dans le chemin %(folder)s"
 
-#: cps/tasks/convert.py:287 cps/tasks/convert.py:349
+#: cps/tasks/convert.py:324 cps/tasks/convert.py:386
 #, python-format
 msgid "Calibre failed with error: %(error)s"
 msgstr "Calibre a échoué avec l’erreur : %(error)s"
 
-#: cps/tasks/convert.py:326
+#: cps/tasks/convert.py:363
 #, python-format
 msgid "Ebook-converter failed: %(error)s"
 msgstr "La commande ebook-convert a échouée : %(error)s"
@@ -6787,7 +6791,7 @@ msgstr ""
 msgid "Kepubify is not configured"
 msgstr ""
 
-#: cps/tasks/kepub_backfill.py:75
+#: cps/tasks/kepub_backfill.py:87
 #, python-format
 msgid "%(count)d KEPUB conversion(s) failed"
 msgstr ""

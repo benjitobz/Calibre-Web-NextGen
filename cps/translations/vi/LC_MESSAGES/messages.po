@@ -428,7 +428,7 @@ msgstr ""
 #: cps/admin.py:2949 cps/admin.py:3210 cps/editbooks.py:1172
 #: cps/editbooks.py:2063 cps/shelf.py:148 cps/shelf.py:226 cps/shelf.py:297
 #: cps/shelf.py:332 cps/shelf.py:389 cps/shelf.py:464 cps/shelf.py:547
-#: cps/shelf.py:672 cps/tasks/convert.py:143 cps/web.py:3134
+#: cps/shelf.py:672 cps/tasks/convert.py:164 cps/web.py:3134
 #, python-format
 msgid "Oops! Database Error: %(error)s."
 msgstr "Lỗi cơ sở dữ liệu: %(error)s."
@@ -1517,7 +1517,7 @@ msgstr ""
 msgid "%(format)s format not found for book id: %(book)d"
 msgstr ""
 
-#: cps/helper.py:350 cps/tasks/convert.py:75
+#: cps/helper.py:350 cps/tasks/convert.py:88
 #, python-format
 msgid "%(format)s not found on Google Drive: %(fn)s"
 msgstr ""
@@ -1686,7 +1686,7 @@ msgstr ""
 msgid "Only jpg/jpeg files are supported as coverfile"
 msgstr ""
 
-#: cps/helper.py:2067 cps/helper.py:2328 cps/spa_strings.py:184
+#: cps/helper.py:2067 cps/helper.py:2337 cps/spa_strings.py:184
 msgid "Cover"
 msgstr ""
 
@@ -1731,7 +1731,7 @@ msgstr ""
 msgid "Error executing Calibre"
 msgstr ""
 
-#: cps/helper.py:2330 cps/templates/admin.html:242
+#: cps/helper.py:2339 cps/templates/admin.html:242
 msgid "Queue all books for metadata backup"
 msgstr ""
 
@@ -3973,7 +3973,7 @@ msgstr ""
 msgid "Confirm new password"
 msgstr ""
 
-#: cps/spa_strings.py:477 cps/tasks/convert.py:354
+#: cps/spa_strings.py:477 cps/tasks/convert.py:391
 msgid "Convert"
 msgstr ""
 
@@ -6404,41 +6404,45 @@ msgstr ""
 msgid "Delete temp folder contents"
 msgstr ""
 
-#: cps/tasks/convert.py:96
+#: cps/tasks/convert.py:109
 #, fuzzy, python-format
 msgid "%(book)s send to E-Reader"
 msgstr "%(book)s gửi tới Kindle"
 
-#: cps/tasks/convert.py:160
+#: cps/tasks/convert.py:181
 #, python-format
 msgid "Calibre ebook-convert %(tool)s not found"
 msgstr ""
 
-#: cps/tasks/convert.py:192
+#: cps/tasks/convert.py:213
 #, python-format
 msgid "%(format)s format not found on disk"
 msgstr "Định dạng %(format)s không được tìm thấy trên đĩa"
 
-#: cps/tasks/convert.py:196
+#: cps/tasks/convert.py:217
 msgid "Ebook converter failed with unknown error"
 msgstr ""
 
-#: cps/tasks/convert.py:221
+#: cps/tasks/convert.py:242
 #, python-format
 msgid "Kepubify-converter failed: %(error)s"
 msgstr ""
 
-#: cps/tasks/convert.py:246
+#: cps/tasks/convert.py:268
+msgid "Kepubify produced an invalid KEPUB archive"
+msgstr ""
+
+#: cps/tasks/convert.py:283
 #, python-format
 msgid "Converted file not found or more than one file in folder %(folder)s"
 msgstr ""
 
-#: cps/tasks/convert.py:287 cps/tasks/convert.py:349
+#: cps/tasks/convert.py:324 cps/tasks/convert.py:386
 #, python-format
 msgid "Calibre failed with error: %(error)s"
 msgstr ""
 
-#: cps/tasks/convert.py:326
+#: cps/tasks/convert.py:363
 #, python-format
 msgid "Ebook-converter failed: %(error)s"
 msgstr ""
@@ -6522,7 +6526,7 @@ msgstr ""
 msgid "Kepubify is not configured"
 msgstr ""
 
-#: cps/tasks/kepub_backfill.py:75
+#: cps/tasks/kepub_backfill.py:87
 #, python-format
 msgid "%(count)d KEPUB conversion(s) failed"
 msgstr ""

@@ -456,7 +456,7 @@ msgstr "Gelukt! Gmail account geverifieerd."
 #: cps/admin.py:2949 cps/admin.py:3210 cps/editbooks.py:1172
 #: cps/editbooks.py:2063 cps/shelf.py:148 cps/shelf.py:226 cps/shelf.py:297
 #: cps/shelf.py:332 cps/shelf.py:389 cps/shelf.py:464 cps/shelf.py:547
-#: cps/shelf.py:672 cps/tasks/convert.py:143 cps/web.py:3134
+#: cps/shelf.py:672 cps/tasks/convert.py:164 cps/web.py:3134
 #, python-format
 msgid "Oops! Database Error: %(error)s."
 msgstr "Database fout: %(error)s."
@@ -1560,7 +1560,7 @@ msgstr ""
 msgid "%(format)s format not found for book id: %(book)d"
 msgstr "%(format)s formaat niet gevonden voor boek met id: %(book)d"
 
-#: cps/helper.py:350 cps/tasks/convert.py:75
+#: cps/helper.py:350 cps/tasks/convert.py:88
 #, python-format
 msgid "%(format)s not found on Google Drive: %(fn)s"
 msgstr "%(format)s niet aangetroffen op Google Drive: %(fn)s"
@@ -1734,7 +1734,7 @@ msgstr "Ongeldig omslagbestand"
 msgid "Only jpg/jpeg files are supported as coverfile"
 msgstr "Alleen jpg/jpeg bestanden zijn toegestaan als omslag"
 
-#: cps/helper.py:2067 cps/helper.py:2328 cps/spa_strings.py:184
+#: cps/helper.py:2067 cps/helper.py:2337 cps/spa_strings.py:184
 msgid "Cover"
 msgstr "Omslag"
 
@@ -1781,7 +1781,7 @@ msgstr "Ontbrekende uitvoerende rechten: %(missing)s"
 msgid "Error executing Calibre"
 msgstr "Fout bij het uitvoeren van Calibre"
 
-#: cps/helper.py:2330 cps/templates/admin.html:242
+#: cps/helper.py:2339 cps/templates/admin.html:242
 msgid "Queue all books for metadata backup"
 msgstr ""
 "Voeg alle boeken toe aan de wachtrij voor het maken van een metagegevens "
@@ -4054,7 +4054,7 @@ msgstr "Geconfigureerd"
 msgid "Confirm new password"
 msgstr "Nieuw wachtwoord bevestigen"
 
-#: cps/spa_strings.py:477 cps/tasks/convert.py:354
+#: cps/spa_strings.py:477 cps/tasks/convert.py:391
 msgid "Convert"
 msgstr "Overzetten"
 
@@ -6545,42 +6545,46 @@ msgstr "Automatisch verzenden"
 msgid "Delete temp folder contents"
 msgstr "Verwijder inhoud van tijdelijke map"
 
-#: cps/tasks/convert.py:96
+#: cps/tasks/convert.py:109
 #, python-format
 msgid "%(book)s send to E-Reader"
 msgstr "%(book)s verzonden naar eReader"
 
-#: cps/tasks/convert.py:160
+#: cps/tasks/convert.py:181
 #, python-format
 msgid "Calibre ebook-convert %(tool)s not found"
 msgstr "Calibre ebook-convert %(tool)s niet gevonden"
 
-#: cps/tasks/convert.py:192
+#: cps/tasks/convert.py:213
 #, python-format
 msgid "%(format)s format not found on disk"
 msgstr "%(format)s formaat is niet gevonden op de schijf"
 
-#: cps/tasks/convert.py:196
+#: cps/tasks/convert.py:217
 msgid "Ebook converter failed with unknown error"
 msgstr "E-Book converter mislukt met een onbekende foutmelding"
 
-#: cps/tasks/convert.py:221
+#: cps/tasks/convert.py:242
 #, python-format
 msgid "Kepubify-converter failed: %(error)s"
 msgstr "Kepubify-converteerder mislukt: %(error)s"
 
-#: cps/tasks/convert.py:246
+#: cps/tasks/convert.py:268
+msgid "Kepubify produced an invalid KEPUB archive"
+msgstr ""
+
+#: cps/tasks/convert.py:283
 #, python-format
 msgid "Converted file not found or more than one file in folder %(folder)s"
 msgstr ""
 "Omgezette bestand is niet gevonden of meer dan een bestand in map %(folder)s"
 
-#: cps/tasks/convert.py:287 cps/tasks/convert.py:349
+#: cps/tasks/convert.py:324 cps/tasks/convert.py:386
 #, python-format
 msgid "Calibre failed with error: %(error)s"
 msgstr "Calibre mislukt met foutmelding: %(error)s"
 
-#: cps/tasks/convert.py:326
+#: cps/tasks/convert.py:363
 #, python-format
 msgid "Ebook-converter failed: %(error)s"
 msgstr "E-boek-conversie mislukt: %(error)s"
@@ -6662,7 +6666,7 @@ msgstr ""
 msgid "Kepubify is not configured"
 msgstr ""
 
-#: cps/tasks/kepub_backfill.py:75
+#: cps/tasks/kepub_backfill.py:87
 #, python-format
 msgid "%(count)d KEPUB conversion(s) failed"
 msgstr ""
