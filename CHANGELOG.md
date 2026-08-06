@@ -73,6 +73,20 @@ is for things you can see or feel when running the app.
 
 ### Fixed
 
+- **Running the container as a non-root user gave you a container that said it
+  was fine and served nothing.** If you start NextGen with `--user`, or under
+  rootless Podman with `--userns=keep-id`, every service died the moment it
+  tried to switch to its own app user — something an unprivileged process isn't
+  allowed to do. The supervisor restarted them forever, so `docker ps` showed
+  the container **Up** while nothing was listening on the port and the log
+  filled with `Operation not permitted`. NextGen now checks whether it can
+  switch users before trying, and stays as whoever you started it as when it
+  can't. It also stops trying to take ownership of your files in that mode,
+  which produced most of those errors, and says once in the log why. Running
+  normally is unchanged. Diagnosed down to the call sites by @KucharczykL, from
+  nine days of running it under rootless Podman.
+  ([#947](https://github.com/new-usemame/Calibre-Web-NextGen/issues/947))
+
 - **"Source Code" in the package details opened a list of downloads instead of
   the code.** If you inspect the installed package — `pip show`, a package
   index, the dependency view — its Source Code link pointed at the releases
