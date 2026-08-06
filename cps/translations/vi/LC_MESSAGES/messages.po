@@ -6531,15 +6531,15 @@ msgstr ""
 msgid "Hardcover Sync"
 msgstr "Mở thay đổi thứ tự"
 
-#: cps/tasks/kepub_backfill.py:21
+#: cps/tasks/kepub_backfill.py:50
 msgid "Convert Kobo books missing KEPUB"
 msgstr ""
 
-#: cps/tasks/kepub_backfill.py:34
+#: cps/tasks/kepub_backfill.py:63
 msgid "Kepubify is not configured"
 msgstr ""
 
-#: cps/tasks/kepub_backfill.py:87
+#: cps/tasks/kepub_backfill.py:124
 #, python-format
 msgid "%(count)d KEPUB conversion(s) failed"
 msgstr ""
