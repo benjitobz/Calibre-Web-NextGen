@@ -85,7 +85,7 @@ msgstr ""
 "Błąd podczas uruchamiania zadania automatycznego pobierania z Hardcover: "
 "%(error)s"
 
-#: cps/admin.py:326 cps/templates/admin.html:224
+#: cps/admin.py:326 cps/templates/admin.html:225
 msgid "Review Hardcover Matches"
 msgstr "Przejrzyj dopasowania Hardcover"
 
@@ -1115,218 +1115,230 @@ msgstr "Nie udało się wczytać obrazu źródłowego do podglądu."
 msgid "Cover save failed."
 msgstr "Nie udało się zapisać okładki."
 
-#: cps/cwa_functions.py:178
+#: cps/cwa_functions.py:183
 msgid "Theme switching is temporarily disabled until v5.0.0"
 msgstr "Zmiana motywu jest tymczasowo wyłączona do wersji v5.0.0"
 
-#: cps/cwa_functions.py:293
+#: cps/cwa_functions.py:298
 msgid ""
 "Library Refresh 🔄 Checking for any books that may have been missed, please "
 "wait..."
 msgstr ""
 "Odświeżanie biblioteki 🔄 Sprawdzanie pominiętych książek, proszę czekać..."
 
-#: cps/cwa_functions.py:995
+#: cps/cwa_functions.py:1000
 msgid "Invalid cron expression for duplicate scans. Changes were not saved."
 msgstr ""
 "Nieprawidłowe wyrażenie cron dla skanowania duplikatów. Zmiany nie zostały "
 "zapisane."
 
-#: cps/cwa_functions.py:1107
+#: cps/cwa_functions.py:1112
 msgid "Calibre-Web NextGen User Settings"
 msgstr "Ustawienia użytkownika Calibre-Web NextGen"
 
-#: cps/cwa_functions.py:1153 cps/cwa_functions.py:1155
-#: cps/cwa_functions.py:1159 cps/cwa_functions.py:1161
+#: cps/cwa_functions.py:1158 cps/cwa_functions.py:1160
 #: cps/cwa_functions.py:1164 cps/cwa_functions.py:1166
+#: cps/cwa_functions.py:1169 cps/cwa_functions.py:1171
 msgid "Timestamp"
 msgstr "Znacznik czasu"
 
-#: cps/cwa_functions.py:1153 cps/cwa_functions.py:1155
+#: cps/cwa_functions.py:1158 cps/cwa_functions.py:1160
 #: cps/templates/tasks.html:43 cps/templates/user_edit.html:342
 msgid "Book ID"
 msgstr "ID książki"
 
-#: cps/cwa_functions.py:1153 cps/templates/book_edit.html:125
+#: cps/cwa_functions.py:1158 cps/templates/book_edit.html:125
 #: cps/templates/search_form.html:8
 msgid "Book Title"
 msgstr "Tytuł książki"
 
-#: cps/cwa_functions.py:1153
+#: cps/cwa_functions.py:1158
 msgid "Book Author"
 msgstr "Autor książki"
 
-#: cps/cwa_functions.py:1153
+#: cps/cwa_functions.py:1158
 msgid "Trigger Type"
 msgstr "Typ wyzwalacza"
 
-#: cps/cwa_functions.py:1155 cps/cwa_functions.py:1161
+#: cps/cwa_functions.py:1160 cps/cwa_functions.py:1166
 msgid "Filepath"
 msgstr "Ścieżka pliku"
 
-#: cps/cwa_functions.py:1159 cps/cwa_functions.py:1161
 #: cps/cwa_functions.py:1164 cps/cwa_functions.py:1166
+#: cps/cwa_functions.py:1169 cps/cwa_functions.py:1171
 msgid "Filename"
 msgstr "Nazwa pliku"
 
-#: cps/cwa_functions.py:1159
+#: cps/cwa_functions.py:1164
 msgid "Manual?"
 msgstr "Ręcznie?"
 
-#: cps/cwa_functions.py:1159
+#: cps/cwa_functions.py:1164
 msgid "No. Fixes"
 msgstr "Liczba poprawek"
 
-#: cps/cwa_functions.py:1159 cps/cwa_functions.py:1164
-#: cps/cwa_functions.py:1166
+#: cps/cwa_functions.py:1164 cps/cwa_functions.py:1169
+#: cps/cwa_functions.py:1171
 msgid "Original Backed Up?"
 msgstr "Oryginał zarchiwizowany?"
 
-#: cps/cwa_functions.py:1161
+#: cps/cwa_functions.py:1166
 msgid "Fixes Applied"
 msgstr "Zastosowane poprawki"
 
-#: cps/cwa_functions.py:1166
+#: cps/cwa_functions.py:1171
 msgid "Original Format"
 msgstr "Oryginalny format"
 
-#: cps/cwa_functions.py:1166
+#: cps/cwa_functions.py:1171
 msgid "End Format"
 msgstr "Format końcowy"
 
 # ???
-#: cps/cwa_functions.py:1242 cps/cwa_functions.py:1271
+#: cps/cwa_functions.py:1247 cps/cwa_functions.py:1276
 msgid "Unknown User"
 msgstr "Nieznany użytkownik"
 
-#: cps/cwa_functions.py:1379
+#: cps/cwa_functions.py:1384
 msgid "Calibre-Web NextGen Stats & Activity"
 msgstr "Statystyki i aktywność Calibre-Web NextGen"
 
-#: cps/cwa_functions.py:1763
+#: cps/cwa_functions.py:1768
 msgid "Calibre-Web NextGen - Full Enforcement History"
 msgstr "Calibre-Web NextGen - Pełna historia wymuszania"
 
-#: cps/cwa_functions.py:1772
+#: cps/cwa_functions.py:1777
 msgid "Calibre-Web NextGen - Full Enforcement History (w/ Paths)"
 msgstr "Calibre-Web NextGen - Pełna historia wymuszania (ze ścieżkami)"
 
-#: cps/cwa_functions.py:1781
+#: cps/cwa_functions.py:1786
 msgid "Calibre-Web NextGen - Full Import History"
 msgstr "Calibre-Web NextGen - Pełna historia importu"
 
-#: cps/cwa_functions.py:1790
+#: cps/cwa_functions.py:1795
 msgid "Calibre-Web NextGen - Full Conversion History"
 msgstr "Calibre-Web NextGen - Pełna historia konwersji"
 
-#: cps/cwa_functions.py:1799
+#: cps/cwa_functions.py:1804
 msgid "Calibre-Web NextGen - Full EPUB Fixer History (w/out Paths & Fixes)"
 msgstr ""
 "Calibre-Web NextGen - Pełna historia naprawy EPUB (bez ścieżek i poprawek)"
 
-#: cps/cwa_functions.py:1808
+#: cps/cwa_functions.py:1813
 msgid "Calibre-Web NextGen - Full EPUB Fixer History (w/ Paths & Fixes)"
 msgstr ""
 "Calibre-Web NextGen - Pełna historia naprawy EPUB (ze ścieżkami i poprawkami)"
 
-#: cps/cwa_functions.py:1826
+#: cps/cwa_functions.py:1831
 msgid "✅ All Monitoring Services are running as intended! 👍"
 msgstr "✅ Wszystkie usługi monitorowania działają prawidłowo! 👍"
 
-#: cps/cwa_functions.py:1828
+#: cps/cwa_functions.py:1833
 msgid ""
 "🔴 The Ingest Service is running but the Metadata Change Detector is not"
 msgstr "🔴 Usługa importu działa, ale detektor zmian metadanych nie działa"
 
-#: cps/cwa_functions.py:1830
+#: cps/cwa_functions.py:1835
 msgid ""
 "🔴 The Metadata Change Detector is running but the Ingest Service is not"
 msgstr "🔴 Detektor zmian metadanych działa, ale usługa importu nie działa"
 
-#: cps/cwa_functions.py:1832
+#: cps/cwa_functions.py:1837
 msgid ""
 "⛔ Neither the Ingest Service or the Metadata Change Detector are running"
 msgstr "⛔ Ani usługa importu, ani detektor zmian metadanych nie działają"
 
-#: cps/cwa_functions.py:1834
+#: cps/cwa_functions.py:1839
 msgid "An Error has occurred"
 msgstr "Wystąpił błąd"
 
-#: cps/cwa_functions.py:2011 cps/cwa_functions.py:2039
+#: cps/cwa_functions.py:2016 cps/cwa_functions.py:2044
 msgid "Calibre-Web NextGen - Convert Library"
 msgstr "Calibre-Web NextGen - Konwertuj bibliotekę"
 
-#: cps/cwa_functions.py:2165 cps/cwa_functions.py:2191
+#: cps/cwa_functions.py:2170 cps/cwa_functions.py:2196
 msgid "Calibre-Web NextGen - EPUB Fixer Service"
 msgstr "Calibre-Web NextGen - Usługa naprawy EPUB"
 
-#: cps/cwa_functions.py:2249
+#: cps/cwa_functions.py:2254
 msgid "Single-book EPUB Fixer is not supported with Google Drive libraries."
 msgstr ""
 "Naprawa pojedynczej książki EPUB nie jest obsługiwana w bibliotekach na "
 "Google Drive."
 
-#: cps/cwa_functions.py:2256
+#: cps/cwa_functions.py:2261
 msgid "Invalid book selection."
 msgstr "Nieprawidłowy wybór książki."
 
-#: cps/cwa_functions.py:2262 cps/spa_strings.py:442
+#: cps/cwa_functions.py:2267 cps/spa_strings.py:442
 msgid "Book not found."
 msgstr "Nie znaleziono książki."
 
-#: cps/cwa_functions.py:2268
+#: cps/cwa_functions.py:2273
 msgid "Selected book has no EPUB format."
 msgstr "Wybrana książka nie ma formatu EPUB."
 
-#: cps/cwa_functions.py:2272
+#: cps/cwa_functions.py:2277
 msgid "EPUB file not found on disk."
 msgstr "Nie znaleziono na dysku pliku EPUB."
 
-#: cps/cwa_functions.py:2287
+#: cps/cwa_functions.py:2292
 msgid "EPUB Fixer started for selected book."
 msgstr "Rozpoczęto naprawę EPUB dla wybranej książki."
 
-#: cps/cwa_functions.py:2290
+#: cps/cwa_functions.py:2295
 msgid "Failed to start EPUB Fixer for selected book."
 msgstr "Nie udało się uruchomić naprawy EPUB dla wybranej książki."
 
-#: cps/cwa_functions.py:2341
+#: cps/cwa_functions.py:2578 cps/cwa_functions.py:2586
+msgid "Calibre-Web NextGen - Cover & Metadata Enforcement"
+msgstr ""
+
+#: cps/cwa_functions.py:2637
+msgid "An enforcement run is already in progress."
+msgstr ""
+
+#: cps/cwa_functions.py:2660
+msgid "Could not start the enforcement run."
+msgstr ""
+
+#: cps/cwa_functions.py:2711
 msgid "You must be an admin to access this page."
 msgstr "Musisz być administratorem, aby uzyskać dostęp do tej strony."
 
-#: cps/cwa_functions.py:2356
+#: cps/cwa_functions.py:2726
 msgid "Both username and image data are required."
 msgstr "Wymagana jest zarówno nazwa użytkownika, jak i dane obrazu."
 
-#: cps/cwa_functions.py:2364
+#: cps/cwa_functions.py:2734
 msgid "Invalid image data format. Must be a valid image."
 msgstr "Nieprawidłowy format danych obrazu. Musi to być prawidłowy obraz."
 
-#: cps/cwa_functions.py:2372
+#: cps/cwa_functions.py:2742
 msgid "Unsupported image type. Only PNG and JPEG are allowed."
 msgstr "Nieobsługiwany typ obrazu. Dozwolone są tylko PNG i JPEG."
 
-#: cps/cwa_functions.py:2384
+#: cps/cwa_functions.py:2754
 msgid "Image is too large. Please use an image smaller than 500KB."
 msgstr "Obraz jest zbyt duży. Użyj obrazu mniejszego niż 500 KB."
 
-#: cps/cwa_functions.py:2388
+#: cps/cwa_functions.py:2758
 msgid "Invalid Base64 image data."
 msgstr "Nieprawidłowe dane obrazu Base64."
 
-#: cps/cwa_functions.py:2392
+#: cps/cwa_functions.py:2762
 msgid "Invalid image data format."
 msgstr "Nieprawidłowy format danych obrazu."
 
-#: cps/cwa_functions.py:2397
+#: cps/cwa_functions.py:2767
 msgid "Error validating image data."
 msgstr "Błąd podczas sprawdzania poprawności danych obrazu."
 
-#: cps/cwa_functions.py:2415
+#: cps/cwa_functions.py:2785
 msgid "Profile picture updated successfully."
 msgstr "Zdjęcie profilowe zostało pomyślnie zaktualizowane."
 
-#: cps/cwa_functions.py:2428
+#: cps/cwa_functions.py:2798
 msgid "Calibre-Web NextGen Profile Picture Management (WIP)"
 msgstr "Zarządzanie zdjęciem profilowym Calibre-Web NextGen (w budowie)"
 
@@ -1827,7 +1839,7 @@ msgstr "Brak uprawnień do wykonywania: %(missing)s"
 msgid "Error executing Calibre"
 msgstr "Błąd wykonywania Calibre"
 
-#: cps/helper.py:2331 cps/templates/admin.html:242
+#: cps/helper.py:2331 cps/templates/admin.html:243
 msgid "Queue all books for metadata backup"
 msgstr "Dodaj wszystkie książki do kolejki kopii zapasowej metadanych"
 
@@ -3998,8 +4010,8 @@ msgstr "Ustawienia CWA (import/konwersja)"
 msgid "Can upload books"
 msgstr "Może przesyłać książki"
 
-#: cps/spa_strings.py:452 cps/templates/admin.html:304
-#: cps/templates/admin.html:318 cps/templates/book_edit.html:312
+#: cps/spa_strings.py:452 cps/templates/admin.html:305
+#: cps/templates/admin.html:319 cps/templates/book_edit.html:312
 #: cps/templates/book_table.html:176 cps/templates/book_table.html:195
 #: cps/templates/book_table.html:215 cps/templates/book_table.html:235
 #: cps/templates/book_table.html:255 cps/templates/book_table.html:275
@@ -4007,6 +4019,7 @@ msgstr "Może przesyłać książki"
 #: cps/templates/config_db.html:115 cps/templates/config_edit.html:743
 #: cps/templates/config_view_edit.html:236 cps/templates/cover_picker.html:189
 #: cps/templates/cwa_convert_library.html:23
+#: cps/templates/cwa_cover_enforcer.html:31
 #: cps/templates/cwa_epub_fixer.html:40 cps/templates/detail.html:1192
 #: cps/templates/duplicates.html:696 cps/templates/duplicates.html:719
 #: cps/templates/duplicates.html:746 cps/templates/layout.html:857
@@ -4764,8 +4777,8 @@ msgstr "Wysokość linii"
 msgid "Load more"
 msgstr "Wczytaj więcej"
 
-#: cps/spa_strings.py:635 cps/templates/admin.html:300
-#: cps/templates/admin.html:332 cps/templates/config_db.html:4
+#: cps/spa_strings.py:635 cps/templates/admin.html:301
+#: cps/templates/admin.html:333 cps/templates/config_db.html:4
 #: cps/templates/config_edit.html:4 cps/templates/cwa_settings.html:4
 #: cps/templates/read.html:74
 msgid "Loading"
@@ -7022,7 +7035,7 @@ msgstr "Zaplanowane odświeżanie miniatur"
 msgid "Generate series cover thumbnails"
 msgstr "Generuj miniatury okładek cykli"
 
-#: cps/templates/admin.html:193 cps/templates/admin.html:234
+#: cps/templates/admin.html:193 cps/templates/admin.html:235
 #: cps/templates/schedule_edit.html:38
 msgid "Reconnect Calibre Database"
 msgstr "Ponownie połącz z bazą danych Calibre"
@@ -7059,23 +7072,27 @@ msgstr "Usługa konwersji biblioteki NextGen"
 msgid "NextGen EPUB Fixer Service"
 msgstr "Usługa naprawy EPUB NextGen"
 
-#: cps/templates/admin.html:219
+#: cps/templates/admin.html:217
+msgid "NextGen Cover & Metadata Enforcement"
+msgstr ""
+
+#: cps/templates/admin.html:220
 msgid "NextGen GitHub"
 msgstr "GitHub NextGen"
 
-#: cps/templates/admin.html:220
+#: cps/templates/admin.html:221
 msgid "NextGen Discord Server"
 msgstr "Serwer Discord NextGen"
 
-#: cps/templates/admin.html:223
+#: cps/templates/admin.html:224
 msgid "Run Hardcover Auto-Fetch"
 msgstr "Uruchom automatyczne pobieranie z Hardcover"
 
-#: cps/templates/admin.html:228
+#: cps/templates/admin.html:229
 msgid "Administration&nbsp;&nbsp;🚀"
 msgstr "Administracja&nbsp;&nbsp;🚀"
 
-#: cps/templates/admin.html:229
+#: cps/templates/admin.html:230
 msgid ""
 "Sanitized: safe to attach to a public GitHub issue. Passwords, tokens, IPs, "
 "and install paths are scrubbed."
@@ -7083,84 +7100,84 @@ msgstr ""
 "Oczyszczone: bezpieczne do dołączenia do publicznego zgłoszenia na GitHubie. "
 "Hasła, tokeny, adresy IP i ścieżki instalacji zostały usunięte."
 
-#: cps/templates/admin.html:229
+#: cps/templates/admin.html:230
 msgid "Get Support Pack"
 msgstr "Pobierz pakiet wsparcia"
 
-#: cps/templates/admin.html:230
+#: cps/templates/admin.html:231
 msgid ""
 "Full unredacted pack. Admin/private use only — contains secrets and IPs."
 msgstr ""
 "Pełny, nieocenzurowany pakiet. Tylko do użytku administracyjnego/prywatnego "
 "— zawiera dane poufne i adresy IP."
 
-#: cps/templates/admin.html:230
+#: cps/templates/admin.html:231
 msgid "Download Debug Package"
 msgstr "Pobierz pakiet Debug"
 
-#: cps/templates/admin.html:231
+#: cps/templates/admin.html:232
 msgid "View Logs"
 msgstr "Podgląd dziennika"
 
-#: cps/templates/admin.html:237
+#: cps/templates/admin.html:238
 msgid "Restart"
 msgstr "Uruchom ponownie Calibre Web"
 
-#: cps/templates/admin.html:238
+#: cps/templates/admin.html:239
 msgid "Shutdown"
 msgstr "Zatrzymaj Calibre Web"
 
-#: cps/templates/admin.html:247
+#: cps/templates/admin.html:248
 msgid "Version Information&nbsp;&nbsp;📜"
 msgstr "Informacje o wersji&nbsp;&nbsp;📜"
 
-#: cps/templates/admin.html:252
+#: cps/templates/admin.html:253
 msgid "Version"
 msgstr "Wersja"
 
-#: cps/templates/admin.html:253
+#: cps/templates/admin.html:254
 msgid "Details"
 msgstr "Szczegóły"
 
-#: cps/templates/admin.html:262
+#: cps/templates/admin.html:263
 msgid "Update available"
 msgstr "Dostępna aktualizacja"
 
-#: cps/templates/admin.html:263 cps/templates/layout.html:514
+#: cps/templates/admin.html:264 cps/templates/layout.html:514
 msgid "Update now"
 msgstr "Zaktualizuj teraz"
 
-#: cps/templates/admin.html:265
+#: cps/templates/admin.html:266
 msgid "Current Version"
 msgstr "Bieżąca wersja"
 
-#: cps/templates/admin.html:272 cps/templates/admin.html:277
+#: cps/templates/admin.html:273 cps/templates/admin.html:278
 msgid "-"
 msgstr "-"
 
-#: cps/templates/admin.html:284
+#: cps/templates/admin.html:285
 msgid "Check for Update"
 msgstr "Sprawdź aktualizacje"
 
-#: cps/templates/admin.html:285
+#: cps/templates/admin.html:286
 msgid "Perform Update"
 msgstr "Wykonaj aktualizację"
 
-#: cps/templates/admin.html:298
+#: cps/templates/admin.html:299
 msgid "Are you sure you want to restart?"
 msgstr "Na pewno chcesz uruchomić ponownie Calibre Web?"
 
-#: cps/templates/admin.html:303 cps/templates/admin.html:317
-#: cps/templates/admin.html:337 cps/templates/config_db.html:145
+#: cps/templates/admin.html:304 cps/templates/admin.html:318
+#: cps/templates/admin.html:338 cps/templates/config_db.html:145
 #: cps/templates/duplicates.html:788 cps/templates/duplicates.html:810
 msgid "OK"
 msgstr "OK"
 
-#: cps/templates/admin.html:316
+#: cps/templates/admin.html:317
 msgid "Are you sure you want to shutdown?"
 msgstr "Na pewno chcesz zatrzymać Calibre Web?"
 
-#: cps/templates/admin.html:328
+#: cps/templates/admin.html:329
 msgid "Updating, please do not reload this page"
 msgstr "Aktualizowanie, proszę nie odświeżać strony"
 
@@ -9014,17 +9031,20 @@ msgid "Rendering e-reader previews:"
 msgstr "Renderowanie podglądów na czytniku:"
 
 #: cps/templates/cwa_convert_library.html:10
+#: cps/templates/cwa_cover_enforcer.html:24
 #: cps/templates/cwa_epub_fixer.html:34
 msgid "Run Archive"
 msgstr "Uruchom archiwizację"
 
 # ???
 #: cps/templates/cwa_convert_library.html:11
+#: cps/templates/cwa_cover_enforcer.html:25
 #: cps/templates/cwa_epub_fixer.html:35 cps/templates/cwa_read_log.html:9
 msgid "Download Log"
 msgstr "Pobierz log"
 
 #: cps/templates/cwa_convert_library.html:24
+#: cps/templates/cwa_cover_enforcer.html:30
 #: cps/templates/cwa_epub_fixer.html:39 cps/templates/index.xml:7
 msgid "Start"
 msgstr "Rozpocznij"
@@ -9046,6 +9066,57 @@ msgstr "Pomyślnie zaplanowano konwersję biblioteki"
 #: cps/templates/cwa_convert_library.html:103
 msgid "Error scheduling Convert Library"
 msgstr "Błąd podczas planowania konwersji biblioteki"
+
+#: cps/templates/cwa_cover_enforcer.html:17
+msgid ""
+"This service rewrites the covers and metadata stored inside the ebook files "
+"themselves for every book in your library, so the files on disk always match "
+"what you see in Calibre-Web. It is the library-wide version of the on-edit "
+"NextGen Automatic Cover & Metadata Enforcement Service toggled in CWA "
+"Settings."
+msgstr ""
+
+#: cps/templates/cwa_cover_enforcer.html:18
+msgid ""
+"Upon loading this page, if you have previously started a run of the NextGen "
+"Cover & Metadata Enforcement service either here in the Web UI or through "
+"the CLI, you will see the output of the most recent previous run below."
+msgstr ""
+
+#: cps/templates/cwa_cover_enforcer.html:19
+msgid ""
+"Once you start a run, you are free to leave the page and return whenever you "
+"want to check on the run's progress. If you wish to cancel a run that is "
+"still in progress, simply press the Cancel button above and the run will "
+"terminate ASAP."
+msgstr ""
+
+#: cps/templates/cwa_cover_enforcer.html:27
+msgid "Bulk Processing"
+msgstr ""
+
+#: cps/templates/cwa_cover_enforcer.html:52
+msgid ""
+"No current or previous run to display. Press the Start button above to "
+"initiate a run."
+msgstr ""
+
+#: cps/templates/cwa_cover_enforcer.html:101
+msgid "Lost contact with the server, retrying..."
+msgstr ""
+
+#: cps/templates/cwa_cover_enforcer.html:163
+#: cps/templates/cwa_cover_enforcer.html:170
+msgid "The request failed."
+msgstr ""
+
+#: cps/templates/cwa_cover_enforcer.html:177
+msgid "Starting..."
+msgstr ""
+
+#: cps/templates/cwa_cover_enforcer.html:190
+msgid "Cancelling..."
+msgstr ""
 
 #: cps/templates/cwa_epub_fixer.html:22
 msgid "Run on a single book"
