@@ -51,6 +51,25 @@ is for things you can see or feel when running the app.
   device; until you update it, nothing about its behaviour changes. Reported by
   @jrodrigoferreira and kept current by @iroQuai (#1366, #324).
 
+### Changed
+
+- **A sign-in page whose only button is your one provider now just takes you
+  there.** If your server runs in OAuth-only mode with standard login switched
+  off and exactly one provider switched on, opening the login page showed you a
+  page whose sole purpose was to click through to that provider. NextGen now
+  starts it for you. Servers that still allow username-and-password sign-in keep
+  the normal login page. If the provider is unreachable, or you want the plain
+  page back for any reason, add `?local=1` to the login URL. Contributed by
+  @lduesing.
+  ([#1411](https://github.com/new-usemame/Calibre-Web-NextGen/pull/1411))
+- **Cancelling a sign-in at your provider now returns you to the login page
+  instead of bouncing you back to the provider forever.** Backing out of the
+  provider's consent screen used to hand you straight back to it, with no way
+  off the merry-go-round short of clearing cookies. This affected OAuth servers
+  before this release too, including ones that never turned on the automatic
+  start above.
+  ([#1411](https://github.com/new-usemame/Calibre-Web-NextGen/pull/1411))
+
 ### Fixed
 
 - **Fixed: the container refused to start on every release since v4.1.20 if a
