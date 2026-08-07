@@ -1931,7 +1931,7 @@ msgstr "字母排序書籍"
 msgid "Books sorted alphabetically"
 msgstr "按字母排序的書籍"
 
-#: cps/opds.py:170 cps/render_template.py:150
+#: cps/opds.py:170 cps/render_template.py:151
 msgid "Hot Books"
 msgstr "熱門書籍"
 
@@ -1939,7 +1939,7 @@ msgstr "熱門書籍"
 msgid "Popular publications from this catalog based on Downloads."
 msgstr "基於下載數的熱門書籍。"
 
-#: cps/opds.py:176 cps/render_template.py:164 cps/web.py:686
+#: cps/opds.py:176 cps/render_template.py:165 cps/web.py:686
 msgid "Top Rated Books"
 msgstr "最高評分書籍"
 
@@ -1960,12 +1960,12 @@ msgstr "最新書籍"
 msgid "Random Books"
 msgstr "隨機書籍"
 
-#: cps/opds.py:189 cps/render_template.py:176 cps/templates/user_table.html:161
+#: cps/opds.py:189 cps/render_template.py:177 cps/templates/user_table.html:161
 #: cps/templates/user_table.html:164
 msgid "Show Random Books"
 msgstr "隨機顯示書籍"
 
-#: cps/opds.py:194 cps/opds.py:195 cps/render_template.py:167 cps/web.py:1051
+#: cps/opds.py:194 cps/opds.py:195 cps/render_template.py:168 cps/web.py:1051
 msgid "Read Books"
 msgstr "已讀書籍"
 
@@ -1974,11 +1974,11 @@ msgstr "已讀書籍"
 msgid "Books currently being read"
 msgstr "當前版本"
 
-#: cps/opds.py:206 cps/opds.py:207 cps/render_template.py:171 cps/web.py:1054
+#: cps/opds.py:206 cps/opds.py:207 cps/render_template.py:172 cps/web.py:1054
 msgid "Unread Books"
 msgstr "未讀書籍"
 
-#: cps/opds.py:212 cps/render_template.py:183 cps/spa_strings.py:432
+#: cps/opds.py:212 cps/render_template.py:184 cps/spa_strings.py:432
 #: cps/templates/book_table.html:109 cps/templates/cwa_settings.html:334
 #: cps/templates/cwa_settings.html:336
 #: cps/templates/hardcover_review_matches.html:134
@@ -1989,7 +1989,7 @@ msgstr "作者"
 msgid "Books ordered by Author"
 msgstr "書籍按作者排序"
 
-#: cps/opds.py:218 cps/render_template.py:187 cps/spa_strings.py:732
+#: cps/opds.py:218 cps/render_template.py:188 cps/spa_strings.py:732
 #: cps/templates/book_table.html:115 cps/web.py:2019
 msgid "Publishers"
 msgstr "出版社"
@@ -1998,7 +1998,7 @@ msgstr "出版社"
 msgid "Books ordered by publisher"
 msgstr "書籍按出版社排序"
 
-#: cps/opds.py:224 cps/render_template.py:177 cps/spa_strings.py:456
+#: cps/opds.py:224 cps/render_template.py:178 cps/spa_strings.py:456
 #: cps/templates/book_table.html:110 cps/web.py:2171
 msgid "Categories"
 msgstr "分類"
@@ -2007,7 +2007,7 @@ msgstr "分類"
 msgid "Books ordered by category"
 msgstr "書籍按分類排序"
 
-#: cps/opds.py:230 cps/render_template.py:180 cps/spa_strings.py:279
+#: cps/opds.py:230 cps/render_template.py:181 cps/spa_strings.py:279
 #: cps/templates/book_edit.html:143 cps/templates/book_table.html:111
 #: cps/templates/cwa_settings.html:362 cps/templates/cwa_settings.html:364
 #: cps/templates/cwa_settings.html:1134
@@ -2020,7 +2020,7 @@ msgstr "叢書"
 msgid "Books ordered by series"
 msgstr "書籍按叢書排序"
 
-#: cps/opds.py:236 cps/render_template.py:190 cps/spa_strings.py:628
+#: cps/opds.py:236 cps/render_template.py:191 cps/spa_strings.py:628
 #: cps/templates/book_table.html:113 cps/templates/detail.html:930
 #: cps/templates/search_form.html:108 cps/web.py:2143
 msgid "Languages"
@@ -2030,7 +2030,7 @@ msgstr "語言"
 msgid "Books ordered by Languages"
 msgstr "書籍按語言排序"
 
-#: cps/opds.py:242 cps/render_template.py:194 cps/spa_strings.py:736
+#: cps/opds.py:242 cps/render_template.py:195 cps/spa_strings.py:736
 #: cps/web.py:2103
 msgid "Ratings"
 msgstr "評分"
@@ -2039,7 +2039,7 @@ msgstr "評分"
 msgid "Books ordered by Rating"
 msgstr "書籍按評分排序"
 
-#: cps/opds.py:248 cps/render_template.py:197
+#: cps/opds.py:248 cps/render_template.py:198
 msgid "File formats"
 msgstr "文件格式"
 
@@ -2101,125 +2101,125 @@ msgstr "Token已過期"
 msgid "Success! Please return to your device"
 msgstr "成功！請返回您的設備"
 
-#: cps/render_template.py:127
+#: cps/render_template.py:128
 msgid ""
 "Duplicate scanning needs a one-time full scan before fast duplicate checks "
 "can run after imports and metadata changes. "
 msgstr ""
 
-#: cps/render_template.py:147 cps/spa_strings.py:444
+#: cps/render_template.py:148 cps/spa_strings.py:444
 msgid "Books"
 msgstr "書籍"
 
-#: cps/render_template.py:149
+#: cps/render_template.py:150
 msgid "Show recent books"
 msgstr "顯示最近書籍"
 
-#: cps/render_template.py:152
+#: cps/render_template.py:153
 msgid "Show Hot Books"
 msgstr "顯示熱門書籍"
 
-#: cps/render_template.py:154 cps/render_template.py:159
+#: cps/render_template.py:155 cps/render_template.py:160
 msgid "Downloaded Books"
 msgstr "已下載書籍"
 
-#: cps/render_template.py:156 cps/render_template.py:161
+#: cps/render_template.py:157 cps/render_template.py:162
 #: cps/templates/user_table.html:169
 msgid "Show Downloaded Books"
 msgstr "顯示下載過的書籍"
 
-#: cps/render_template.py:166 cps/templates/user_table.html:163
+#: cps/render_template.py:167 cps/templates/user_table.html:163
 msgid "Show Top Rated Books"
 msgstr "顯示最高評分書籍"
 
-#: cps/render_template.py:169
+#: cps/render_template.py:170
 #, fuzzy
 msgid "Show Read and Unread"
 msgstr "顯示閱讀狀態"
 
-#: cps/render_template.py:173
+#: cps/render_template.py:174
 msgid "Show unread"
 msgstr "顯示未讀"
 
-#: cps/render_template.py:174 cps/spa_strings.py:540
+#: cps/render_template.py:175 cps/spa_strings.py:540
 msgid "Discover"
 msgstr "發現"
 
-#: cps/render_template.py:179 cps/templates/user_table.html:160
+#: cps/render_template.py:180 cps/templates/user_table.html:160
 #, fuzzy
 msgid "Show Category Section"
 msgstr "顯示分類選擇"
 
-#: cps/render_template.py:182 cps/templates/user_table.html:159
+#: cps/render_template.py:183 cps/templates/user_table.html:159
 #, fuzzy
 msgid "Show Series Section"
 msgstr "顯示叢書選擇"
 
-#: cps/render_template.py:185 cps/templates/user_table.html:162
+#: cps/render_template.py:186 cps/templates/user_table.html:162
 #, fuzzy
 msgid "Show Author Section"
 msgstr "顯示作者選擇"
 
-#: cps/render_template.py:189 cps/templates/user_table.html:165
+#: cps/render_template.py:190 cps/templates/user_table.html:165
 #, fuzzy
 msgid "Show Publisher Section"
 msgstr "顯示出版社選擇"
 
-#: cps/render_template.py:193 cps/templates/user_table.html:157
+#: cps/render_template.py:194 cps/templates/user_table.html:157
 #, fuzzy
 msgid "Show Language Section"
 msgstr "顯示語言選擇"
 
-#: cps/render_template.py:196 cps/templates/user_table.html:166
+#: cps/render_template.py:197 cps/templates/user_table.html:166
 #, fuzzy
 msgid "Show Ratings Section"
 msgstr "顯示評分選擇"
 
-#: cps/render_template.py:199 cps/templates/user_table.html:167
+#: cps/render_template.py:200 cps/templates/user_table.html:167
 #, fuzzy
 msgid "Show File Formats Section"
 msgstr "顯示文件格式選擇"
 
-#: cps/render_template.py:201 cps/web.py:1077
+#: cps/render_template.py:202 cps/web.py:1077
 msgid "Archived Books"
 msgstr "歸檔書籍"
 
-#: cps/render_template.py:203 cps/templates/user_table.html:168
+#: cps/render_template.py:204 cps/templates/user_table.html:168
 #, fuzzy
 msgid "Show Archived Books"
 msgstr "顯示歸檔書籍"
 
-#: cps/render_template.py:205 cps/spa_strings.py:574
+#: cps/render_template.py:206 cps/spa_strings.py:574
 msgid "Favorites"
 msgstr "收藏"
 
-#: cps/render_template.py:207
+#: cps/render_template.py:208
 msgid "Show Favorites"
 msgstr "顯示收藏"
 
-#: cps/render_template.py:210 cps/web.py:1825
+#: cps/render_template.py:211 cps/web.py:1825
 msgid "Books List"
 msgstr "書籍列表"
 
-#: cps/render_template.py:212 cps/templates/user_table.html:170
+#: cps/render_template.py:213 cps/templates/user_table.html:170
 msgid "Show Books List"
 msgstr "顯示書籍列表"
 
-#: cps/render_template.py:215 cps/spa_strings.py:551
+#: cps/render_template.py:216 cps/spa_strings.py:551
 msgid "Duplicates"
 msgstr ""
 
-#: cps/render_template.py:217
+#: cps/render_template.py:218
 #, fuzzy
 msgid "Show Duplicate Books"
 msgstr "顯示最高評分書籍"
 
-#: cps/render_template.py:333
+#: cps/render_template.py:334
 #, python-format
 msgid "Calibre-Web NextGen %(latest)s is available — you're on %(current)s."
 msgstr ""
 
-#: cps/render_template.py:343
+#: cps/render_template.py:344
 #, python-format
 msgid ""
 "Help improve Calibre-Web NextGen's %(language)s translations — %(count)s "
