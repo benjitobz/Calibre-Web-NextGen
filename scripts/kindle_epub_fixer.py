@@ -24,9 +24,7 @@ import shutil
 from typing import Optional, Tuple
 
 import app_paths
-
-import pwd
-import grp
+import service_user
 
 from cwa_db import CWA_DB
 from library_paths import get_calibre_metadata_db_path
@@ -54,7 +52,7 @@ dirs_json = str(app_paths.dirs_json())
 # Flask web stack into a script that convert_library.py imports at module scope, so both
 # the globals and the import are gone rather than relocated (#995).
 # Log file path
-epub_fixer_log_file = "/config/epub-fixer.log"
+epub_fixer_log_file = str(app_paths.config_dir() / "epub-fixer.log")
 
 ### LOGGING
 # Define the logger
@@ -69,42 +67,27 @@ try:
     file_handler.setFormatter(formatter)
     # Add the handler to the logger
     logger.addHandler(file_handler)
-except FileNotFoundError:
-    # Fallback for test environments where /config might not exist
+except OSError:
+    # Fallback when the log file cannot be opened. This caught only
+    # FileNotFoundError, which was enough while the path was /config: a
+    # missing directory was the only way it failed. The config dir now
+    # resolves to the app root off Docker, which usually exists and may be
+    # read-only (a distro package installs the tree root-owned), so the
+    # failure mode is PermissionError. Importing this module must not depend
+    # on the log file being writable either way.
     stream_handler = logging.StreamHandler()
     LOG_FORMAT = '%(message)s'
     formatter = logging.Formatter(LOG_FORMAT)
     stream_handler.setFormatter(formatter)
     logger.addHandler(stream_handler)
 
-# Define user and group
-USER_NAME = "abc"
-GROUP_NAME = "abc"
-
 # Kill trigger path
 KILL_TRIGGER_PATH = os.path.join(tempfile.gettempdir(), ".kill_epub_fixer_trigger")
 
-# Get UID and GID (skip if user doesn't exist, e.g., in CI environments)
-uid = None
-gid = None
-try:
-    uid = pwd.getpwnam(USER_NAME).pw_uid
-    gid = grp.getgrnam(GROUP_NAME).gr_gid
-except KeyError:
-    # User/group doesn't exist (e.g., in CI/test environments)
-    # This is okay - just skip ownership operations
-    pass
-
-# Set permissions for log file (skip on network shares or if uid/gid not available)
-if uid is not None and gid is not None:
-    try:
-        nsm = os.getenv("NETWORK_SHARE_MODE", "false").strip().lower() in ("1", "true", "yes", "on")
-        if not nsm:
-            subprocess.run(["chown", f"{uid}:{gid}", epub_fixer_log_file], check=True)
-        else:
-            print(f"[cwa-kindle-epub-fixer] NETWORK_SHARE_MODE=true detected; skipping chown of {epub_fixer_log_file}", flush=True)
-    except subprocess.CalledProcessError as e:
-        print(f"[cwa-kindle-epub-fixer] An error occurred while attempting to set ownership of {epub_fixer_log_file} to abc:abc. See the following error:\n{e}", flush=True)
+# Hand the log file to the service account. service_user skips this when there
+# is no such account, which is the normal case outside the container.
+service_user.chown_to_service_user(
+    epub_fixer_log_file, "[cwa-kindle-epub-fixer]", recursive=False)
 
 
 def print_and_log(string, log=True) -> None:

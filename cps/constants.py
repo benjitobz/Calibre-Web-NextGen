@@ -31,7 +31,19 @@ TRANSLATIONS_DIR    = os.path.join(BASE_DIR, 'cps', 'translations')
 
 SCRIPTS_DIR         = os.path.join(BASE_DIR, 'scripts')
 
-DIRS_JSON           = os.path.join(BASE_DIR, 'dirs.json')
+# Honour CWA_DIRS_JSON, the knob scripts/app_paths.py already reads. scripts/
+# and cps have to agree on which dirs.json is authoritative: it names the
+# library directory, and a packager pointing scripts/ at an out-of-tree copy
+# (so an upgrade that replaces the checkout cannot clobber it) while cps kept
+# reading BASE_DIR/dirs.json would put the ingest and the app on two different
+# libraries. Unset in the image, so Docker resolves to BASE_DIR as before.
+# A relative value is anchored to BASE_DIR, matching app_paths.dirs_json().
+# The two run with different working directories -- scripts/ from scripts/,
+# cps.py from the app root under systemd -- so an unanchored relative path
+# names two different files and splits the ingest from the app.
+_dirs_json_override = (os.environ.get('CWA_DIRS_JSON') or '').strip()
+DIRS_JSON           = (os.path.join(BASE_DIR, _dirs_json_override) if _dirs_json_override
+                       else os.path.join(BASE_DIR, 'dirs.json'))
 
 # Cache dir - use CACHE_DIR environment variable, otherwise use the default directory: cps/cache
 DEFAULT_CACHE_DIR   = os.path.join(BASE_DIR, 'cps', 'cache')
