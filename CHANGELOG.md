@@ -16,6 +16,8 @@ is for things you can see or feel when running the app.
 
 ## [Unreleased]
 
+## [v4.1.33] - 2026-08-08
+
 ### Changed
 
 - **On a sign-in-with-your-provider-only server, the login page stops asking
