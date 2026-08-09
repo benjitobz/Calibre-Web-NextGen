@@ -18,6 +18,21 @@ is for things you can see or feel when running the app.
 
 ### Fixed
 
+- **Installing outside Docker still lost your settings database, and imports
+  died without saying why.** The previous fix moved `app.db` and `dirs.json`
+  to the folder you installed into, but `cwa.db` — the one holding your CWA
+  settings, import history and enforcement records — kept looking for a
+  `/config` folder at the top of your filesystem. If it could write there you
+  got a second config directory nothing else reads; if it could not, importing
+  a book stopped partway through and the process exited reporting success, so
+  nothing in the logs said anything had gone wrong. All three files now resolve
+  the same way, a failure to open the database says which path it tried and
+  exits non-zero, and adding a missing settings column no longer depends on
+  `/config` being writable — that step used to be skipped silently on exactly
+  these installs. Docker sets `CALIBRE_DBPATH=/config` explicitly and is
+  byte-for-byte unaffected. Follows on from the packaging work reported by
+  @Thovi98.
+
 - **Installing outside Docker put your database somewhere the app never
   looks.** On a source install, the setup script wrote `app.db` into a
   `/config` folder it created at the top of your filesystem, while the app
