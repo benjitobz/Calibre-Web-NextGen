@@ -16,7 +16,29 @@ is for things you can see or feel when running the app.
 
 ## [Unreleased]
 
+### Changed
+
+- **On a sign-in-with-your-provider-only server, the login page stops asking
+  you to click one button.** If standard login is switched off and exactly one
+  OAuth provider is configured, the login page existed only to be clicked
+  through — it now starts that provider straight away. Add `?local=1` to the
+  login URL if you ever need the plain page back, which is how an admin gets in
+  when the provider itself is down. Cancelling at the provider's consent screen
+  used to hand your browser straight back to it, over and over; that loop is
+  gone too, and it predates this feature. Servers with standard login enabled,
+  or with more than one provider, are unchanged. Contributed by
+  [@lduesing](https://github.com/new-usemame/Calibre-Web-NextGen/pull/1411)
+  ([#1411](https://github.com/new-usemame/Calibre-Web-NextGen/pull/1411)).
+
 ### Fixed
+
+- **More of the interface reads in Traditional Chinese.** Coverage went from
+  619 to 919 translated phrases, and 130 entries that gettext had guessed and
+  marked provisional — provisional entries are dropped when the catalogue is
+  compiled, so they were showing in English — are now confirmed translations.
+  Contributed by
+  [@siuwai1999](https://github.com/new-usemame/Calibre-Web-NextGen/pull/1424)
+  ([#1424](https://github.com/new-usemame/Calibre-Web-NextGen/pull/1424)).
 
 - **Installing outside Docker still lost your settings database, and imports
   died without saying why.** The previous fix moved `app.db` and `dirs.json`
