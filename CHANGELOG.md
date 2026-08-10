@@ -17,6 +17,12 @@ is for things you can see or feel when running the app.
 ## [Unreleased]
 
 ### Fixed
+- **Typing in the reader no longer loses your place in the box.** Opening a
+  panel in the new UI's reader — the contents list, the appearance controls, the
+  highlight popover or the note box — put the cursor back at the top of that
+  panel every time anything else on the page updated. In the note box the top is
+  the close button, so a note you were part-way through writing could quietly
+  stop receiving what you typed. The cursor now stays where you put it (#325).
 
 - **Kindle books get their high-resolution cover now, not just print editions.**
   The high-resolution Amazon cover lookup was keyed only on a book's ISBN, and a
@@ -61,6 +67,15 @@ is for things you can see or feel when running the app.
   it back. It now names the password you are about to revoke.
 
 ### Added
+
+- **Your highlights and notes are now listed inside the reader, and you can jump
+  straight back to one.** Seeing what you had marked up meant leaving the book
+  for the Highlights page and losing your place — the classic reader has had an
+  in-reader panel for this all along. The new UI's reader now has a highlighter
+  button in the top bar, with a count, opening a drawer that lists every
+  highlight in the book with its note. Picking one takes you to that passage.
+  Highlights that came from a Kobo or KOReader are listed and labelled too,
+  though a few of those have no saved position to jump to (#325).
 
 - **You can now write a note on a highlight while reading in the browser.**
   Highlighting text in the new UI's reader only ever saved the colour — there

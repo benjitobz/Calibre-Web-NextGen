@@ -12605,3 +12605,27 @@ msgstr "Toon gelezen/niet gelezen selectie"
 
 #~ msgid "Click the cover to load metadata to the form"
 #~ msgstr "Klik op de omslag om de metagegevens in het formulier te laden"
+
+#. SPA reader: notes on highlights, the highlights drawer, full screen (#325)
+msgid "(no text captured)"
+msgstr "(geen tekst vastgelegd)"
+
+#. SPA reader: notes on highlights, the highlights drawer, full screen (#325)
+msgid "Could not open that highlight."
+msgstr "Kan die markering niet openen."
+
+#. SPA reader: notes on highlights, the highlights drawer, full screen (#325)
+msgid "Go to this highlight"
+msgstr "Ga naar deze markering"
+
+#. SPA reader: notes on highlights, the highlights drawer, full screen (#325)
+msgid "Highlights and notes"
+msgstr "Markeringen en notities"
+
+#. SPA reader: notes on highlights, the highlights drawer, full screen (#325)
+msgid "No highlights yet. Select text in the book to make one."
+msgstr "Nog geen markeringen. Selecteer tekst in het boek om er een te maken."
+
+#. SPA reader: notes on highlights, the highlights drawer, full screen (#325)
+msgid "This highlight has no saved position"
+msgstr "Deze markering heeft geen opgeslagen positie"

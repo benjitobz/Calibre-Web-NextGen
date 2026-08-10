@@ -3,7 +3,7 @@ import { Link } from 'wouter';
 import ePub from 'epubjs';
 import {
   ChevronLeft, ChevronRight, X, List, Sun, Moon, Coffee, Loader2, Trash2,
-  SlidersHorizontal, StickyNote,
+  SlidersHorizontal, StickyNote, Highlighter,
 } from 'lucide-react';
 import {
   type ReaderSettings, isWorthResending, useBook, useBookmark, useReaderSettings,
@@ -33,6 +33,18 @@ type ReaderTheme = 'light' | 'sepia' | 'dark';
 interface TocItem {
   label: string;
   href: string;
+}
+
+/** A saved highlight as the reader needs it: enough to list, jump to and edit. */
+interface AnnRow {
+  annotation_id: string;
+  cfi_range: string | null;
+  highlighted_text: string | null;
+  note_text: string | null;
+  highlight_color: string | null;
+  /** 'webreader' | 'kobo' | 'koreader' | null — shown so a device highlight is
+   *  identifiable, and because only some origins carry a usable CFI. */
+  source: string | null;
 }
 
 // epub.js ships loose types; the rendition/book objects are treated as `any`
@@ -120,6 +132,9 @@ export function Reader({ id }: { id: string }) {
   // Note composer (#325). A third overlay with its own trap, mutually exclusive
   // with the two popovers above.
   const notePopRef = useRef<HTMLDivElement>(null);
+  // Highlights & notes drawer (#325) — the in-reader counterpart to the
+  // standalone Highlights page, which until now you had to leave the book for.
+  const annRef = useRef<HTMLElement>(null);
   const noteFieldRef = useRef<HTMLTextAreaElement>(null);
   // annotation_id -> note_text for every highlight in this book. Seeded from
   // data.json on mount so a tapped highlight can show its note without a
@@ -152,6 +167,10 @@ export function Reader({ id }: { id: string }) {
   const [rtl, setRtl] = useState(false);
   const [toc, setToc] = useState<TocItem[]>([]);
   const [tocOpen, setTocOpen] = useState(false);
+  const [annOpen, setAnnOpen] = useState(false);
+  // Every saved highlight for this book, kept in step locally on each write so
+  // the drawer never needs a refetch to look right.
+  const [annList, setAnnList] = useState<AnnRow[]>([]);
   const [settingsOpen, setSettingsOpen] = useState(false);
   const [theme, setTheme] = useState<ReaderTheme>(loadTheme);
   const [fontPct, setFontPct] = useState(loadFont);
@@ -181,11 +200,65 @@ export function Reader({ id }: { id: string }) {
 
   // C10: the TOC drawer and highlight popovers are overlays — trap focus while
   // open, restore on close, Escape closes (hooks run unconditionally every render).
-  useFocusTrap(tocRef, { onClose: () => setTocOpen(false), active: tocOpen });
-  useFocusTrap(settingsRef, { onClose: () => setSettingsOpen(false), active: settingsOpen });
-  useFocusTrap(popRef, { onClose: () => setPendingSel(null), active: !!pendingSel });
-  useFocusTrap(hlPopRef, { onClose: () => setActiveHl(null), active: !!activeHl });
-  useFocusTrap(notePopRef, { onClose: () => setComposer(null), active: !!composer });
+  /*
+   * Stable close handlers, one per overlay.
+   *
+   * NOT a tidiness change. useFocusTrap lists `onClose` in its effect's
+   * dependencies, so an inline arrow — a new function identity on every render —
+   * makes the trap re-run on EVERY RENDER of this component, not just when the
+   * overlay opens. Each re-run re-focuses the dialog's first focusable and the
+   * cleanup restores focus to the previous element.
+   *
+   * The visible symptom was in the note composer, whose first focusable is the
+   * Cancel button in its header: the caret would leave the textarea and land on
+   * Cancel whenever anything re-rendered the reader — a saved highlight arriving,
+   * an annotation refresh, a keystroke in the controlled field. Measured as
+   *     focusin TEXTAREA[Note] -> focusout TEXTAREA[Note] -> focusin BUTTON[Cancel]
+   * It read as intermittent because it depended on whether a re-render happened
+   * to follow the open.
+   *
+   * All six overlays had it; only the composer had a first focusable destructive
+   * enough for anyone to notice.
+   */
+  const closeToc = useCallback(() => setTocOpen(false), []);
+  const closeSettings = useCallback(() => setSettingsOpen(false), []);
+  const closePendingSel = useCallback(() => setPendingSel(null), []);
+  const closeActiveHl = useCallback(() => setActiveHl(null), []);
+  const closeComposer = useCallback(() => setComposer(null), []);
+  const closeAnnDrawer = useCallback(() => setAnnOpen(false), []);
+
+  useFocusTrap(tocRef, { onClose: closeToc, active: tocOpen });
+  useFocusTrap(settingsRef, { onClose: closeSettings, active: settingsOpen });
+  useFocusTrap(popRef, { onClose: closePendingSel, active: !!pendingSel });
+  useFocusTrap(hlPopRef, { onClose: closeActiveHl, active: !!activeHl });
+  useFocusTrap(notePopRef, { onClose: closeComposer, active: !!composer });
+  useFocusTrap(annRef, { onClose: closeAnnDrawer, active: annOpen });
+
+  /*
+   * Land the caret in the note field when the composer opens, so a phone user
+   * can type immediately instead of hunting for the textarea.
+   *
+   * Declared AFTER useFocusTrap(notePopRef, …) on purpose, and it has to stay
+   * there: React runs effects in declaration order, and the trap focuses the
+   * dialog's first focusable — which is the Cancel button in the header, since
+   * in create mode the colour swatches also precede the field. Running after it
+   * is what puts the caret in the right place.
+   *
+   * A callback ref cannot do this job: refs attach BEFORE any effect runs, so
+   * the trap would simply overwrite it. Verified by a focus trace when it was
+   * briefly written that way.
+   *
+   * The dependency list is the composer's identity rather than the object, so
+   * closing (all three become undefined) and reopening on the same highlight
+   * still re-runs this.
+   */
+  useEffect(() => {
+    if (!composer) return;
+    const field = noteFieldRef.current;
+    if (!field) return;
+    field.focus();
+    field.setSelectionRange(field.value.length, field.value.length);
+  }, [composer?.mode, composer?.annotationId, composer?.cfiRange]); // eslint-disable-line react-hooks/exhaustive-deps
 
   // Open the edit/remove popover for a highlight the reader was tapped on (#782).
   // Closes the create-color popover so the two never show at once.
@@ -246,12 +319,28 @@ export function Reader({ id }: { id: string }) {
     cfiRange: string, text: string, color: string, note: string,
   ) => {
     try {
-      const created = await apiPost<{ annotation_id?: string }>(`/annotations/${id}`, {
+      // The create route answers with the stored row (`_data_json_row`), so the
+      // listed row is built from what the SERVER recorded, falling back to what
+      // we sent only where a field is absent. Two reasons. It keeps `source`
+      // (and later the device fields) from being a client-side constant that
+      // has to match the backend byte-for-byte to stay true. And it degrades
+      // the safe way: absent-or-correct, never confidently wrong — so the
+      // drawer cannot disagree with the Highlights page about a row both just
+      // read from the same write.
+      const created = await apiPost<Partial<AnnRow>>(`/annotations/${id}`, {
         cfi_range: cfiRange, highlighted_text: text, highlight_color: color,
         ...(note ? { note_text: note } : {}),
       });
       const newId = created?.annotation_id ?? '';
       if (note && newId) notesRef.current.set(newId, note);
+      setAnnList((rows) => [...rows, {
+        annotation_id: newId,
+        cfi_range: created?.cfi_range ?? cfiRange,
+        highlighted_text: created?.highlighted_text ?? text,
+        note_text: created?.note_text ?? (note || null),
+        highlight_color: created?.highlight_color ?? color,
+        source: created?.source ?? 'webreader',
+      }]);
       paintHighlight(cfiRange, color, newId, !!note);
     } catch { /* surfaced as no-op; user can retry */ }
     try {
@@ -307,10 +396,34 @@ export function Reader({ id }: { id: string }) {
       await apiPatch(`/annotations/${id}/${c.annotationId}`, { note_text: note });
       if (note) notesRef.current.set(c.annotationId, note);
       else notesRef.current.delete(c.annotationId);
+      setAnnList((rows) => rows.map((r) =>
+        r.annotation_id === c.annotationId ? { ...r, note_text: note || null } : r));
       repaintHighlight(c.cfiRange, c.color, c.annotationId, !!note);
       announce(note ? t('Note saved') : t('Note removed'));
     } catch { /* silent: server keeps the previous note */ }
   }, [id, persistHighlight, repaintHighlight, announce, t]);
+
+  /*
+   * Jump the book to a saved highlight.
+   *
+   * Only web-origin rows are guaranteed a portable CFI. Device rows carry
+   * Kobo-native anchors and get a CFI derived server-side only when the kepub is
+   * on disk, and a re-generated kepub can shift the KoboSpan ids those were
+   * computed from — so a stale or absent CFI is expected here, not exceptional.
+   * epub.js throws on one; the row stays listed and readable either way, which
+   * is better than hiding a highlight because we cannot navigate to it.
+   */
+  const goToAnnotation = useCallback((row: AnnRow) => {
+    if (!row.cfi_range) return;
+    setAnnOpen(false);
+    try {
+      Promise.resolve(renditionRef.current?.display(row.cfi_range)).catch(() => {
+        announce(t('Could not open that highlight.'));
+      });
+    } catch {
+      announce(t('Could not open that highlight.'));
+    }
+  }, [announce, t]);
 
   const saveNote = useCallback(() => {
     if (composer) void commitNote(composer, composer.note);
@@ -330,6 +443,7 @@ export function Reader({ id }: { id: string }) {
     try {
       await apiDelete(`/annotations/${id}/${hl.id}`);
       notesRef.current.delete(hl.id);
+      setAnnList((rows) => rows.filter((r) => r.annotation_id !== hl.id));
       try { renditionRef.current?.annotations?.remove(hl.cfiRange, 'highlight'); } catch { /* noop */ }
     } catch { /* silent: keep the highlight painted */ }
   }, [activeHl, id]);
@@ -345,20 +459,12 @@ export function Reader({ id }: { id: string }) {
     if (hl.color === color) return;
     try {
       await apiPatch(`/annotations/${id}/${hl.id}`, { highlight_color: color });
+      setAnnList((rows) => rows.map((r) =>
+        r.annotation_id === hl.id ? { ...r, highlight_color: color } : r));
       // Recolouring must not silently drop the note marker.
       repaintHighlight(hl.cfiRange, color, hl.id, !!notesRef.current.get(hl.id));
     } catch { /* silent: keep the highlight in its original color */ }
   }, [activeHl, id, repaintHighlight]);
-
-  // Land the caret in the note field when the composer opens, so a phone user
-  // can type immediately instead of hunting for the textarea.
-  useEffect(() => {
-    if (!composer) return;
-    const field = noteFieldRef.current;
-    if (!field) return;
-    field.focus();
-    field.setSelectionRange(field.value.length, field.value.length);
-  }, [composer?.mode, composer?.annotationId, composer?.cfiRange]); // eslint-disable-line react-hooks/exhaustive-deps
 
   useEffect(() => {
     savedCfiRef.current = savedBookmark?.bookmark ?? savedCfiRef.current;
@@ -634,6 +740,7 @@ export function Reader({ id }: { id: string }) {
           .then((d) => {
             if (cancelled || !d) return;
             notesRef.current.clear();
+            setAnnList((d.annotations || []) as AnnRow[]);
             (d.annotations || []).forEach((a: any) => {
               const note = (a.note_text || '').trim();
               if (note && a.annotation_id) notesRef.current.set(a.annotation_id, note);
@@ -779,6 +886,13 @@ export function Reader({ id }: { id: string }) {
             aria-label={t('Table of contents')} aria-expanded={tocOpen} title={t('Contents')}>
             <List size={19} aria-hidden="true" focusable={false} />
           </button>
+          <button className={styles.iconBtn} onClick={() => { setTocOpen(false); setAnnOpen((o) => !o); }}
+            aria-label={t('Highlights and notes')} aria-expanded={annOpen} title={t('Highlights and notes')}>
+            <Highlighter size={19} aria-hidden="true" focusable={false} />
+            {annList.length > 0 && (
+              <span className={styles.annCount} aria-hidden="true">{annList.length}</span>
+            )}
+          </button>
           <button className={styles.iconBtn} onClick={() => setSettingsOpen((o) => !o)}
             aria-label={t('Reading appearance')} aria-expanded={settingsOpen} title={t('Reading appearance')}>
             <SlidersHorizontal size={19} aria-hidden="true" focusable={false} />
@@ -806,6 +920,62 @@ export function Reader({ id }: { id: string }) {
                     <button className={styles.tocItem} onClick={() => goToc(tocItem.href)}>{tocItem.label || t('Untitled')}</button>
                   </li>
                 ))}
+              </ul>
+            )}
+          </nav>
+        </>
+      )}
+
+      {/* Highlights & notes drawer (#325). Mirrors the TOC drawer's shape so the
+          two read as siblings; jumping closes it, as picking a chapter does. */}
+      {annOpen && (
+        <>
+          <div className={styles.tocScrim} onClick={() => setAnnOpen(false)} aria-hidden="true" />
+          <nav ref={annRef} className={styles.toc} aria-label={t('Highlights and notes')} tabIndex={-1}>
+            <div className={styles.panelHeading}>
+              <p className={styles.tocHeading}>{t('Highlights and notes')}</p>
+              <button className={styles.iconBtn} onClick={() => setAnnOpen(false)} aria-label={t('Close')}>
+                <X size={18} aria-hidden="true" focusable={false} />
+              </button>
+            </div>
+            {annList.length === 0 ? (
+              <p className={styles.tocEmpty}>
+                {t('No highlights yet. Select text in the book to make one.')}
+              </p>
+            ) : (
+              <ul role="list">
+                {annList.map((row) => {
+                  const colour = HILITE_FILL[row.highlight_color || 'yellow'] || HILITE_FILL.yellow;
+                  const jumpable = !!row.cfi_range;
+                  return (
+                    <li key={row.annotation_id} className={styles.annItem}>
+                      <button
+                        className={styles.annJump}
+                        onClick={() => goToAnnotation(row)}
+                        disabled={!jumpable}
+                        title={jumpable ? t('Go to this highlight') : t('This highlight has no saved position')}
+                      >
+                        <span className={styles.annBar} style={{ background: colour }} aria-hidden="true" />
+                        <span className={styles.annBody}>
+                          <span className={styles.annQuote}>
+                            {row.highlighted_text || t('(no text captured)')}
+                          </span>
+                          {row.note_text && (
+                            <span className={styles.annNote}>
+                              <StickyNote size={12} aria-hidden="true" focusable={false} />
+                              {row.note_text}
+                            </span>
+                          )}
+                          {/* Origin matters to a reader who syncs a device: it
+                              explains why some rows cannot be jumped to. */}
+                          {row.source && row.source !== 'webreader' && (
+                            <span className={styles.annSource}>{row.source}</span>
+                          )}
+                        </span>
+                      </button>
+                    </li>
+                  );
+                })}
               </ul>
             )}
           </nav>

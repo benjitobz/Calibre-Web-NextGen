@@ -99,6 +99,7 @@
 }
 
 .iconBtn, .themeActive {
+  position: relative; /* containing block for .annCount */
   display: inline-flex;
   align-items: center;
   justify-content: center;
@@ -351,6 +352,54 @@
   transition: background var(--dur-fast) var(--ease), color var(--dur-fast) var(--ease);
 }
 .hiliteRemove:hover { background: var(--danger-soft); color: var(--danger); }
+
+/* #325 — highlights & notes drawer. Reuses .toc for the shell so it and the
+ * table of contents stay visibly the same kind of thing.
+ *
+ * These use the APP tokens (--text, --surface-2, --border) rather than the
+ * --reader-chrome-* palette, because the drawer sits on --surface-1 like the
+ * TOC does. The two palettes are independent: the reading page theme is chosen
+ * separately from the app theme, so a light app with a dark page theme would
+ * put near-white --reader-chrome-text on a near-white drawer. Match .tocItem. */
+.annCount {
+  position: absolute; transform: translate(12px, -11px);
+  min-width: 16px; height: 16px; padding: 0 4px;
+  border-radius: 999px; background: var(--accent); color: var(--on-accent);
+  font-size: 10px; font-weight: 700; line-height: 16px; text-align: center;
+}
+.annItem { margin-bottom: var(--sp-1); }
+.annJump {
+  display: flex; gap: var(--sp-2); width: 100%; text-align: left;
+  padding: var(--sp-2); border-radius: var(--r-sm); cursor: pointer;
+  transition: background var(--dur-fast) var(--ease);
+}
+.annJump:hover:not(:disabled) { background: var(--surface-2); }
+/* A device highlight with no resolvable position stays listed and readable —
+ * only its navigation is unavailable. */
+.annJump:disabled { cursor: default; opacity: 0.75; }
+.annBar { flex: 0 0 4px; border-radius: 2px; align-self: stretch; }
+.annBody { display: flex; flex-direction: column; gap: 3px; min-width: 0; }
+.annQuote {
+  color: var(--text); font-size: var(--fs-sm); line-height: 1.45;
+  display: -webkit-box; -webkit-line-clamp: 3; line-clamp: 3;
+  -webkit-box-orient: vertical; overflow: hidden; overflow-wrap: anywhere;
+}
+.annNote {
+  display: flex; align-items: flex-start; gap: 4px;
+  color: var(--text-muted); font-size: var(--fs-sm); line-height: 1.4;
+  font-style: italic; overflow-wrap: anywhere;
+}
+.annNote svg { flex: 0 0 auto; margin-top: 2px; }
+.annSource {
+  align-self: flex-start; padding: 1px 6px; border-radius: 999px;
+  border: 1px solid var(--border);
+  color: var(--text-muted); font-size: 11px; text-transform: uppercase;
+  letter-spacing: 0.04em;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .annJump { transition: none; }
+}
 
 /* #325 — note affordance in both popovers. Neutral (non-destructive) sibling of
  * .hiliteRemove; icon + text so it never depends on the glyph alone. */

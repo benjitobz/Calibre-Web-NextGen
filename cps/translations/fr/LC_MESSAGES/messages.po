@@ -13030,3 +13030,27 @@ msgstr "Afficher la section Lu / Non lu"
 #~ msgid "Click the cover to load metadata to the form"
 #~ msgstr ""
 #~ "Cliquer sur la couverture pour importer les métadonnées dans le formulaire"
+
+#. SPA reader: notes on highlights, the highlights drawer, full screen (#325)
+msgid "(no text captured)"
+msgstr "(aucun texte enregistré)"
+
+#. SPA reader: notes on highlights, the highlights drawer, full screen (#325)
+msgid "Could not open that highlight."
+msgstr "Impossible d'ouvrir ce passage surligné."
+
+#. SPA reader: notes on highlights, the highlights drawer, full screen (#325)
+msgid "Go to this highlight"
+msgstr "Aller à ce passage surligné"
+
+#. SPA reader: notes on highlights, the highlights drawer, full screen (#325)
+msgid "Highlights and notes"
+msgstr "Surlignages et notes"
+
+#. SPA reader: notes on highlights, the highlights drawer, full screen (#325)
+msgid "No highlights yet. Select text in the book to make one."
+msgstr "Aucun surlignage pour le moment. Sélectionnez du texte dans le livre pour en créer un."
+
+#. SPA reader: notes on highlights, the highlights drawer, full screen (#325)
+msgid "This highlight has no saved position"
+msgstr "Ce surlignage n'a pas de position enregistrée"
