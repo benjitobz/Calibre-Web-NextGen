@@ -5411,6 +5411,17 @@ msgstr "Inscription…"
 msgid "Reload"
 msgstr "Recharger"
 
+#: cps/spa_strings.py
+#, python-brace-format
+msgid ""
+"Reload metadata for \"{title}\" from the file on disk? Any title, author or "
+"series you edited here is replaced by what the file contains. This cannot be "
+"undone."
+msgstr ""
+"Recharger les métadonnées de « {title} » depuis le fichier sur le disque ? "
+"Le titre, l'auteur ou la série que vous avez modifiés ici seront remplacés "
+"par le contenu du fichier. Cette action est irréversible."
+
 #: cps/spa_strings.py cps/templates/detail.html
 msgid "Reload metadata from disk"
 msgstr "Recharger les métadonnées depuis le disque"
@@ -5492,6 +5503,16 @@ msgstr ""
 #: cps/spa_strings.py
 msgid "Reverse-proxy header login"
 msgstr "Connexion par en-tête de proxy inverse"
+
+#: cps/spa_strings.py
+#, python-brace-format
+msgid ""
+"Revoke the app password \"{label}\"? Any device still using it loses access "
+"immediately, and the password cannot be recovered."
+msgstr ""
+"Révoquer le mot de passe d'application « {label} » ? Tout appareil qui "
+"l'utilise encore perdra l'accès immédiatement, et le mot de passe ne pourra "
+"pas être récupéré."
 
 #: cps/spa_strings.py
 msgid "Rows per load"

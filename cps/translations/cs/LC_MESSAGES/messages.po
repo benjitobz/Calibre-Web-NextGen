@@ -5176,6 +5176,14 @@ msgstr ""
 msgid "Reload"
 msgstr ""
 
+#: cps/spa_strings.py
+#, python-brace-format
+msgid ""
+"Reload metadata for \"{title}\" from the file on disk? Any title, author or "
+"series you edited here is replaced by what the file contains. This cannot be "
+"undone."
+msgstr ""
+
 #: cps/spa_strings.py cps/templates/detail.html
 msgid "Reload metadata from disk"
 msgstr ""
@@ -5254,6 +5262,13 @@ msgstr ""
 
 #: cps/spa_strings.py
 msgid "Reverse-proxy header login"
+msgstr ""
+
+#: cps/spa_strings.py
+#, python-brace-format
+msgid ""
+"Revoke the app password \"{label}\"? Any device still using it loses access "
+"immediately, and the password cannot be recovered."
 msgstr ""
 
 #: cps/spa_strings.py
