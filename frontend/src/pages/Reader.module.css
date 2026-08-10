@@ -117,6 +117,11 @@
   color: var(--on-accent);
 }
 
+/* In fullscreen the reader IS the screen, so paint the page background behind
+ * it — the UA default is black and would letterbox a light or sepia page. */
+.reader:fullscreen { background: inherit; }
+.reader:-webkit-full-screen { background: inherit; }
+
 /* Stage holds the epub viewer flanked by page-turn zones. */
 .stage {
   position: relative;

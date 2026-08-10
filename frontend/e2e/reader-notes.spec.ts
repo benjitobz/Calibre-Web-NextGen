@@ -472,3 +472,55 @@ test.describe('reader highlights & notes drawer (#325)', () => {
     await restoreAnnotations(page, bookId!, preExisting);
   });
 });
+
+/*
+ * Fullscreen. Asserts OUR wiring, not the browser's fullscreen implementation:
+ * headless Chromium's real fullscreen is unreliable and it would be testing
+ * Chrome rather than the reader. The Fullscreen API is stubbed so the test can
+ * prove the button targets the reader shell and follows the browser's state.
+ */
+test.describe('reader fullscreen (#325)', () => {
+  test.describe.configure({ mode: 'serial' });
+
+  test('the control targets the reader shell and follows the browser state', async ({ page }, testInfo) => {
+    test.setTimeout(120_000);
+    const bookId = await openReaderOnEpub(page, testInfo.project.name === 'mobile' ? 1 : 0);
+    expect(bookId, 'an EPUB that renders in the reader').not.toBeNull();
+
+    // Record requests instead of entering real fullscreen.
+    await page.evaluate(() => {
+      (window as unknown as { __fsCalls: string[] }).__fsCalls = [];
+      Element.prototype.requestFullscreen = function (this: Element) {
+        (window as unknown as { __fsCalls: string[] }).__fsCalls.push(this.className);
+        return Promise.resolve();
+      };
+    });
+
+    const button = page.getByRole('button', { name: 'Full screen' });
+    await expect(button).toBeVisible();
+    await expect(button).toHaveAttribute('aria-pressed', 'false');
+    await button.click();
+
+    // It asked for fullscreen on the reader shell — not the viewer, not <body>.
+    const calls = await page.evaluate(() => (window as unknown as { __fsCalls: string[] }).__fsCalls);
+    expect(calls).toHaveLength(1);
+    expect(calls[0]).toContain('reader');
+
+    // The browser owns the state: until it reports fullscreen, the control must
+    // not claim it. This is what breaks if someone "optimises" it to toggle its
+    // own state optimistically — Escape would then leave the label lying.
+    await expect(button).toHaveAttribute('aria-pressed', 'false');
+
+    // Once the browser does report it, the control flips to the exit affordance.
+    await page.evaluate(() => {
+      Object.defineProperty(document, 'fullscreenElement', {
+        configurable: true,
+        get: () => document.querySelector('[class*="reader"]'),
+      });
+      document.dispatchEvent(new Event('fullscreenchange'));
+    });
+    const exitButton = page.getByRole('button', { name: 'Exit full screen' });
+    await expect(exitButton).toBeVisible();
+    await expect(exitButton).toHaveAttribute('aria-pressed', 'true');
+  });
+});

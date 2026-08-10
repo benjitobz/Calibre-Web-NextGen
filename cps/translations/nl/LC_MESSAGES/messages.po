@@ -12647,3 +12647,11 @@ msgstr "Toon gelezen/niet gelezen selectie"
 
 #~ msgid "Click the cover to load metadata to the form"
 #~ msgstr "Klik op de omslag om de metagegevens in het formulier te laden"
+
+#. SPA reader: the full-screen control (#325)
+msgid "Full screen"
+msgstr "Volledig scherm"
+
+#. SPA reader: the full-screen control (#325)
+msgid "Exit full screen"
+msgstr "Volledig scherm verlaten"

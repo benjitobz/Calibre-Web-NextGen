@@ -68,6 +68,13 @@ is for things you can see or feel when running the app.
 
 ### Added
 
+- **The new UI's reader can go full screen.** The classic reader has always had
+  a full-screen button; the new one didn't, so on a laptop or tablet you read
+  with the browser's chrome eating the top of the page. There's now a
+  full-screen control in the reader's top bar. It's hidden on devices that
+  can't do it (an iPhone can only full-screen video, not a page) rather than
+  shown as a button that does nothing (#325).
+
 - **Your highlights and notes are now listed inside the reader, and you can jump
   straight back to one.** Seeing what you had marked up meant leaving the book
   for the Highlights page and losing your place — the classic reader has had an

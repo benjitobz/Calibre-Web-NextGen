@@ -13116,3 +13116,11 @@ msgstr "Afficher la section Lu / Non lu"
 #~ msgid "Click the cover to load metadata to the form"
 #~ msgstr ""
 #~ "Cliquer sur la couverture pour importer les métadonnées dans le formulaire"
+
+#. SPA reader: the full-screen control (#325)
+msgid "Full screen"
+msgstr "Plein écran"
+
+#. SPA reader: the full-screen control (#325)
+msgid "Exit full screen"
+msgstr "Quitter le plein écran"

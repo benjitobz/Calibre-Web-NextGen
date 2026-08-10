@@ -3,7 +3,7 @@ import { Link } from 'wouter';
 import ePub from 'epubjs';
 import {
   ChevronLeft, ChevronRight, X, List, Sun, Moon, Coffee, Loader2, Trash2,
-  SlidersHorizontal, StickyNote, Highlighter,
+  SlidersHorizontal, StickyNote, Highlighter, Maximize, Minimize,
 } from 'lucide-react';
 import {
   type ReaderSettings, isWorthResending, useBook, useBookmark, useReaderSettings,
@@ -77,6 +77,38 @@ function isRtlBook(book: any): boolean {
   }
 }
 
+/*
+ * Fullscreen, with the vendor fallback that still matters and the feature test
+ * that matters more.
+ *
+ * Safari only gained unprefixed Element.requestFullscreen in 16.4, so the webkit
+ * spelling is still load-bearing for this project — the household reads on
+ * Safari daily, and an unprefixed-only call would silently do nothing there.
+ * moz/ms are not included: Firefox and Edge have shipped the standard names for
+ * years, and the classic reader's copies of them are dead weight.
+ *
+ * The test is the important half. iOS Safari on iPhone has NO element
+ * fullscreen at all (only video), so the control is hidden there rather than
+ * rendered as a button that does nothing.
+ */
+interface FsDoc extends Document {
+  webkitFullscreenEnabled?: boolean;
+  webkitFullscreenElement?: Element | null;
+  webkitExitFullscreen?: () => void;
+}
+interface FsElement extends HTMLElement {
+  webkitRequestFullscreen?: () => void;
+}
+
+function fullscreenSupported(): boolean {
+  const d = document as FsDoc;
+  return !!(d.fullscreenEnabled || d.webkitFullscreenEnabled);
+}
+function fullscreenElement(): Element | null {
+  const d = document as FsDoc;
+  return d.fullscreenElement ?? d.webkitFullscreenElement ?? null;
+}
+
 const FONT_MIN = 75;
 const FONT_MAX = 200;
 // #1318: how many times a failed position save is re-sent before the reader is
@@ -135,6 +167,9 @@ export function Reader({ id }: { id: string }) {
   // Highlights & notes drawer (#325) — the in-reader counterpart to the
   // standalone Highlights page, which until now you had to leave the book for.
   const annRef = useRef<HTMLElement>(null);
+  // The element that goes fullscreen: the whole reader, not just the book, so
+  // the top bar and page-turn zones come with it.
+  const shellRef = useRef<HTMLDivElement>(null);
   const noteFieldRef = useRef<HTMLTextAreaElement>(null);
   // annotation_id -> note_text for every highlight in this book. Seeded from
   // data.json on mount so a tapped highlight can show its note without a
@@ -168,6 +203,9 @@ export function Reader({ id }: { id: string }) {
   const [toc, setToc] = useState<TocItem[]>([]);
   const [tocOpen, setTocOpen] = useState(false);
   const [annOpen, setAnnOpen] = useState(false);
+  const [isFullscreen, setIsFullscreen] = useState(false);
+  // Resolved once: whether this browser can do element fullscreen at all.
+  const [canFullscreen] = useState(fullscreenSupported);
   // Every saved highlight for this book, kept in step locally on each write so
   // the drawer never needs a refetch to look right.
   const [annList, setAnnList] = useState<AnnRow[]>([]);
@@ -424,6 +462,37 @@ export function Reader({ id }: { id: string }) {
       announce(t('Could not open that highlight.'));
     }
   }, [announce, t]);
+
+  const toggleFullscreen = useCallback(() => {
+    const d = document as FsDoc;
+    if (fullscreenElement()) {
+      (d.exitFullscreen ? d.exitFullscreen() : d.webkitExitFullscreen?.());
+      return;
+    }
+    const el = shellRef.current as FsElement | null;
+    if (!el) return;
+    // Rejected promises are normal here (a user gesture requirement, or an
+    // embedder policy); the button simply does nothing rather than throwing.
+    try {
+      const req = el.requestFullscreen?.bind(el) || el.webkitRequestFullscreen?.bind(el);
+      const r = req?.();
+      if (r && typeof (r as Promise<void>).catch === 'function') (r as Promise<void>).catch(() => {});
+    } catch { /* unsupported or refused — leave the reader as it is */ }
+  }, []);
+
+  // The browser owns this state: Escape and the system chrome can leave
+  // fullscreen without touching our button, so follow the event rather than
+  // assuming our own toggle is the only way out.
+  useEffect(() => {
+    const sync = () => setIsFullscreen(!!fullscreenElement());
+    document.addEventListener('fullscreenchange', sync);
+    document.addEventListener('webkitfullscreenchange', sync);
+    sync();
+    return () => {
+      document.removeEventListener('fullscreenchange', sync);
+      document.removeEventListener('webkitfullscreenchange', sync);
+    };
+  }, []);
 
   const saveNote = useCallback(() => {
     if (composer) void commitNote(composer, composer.note);
@@ -872,7 +941,7 @@ export function Reader({ id }: { id: string }) {
   }
 
   return (
-    <div className={`${styles.reader} ${styles[`bg_${theme}`]}`}>
+    <div ref={shellRef} className={`${styles.reader} ${styles[`bg_${theme}`]}`}>
       {/* Top bar */}
       <header className={styles.bar}>
         {/* Page heading for the reader view (SC 1.3.1), visually the bar title. */}
@@ -893,6 +962,16 @@ export function Reader({ id }: { id: string }) {
               <span className={styles.annCount} aria-hidden="true">{annList.length}</span>
             )}
           </button>
+          {canFullscreen && (
+            <button className={styles.iconBtn} onClick={toggleFullscreen}
+              aria-label={isFullscreen ? t('Exit full screen') : t('Full screen')}
+              aria-pressed={isFullscreen}
+              title={isFullscreen ? t('Exit full screen') : t('Full screen')}>
+              {isFullscreen
+                ? <Minimize size={19} aria-hidden="true" focusable={false} />
+                : <Maximize size={19} aria-hidden="true" focusable={false} />}
+            </button>
+          )}
           <button className={styles.iconBtn} onClick={() => setSettingsOpen((o) => !o)}
             aria-label={t('Reading appearance')} aria-expanded={settingsOpen} title={t('Reading appearance')}>
             <SlidersHorizontal size={19} aria-hidden="true" focusable={false} />
