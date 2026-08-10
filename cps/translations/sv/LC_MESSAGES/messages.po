@@ -11048,14 +11048,12 @@ msgid "Spread"
 msgstr "Läst"
 
 #: cps/templates/read.html
-#, fuzzy
 msgid "Two columns"
-msgstr "Ogiltig roll"
+msgstr ""
 
 #: cps/templates/read.html
-#, fuzzy
 msgid "One column"
-msgstr "Ogiltig roll"
+msgstr ""
 
 #: cps/templates/read.html
 msgid "Reflow text when sidebars are open."

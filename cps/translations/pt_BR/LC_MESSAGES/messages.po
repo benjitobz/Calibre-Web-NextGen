@@ -11122,12 +11122,10 @@ msgid "Spread"
 msgstr "Spread"
 
 #: cps/templates/read.html
-#, fuzzy
 msgid "Two columns"
 msgstr "Duas Colunas"
 
 #: cps/templates/read.html
-#, fuzzy
 msgid "One column"
 msgstr "Uma Coluna"
 

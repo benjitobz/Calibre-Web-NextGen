@@ -17,6 +17,12 @@ is for things you can see or feel when running the app.
 ## [Unreleased]
 
 ### Fixed
+- **The reader remembers whether you want one column or two.** The new UI's
+  reader always laid pages out in two columns on a wide screen, even if you had
+  chosen a single column in the classic view — the preference was being saved
+  and then ignored. Reading appearance now offers **One column** and **Two
+  columns**, the page re-flows as soon as you pick, and the choice follows you
+  to your next book and your next device (#325).
 - **The reader's buttons are big enough to hit on a phone.** Close, contents,
   appearance, highlights and full screen were 34 pixels square in the new UI's
   reader — reachable with a mouse, fiddly with a thumb while turning pages. They

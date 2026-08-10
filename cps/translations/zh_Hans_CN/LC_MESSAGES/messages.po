@@ -11082,12 +11082,10 @@ msgid "Spread"
 msgstr "已读"
 
 #: cps/templates/read.html
-#, fuzzy
 msgid "Two columns"
 msgstr "双栏"
 
 #: cps/templates/read.html
-#, fuzzy
 msgid "One column"
 msgstr "单栏"
 

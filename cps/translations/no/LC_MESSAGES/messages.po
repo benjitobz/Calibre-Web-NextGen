@@ -11060,14 +11060,12 @@ msgid "Spread"
 msgstr "redusere"
 
 #: cps/templates/read.html
-#, fuzzy
 msgid "Two columns"
-msgstr "Ugyldig lesekolonne"
+msgstr ""
 
 #: cps/templates/read.html
-#, fuzzy
 msgid "One column"
-msgstr "Ugyldig lesekolonne"
+msgstr ""
 
 #: cps/templates/read.html
 msgid "Reflow text when sidebars are open."

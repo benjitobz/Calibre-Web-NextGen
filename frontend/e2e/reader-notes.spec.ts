@@ -592,3 +592,65 @@ test.describe('reader toolbar touch targets (#325)', () => {
       expect(scrollsSideways, 'the reader page scrolls horizontally').toBe(false);
     });
 });
+
+/*
+ * One column / two columns (#325).
+ *
+ * `spread` was already part of ReaderSettings and the classic reader has written
+ * it for years — this reader hardcoded epub.js's `spread: 'auto'` and never read
+ * it back, so a saved preference was silently discarded. The test therefore
+ * checks the whole chain, not the button: the control changes the LAYOUT, and
+ * the choice survives a reload and is re-applied.
+ *
+ * Asserts on epub.js's computed CSS columns inside the book frame rather than on
+ * `aria-pressed`, because a control can be correctly "on" and do nothing — which
+ * is exactly the bug being fixed. Deliberately does NOT clear annotations, so it
+ * cannot destroy another spec's fixtures (F-08685b).
+ */
+test.describe('reader column count (#325)', () => {
+  test.describe.configure({ mode: 'serial' });
+
+  test('choosing one column changes the layout and survives a reload',
+    async ({ page }, testInfo) => {
+      test.setTimeout(120_000);
+      // Needs room for two-up to be possible at all; skip on the phone project,
+      // where 'auto' is single-column regardless and the comparison is vacuous.
+      test.skip(testInfo.project.name === 'mobile',
+        'two-column layout needs a wide viewport; the comparison is vacuous on a phone');
+
+      const bookId = await openReaderOnEpub(page, 0);
+      expect(bookId, 'an EPUB that renders in the reader').not.toBeNull();
+
+      const layout = () => page.evaluate(() => {
+        const frame = document.querySelector('iframe');
+        const doc = frame?.contentDocument;
+        if (!doc) return null;
+        const el = doc.querySelector('body') || doc.documentElement;
+        return doc.defaultView!.getComputedStyle(el).columnWidth;
+      });
+
+      await page.getByRole('button', { name: 'Reading appearance' }).click();
+      await expect(page.getByRole('button', { name: 'Two columns' })).toBeVisible();
+
+      await page.getByRole('button', { name: 'Two columns' }).click();
+      await expect.poll(layout).not.toBe(null);
+      const twoUp = await layout();
+
+      await page.getByRole('button', { name: 'One column' }).click();
+      // Poll rather than sleep: epub.js re-lays-out asynchronously.
+      await expect.poll(layout, { timeout: 15_000 }).not.toBe(twoUp);
+      const oneUp = await layout();
+
+      expect(oneUp, 'one column should be wider than a two-up column')
+        .not.toBe(twoUp);
+
+      // The preference is persisted server-side, so it must come back.
+      await page.reload();
+      await waitForReaderRender(page);
+      await page.getByRole('button', { name: 'Reading appearance' }).click();
+      await expect(page.getByRole('button', { name: 'One column' }))
+        .toHaveAttribute('aria-pressed', 'true');
+      // ...and be APPLIED, not merely remembered by the button.
+      await expect.poll(layout, { timeout: 15_000 }).toBe(oneUp);
+    });
+});

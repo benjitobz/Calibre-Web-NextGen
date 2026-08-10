@@ -215,6 +215,20 @@ export function Reader({ id }: { id: string }) {
   const [fontFamily, setFontFamily] = useState<ReaderSettings['font']>('default');
   const [margin, setMargin] = useState(16);
   const [lineHeight, setLineHeight] = useState(150);
+  /*
+   * One column or two, persisted per user (#325).
+   *
+   * The value was ALREADY being stored — `spread` is part of ReaderSettings and
+   * the classic reader has written it for years — but this reader hardcoded
+   * epub.js's `spread: 'auto'` and never read it back. So a reader who chose
+   * "One column" in the classic view had that preference silently ignored here.
+   * This is less "add a control" than "stop discarding an answer we already had".
+   *
+   * 'nonespread' maps to epub.js 'none' (never two up); 'spread' maps to 'auto',
+   * which is two-up only when the viewport is wide enough — so the setting stays
+   * sane on a phone instead of forcing columns onto a 320px screen.
+   */
+  const [spread, setSpread] = useState<ReaderSettings['spread']>('spread');
   const [settingsHydrated, setSettingsHydrated] = useState(false);
   const [progress, setProgress] = useState(0);
   // Pending text selection awaiting a highlight-color choice.
@@ -554,6 +568,7 @@ export function Reader({ id }: { id: string }) {
       setFontFamily(settings.font);
       setMargin(settings.margin);
       setLineHeight(settings.lineHeight);
+      if (settings.spread) setSpread(settings.spread);
     }
     // Start epub.js only on the next render, after this server snapshot has
     // become the state captured by the rendition callbacks.
@@ -742,7 +757,7 @@ export function Reader({ id }: { id: string }) {
           width: '100%',
           height: '100%',
           flow: 'paginated',
-          spread: 'auto',
+          spread: spread === 'nonespread' ? 'none' : 'auto',
         });
         renditionRef.current = rendition;
 
@@ -1083,6 +1098,31 @@ export function Reader({ id }: { id: string }) {
                       setTheme(value); persistSetting('theme', READER_TO_THEME[value]);
                     }}>
                     <Icon size={17} aria-hidden="true" focusable={false} /> {label}
+                  </button>
+                ))}
+              </div>
+            </fieldset>
+            <fieldset className={styles.settingGroup}>
+              <legend>{t('Columns')}</legend>
+              <div className={styles.themeChoices}>
+                {([
+                  ['nonespread', t('One column')],
+                  ['spread', t('Two columns')],
+                ] as const).map(([value, label]) => (
+                  <button key={value}
+                    className={spread === value ? styles.choiceActive : styles.choice}
+                    aria-pressed={spread === value}
+                    onClick={() => {
+                      setSpread(value);
+                      persistSetting('spread', value);
+                      // Re-layout the open book immediately rather than on the
+                      // next load — epub.js recalculates its columns in place,
+                      // so the reader sees the change while looking at it.
+                      try {
+                        renditionRef.current?.spread(value === 'nonespread' ? 'none' : 'auto');
+                      } catch { /* older epub.js builds ignore a live change */ }
+                    }}>
+                    {label}
                   </button>
                 ))}
               </div>

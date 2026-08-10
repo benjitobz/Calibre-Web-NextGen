@@ -10985,14 +10985,12 @@ msgid "Spread"
 msgstr "Đọc"
 
 #: cps/templates/read.html
-#, fuzzy
 msgid "Two columns"
-msgstr "Cột đọc không hợp lệ"
+msgstr ""
 
 #: cps/templates/read.html
-#, fuzzy
 msgid "One column"
-msgstr "Cột đọc không hợp lệ"
+msgstr ""
 
 #: cps/templates/read.html
 msgid "Reflow text when sidebars are open."

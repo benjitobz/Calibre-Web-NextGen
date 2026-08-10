@@ -11112,14 +11112,12 @@ msgid "Spread"
 msgstr "Lido"
 
 #: cps/templates/read.html
-#, fuzzy
 msgid "Two columns"
-msgstr "Coluna Lido é inválida"
+msgstr ""
 
 #: cps/templates/read.html
-#, fuzzy
 msgid "One column"
-msgstr "Coluna Lido é inválida"
+msgstr ""
 
 #: cps/templates/read.html
 msgid "Reflow text when sidebars are open."

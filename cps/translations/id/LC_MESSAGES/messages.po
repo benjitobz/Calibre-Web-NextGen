@@ -11045,14 +11045,12 @@ msgid "Spread"
 msgstr "Baca"
 
 #: cps/templates/read.html
-#, fuzzy
 msgid "Two columns"
-msgstr "Kolom Baca Tidak Valid"
+msgstr ""
 
 #: cps/templates/read.html
-#, fuzzy
 msgid "One column"
-msgstr "Kolom Baca Tidak Valid"
+msgstr ""
 
 #: cps/templates/read.html
 msgid "Reflow text when sidebars are open."
