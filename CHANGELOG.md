@@ -50,14 +50,6 @@ is for things you can see or feel when running the app.
   the old wording had never been signed off by a translator. It now reads
   Discover, translated, in all 28 languages. Reported by @chloeroform (#1097).
 
-- **The reading app's catalog now calls "Discover" by the same name the website
-  does — and shows it in your language.** In an OPDS reader the entry was
-  labelled "Random Books", while the sidebar, the new interface and the link
-  itself all said Discover. Worse, on a German, Khmer or Norwegian server that
-  one entry stayed in English while everything around it was translated, because
-  the old wording had never been signed off by a translator. It now reads
-  Discover, translated, in all 28 languages. Reported by @chloeroform (#1097).
-
 ### Added
 
 - **You can now write a note on a highlight while reading in the browser.**

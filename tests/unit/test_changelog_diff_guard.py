@@ -32,6 +32,35 @@ def test_net_release_bullet_loss_is_rejected():
     assert any("loses 1" in error for error in errors)
 
 
+def test_removing_an_accidentally_duplicated_entry_is_allowed():
+    """Two PRs can move the same entry into the same section concurrently.
+
+    #1508 and #1530 both relocated the Discover bullet into the existing Fixed
+    block minutes apart; git merged both insertions without conflict and left
+    [Unreleased] carrying it twice. The headings were correct, so
+    test_no_section_repeats_a_kind_heading stayed green and nothing noticed.
+    Deleting the copy loses no entry, and the guard must not block the repair.
+    """
+    duplicated = (
+        """## [Unreleased]\n\n### Fixed\n"""
+        """- **A fix.** Body text.\n"""
+        """- **A fix.** Body text.\n"""
+    )
+    deduped = """## [Unreleased]\n\n### Fixed\n- **A fix.** Body text.\n"""
+    assert structural_regressions(duplicated, deduped) == []
+
+
+def test_a_rewrapped_duplicate_is_still_the_same_entry():
+    """Line wrapping must not make a duplicate look like a distinct entry."""
+    duplicated = (
+        """### Fixed\n"""
+        """- **A fix.** Body text that wraps.\n"""
+        """- **A fix.** Body\n  text that wraps.\n"""
+    )
+    deduped = """### Fixed\n- **A fix.** Body text that wraps.\n"""
+    assert structural_regressions(duplicated, deduped) == []
+
+
 def test_wording_edits_reordering_and_release_sectioning_are_allowed():
     base = """## [Unreleased]\n\n### Fixed\n- **First wording.**\n- **Second wording.**\n"""
     proposed = """## [Unreleased]\n\n## [v4.1.28] - 2026-08-03\n\n### Fixed\n- **Rewritten second wording.**\n- **Rewritten first wording.**\n"""
