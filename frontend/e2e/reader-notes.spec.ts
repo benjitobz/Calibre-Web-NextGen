@@ -524,3 +524,71 @@ test.describe('reader fullscreen (#325)', () => {
     await expect(exitButton).toHaveAttribute('aria-pressed', 'true');
   });
 });
+
+/*
+ * Touch targets on the reader toolbar (#325).
+ *
+ * The controls were 34x34 — above WCAG 2.2 SC 2.5.8's 24x24 floor, so nothing
+ * flagged them, and under the 44x44 this project wants and every platform
+ * guideline recommends. That combination is why it survived: conformant, and
+ * still awkward with a thumb mid-page-turn.
+ *
+ * MEASURES AND HIT-TESTS, because the two can disagree. A box can report 44x44
+ * while an overlay, clip or stacking context takes its edge, and the arithmetic
+ * gives no hint when that happens — a sibling session measured an expander
+ * claiming 44 and hit-testing at 40. So each control is probed at the four
+ * inset corners of its own reported box.
+ *
+ * The narrow viewport is deliberate and is the case that actually broke: with
+ * 44px buttons the toolbar has less slack, and because .bookTitle lacked
+ * `min-width: 0` it refused to shrink, so the browser compressed the close
+ * control to 16px wide on a 320px screen instead — smaller than before the
+ * change was made to improve it.
+ */
+test.describe('reader toolbar touch targets (#325)', () => {
+  test.describe.configure({ mode: 'serial' });
+
+  test('every toolbar control is at least 44x44 and receives a tap at its edges',
+    async ({ page }, testInfo) => {
+      test.setTimeout(120_000);
+      const bookId = await openReaderOnEpub(page, testInfo.project.name === 'mobile' ? 2 : 1);
+      expect(bookId, 'an EPUB that renders in the reader').not.toBeNull();
+
+      const NAMES = ['Close reader', 'Table of contents', 'Reading appearance',
+                     'Highlights and notes', 'Full screen'];
+      const undersized: string[] = [];
+      const stolen: string[] = [];
+
+      for (const name of NAMES) {
+        const control = page.getByRole('button', { name }).first()
+          .or(page.getByRole('link', { name }).first());
+        // Full screen hides itself where the browser cannot support it, so a
+        // missing control is legitimate rather than a failure.
+        if (!(await control.isVisible().catch(() => false))) continue;
+        const box = await control.boundingBox();
+        expect(box, `${name} has a layout box`).not.toBeNull();
+        if (box!.width < 44 || box!.height < 44) {
+          undersized.push(`${name} (${Math.round(box!.width)}x${Math.round(box!.height)})`);
+        }
+        const corners = [[2, 2], [-2, 2], [2, -2], [-2, -2]].map(([dx, dy]) => ({
+          x: dx > 0 ? box!.x + dx : box!.x + box!.width + dx,
+          y: dy > 0 ? box!.y + dy : box!.y + box!.height + dy,
+        }));
+        const hits = await page.evaluate(({ pts, label }) => pts.map((p) => {
+          const el = document.elementFromPoint(p.x, p.y);
+          const owner = el?.closest('button, a');
+          return owner?.getAttribute('aria-label') === label;
+        }), { pts: corners, label: name });
+        if (hits.some((h) => !h)) stolen.push(name);
+      }
+
+      expect(undersized, 'controls smaller than 44x44').toEqual([]);
+      expect(stolen, 'controls whose own box does not receive the tap').toEqual([]);
+
+      // The toolbar must absorb 44px controls by truncating the title, never by
+      // scrolling the page sideways.
+      const scrollsSideways = await page.evaluate(() =>
+        document.documentElement.scrollWidth > document.documentElement.clientWidth + 1);
+      expect(scrollsSideways, 'the reader page scrolls horizontally').toBe(false);
+    });
+});

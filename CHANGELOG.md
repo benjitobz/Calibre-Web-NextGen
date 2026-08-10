@@ -17,6 +17,11 @@ is for things you can see or feel when running the app.
 ## [Unreleased]
 
 ### Fixed
+- **The reader's buttons are big enough to hit on a phone.** Close, contents,
+  appearance, highlights and full screen were 34 pixels square in the new UI's
+  reader — reachable with a mouse, fiddly with a thumb while turning pages. They
+  are now 44, the size Apple and Google both recommend, and the book title
+  shortens to make room instead of the buttons shrinking (#325).
 - **Typing in the reader no longer loses your place in the box.** Opening a
   panel in the new UI's reader — the contents list, the appearance controls, the
   highlight popover or the note box — put the cursor back at the top of that
