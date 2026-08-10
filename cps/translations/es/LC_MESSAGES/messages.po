@@ -4633,6 +4633,10 @@ msgid "Encryption"
 msgstr "Encriptado"
 
 #: cps/spa_strings.py
+msgid "Exit full screen"
+msgstr ""
+
+#: cps/spa_strings.py
 msgid "Expires in"
 msgstr "Caduca en"
 
@@ -4721,6 +4725,10 @@ msgstr "Formatos — incluir"
 #: cps/spa_strings.py
 msgid "From address"
 msgstr "Dirección de origen"
+
+#: cps/spa_strings.py
+msgid "Full screen"
+msgstr ""
 
 #: cps/spa_strings.py
 msgid "Full user table & restrictions"

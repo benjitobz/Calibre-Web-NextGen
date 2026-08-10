@@ -4599,6 +4599,10 @@ msgid "Encryption"
 msgstr "Шифрование"
 
 #: cps/spa_strings.py
+msgid "Exit full screen"
+msgstr ""
+
+#: cps/spa_strings.py
 msgid "Expires in"
 msgstr "Истекает через"
 
@@ -4686,6 +4690,10 @@ msgstr "Форматы — включить"
 #: cps/spa_strings.py
 msgid "From address"
 msgstr "Адрес отправителя"
+
+#: cps/spa_strings.py
+msgid "Full screen"
+msgstr ""
 
 #: cps/spa_strings.py
 msgid "Full user table & restrictions"

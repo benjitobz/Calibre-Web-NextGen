@@ -4518,6 +4518,10 @@ msgid "Encryption"
 msgstr "Κρυπτογράφηση"
 
 #: cps/spa_strings.py
+msgid "Exit full screen"
+msgstr ""
+
+#: cps/spa_strings.py
 msgid "Expires in"
 msgstr ""
 
@@ -4603,6 +4607,10 @@ msgstr ""
 
 #: cps/spa_strings.py
 msgid "From address"
+msgstr ""
+
+#: cps/spa_strings.py
+msgid "Full screen"
 msgstr ""
 
 #: cps/spa_strings.py
