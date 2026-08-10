@@ -1930,9 +1930,9 @@ msgstr "받은 적 있는"
 msgid "The latest Books"
 msgstr "최신 책"
 
-#: cps/opds.py
-msgid "Random Books"
-msgstr "랜덤 책"
+#: cps/opds.py cps/render_template.py cps/spa_strings.py
+msgid "Discover"
+msgstr "둘러보기"
 
 #: cps/opds.py cps/render_template.py cps/templates/user_table.html
 msgid "Show Random Books"
@@ -2106,10 +2106,6 @@ msgstr "읽은 책과 안 읽은 책 보기"
 #: cps/render_template.py
 msgid "Show unread"
 msgstr "읽지 않은 책 보기"
-
-#: cps/render_template.py cps/spa_strings.py
-msgid "Discover"
-msgstr "둘러보기"
 
 #: cps/render_template.py cps/templates/user_table.html
 msgid "Show Category Section"
@@ -11879,6 +11875,9 @@ msgstr "선택한 서재 Kobo 동기화"
 msgid "Show Read/Unread Section"
 msgstr "읽음/읽지 않음 표시"
 
+#~ msgid "Random Books"
+#~ msgstr "랜덤 책"
+
 #~ msgid "Sync Kobo read progress to Hardcover (Requires API key per user)"
 #~ msgstr ""
 #~ "Kobo 읽기 진행 상황을 Hardcover와 동기화하기 (사용자별 API 키가 필요합니"
@@ -12069,8 +12068,8 @@ msgstr "읽음/읽지 않음 표시"
 #~ msgstr ""
 #~ "이 경로들은 CWA 내부에서만 사용됩니다. 콜론 왼쪽 경로는 자유롭게 변경가능"
 #~ "하나,\n"
-#~ "        오른쪽 경로는 변경할 이유가 없습니다.<br><br>만약 "
-#~ "<code>metadata.db<code> 파일을 나머지 서재와 다른 위치에 두고 싶다면, \n"
+#~ "        오른쪽 경로는 변경할 이유가 없습니다.<br><br>만약 <code>metadata."
+#~ "db<code> 파일을 나머지 서재와 다른 위치에 두고 싶다면, \n"
 #~ "<b>아래의 ‘책 파일을 서재와 분리하기’ 옵션을 사용하고, 거기에 라이브러리"
 #~ "의 나머지 경로를 입력하십시오.</b>"
 

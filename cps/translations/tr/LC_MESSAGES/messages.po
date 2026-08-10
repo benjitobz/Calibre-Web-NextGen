@@ -1947,9 +1947,9 @@ msgstr "Okunanlar"
 msgid "The latest Books"
 msgstr "En en eKitaplar"
 
-#: cps/opds.py
-msgid "Random Books"
-msgstr "Rastgele eKitaplar"
+#: cps/opds.py cps/render_template.py cps/spa_strings.py
+msgid "Discover"
+msgstr "Keşfet"
 
 #: cps/opds.py cps/render_template.py cps/templates/user_table.html
 msgid "Show Random Books"
@@ -2126,10 +2126,6 @@ msgstr "Okunan ve okunmayanları göster"
 #: cps/render_template.py
 msgid "Show unread"
 msgstr "Okunmamışları göster"
-
-#: cps/render_template.py cps/spa_strings.py
-msgid "Discover"
-msgstr "Keşfet"
 
 #: cps/render_template.py cps/templates/user_table.html
 #, fuzzy
@@ -11959,6 +11955,9 @@ msgstr ""
 #, fuzzy
 msgid "Show Read/Unread Section"
 msgstr "Seri seçimini göster"
+
+#~ msgid "Random Books"
+#~ msgstr "Rastgele eKitaplar"
 
 #, fuzzy
 #~ msgid "or"

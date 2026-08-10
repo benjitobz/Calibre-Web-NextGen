@@ -1998,9 +1998,9 @@ msgstr "Κατεβασμένα Βιβλία"
 msgid "The latest Books"
 msgstr "Τα τελευταία Βιβλία"
 
-#: cps/opds.py
-msgid "Random Books"
-msgstr "Τυχαία Βιβλία"
+#: cps/opds.py cps/render_template.py cps/spa_strings.py
+msgid "Discover"
+msgstr "Ανακάλυψε"
 
 #: cps/opds.py cps/render_template.py cps/templates/user_table.html
 msgid "Show Random Books"
@@ -2175,10 +2175,6 @@ msgstr "Προβολή διαβασμένων και αδιάβαστων"
 #: cps/render_template.py
 msgid "Show unread"
 msgstr "Προβολή αδιάβαστων"
-
-#: cps/render_template.py cps/spa_strings.py
-msgid "Discover"
-msgstr "Ανακάλυψε"
 
 #: cps/render_template.py cps/templates/user_table.html
 #, fuzzy
@@ -2373,8 +2369,8 @@ msgstr "Δημιούργησε ένα Ράφι"
 #, fuzzy
 msgid "Sorry you are not allowed to edit this shelf"
 msgstr ""
-"Συγγνώμη αλλά δεν σου επιτρέπεται η αφαίρεση ενός βιβλίου από αυτό το ράφι: %"
-"(sname)s"
+"Συγγνώμη αλλά δεν σου επιτρέπεται η αφαίρεση ενός βιβλίου από αυτό το ράφι: "
+"%(sname)s"
 
 #: cps/shelf.py
 msgid "Edit a shelf"
@@ -12052,6 +12048,9 @@ msgstr ""
 #, fuzzy
 msgid "Show Read/Unread Section"
 msgstr "Προβολή επιλογών σειράς"
+
+#~ msgid "Random Books"
+#~ msgstr "Τυχαία Βιβλία"
 
 #, fuzzy
 #~ msgid "Enable Hardcover Auto-Fetch"

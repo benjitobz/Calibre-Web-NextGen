@@ -2024,9 +2024,9 @@ msgstr "Nemrég hozzáadott könyvek"
 msgid "The latest Books"
 msgstr "A legfrissebb könyvek"
 
-#: cps/opds.py
-msgid "Random Books"
-msgstr "Véletlenszerű könyvek"
+#: cps/opds.py cps/render_template.py cps/spa_strings.py
+msgid "Discover"
+msgstr "Felfedezés"
 
 #: cps/opds.py cps/render_template.py cps/templates/user_table.html
 msgid "Show Random Books"
@@ -2202,10 +2202,6 @@ msgstr "Olvasva/olvasatlan mutatása"
 #: cps/render_template.py
 msgid "Show unread"
 msgstr "Olvasatlan könyvek megjelenítése"
-
-#: cps/render_template.py cps/spa_strings.py
-msgid "Discover"
-msgstr "Felfedezés"
 
 #: cps/render_template.py cps/templates/user_table.html
 msgid "Show Category Section"
@@ -12169,6 +12165,9 @@ msgstr "Kiválasztott polcok szinkronizációja Kobo eszközzel"
 msgid "Show Read/Unread Section"
 msgstr "Olvasott/olvasatlan mutatása"
 
+#~ msgid "Random Books"
+#~ msgstr "Véletlenszerű könyvek"
+
 #~ msgid ""
 #~ "Off by default. When enabled, each user gets a hide button on the book "
 #~ "detail page that drops the book out of their own index/search/OPDS "
@@ -12360,9 +12359,9 @@ msgstr "Olvasott/olvasatlan mutatása"
 #~ "        <a href=\"https://github.com/crocodilestick/Calibre-Web-Automated/"
 #~ "wiki/Configuration#database-configuration\">see here</a>!"
 #~ msgstr ""
-#~ "A CWA úgy van konfigurálva, hogy a Calibre adatbázisa (a "
-#~ "<code>metadata.db</code> fájl) mindig a <code>/calibre-library</code> "
-#~ "könyvtáron belül helyezkedjen el. \n"
+#~ "A CWA úgy van konfigurálva, hogy a Calibre adatbázisa (a <code>metadata."
+#~ "db</code> fájl) mindig a <code>/calibre-library</code> könyvtáron belül "
+#~ "helyezkedjen el. \n"
 #~ "Induláskor a CWA automatikusan átvizsgálja azt a könyvtárat, amelyet a "
 #~ "docker-compose fájlban a <code>/calibre-library</code> útvonalhoz "
 #~ "rendelt, és meglévő Calibre \n"

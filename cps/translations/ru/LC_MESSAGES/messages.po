@@ -707,8 +707,8 @@ msgid ""
 "https://your-domain.com)"
 msgstr ""
 "В поле «Хост перенаправления OAuth» не следует указывать путь. Используйте "
-"только базовый URL (например, [https://your-domain.com](https://your-"
-"domain.com))"
+"только базовый URL (например, [https://your-domain.com](https://your-domain."
+"com))"
 
 #: cps/admin.py
 msgid "Password length has to be between 1 and 40"
@@ -2058,9 +2058,9 @@ msgstr "Недавно добавленные книги"
 msgid "The latest Books"
 msgstr "Последние книги"
 
-#: cps/opds.py
-msgid "Random Books"
-msgstr "Случайные книги"
+#: cps/opds.py cps/render_template.py cps/spa_strings.py
+msgid "Discover"
+msgstr "Интересное"
 
 #: cps/opds.py cps/render_template.py cps/templates/user_table.html
 msgid "Show Random Books"
@@ -2233,10 +2233,6 @@ msgstr "Показать прочитанные и непрочитанные"
 #: cps/render_template.py
 msgid "Show unread"
 msgstr "Показать непрочитанные"
-
-#: cps/render_template.py cps/spa_strings.py
-msgid "Discover"
-msgstr "Интересное"
 
 #: cps/render_template.py cps/templates/user_table.html
 msgid "Show Category Section"
@@ -8117,9 +8113,9 @@ msgid ""
 msgstr ""
 "Необязательно. Без ключа для Google Books действует ограничение около 1000 "
 "запросов на IP-адрес в день, которое легко исчерпать на общих серверах "
-"(ошибка HTTP 429). Бесплатный ключ можно получить на [https://"
-"console.cloud.google.com](https://console.cloud.google.com) — включите "
-"«Books API» и создайте API-ключ."
+"(ошибка HTTP 429). Бесплатный ключ можно получить на [https://console.cloud."
+"google.com](https://console.cloud.google.com) — включите «Books API» и "
+"создайте API-ключ."
 
 #: cps/templates/config_edit.html
 msgid "Allow Reverse Proxy Authentication"
@@ -9087,9 +9083,9 @@ msgid ""
 "\">kindle-epub-fix.netlify.app</a> tool made by <a href=\"https://github.com/"
 "innocenat\">innocenat</a>."
 msgstr ""
-"Этот инструмент был адаптирован из утилиты <a href=\"https://kindle-epub-"
-"fix.netlify.app/\">kindle-epub-fix.netlify.app</a>, созданной <a "
-"href=\"https://github.com/innocenat\">innocenat</a>."
+"Этот инструмент был адаптирован из утилиты <a href=\"https://kindle-epub-fix."
+"netlify.app/\">kindle-epub-fix.netlify.app</a>, созданной <a href=\"https://"
+"github.com/innocenat\">innocenat</a>."
 
 #: cps/templates/cwa_settings.html
 msgid "Enable KOReader Sync (NextGen Plugin)"
@@ -9112,9 +9108,9 @@ msgid ""
 "container after disabling."
 msgstr ""
 "Примечание: Включение этой опции запускает службу фонового вычисления "
-"контрольных сумм при старте, что может временно заблокировать файл "
-"metadata.db. Чтобы остановить запущенный процесс, отключите опцию и "
-"перезапустите контейнер."
+"контрольных сумм при старте, что может временно заблокировать файл metadata."
+"db. Чтобы остановить запущенный процесс, отключите опцию и перезапустите "
+"контейнер."
 
 #: cps/templates/cwa_settings.html
 msgid "Enable Aggressive EPUB Fixer Mode (riskier)"
@@ -12406,6 +12402,9 @@ msgstr "Показывать выбранные полки в OPDS"
 msgid "Show Read/Unread Section"
 msgstr "Показать раздел прочитанного/непрочитанного"
 
+#~ msgid "Random Books"
+#~ msgstr "Случайные книги"
+
 #~ msgid ""
 #~ "Off by default. When enabled, each user gets a hide button on the book "
 #~ "detail page that drops the book out of their own index/search/OPDS "
@@ -12637,9 +12636,9 @@ msgstr "Показать раздел прочитанного/непрочит�
 #~ "metadata.db при запуске. Если найдена только одна библиотека, она "
 #~ "монтируется автоматически; если найдено несколько, по умолчанию будет "
 #~ "смонтирована самая большая, а если ни одной нет, будет автоматически "
-#~ "создана и смонтирована новая. Для подробностей, <a href=\"https://"
-#~ "github.com/crocodilestick/Calibre-Web-Automated/wiki/"
-#~ "Configuration#database-configuration\">см. здесь</a>!"
+#~ "создана и смонтирована новая. Для подробностей, <a href=\"https://github."
+#~ "com/crocodilestick/Calibre-Web-Automated/wiki/Configuration#database-"
+#~ "configuration\">см. здесь</a>!"
 
 #~ msgid ""
 #~ "Therefore, when configuring your docker-compose file for CWA, <b>DO NOT "

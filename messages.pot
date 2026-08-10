@@ -1886,8 +1886,8 @@ msgstr ""
 msgid "The latest Books"
 msgstr ""
 
-#: cps/opds.py
-msgid "Random Books"
+#: cps/opds.py cps/render_template.py cps/spa_strings.py
+msgid "Discover"
 msgstr ""
 
 #: cps/opds.py cps/render_template.py cps/templates/user_table.html
@@ -2057,10 +2057,6 @@ msgstr ""
 
 #: cps/render_template.py
 msgid "Show unread"
-msgstr ""
-
-#: cps/render_template.py cps/spa_strings.py
-msgid "Discover"
 msgstr ""
 
 #: cps/render_template.py cps/templates/user_table.html

@@ -1962,9 +1962,9 @@ msgstr "الكتب المحملة"
 msgid "The latest Books"
 msgstr "أحدث الكتب"
 
-#: cps/opds.py
-msgid "Random Books"
-msgstr "كتب عشوائية"
+#: cps/opds.py cps/render_template.py cps/spa_strings.py
+msgid "Discover"
+msgstr "اكتشف"
 
 #: cps/opds.py cps/render_template.py cps/templates/user_table.html
 msgid "Show Random Books"
@@ -2138,10 +2138,6 @@ msgstr "عرض المقروء وغير المقروء"
 #: cps/render_template.py
 msgid "Show unread"
 msgstr "عرض غير المقروء"
-
-#: cps/render_template.py cps/spa_strings.py
-msgid "Discover"
-msgstr "اكتشف"
 
 #: cps/render_template.py cps/templates/user_table.html
 msgid "Show Category Section"
@@ -11888,6 +11884,9 @@ msgstr "مزامنة الرفوف المختارة مع Kobo"
 #: cps/templates/user_table.html
 msgid "Show Read/Unread Section"
 msgstr "إظهار قسم المقروء/غير المقروء"
+
+#~ msgid "Random Books"
+#~ msgstr "كتب عشوائية"
 
 #, fuzzy
 #~ msgid "Enable Hardcover Auto-Fetch"

@@ -1932,10 +1932,9 @@ msgstr "សៀវភៅដែលបានអានរួច"
 msgid "The latest Books"
 msgstr "សៀវភៅដែលមានការវាយតម្លៃល្អជាងគេ"
 
-#: cps/opds.py
-#, fuzzy
-msgid "Random Books"
-msgstr "បង្ហាញសៀវភៅចៃដន្យ"
+#: cps/opds.py cps/render_template.py cps/spa_strings.py
+msgid "Discover"
+msgstr "ស្រាវជ្រាវ"
 
 #: cps/opds.py cps/render_template.py cps/templates/user_table.html
 msgid "Show Random Books"
@@ -2111,10 +2110,6 @@ msgstr "បង្ហាញអានរួច និងមិនទាន់អ�
 #: cps/render_template.py
 msgid "Show unread"
 msgstr ""
-
-#: cps/render_template.py cps/spa_strings.py
-msgid "Discover"
-msgstr "ស្រាវជ្រាវ"
 
 #: cps/render_template.py cps/templates/user_table.html
 #, fuzzy
@@ -11912,6 +11907,10 @@ msgstr ""
 #, fuzzy
 msgid "Show Read/Unread Section"
 msgstr "បង្ហាញជម្រើសស៊េរី"
+
+#, fuzzy
+#~ msgid "Random Books"
+#~ msgstr "បង្ហាញសៀវភៅចៃដន្យ"
 
 #, fuzzy
 #~ msgid "Log in with a magic link"

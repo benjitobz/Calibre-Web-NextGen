@@ -2017,9 +2017,9 @@ msgstr "Livros descarregados"
 msgid "The latest Books"
 msgstr "Os livros mais recentes"
 
-#: cps/opds.py
-msgid "Random Books"
-msgstr "Livros aleatórios"
+#: cps/opds.py cps/render_template.py cps/spa_strings.py
+msgid "Discover"
+msgstr "Descobrir"
 
 #: cps/opds.py cps/render_template.py cps/templates/user_table.html
 msgid "Show Random Books"
@@ -2194,10 +2194,6 @@ msgstr "Mostrar lido e não lido"
 #: cps/render_template.py
 msgid "Show unread"
 msgstr "Mostrar Não Lidos"
-
-#: cps/render_template.py cps/spa_strings.py
-msgid "Discover"
-msgstr "Descobrir"
 
 #: cps/render_template.py cps/templates/user_table.html
 #, fuzzy
@@ -12055,6 +12051,9 @@ msgstr "Sincronizar com Kobo as estantes selecionadas"
 #, fuzzy
 msgid "Show Read/Unread Section"
 msgstr "Mostrar secção de lidos/não lidos"
+
+#~ msgid "Random Books"
+#~ msgstr "Livros aleatórios"
 
 #, fuzzy
 #~ msgid "Enable Hardcover Auto-Fetch"

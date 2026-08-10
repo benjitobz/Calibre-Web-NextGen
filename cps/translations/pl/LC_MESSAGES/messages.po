@@ -2063,9 +2063,9 @@ msgstr "Ostatnio dodane książki"
 msgid "The latest Books"
 msgstr "Ostatnie książki"
 
-#: cps/opds.py
-msgid "Random Books"
-msgstr "Losowe książki"
+#: cps/opds.py cps/render_template.py cps/spa_strings.py
+msgid "Discover"
+msgstr "Odkrywaj"
 
 #: cps/opds.py cps/render_template.py cps/templates/user_table.html
 msgid "Show Random Books"
@@ -2238,10 +2238,6 @@ msgstr "Pokaż przeczytane i nieprzeczytane"
 #: cps/render_template.py
 msgid "Show unread"
 msgstr "Pokaż nieprzeczytane"
-
-#: cps/render_template.py cps/spa_strings.py
-msgid "Discover"
-msgstr "Odkrywaj"
 
 #: cps/render_template.py cps/templates/user_table.html
 msgid "Show Category Section"
@@ -9612,8 +9608,8 @@ msgid ""
 "Add these two services to your docker-compose file and run \"docker compose "
 "up -d\". After that you stay up to date automatically — no button to press."
 msgstr ""
-"Dodaj te dwie usługi do pliku docker-compose i uruchom \"docker compose up "
-"-d\". Od tej pory aktualizacje odbywają się automatycznie — bez klikania "
+"Dodaj te dwie usługi do pliku docker-compose i uruchom \"docker compose up -"
+"d\". Od tej pory aktualizacje odbywają się automatycznie — bez klikania "
 "żadnego przycisku."
 
 #: cps/templates/cwa_settings.html cps/templates/update_now_modal.html
@@ -12408,6 +12404,9 @@ msgstr "Udostępniaj wybrane półki przez OPDS"
 #: cps/templates/user_table.html
 msgid "Show Read/Unread Section"
 msgstr "Pokaż sekcję przeczytane/nieprzeczytane"
+
+#~ msgid "Random Books"
+#~ msgstr "Losowe książki"
 
 #~ msgid "Sync Kobo read progress to Hardcover (Requires API key per user)"
 #~ msgstr ""

@@ -2107,9 +2107,9 @@ msgstr "Livres téléchargés"
 msgid "The latest Books"
 msgstr "Les derniers livres"
 
-#: cps/opds.py
-msgid "Random Books"
-msgstr "Livres au hasard"
+#: cps/opds.py cps/render_template.py cps/spa_strings.py
+msgid "Discover"
+msgstr "Découvrir"
 
 #: cps/opds.py cps/render_template.py cps/templates/user_table.html
 msgid "Show Random Books"
@@ -2282,10 +2282,6 @@ msgstr "Montrer lus et non-lus"
 #: cps/render_template.py
 msgid "Show unread"
 msgstr "Afficher non-lus"
-
-#: cps/render_template.py cps/spa_strings.py
-msgid "Discover"
-msgstr "Découvrir"
 
 #: cps/render_template.py cps/templates/user_table.html
 msgid "Show Category Section"
@@ -9096,9 +9092,9 @@ msgid ""
 "\">kindle-epub-fix.netlify.app</a> tool made by <a href=\"https://github.com/"
 "innocenat\">innocenat</a>."
 msgstr ""
-"Cet outil a été adapté à partir de l'outil <a href=\"https://kindle-epub-"
-"fix.netlify.app/\">kindle-epub-fix.netlify.app</a> créé par <a "
-"href=\"https://github.com/innocenat\">innocenat</a>."
+"Cet outil a été adapté à partir de l'outil <a href=\"https://kindle-epub-fix."
+"netlify.app/\">kindle-epub-fix.netlify.app</a> créé par <a href=\"https://"
+"github.com/innocenat\">innocenat</a>."
 
 #: cps/templates/cwa_settings.html
 msgid "Enable KOReader Sync (NextGen Plugin)"
@@ -12395,6 +12391,9 @@ msgstr "Synchroniser les étagères sélectionnées avec Kobo"
 #: cps/templates/user_table.html
 msgid "Show Read/Unread Section"
 msgstr "Afficher la section Lu / Non lu"
+
+#~ msgid "Random Books"
+#~ msgstr "Livres au hasard"
 
 #~ msgid "Sync Kobo read progress to Hardcover (Requires API key per user)"
 #~ msgstr ""

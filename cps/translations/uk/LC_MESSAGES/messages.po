@@ -1979,9 +1979,9 @@ msgstr "Прочитані книги"
 msgid "The latest Books"
 msgstr "Останні книги"
 
-#: cps/opds.py
-msgid "Random Books"
-msgstr "Випадковий список книг"
+#: cps/opds.py cps/render_template.py cps/spa_strings.py
+msgid "Discover"
+msgstr "Огляд"
 
 #: cps/opds.py cps/render_template.py cps/templates/user_table.html
 msgid "Show Random Books"
@@ -2161,10 +2161,6 @@ msgstr "Показувати прочитані та непрочитані кн
 #: cps/render_template.py
 msgid "Show unread"
 msgstr "Показати не прочитані"
-
-#: cps/render_template.py cps/spa_strings.py
-msgid "Discover"
-msgstr "Огляд"
 
 #: cps/render_template.py cps/templates/user_table.html
 #, fuzzy
@@ -11987,6 +11983,9 @@ msgstr ""
 #, fuzzy
 msgid "Show Read/Unread Section"
 msgstr "Показувати вибір серії"
+
+#~ msgid "Random Books"
+#~ msgstr "Випадковий список книг"
 
 #, fuzzy
 #~ msgid "Log in with a magic link"

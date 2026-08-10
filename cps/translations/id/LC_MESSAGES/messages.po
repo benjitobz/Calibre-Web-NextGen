@@ -1986,9 +1986,9 @@ msgstr "Buku yang Diunduh"
 msgid "The latest Books"
 msgstr "Buku-buku terbaru"
 
-#: cps/opds.py
-msgid "Random Books"
-msgstr "Buku Acak"
+#: cps/opds.py cps/render_template.py cps/spa_strings.py
+msgid "Discover"
+msgstr "Temukan"
 
 #: cps/opds.py cps/render_template.py cps/templates/user_table.html
 msgid "Show Random Books"
@@ -2163,10 +2163,6 @@ msgstr "Tampilkan sudah dibaca dan belum dibaca"
 #: cps/render_template.py
 msgid "Show unread"
 msgstr "Tampilkan belum dibaca"
-
-#: cps/render_template.py cps/spa_strings.py
-msgid "Discover"
-msgstr "Temukan"
 
 #: cps/render_template.py cps/templates/user_table.html
 #, fuzzy
@@ -11989,6 +11985,9 @@ msgstr "Sinkronkan Rak yang dipilih dengan Kob"
 #, fuzzy
 msgid "Show Read/Unread Section"
 msgstr "Tampilkan pilihan baca/belum dibaca"
+
+#~ msgid "Random Books"
+#~ msgstr "Buku Acak"
 
 #, fuzzy
 #~ msgid "Enable Hardcover Auto-Fetch"

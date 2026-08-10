@@ -432,8 +432,8 @@ msgid ""
 "LDAP CACertificate, Certificate or Key Location is not Valid, Please Enter "
 "Correct Path"
 msgstr ""
-"Der angegebene Speicherort für LDAP-CA-Zertifikat, -Zertifikat oder "
-"-Schlüsseldatei ist falsch,Bitte den korrekten Pfad eingeben."
+"Der angegebene Speicherort für LDAP-CA-Zertifikat, -Zertifikat oder -"
+"Schlüsseldatei ist falsch,Bitte den korrekten Pfad eingeben."
 
 #: cps/admin.py cps/templates/admin.html
 msgid "Add New User"
@@ -2061,10 +2061,9 @@ msgstr "Neu hinzugefügte Bücher"
 msgid "The latest Books"
 msgstr "Die neuesten Bücher"
 
-#: cps/opds.py
-#, fuzzy
-msgid "Random Books"
-msgstr "Zeige zufällige Bücher"
+#: cps/opds.py cps/render_template.py cps/spa_strings.py
+msgid "Discover"
+msgstr "Entdecken"
 
 #: cps/opds.py cps/render_template.py cps/templates/user_table.html
 msgid "Show Random Books"
@@ -2242,10 +2241,6 @@ msgstr "Zeige Gelesen und Ungelesen"
 #: cps/render_template.py
 msgid "Show unread"
 msgstr "Zeige Ungelesene"
-
-#: cps/render_template.py cps/spa_strings.py
-msgid "Discover"
-msgstr "Entdecken"
 
 #: cps/render_template.py cps/templates/user_table.html
 msgid "Show Category Section"
@@ -12247,6 +12242,10 @@ msgstr "Ausgewählte Regale mit Kobo synchronisieren"
 msgid "Show Read/Unread Section"
 msgstr "Zeige Gelesen/Ungelesen-Abschnitt"
 
+#, fuzzy
+#~ msgid "Random Books"
+#~ msgstr "Zeige zufällige Bücher"
+
 #~ msgid ""
 #~ "Off by default. When enabled, each user gets a hide button on the book "
 #~ "detail page that drops the book out of their own index/search/OPDS "
@@ -12435,9 +12434,9 @@ msgstr "Zeige Gelesen/Ungelesen-Abschnitt"
 #~ "        <a href=\"https://github.com/crocodilestick/Calibre-Web-Automated/"
 #~ "wiki/Configuration#database-configuration\">see here</a>!"
 #~ msgstr ""
-#~ "CWA ist so konfiguriert, dass es deine Calibre-Datenbank "
-#~ "(<code>metadata.db</code>-Datei) irgendwo in dem Pfad <code>/calibre-"
-#~ "library</code> sucht.\n"
+#~ "CWA ist so konfiguriert, dass es deine Calibre-Datenbank (<code>metadata."
+#~ "db</code>-Datei) irgendwo in dem Pfad <code>/calibre-library</code> "
+#~ "sucht.\n"
 #~ "        CWA durchsucht automatisch das Verzeichnis, das du auf <code>/"
 #~ "calibre-library</code> in der docker-compose-Datei verbunden hast, um "
 #~ "eine existierende Calibre-\n"

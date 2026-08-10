@@ -1986,10 +1986,9 @@ msgstr "Nedlastede bøker"
 msgid "The latest Books"
 msgstr "Slå sammen valgte bøker"
 
-#: cps/opds.py
-#, fuzzy
-msgid "Random Books"
-msgstr "Vis tilfeldige bøker"
+#: cps/opds.py cps/render_template.py cps/spa_strings.py
+msgid "Discover"
+msgstr "Oppdage"
 
 #: cps/opds.py cps/render_template.py cps/templates/user_table.html
 msgid "Show Random Books"
@@ -2171,10 +2170,6 @@ msgstr "Vis lest og ulest"
 #: cps/render_template.py
 msgid "Show unread"
 msgstr "Vis ulest"
-
-#: cps/render_template.py cps/spa_strings.py
-msgid "Discover"
-msgstr "Oppdage"
 
 #: cps/render_template.py cps/templates/user_table.html
 #, fuzzy
@@ -12033,6 +12028,10 @@ msgstr ""
 #, fuzzy
 msgid "Show Read/Unread Section"
 msgstr "Vis serieutvalg"
+
+#, fuzzy
+#~ msgid "Random Books"
+#~ msgstr "Vis tilfeldige bøker"
 
 #, fuzzy
 #~ msgid "Enable Hardcover Auto-Fetch"

@@ -2002,9 +2002,9 @@ msgstr "ダウンロードされた本"
 msgid "The latest Books"
 msgstr "最新の本"
 
-#: cps/opds.py
-msgid "Random Books"
-msgstr "ランダム"
+#: cps/opds.py cps/render_template.py cps/spa_strings.py
+msgid "Discover"
+msgstr "見つける"
 
 #: cps/opds.py cps/render_template.py cps/templates/user_table.html
 msgid "Show Random Books"
@@ -2178,10 +2178,6 @@ msgstr "既読と未読を表示"
 #: cps/render_template.py
 msgid "Show unread"
 msgstr "未読の本を表示"
-
-#: cps/render_template.py cps/spa_strings.py
-msgid "Discover"
-msgstr "見つける"
 
 #: cps/render_template.py cps/templates/user_table.html
 msgid "Show Category Section"
@@ -8869,8 +8865,8 @@ msgid ""
 "innocenat\">innocenat</a>."
 msgstr ""
 "このツールは<a href=\"https://github.com/innocenat\">innocenat</a>氏が作成し"
-"た<a href=\"https://kindle-epub-fix.netlify.app/\">kindle-epub-"
-"fix.netlify.app</a>ツールから移植されました。"
+"た<a href=\"https://kindle-epub-fix.netlify.app/\">kindle-epub-fix.netlify."
+"app</a>ツールから移植されました。"
 
 #: cps/templates/cwa_settings.html
 msgid "Enable KOReader Sync (NextGen Plugin)"
@@ -12137,6 +12133,9 @@ msgstr "選択した本棚をKoboと同期"
 #: cps/templates/user_table.html
 msgid "Show Read/Unread Section"
 msgstr "既読/未読セクションを表示"
+
+#~ msgid "Random Books"
+#~ msgstr "ランダム"
 
 #~ msgid "Sync Kobo read progress to Hardcover (Requires API key per user)"
 #~ msgstr "Koboの読書進捗をHardcoverに同期（ユーザーごとにAPIキーが必要）"

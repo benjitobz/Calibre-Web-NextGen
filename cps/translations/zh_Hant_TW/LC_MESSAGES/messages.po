@@ -1928,9 +1928,9 @@ msgstr "已下載書籍"
 msgid "The latest Books"
 msgstr "最新書籍"
 
-#: cps/opds.py
-msgid "Random Books"
-msgstr "隨機書籍"
+#: cps/opds.py cps/render_template.py cps/spa_strings.py
+msgid "Discover"
+msgstr "發現"
 
 #: cps/opds.py cps/render_template.py cps/templates/user_table.html
 msgid "Show Random Books"
@@ -2104,10 +2104,6 @@ msgstr "顯示閱讀狀態"
 #: cps/render_template.py
 msgid "Show unread"
 msgstr "顯示未讀"
-
-#: cps/render_template.py cps/spa_strings.py
-msgid "Discover"
-msgstr "發現"
 
 #: cps/render_template.py cps/templates/user_table.html
 #, fuzzy
@@ -11804,6 +11800,9 @@ msgstr "同步所選書架到 Kobo"
 #, fuzzy
 msgid "Show Read/Unread Section"
 msgstr "顯示已讀/未讀選擇"
+
+#~ msgid "Random Books"
+#~ msgstr "隨機書籍"
 
 #, fuzzy
 #~ msgid "Enable Hardcover Auto-Fetch"

@@ -1950,9 +1950,9 @@ msgstr "已下载书籍"
 msgid "The latest Books"
 msgstr "最新书籍"
 
-#: cps/opds.py
-msgid "Random Books"
-msgstr "随机书籍"
+#: cps/opds.py cps/render_template.py cps/spa_strings.py
+msgid "Discover"
+msgstr "发现"
 
 #: cps/opds.py cps/render_template.py cps/templates/user_table.html
 msgid "Show Random Books"
@@ -2126,10 +2126,6 @@ msgstr "显示已读或未读状态"
 #: cps/render_template.py
 msgid "Show unread"
 msgstr "显示未读"
-
-#: cps/render_template.py cps/spa_strings.py
-msgid "Discover"
-msgstr "发现"
 
 #: cps/render_template.py cps/templates/user_table.html
 msgid "Show Category Section"
@@ -8802,8 +8798,8 @@ msgid ""
 "innocenat\">innocenat</a>."
 msgstr ""
 "此工具改编自 <a href=\"https://github.com/innocenat\">innocenat</a> 制作的 "
-"<a href=\"https://kindle-epub-fix.netlify.app/\">kindle-epub-"
-"fix.netlify.app</a> 工具。"
+"<a href=\"https://kindle-epub-fix.netlify.app/\">kindle-epub-fix.netlify."
+"app</a> 工具。"
 
 #: cps/templates/cwa_settings.html
 msgid "Enable KOReader Sync (NextGen Plugin)"
@@ -8822,8 +8818,8 @@ msgid ""
 "temporarily lock metadata.db. To stop a running backfill, restart the "
 "container after disabling."
 msgstr ""
-"注意：启用此功能会在启动时启动校验和回填服务，该服务可能会暂时锁定 "
-"metadata.db。要停止正在运行的回填，请在禁用后重新启动容器。"
+"注意：启用此功能会在启动时启动校验和回填服务，该服务可能会暂时锁定 metadata."
+"db。要停止正在运行的回填，请在禁用后重新启动容器。"
 
 #: cps/templates/cwa_settings.html
 msgid "Enable Aggressive EPUB Fixer Mode (riskier)"
@@ -9678,8 +9674,8 @@ msgid ""
 "users with edit rights will see a badge on the Duplicates sidebar button and "
 "a notification popup when they login."
 msgstr ""
-"检测到未解决的重复项时显示弹出通知。管理员和具有编辑权限的用户在登录时，将在"
-"“重复项”侧边栏按钮上看到一个徽章，并会看到一个弹出通知。"
+"检测到未解决的重复项时显示弹出通知。管理员和具有编辑权限的用户在登录时，将"
+"在“重复项”侧边栏按钮上看到一个徽章，并会看到一个弹出通知。"
 
 #: cps/templates/cwa_settings.html
 #, fuzzy
@@ -12028,6 +12024,9 @@ msgstr "同步所选书架到 Kobo"
 #: cps/templates/user_table.html
 msgid "Show Read/Unread Section"
 msgstr "显示已读、未读栏目"
+
+#~ msgid "Random Books"
+#~ msgstr "随机书籍"
 
 #~ msgid "Sync Kobo read progress to Hardcover (Requires API key per user)"
 #~ msgstr "将 Kobo 阅读进度同步到 Hardcover (每个用户需要 API 密钥)"

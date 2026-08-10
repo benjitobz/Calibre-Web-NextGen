@@ -1957,9 +1957,9 @@ msgstr "Přečtené knihy"
 msgid "The latest Books"
 msgstr "Nejnovější knihy"
 
-#: cps/opds.py
-msgid "Random Books"
-msgstr "Náhodné knihy"
+#: cps/opds.py cps/render_template.py cps/spa_strings.py
+msgid "Discover"
+msgstr "Objevte"
 
 #: cps/opds.py cps/render_template.py cps/templates/user_table.html
 msgid "Show Random Books"
@@ -2134,10 +2134,6 @@ msgstr "Zobrazit prečtené a nepřečtené"
 #: cps/render_template.py
 msgid "Show unread"
 msgstr "Zobrazit nepřečtené"
-
-#: cps/render_template.py cps/spa_strings.py
-msgid "Discover"
-msgstr "Objevte"
 
 #: cps/render_template.py cps/templates/user_table.html
 #, fuzzy
@@ -11985,6 +11981,9 @@ msgstr ""
 #, fuzzy
 msgid "Show Read/Unread Section"
 msgstr "Zobrazit výběr sérií"
+
+#~ msgid "Random Books"
+#~ msgstr "Náhodné knihy"
 
 #, fuzzy
 #~ msgid "Enable Hardcover Auto-Fetch"

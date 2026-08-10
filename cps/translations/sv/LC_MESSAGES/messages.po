@@ -1982,9 +1982,9 @@ msgstr "Hämtade böcker"
 msgid "The latest Books"
 msgstr "De senaste böckerna"
 
-#: cps/opds.py
-msgid "Random Books"
-msgstr "Slumpmässiga böcker"
+#: cps/opds.py cps/render_template.py cps/spa_strings.py
+msgid "Discover"
+msgstr "Upptäck"
 
 #: cps/opds.py cps/render_template.py cps/templates/user_table.html
 msgid "Show Random Books"
@@ -2159,10 +2159,6 @@ msgstr "Visa lästa och olästa"
 #: cps/render_template.py
 msgid "Show unread"
 msgstr "Visa olästa"
-
-#: cps/render_template.py cps/spa_strings.py
-msgid "Discover"
-msgstr "Upptäck"
 
 #: cps/render_template.py cps/templates/user_table.html
 #, fuzzy
@@ -11991,6 +11987,9 @@ msgstr ""
 #, fuzzy
 msgid "Show Read/Unread Section"
 msgstr "Visa läst/oläst val"
+
+#~ msgid "Random Books"
+#~ msgstr "Slumpmässiga böcker"
 
 #, fuzzy
 #~ msgid "Enable Hardcover Auto-Fetch"
