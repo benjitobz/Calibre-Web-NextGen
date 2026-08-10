@@ -50,6 +50,49 @@ def test_removing_an_accidentally_duplicated_entry_is_allowed():
     assert structural_regressions(duplicated, deduped) == []
 
 
+def test_a_duplicate_immediately_before_a_heading_is_still_a_duplicate():
+    """A bullet must end at the next heading, not swallow it.
+
+    The obvious way to split entries -- `re.split(r"\\n(?=- \\*\\*)", text)` --
+    makes the LAST bullet of a section absorb everything up to the next bullet,
+    including the `### Added` line that follows it. Two byte-identical entries
+    then normalise to strings differing by a trailing " ### Added" and compare
+    as distinct, so the checker reports zero duplicates on a file that has one.
+
+    That position is not an edge case, it is *the* case: a merge appends to the
+    end of the section it touches, so a merge-created duplicate lands there.
+    CWNG FRONTEND hit exactly this on 2026-08-10 -- a duplicate-checker returned
+    "0 duplicated" for a file with two identical entries at lines 45 and 53, and
+    the branch was pushed on that reading.
+
+    A duplicate in the MIDDLE of a section passes either implementation and
+    proves nothing, which is why this one is pinned separately.
+    """
+    duplicated = (
+        """## [Unreleased]\n\n### Fixed\n"""
+        """- **A fix.** Body text.\n"""
+        """- **A fix.** Body text.\n"""
+        """\n### Added\n\n- **Something else.** More.\n"""
+    )
+    deduped = (
+        """## [Unreleased]\n\n### Fixed\n"""
+        """- **A fix.** Body text.\n"""
+        """\n### Added\n\n- **Something else.** More.\n"""
+    )
+    assert structural_regressions(duplicated, deduped) == []
+
+    # Control, same position: a genuinely different entry disappearing there
+    # must still be rejected, or the test above would pass on a guard that had
+    # simply stopped looking.
+    two_real = (
+        """## [Unreleased]\n\n### Fixed\n"""
+        """- **A fix.** Body.\n- **A different fix.** Other body.\n"""
+        """\n### Added\n"""
+    )
+    one_gone = """## [Unreleased]\n\n### Fixed\n- **A fix.** Body.\n\n### Added\n"""
+    assert any("loses 1" in e for e in structural_regressions(two_real, one_gone))
+
+
 def test_a_rewrapped_duplicate_is_still_the_same_entry():
     """Line wrapping must not make a duplicate look like a distinct entry."""
     duplicated = (
