@@ -4275,6 +4275,10 @@ msgid "Could not save reader settings."
 msgstr "Не удалось сохранить настройки читалки."
 
 #: cps/spa_strings.py
+msgid "Could not save that note."
+msgstr ""
+
+#: cps/spa_strings.py
 msgid "Could not save the default library filter."
 msgstr "Не удалось сохранить фильтр библиотеки по умолчанию."
 
@@ -5984,6 +5988,10 @@ msgstr "Когда заблокировано, получение метадан
 #: cps/spa_strings.py cps/templates/detail.html
 msgid "When reading progress was first synced"
 msgstr "Когда прогресс чтения был синхронизирован впервые"
+
+#: cps/spa_strings.py
+msgid "Write a note"
+msgstr ""
 
 #: cps/spa_strings.py
 msgid "Write a note…"

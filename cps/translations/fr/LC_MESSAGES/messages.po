@@ -4351,6 +4351,10 @@ msgid "Could not save reader settings."
 msgstr "Impossible d’enregistrer les paramètres de lecture."
 
 #: cps/spa_strings.py
+msgid "Could not save that note."
+msgstr "Impossible d'enregistrer cette note."
+
+#: cps/spa_strings.py
 msgid "Could not save the default library filter."
 msgstr "Impossible d’enregistrer le filtre de bibliothèque par défaut."
 
@@ -6069,6 +6073,10 @@ msgstr ""
 #: cps/spa_strings.py cps/templates/detail.html
 msgid "When reading progress was first synced"
 msgstr "Date de la première synchronisation de la progression de lecture"
+
+#: cps/spa_strings.py
+msgid "Write a note"
+msgstr "Écrire une note"
 
 #: cps/spa_strings.py
 msgid "Write a note…"
@@ -13128,11 +13136,3 @@ msgstr "Afficher la section Lu / Non lu"
 #~ msgid "Click the cover to load metadata to the form"
 #~ msgstr ""
 #~ "Cliquer sur la couverture pour importer les métadonnées dans le formulaire"
-
-#. SPA reader: writing a note that is not tied to a passage (#325)
-msgid "Could not save that note."
-msgstr "Impossible d'enregistrer cette note."
-
-#. SPA reader: writing a note that is not tied to a passage (#325)
-msgid "Write a note"
-msgstr "Écrire une note"

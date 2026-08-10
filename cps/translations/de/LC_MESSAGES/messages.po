@@ -4285,6 +4285,10 @@ msgid "Could not save reader settings."
 msgstr "Konnte Reader-Einstellungen nicht speichern."
 
 #: cps/spa_strings.py
+msgid "Could not save that note."
+msgstr ""
+
+#: cps/spa_strings.py
 msgid "Could not save the default library filter."
 msgstr "Konnte Standard-Bibliotheksfilter nicht speichern."
 
@@ -5955,6 +5959,10 @@ msgstr ""
 
 #: cps/spa_strings.py cps/templates/detail.html
 msgid "When reading progress was first synced"
+msgstr ""
+
+#: cps/spa_strings.py
+msgid "Write a note"
 msgstr ""
 
 #: cps/spa_strings.py

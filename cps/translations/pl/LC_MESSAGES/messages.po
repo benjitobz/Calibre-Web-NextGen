@@ -4287,6 +4287,10 @@ msgid "Could not save reader settings."
 msgstr "Nie udało się zapisać ustawień czytnika."
 
 #: cps/spa_strings.py
+msgid "Could not save that note."
+msgstr ""
+
+#: cps/spa_strings.py
 msgid "Could not save the default library filter."
 msgstr "Nie udało się zapisać domyślnego filtra biblioteki."
 
@@ -5991,6 +5995,10 @@ msgstr "Gdy okładka jest zablokowana, pobieranie metadanych jej nie nadpisze."
 #: cps/spa_strings.py cps/templates/detail.html
 msgid "When reading progress was first synced"
 msgstr "Kiedy postęp czytania został po raz pierwszy zsynchronizowany"
+
+#: cps/spa_strings.py
+msgid "Write a note"
+msgstr ""
 
 #: cps/spa_strings.py
 msgid "Write a note…"

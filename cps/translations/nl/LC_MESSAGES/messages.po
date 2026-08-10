@@ -4232,6 +4232,10 @@ msgid "Could not save reader settings."
 msgstr "Kan lezersinstellingen niet opslaan."
 
 #: cps/spa_strings.py
+msgid "Could not save that note."
+msgstr "Kan die notitie niet opslaan."
+
+#: cps/spa_strings.py
 msgid "Could not save the default library filter."
 msgstr "Kan het standaard bibliotheekfilter niet opslaan."
 
@@ -5943,6 +5947,10 @@ msgstr ""
 #: cps/spa_strings.py cps/templates/detail.html
 msgid "When reading progress was first synced"
 msgstr "Wanneer de leesvoortgang voor het eerst is gesynchroniseerd"
+
+#: cps/spa_strings.py
+msgid "Write a note"
+msgstr "Een notitie schrijven"
 
 #: cps/spa_strings.py
 msgid "Write a note…"
@@ -12659,11 +12667,3 @@ msgstr "Toon gelezen/niet gelezen selectie"
 
 #~ msgid "Click the cover to load metadata to the form"
 #~ msgstr "Klik op de omslag om de metagegevens in het formulier te laden"
-
-#. SPA reader: writing a note that is not tied to a passage (#325)
-msgid "Could not save that note."
-msgstr "Kan die notitie niet opslaan."
-
-#. SPA reader: writing a note that is not tied to a passage (#325)
-msgid "Write a note"
-msgstr "Een notitie schrijven"

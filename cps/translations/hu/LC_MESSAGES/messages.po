@@ -4215,6 +4215,10 @@ msgid "Could not save reader settings."
 msgstr ""
 
 #: cps/spa_strings.py
+msgid "Could not save that note."
+msgstr ""
+
+#: cps/spa_strings.py
 msgid "Could not save the default library filter."
 msgstr ""
 
@@ -5886,6 +5890,10 @@ msgstr "Zárolás esetén a metaadatok lekérése nem írja felül ezt a borít�
 
 #: cps/spa_strings.py cps/templates/detail.html
 msgid "When reading progress was first synced"
+msgstr ""
+
+#: cps/spa_strings.py
+msgid "Write a note"
 msgstr ""
 
 #: cps/spa_strings.py
