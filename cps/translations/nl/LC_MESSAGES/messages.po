@@ -3815,6 +3815,10 @@ msgid "A few random picks from your library"
 msgstr "Enkele willekeurige keuzes uit je bibliotheek"
 
 #: cps/spa_strings.py
+msgid "A note about the book, not tied to a passage"
+msgstr "Een notitie over het boek, niet gekoppeld aan een passage"
+
+#: cps/spa_strings.py
 msgid ""
 "A one-time full duplicate scan is needed. Use “Scan for duplicates” above to "
 "run it."
@@ -12655,7 +12659,3 @@ msgstr "Toon gelezen/niet gelezen selectie"
 
 #~ msgid "Click the cover to load metadata to the form"
 #~ msgstr "Klik op de omslag om de metagegevens in het formulier te laden"
-
-#. SPA reader: a standalone note in the highlights drawer (#325)
-msgid "A note about the book, not tied to a passage"
-msgstr "Een notitie over het boek, niet gekoppeld aan een passage"

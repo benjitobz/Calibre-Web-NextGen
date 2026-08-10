@@ -3872,6 +3872,10 @@ msgid "A few random picks from your library"
 msgstr "Kilka losowych propozycji z Twojej biblioteki"
 
 #: cps/spa_strings.py
+msgid "A note about the book, not tied to a passage"
+msgstr ""
+
+#: cps/spa_strings.py
 msgid ""
 "A one-time full duplicate scan is needed. Use “Scan for duplicates” above to "
 "run it."

@@ -3934,6 +3934,10 @@ msgid "A few random picks from your library"
 msgstr "Une sélection aléatoire de votre bibliothèque"
 
 #: cps/spa_strings.py
+msgid "A note about the book, not tied to a passage"
+msgstr "Une note sur le livre, sans passage associé"
+
+#: cps/spa_strings.py
 msgid ""
 "A one-time full duplicate scan is needed. Use “Scan for duplicates” above to "
 "run it."
@@ -13124,7 +13128,3 @@ msgstr "Afficher la section Lu / Non lu"
 #~ msgid "Click the cover to load metadata to the form"
 #~ msgstr ""
 #~ "Cliquer sur la couverture pour importer les métadonnées dans le formulaire"
-
-#. SPA reader: a standalone note in the highlights drawer (#325)
-msgid "A note about the book, not tied to a passage"
-msgstr "Une note sur le livre, sans passage associé"
