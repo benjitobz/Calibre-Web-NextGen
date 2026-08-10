@@ -3797,6 +3797,10 @@ msgstr ""
 msgid "Add identifier"
 msgstr ""
 
+#: cps/spa_strings.py
+msgid "Add note"
+msgstr ""
+
 #: cps/spa_strings.py cps/templates/detail.html
 msgid "Add to favorites"
 msgstr ""
@@ -4437,6 +4441,10 @@ msgid "Edit"
 msgstr "Редагувати"
 
 #: cps/spa_strings.py
+msgid "Edit note"
+msgstr ""
+
+#: cps/spa_strings.py
 msgid "Edit public shelves"
 msgstr ""
 
@@ -4645,6 +4653,10 @@ msgstr ""
 
 #: cps/spa_strings.py
 msgid "Highlight"
+msgstr ""
+
+#: cps/spa_strings.py
+msgid "Highlight saved"
 msgstr ""
 
 #: cps/spa_strings.py
@@ -5012,6 +5024,18 @@ msgstr ""
 msgid "Not set"
 msgstr ""
 
+#: cps/spa_strings.py cps/templates/read.html
+msgid "Note"
+msgstr ""
+
+#: cps/spa_strings.py
+msgid "Note removed"
+msgstr ""
+
+#: cps/spa_strings.py
+msgid "Note saved"
+msgstr ""
+
 #: cps/spa_strings.py
 msgid "Oldest"
 msgstr ""
@@ -5207,6 +5231,10 @@ msgid "Remove identifier"
 msgstr ""
 
 #: cps/spa_strings.py
+msgid "Remove note"
+msgstr ""
+
+#: cps/spa_strings.py
 msgid "Remove rule"
 msgstr ""
 
@@ -5288,6 +5316,10 @@ msgstr ""
 
 #: cps/spa_strings.py
 msgid "Save name"
+msgstr ""
+
+#: cps/spa_strings.py
+msgid "Save note"
 msgstr ""
 
 #: cps/spa_strings.py
@@ -5745,6 +5777,10 @@ msgstr ""
 
 #: cps/spa_strings.py cps/templates/detail.html
 msgid "When reading progress was first synced"
+msgstr ""
+
+#: cps/spa_strings.py
+msgid "Write a note…"
 msgstr ""
 
 #: cps/spa_strings.py
@@ -10940,10 +10976,6 @@ msgstr ""
 #: cps/templates/read.html
 msgid "Reflow text when sidebars are open."
 msgstr "Переформатувати текст, коли відкриті бічні панелі."
-
-#: cps/templates/read.html
-msgid "Note"
-msgstr ""
 
 #: cps/templates/read.html
 msgid "Add a note (optional)"

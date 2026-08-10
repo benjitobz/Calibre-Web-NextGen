@@ -3884,6 +3884,10 @@ msgstr "Учётная запись: {name}"
 msgid "Add identifier"
 msgstr "Добавить идентификатор"
 
+#: cps/spa_strings.py
+msgid "Add note"
+msgstr ""
+
 #: cps/spa_strings.py cps/templates/detail.html
 msgid "Add to favorites"
 msgstr "Добавить в избранное"
@@ -4537,6 +4541,10 @@ msgid "Edit"
 msgstr "Редактировать"
 
 #: cps/spa_strings.py
+msgid "Edit note"
+msgstr ""
+
+#: cps/spa_strings.py
 msgid "Edit public shelves"
 msgstr "Редактировать общедоступные полки"
 
@@ -4747,6 +4755,10 @@ msgstr "Скрыть пароль"
 #: cps/spa_strings.py
 msgid "Highlight"
 msgstr "Выделение"
+
+#: cps/spa_strings.py
+msgid "Highlight saved"
+msgstr ""
 
 #: cps/spa_strings.py
 msgid "Highlights"
@@ -5123,6 +5135,18 @@ msgstr "Не настроено"
 msgid "Not set"
 msgstr "Не задано"
 
+#: cps/spa_strings.py cps/templates/read.html
+msgid "Note"
+msgstr "Примечание"
+
+#: cps/spa_strings.py
+msgid "Note removed"
+msgstr ""
+
+#: cps/spa_strings.py
+msgid "Note saved"
+msgstr ""
+
 #: cps/spa_strings.py
 msgid "Oldest"
 msgstr "Сначала старые"
@@ -5326,6 +5350,10 @@ msgid "Remove identifier"
 msgstr "Удалить идентификатор"
 
 #: cps/spa_strings.py
+msgid "Remove note"
+msgstr ""
+
+#: cps/spa_strings.py
 msgid "Remove rule"
 msgstr "Удалить правило"
 
@@ -5410,6 +5438,10 @@ msgstr "Сохранить настройки почты"
 #: cps/spa_strings.py
 msgid "Save name"
 msgstr "Сохранить название"
+
+#: cps/spa_strings.py
+msgid "Save note"
+msgstr ""
 
 #: cps/spa_strings.py
 msgid "Save security settings"
@@ -5879,6 +5911,10 @@ msgstr "Когда заблокировано, получение метадан
 #: cps/spa_strings.py cps/templates/detail.html
 msgid "When reading progress was first synced"
 msgstr "Когда прогресс чтения был синхронизирован впервые"
+
+#: cps/spa_strings.py
+msgid "Write a note…"
+msgstr ""
 
 #: cps/spa_strings.py
 msgid ""
@@ -11347,10 +11383,6 @@ msgstr "Одна колонка"
 #: cps/templates/read.html
 msgid "Reflow text when sidebars are open."
 msgstr "Переносить текст при открытых боковых панелях."
-
-#: cps/templates/read.html
-msgid "Note"
-msgstr "Примечание"
 
 #: cps/templates/read.html
 msgid "Add a note (optional)"
