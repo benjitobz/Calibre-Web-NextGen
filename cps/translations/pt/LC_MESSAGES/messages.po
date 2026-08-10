@@ -3781,6 +3781,10 @@ msgid "≥"
 msgstr ""
 
 #: cps/spa_strings.py
+msgid "(no text captured)"
+msgstr ""
+
+#: cps/spa_strings.py
 msgid "(replace cover)"
 msgstr ""
 
@@ -4172,6 +4176,10 @@ msgstr ""
 
 #: cps/spa_strings.py
 msgid "Could not load users."
+msgstr ""
+
+#: cps/spa_strings.py
+msgid "Could not open that highlight."
 msgstr ""
 
 #: cps/spa_strings.py
@@ -4623,6 +4631,10 @@ msgid "Give your smart shelf a name."
 msgstr ""
 
 #: cps/spa_strings.py
+msgid "Go to this highlight"
+msgstr ""
+
+#: cps/spa_strings.py
 msgid "Go to your library"
 msgstr ""
 
@@ -4693,6 +4705,10 @@ msgstr ""
 
 #: cps/spa_strings.py
 msgid "Highlights"
+msgstr ""
+
+#: cps/spa_strings.py
+msgid "Highlights and notes"
 msgstr ""
 
 #: cps/spa_strings.py
@@ -5016,6 +5032,10 @@ msgstr ""
 #: cps/spa_strings.py
 msgid ""
 "No highlights yet. Highlight while reading, or import from a Kobo device."
+msgstr ""
+
+#: cps/spa_strings.py
+msgid "No highlights yet. Select text in the book to make one."
 msgstr ""
 
 #: cps/spa_strings.py
@@ -5678,6 +5698,10 @@ msgstr ""
 
 #: cps/spa_strings.py
 msgid "This format opens in the full-screen reader."
+msgstr ""
+
+#: cps/spa_strings.py
+msgid "This highlight has no saved position"
 msgstr ""
 
 #: cps/spa_strings.py

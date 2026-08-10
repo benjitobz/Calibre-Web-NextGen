@@ -3787,6 +3787,10 @@ msgid "≥"
 msgstr "≥"
 
 #: cps/spa_strings.py
+msgid "(no text captured)"
+msgstr "(geen tekst vastgelegd)"
+
+#: cps/spa_strings.py
 msgid "(replace cover)"
 msgstr "(omslag vervangen)"
 
@@ -4190,6 +4194,10 @@ msgstr "Kan dit tekstbestand niet laden."
 #: cps/spa_strings.py
 msgid "Could not load users."
 msgstr "Kan gebruikers niet laden."
+
+#: cps/spa_strings.py
+msgid "Could not open that highlight."
+msgstr "Kan die markering niet openen."
 
 #: cps/spa_strings.py
 msgid "Could not read this comic archive."
@@ -4648,6 +4656,10 @@ msgid "Give your smart shelf a name."
 msgstr "Geef je slimme boekenplank een naam."
 
 #: cps/spa_strings.py
+msgid "Go to this highlight"
+msgstr "Ga naar deze markering"
+
+#: cps/spa_strings.py
 msgid "Go to your library"
 msgstr "Ga naar je bibliotheek"
 
@@ -4719,6 +4731,10 @@ msgstr "Markering opgeslagen"
 #: cps/spa_strings.py
 msgid "Highlights"
 msgstr "Markeringen"
+
+#: cps/spa_strings.py
+msgid "Highlights and notes"
+msgstr "Markeringen en notities"
 
 #: cps/spa_strings.py
 msgid "Hot"
@@ -5050,6 +5066,10 @@ msgid ""
 msgstr ""
 "Nog geen markeringen. Markeer tijdens het lezen, of importeer van een Kobo-"
 "apparaat."
+
+#: cps/spa_strings.py
+msgid "No highlights yet. Select text in the book to make one."
+msgstr "Nog geen markeringen. Selecteer tekst in het boek om er een te maken."
 
 #: cps/spa_strings.py
 #, python-brace-format
@@ -5729,6 +5749,10 @@ msgstr "Die URL is geen bruikbare afbeelding."
 #: cps/spa_strings.py
 msgid "This format opens in the full-screen reader."
 msgstr "Dit formaat wordt geopend in de lezer op volledig scherm."
+
+#: cps/spa_strings.py
+msgid "This highlight has no saved position"
+msgstr "Deze markering heeft geen opgeslagen positie"
 
 #: cps/spa_strings.py
 msgid "This magic link expired. Generate a new one to try again."
@@ -12605,27 +12629,3 @@ msgstr "Toon gelezen/niet gelezen selectie"
 
 #~ msgid "Click the cover to load metadata to the form"
 #~ msgstr "Klik op de omslag om de metagegevens in het formulier te laden"
-
-#. SPA reader: notes on highlights, the highlights drawer, full screen (#325)
-msgid "(no text captured)"
-msgstr "(geen tekst vastgelegd)"
-
-#. SPA reader: notes on highlights, the highlights drawer, full screen (#325)
-msgid "Could not open that highlight."
-msgstr "Kan die markering niet openen."
-
-#. SPA reader: notes on highlights, the highlights drawer, full screen (#325)
-msgid "Go to this highlight"
-msgstr "Ga naar deze markering"
-
-#. SPA reader: notes on highlights, the highlights drawer, full screen (#325)
-msgid "Highlights and notes"
-msgstr "Markeringen en notities"
-
-#. SPA reader: notes on highlights, the highlights drawer, full screen (#325)
-msgid "No highlights yet. Select text in the book to make one."
-msgstr "Nog geen markeringen. Selecteer tekst in het boek om er een te maken."
-
-#. SPA reader: notes on highlights, the highlights drawer, full screen (#325)
-msgid "This highlight has no saved position"
-msgstr "Deze markering heeft geen opgeslagen positie"

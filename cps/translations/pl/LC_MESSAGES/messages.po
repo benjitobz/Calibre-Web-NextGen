@@ -3844,6 +3844,10 @@ msgid "≥"
 msgstr "≥"
 
 #: cps/spa_strings.py
+msgid "(no text captured)"
+msgstr ""
+
+#: cps/spa_strings.py
 msgid "(replace cover)"
 msgstr "(zamień okładkę)"
 
@@ -4245,6 +4249,10 @@ msgstr "Nie udało się wczytać tego pliku tekstowego."
 #: cps/spa_strings.py
 msgid "Could not load users."
 msgstr "Nie udało się wczytać użytkowników."
+
+#: cps/spa_strings.py
+msgid "Could not open that highlight."
+msgstr ""
 
 #: cps/spa_strings.py
 msgid "Could not read this comic archive."
@@ -4706,6 +4714,10 @@ msgid "Give your smart shelf a name."
 msgstr "Nadaj nazwę swojej inteligentnej półce."
 
 #: cps/spa_strings.py
+msgid "Go to this highlight"
+msgstr ""
+
+#: cps/spa_strings.py
 msgid "Go to your library"
 msgstr "Przejdź do swojej biblioteki"
 
@@ -4777,6 +4789,10 @@ msgstr ""
 #: cps/spa_strings.py
 msgid "Highlights"
 msgstr "Zakreślenia"
+
+#: cps/spa_strings.py
+msgid "Highlights and notes"
+msgstr ""
 
 #: cps/spa_strings.py
 msgid "Hot"
@@ -5106,6 +5122,10 @@ msgid ""
 msgstr ""
 "Brak jeszcze zakreśleń. Zakreślaj podczas czytania lub zaimportuj z "
 "urządzenia Kobo."
+
+#: cps/spa_strings.py
+msgid "No highlights yet. Select text in the book to make one."
+msgstr ""
 
 #: cps/spa_strings.py
 #, python-brace-format
@@ -5783,6 +5803,10 @@ msgstr "Ten adres URL nie jest prawidłowym obrazem."
 #: cps/spa_strings.py
 msgid "This format opens in the full-screen reader."
 msgstr "Ten format otwiera się w czytniku pełnoekranowym."
+
+#: cps/spa_strings.py
+msgid "This highlight has no saved position"
+msgstr ""
 
 #: cps/spa_strings.py
 msgid "This magic link expired. Generate a new one to try again."

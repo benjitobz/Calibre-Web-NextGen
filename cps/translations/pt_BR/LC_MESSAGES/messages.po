@@ -3759,6 +3759,10 @@ msgid "≥"
 msgstr "≥"
 
 #: cps/spa_strings.py
+msgid "(no text captured)"
+msgstr ""
+
+#: cps/spa_strings.py
 msgid "(replace cover)"
 msgstr ""
 
@@ -4151,6 +4155,10 @@ msgstr "Não foi possível carregar esse arquivo de texto"
 #: cps/spa_strings.py
 msgid "Could not load users."
 msgstr "Não foi possível carregar usuários."
+
+#: cps/spa_strings.py
+msgid "Could not open that highlight."
+msgstr ""
 
 #: cps/spa_strings.py
 msgid "Could not read this comic archive."
@@ -4601,6 +4609,10 @@ msgid "Give your smart shelf a name."
 msgstr ""
 
 #: cps/spa_strings.py
+msgid "Go to this highlight"
+msgstr ""
+
+#: cps/spa_strings.py
 msgid "Go to your library"
 msgstr "Vá para a sua biblioteca"
 
@@ -4672,6 +4684,10 @@ msgstr ""
 #: cps/spa_strings.py
 msgid "Highlights"
 msgstr "Destaques"
+
+#: cps/spa_strings.py
+msgid "Highlights and notes"
+msgstr ""
 
 #: cps/spa_strings.py
 msgid "Hot"
@@ -4998,6 +5014,10 @@ msgid ""
 msgstr ""
 "Nenhum destaque ainda. Destaque enquanto lê ou importe de um dispositivo "
 "Kobo."
+
+#: cps/spa_strings.py
+msgid "No highlights yet. Select text in the book to make one."
+msgstr ""
 
 #: cps/spa_strings.py
 #, python-brace-format
@@ -5664,6 +5684,10 @@ msgstr "Esta URL não é uma imagem utilizável."
 
 #: cps/spa_strings.py
 msgid "This format opens in the full-screen reader."
+msgstr ""
+
+#: cps/spa_strings.py
+msgid "This highlight has no saved position"
 msgstr ""
 
 #: cps/spa_strings.py
