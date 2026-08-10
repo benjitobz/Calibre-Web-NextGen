@@ -4090,6 +4090,10 @@ msgstr "DN de base"
 msgid "Basic configuration"
 msgstr "Configuration de base"
 
+#: cps/spa_strings.py cps/templates/read.html
+msgid "Black"
+msgstr "Noir"
+
 #: cps/spa_strings.py
 msgid "Book default"
 msgstr "Valeur par défaut du livre"
@@ -11405,10 +11409,6 @@ msgstr "Actions"
 #: cps/templates/read.html
 msgid "Open annotations page"
 msgstr ""
-
-#: cps/templates/read.html
-msgid "Black"
-msgstr "Noir"
 
 #: cps/templates/read.html
 msgid "Font Sizes"

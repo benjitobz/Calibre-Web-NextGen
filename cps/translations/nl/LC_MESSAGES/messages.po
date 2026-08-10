@@ -3971,6 +3971,10 @@ msgstr "Basis DN"
 msgid "Basic configuration"
 msgstr "Basisconfiguratie"
 
+#: cps/spa_strings.py cps/templates/read.html
+msgid "Black"
+msgstr "Zwart"
+
 #: cps/spa_strings.py
 msgid "Book default"
 msgstr "Boek standaard"
@@ -11104,10 +11108,6 @@ msgstr "Acties"
 #: cps/templates/read.html
 msgid "Open annotations page"
 msgstr ""
-
-#: cps/templates/read.html
-msgid "Black"
-msgstr "Zwart"
 
 #: cps/templates/read.html
 msgid "Font Sizes"

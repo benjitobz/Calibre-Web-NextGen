@@ -3914,6 +3914,10 @@ msgstr ""
 msgid "Basic configuration"
 msgstr ""
 
+#: cps/spa_strings.py cps/templates/read.html
+msgid "Black"
+msgstr "Čierne"
+
 #: cps/spa_strings.py
 msgid "Book default"
 msgstr ""
@@ -10982,10 +10986,6 @@ msgstr "Akcie"
 #: cps/templates/read.html
 msgid "Open annotations page"
 msgstr ""
-
-#: cps/templates/read.html
-msgid "Black"
-msgstr "Čierne"
 
 #: cps/templates/read.html
 msgid "Font Sizes"
