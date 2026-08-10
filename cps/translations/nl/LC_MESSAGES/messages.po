@@ -12655,3 +12655,7 @@ msgstr "Toon gelezen/niet gelezen selectie"
 
 #~ msgid "Click the cover to load metadata to the form"
 #~ msgstr "Klik op de omslag om de metagegevens in het formulier te laden"
+
+#. SPA reader: a standalone note in the highlights drawer (#325)
+msgid "A note about the book, not tied to a passage"
+msgstr "Een notitie over het boek, niet gekoppeld aan een passage"

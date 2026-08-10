@@ -735,3 +735,64 @@ test.describe('reader black page theme (#325)', () => {
       .toHaveAttribute('aria-pressed', 'true');
   });
 });
+
+/*
+ * A standalone note in the highlights drawer (#325).
+ *
+ * A note ABOUT the book has no passage by design. Before this, the drawer drew
+ * it as a BROKEN highlight: jump greyed out with "This highlight has no saved
+ * position", and "(no text captured)" where the quote goes. Both sentences are
+ * true of a highlight whose anchor a regenerated KEPUB destroyed, and false of
+ * a note that never had one — and nothing in the row let a reader tell which
+ * they were looking at. A deliberate state reported as a failure.
+ *
+ * Created through the API because the reader has no UI for making one yet; the
+ * backend landed first on purpose. That is also why this is worth a test: the
+ * rows can already exist before anything in the reader can produce them.
+ */
+test.describe('reader drawer: standalone notes (#325)', () => {
+  test.describe.configure({ mode: 'serial' });
+
+  test('a note with no passage is not drawn as a broken highlight', async ({ page }) => {
+    test.setTimeout(120_000);
+    const bookId = await openReaderOnEpub(page, 3);
+    expect(bookId, 'an EPUB that renders in the reader').not.toBeNull();
+
+    const NOTE = `A thought about the whole book. ${Date.now()}`;
+    const created = await page.evaluate(async ([id, note]) => {
+      const csrf = (await (await fetch('/api/v1/auth/csrf', { credentials: 'include' })).json()).csrf_token;
+      const res = await fetch(`/annotations/${id}`, {
+        method: 'POST', credentials: 'include',
+        headers: { 'Content-Type': 'application/json', 'X-CSRFToken': csrf },
+        body: JSON.stringify({ position_type: 'unanchored', note_text: note }),
+      });
+      return { status: res.status, body: res.ok ? await res.json() : null };
+    }, [String(bookId), NOTE] as const);
+    expect(created.status, 'the backend accepts an unanchored note').toBe(201);
+    expect(created.body.position_type).toBe('unanchored');
+
+    await page.reload();
+    await waitForReaderRender(page);
+    await page.getByRole('button', { name: 'Highlights and notes' }).click();
+    const row = drawer(page).locator('li', { hasText: NOTE });
+    await expect(row).toBeVisible();
+
+    // It must NOT claim a lost position or a missing quote — those describe a
+    // damaged highlight, which this is not.
+    await expect(row).not.toContainText('(no text captured)');
+    const jump = row.getByRole('button');
+    await expect(jump).toBeDisabled();
+    await expect(jump).toHaveAttribute('title', 'A note about the book, not tied to a passage');
+
+    // ...while an ordinary highlight in the same list still reads as one.
+    await page.evaluate(async ([id]) => {
+      const csrf = (await (await fetch('/api/v1/auth/csrf', { credentials: 'include' })).json()).csrf_token;
+      for (const a of ((await (await fetch(`/annotations/${id}/data.json`, { credentials: 'include' })).json()).annotations || [])) {
+        if (a.position_type === 'unanchored') {
+          await fetch(`/annotations/${id}/${a.annotation_id}`, {
+            method: 'DELETE', credentials: 'include', headers: { 'X-CSRFToken': csrf },
+          });
+        }
+      }
+    }, [String(bookId)] as const);  });
+});

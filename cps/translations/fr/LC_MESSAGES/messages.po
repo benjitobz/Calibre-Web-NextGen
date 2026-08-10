@@ -13124,3 +13124,7 @@ msgstr "Afficher la section Lu / Non lu"
 #~ msgid "Click the cover to load metadata to the form"
 #~ msgstr ""
 #~ "Cliquer sur la couverture pour importer les métadonnées dans le formulaire"
+
+#. SPA reader: a standalone note in the highlights drawer (#325)
+msgid "A note about the book, not tied to a passage"
+msgstr "Une note sur le livre, sans passage associé"

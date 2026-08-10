@@ -45,6 +45,11 @@ interface AnnRow {
   /** 'webreader' | 'kobo' | 'koreader' | null — shown so a device highlight is
    *  identifiable, and because only some origins carry a usable CFI. */
   source: string | null;
+  /** 'cfi' | 'pdf_quad' | 'comic_page' | 'koreader_xpointer' | 'unanchored' |
+   *  null. Only 'unanchored' concerns this list: such a row is a note ABOUT the
+   *  book with no passage attached, so it must not be drawn as a highlight that
+   *  has lost its anchor. NULL means legacy EPUB CFI. */
+  position_type: string | null;
 }
 
 // epub.js ships loose types; the rendition/book objects are treated as `any`
@@ -409,6 +414,10 @@ export function Reader({ id }: { id: string }) {
         note_text: created?.note_text ?? (note || null),
         highlight_color: created?.highlight_color ?? color,
         source: created?.source ?? 'webreader',
+        // Prefer what the server stored. A selection-made highlight is 'cfi';
+        // taking the response rather than assuming keeps this row identical to
+        // the one a reload would fetch.
+        position_type: created?.position_type ?? 'cfi',
       }]);
       paintHighlight(cfiRange, color, newId, !!note);
     } catch { /* surfaced as no-op; user can retry */ }
@@ -1057,20 +1066,39 @@ export function Reader({ id }: { id: string }) {
               <ul role="list">
                 {annList.map((row) => {
                   const colour = HILITE_FILL[row.highlight_color || 'yellow'] || HILITE_FILL.yellow;
-                  const jumpable = !!row.cfi_range;
+                  /*
+                   * A standalone note is a note ABOUT the book, with no passage
+                   * attached — a deliberate state, not a broken highlight.
+                   * Without this it renders as a defective one: the jump greyed
+                   * out with "This highlight has no saved position", and
+                   * "(no text captured)" where the quote goes. Both sentences
+                   * are true of a highlight whose anchor was destroyed and
+                   * false of a note that never had one, and the reader cannot
+                   * tell the difference from the row.
+                   */
+                  const unanchored = row.position_type === 'unanchored';
+                  const jumpable = !unanchored && !!row.cfi_range;
                   return (
                     <li key={row.annotation_id} className={styles.annItem}>
                       <button
                         className={styles.annJump}
                         onClick={() => goToAnnotation(row)}
                         disabled={!jumpable}
-                        title={jumpable ? t('Go to this highlight') : t('This highlight has no saved position')}
+                        title={jumpable ? t('Go to this highlight')
+                          : unanchored ? t('A note about the book, not tied to a passage')
+                          : t('This highlight has no saved position')}
                       >
-                        <span className={styles.annBar} style={{ background: colour }} aria-hidden="true" />
+                        {/* No colour bar on an unanchored note: there is no
+                            highlighted passage for a colour to refer to. */}
+                        {!unanchored && (
+                          <span className={styles.annBar} style={{ background: colour }} aria-hidden="true" />
+                        )}
                         <span className={styles.annBody}>
-                          <span className={styles.annQuote}>
-                            {row.highlighted_text || t('(no text captured)')}
-                          </span>
+                          {!unanchored && (
+                            <span className={styles.annQuote}>
+                              {row.highlighted_text || t('(no text captured)')}
+                            </span>
+                          )}
                           {row.note_text && (
                             <span className={styles.annNote}>
                               <StickyNote size={12} aria-hidden="true" focusable={false} />
