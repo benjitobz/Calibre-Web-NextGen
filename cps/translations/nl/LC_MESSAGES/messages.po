@@ -5167,8 +5167,12 @@ msgid "OpenLDAP server"
 msgstr "OpenLDAP server"
 
 #: cps/spa_strings.py
-msgid "Opens a prefilled report on GitHub. Nothing is sent until you post it, and you can edit it first."
-msgstr "Opent een vooraf ingevuld rapport op GitHub. Er wordt niets verzonden totdat u het plaatst, en u kunt het eerst bewerken."
+msgid ""
+"Opens a prefilled report on GitHub. Nothing is sent until you post it, and "
+"you can edit it first."
+msgstr ""
+"Opent een vooraf ingevuld rapport op GitHub. Er wordt niets verzonden totdat "
+"u het plaatst, en u kunt het eerst bewerken."
 
 #: cps/spa_strings.py
 msgid "Opens in classic view"
@@ -10618,6 +10622,12 @@ msgid ""
 "Calibre-Web NextGen Instance is unconfigured, please contact your "
 "administrator"
 msgstr "E-mailserver is niet geconfigureerd, neem contact op met de beheerder!"
+
+#: cps/templates/http_error.html
+msgid ""
+"Report this — the details are filled in for you, and nothing is sent until "
+"you post it:"
+msgstr ""
 
 #: cps/templates/http_error.html
 msgid "Create Issue"

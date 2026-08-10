@@ -5291,8 +5291,12 @@ msgid "OpenLDAP server"
 msgstr "Serveur OpenLDAP"
 
 #: cps/spa_strings.py
-msgid "Opens a prefilled report on GitHub. Nothing is sent until you post it, and you can edit it first."
-msgstr "Ouvre un rapport pré-rempli sur GitHub. Rien n'est envoyé tant que vous ne l'avez pas publié, et vous pouvez le modifier avant."
+msgid ""
+"Opens a prefilled report on GitHub. Nothing is sent until you post it, and "
+"you can edit it first."
+msgstr ""
+"Ouvre un rapport pré-rempli sur GitHub. Rien n'est envoyé tant que vous ne "
+"l'avez pas publié, et vous pouvez le modifier avant."
 
 #: cps/spa_strings.py
 msgid "Opens in classic view"
@@ -10919,6 +10923,12 @@ msgid ""
 msgstr ""
 "L'instance Calibre-Web Automated n'est pas configurée, veuillez contacter "
 "votre administrateur"
+
+#: cps/templates/http_error.html
+msgid ""
+"Report this — the details are filled in for you, and nothing is sent until "
+"you post it:"
+msgstr ""
 
 #: cps/templates/http_error.html
 msgid "Create Issue"

@@ -5222,6 +5222,12 @@ msgid "OpenLDAP server"
 msgstr "Serwer OpenLDAP"
 
 #: cps/spa_strings.py
+msgid ""
+"Opens a prefilled report on GitHub. Nothing is sent until you post it, and "
+"you can edit it first."
+msgstr ""
+
+#: cps/spa_strings.py
 msgid "Opens in classic view"
 msgstr "Otwiera się w widoku klasycznym"
 
@@ -5418,6 +5424,10 @@ msgstr "Zgłoś problem na Discordzie"
 #: cps/spa_strings.py
 msgid "Report Issue on GitHub"
 msgstr "Zgłoś problem na GitHubie"
+
+#: cps/spa_strings.py
+msgid "Report this problem"
+msgstr ""
 
 #: cps/spa_strings.py
 msgid "Require group membership"
@@ -10930,6 +10940,12 @@ msgid ""
 msgstr ""
 "Instancja Calibre-Web NextGen jest nieskonfigurowana, skontaktuj się z "
 "administratorem"
+
+#: cps/templates/http_error.html
+msgid ""
+"Report this — the details are filled in for you, and nothing is sent until "
+"you post it:"
+msgstr ""
 
 # | msgid "Create a Shelf"
 #: cps/templates/http_error.html

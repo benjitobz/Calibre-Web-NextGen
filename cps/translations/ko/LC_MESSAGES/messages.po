@@ -5037,6 +5037,12 @@ msgid "OpenLDAP server"
 msgstr ""
 
 #: cps/spa_strings.py
+msgid ""
+"Opens a prefilled report on GitHub. Nothing is sent until you post it, and "
+"you can edit it first."
+msgstr ""
+
+#: cps/spa_strings.py
 msgid "Opens in classic view"
 msgstr ""
 
@@ -5226,6 +5232,10 @@ msgstr ""
 
 #: cps/spa_strings.py
 msgid "Report Issue on GitHub"
+msgstr ""
+
+#: cps/spa_strings.py
+msgid "Report this problem"
 msgstr ""
 
 #: cps/spa_strings.py
@@ -10427,6 +10437,12 @@ msgid ""
 "Calibre-Web NextGen Instance is unconfigured, please contact your "
 "administrator"
 msgstr "Calibre-Web이 아직 구성되지 않았습니다. 관리자에게 문의하세요."
+
+#: cps/templates/http_error.html
+msgid ""
+"Report this — the details are filled in for you, and nothing is sent until "
+"you post it:"
+msgstr ""
 
 #: cps/templates/http_error.html
 msgid "Create Issue"
