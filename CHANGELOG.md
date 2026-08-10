@@ -76,6 +76,16 @@ is for things you can see or feel when running the app.
   highlight in the book with its note. Picking one takes you to that passage.
   Highlights that came from a Kobo or KOReader are listed and labelled too,
   though a few of those have no saved position to jump to (#325).
+- **Reporting a problem now fills the report in for you.** Reporting a bug meant
+  landing on a blank GitHub form that asked you to type out your version, your
+  browser and which page you were on — and if the app had just crashed, the
+  error message was gone from the screen by the time you got there. The "Report
+  Issue on GitHub" item in the Help menu, and the link on an error page, now
+  open a report that already has all of that filled in, including the error
+  itself when there is one. Nothing is sent by your library: it writes the
+  report in your browser and hands you a link, so you see the whole thing and
+  can edit or delete any of it before deciding whether to post it. Your address,
+  your library's name, your file paths and your book titles are never included.
 
 - **You can now write a note on a highlight while reading in the browser.**
   Highlighting text in the new UI's reader only ever saved the colour — there
