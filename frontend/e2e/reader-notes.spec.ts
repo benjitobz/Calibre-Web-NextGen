@@ -796,3 +796,75 @@ test.describe('reader drawer: standalone notes (#325)', () => {
       }
     }, [String(bookId)] as const);  });
 });
+
+/*
+ * Writing a note that is not attached to a passage (#325).
+ *
+ * The operator's ask was "see and do highlights and notes". A note about the
+ * book — not about a sentence in it — had no way in at all: both readers require
+ * you to select text first, which is the wrong shape for "the argument in
+ * chapter 3 never lands".
+ *
+ * Drives the real flow rather than the API: open the drawer, click Write a note,
+ * type, save. The API path is already covered by the drawer-rendering test; what
+ * this adds is that a person can get there.
+ */
+test.describe('reader: writing a standalone note (#325)', () => {
+  test.describe.configure({ mode: 'serial' });
+
+  test('a note can be written without selecting anything, and it lasts',
+    async ({ page }) => {
+      test.setTimeout(120_000);
+      const bookId = await openReaderOnEpub(page, 1);
+      expect(bookId, 'an EPUB that renders in the reader').not.toBeNull();
+
+      const NOTE = `The frame narrative never pays off. ${Date.now()}`;
+
+      await page.getByRole('button', { name: 'Highlights and notes' }).click();
+      const start = page.getByRole('button', { name: 'Write a note' });
+      await expect(start).toBeVisible();
+      // Reachable with a thumb: this is a primary action on a phone.
+      const box = await start.boundingBox();
+      expect(box!.height, 'Write a note touch target').toBeGreaterThanOrEqual(44);
+
+      await start.click();
+      // The composer opens ready to type — no selection was made, so there is
+      // nothing else the reader could want focused.
+      await expect(page.locator('textarea')).toBeFocused();
+      // ...and it must not offer highlight-only affordances for a note that has
+      // no passage to colour.
+      await expect(page.getByRole('dialog').getByRole('button', { name: 'Yellow' }))
+        .toHaveCount(0);
+
+      await setNote(page, NOTE);
+      await page.getByRole('button', { name: 'Save note' }).click();
+
+      // Stored as a genuinely unanchored row, not as a highlight with no text.
+      await expect.poll(async () => await page.evaluate(async (id) => {
+        const j = await (await fetch(`/annotations/${id}/data.json`, { credentials: 'include' })).json();
+        return (j.annotations || []).filter((a: { position_type: string; note_text: string }) =>
+          a.position_type === 'unanchored').map((a: { note_text: string }) => a.note_text);
+      }, bookId!)).toContain(NOTE);
+
+      // It survives a reload and reads as a note in the drawer.
+      await page.reload();
+      await waitForReaderRender(page);
+      await page.getByRole('button', { name: 'Highlights and notes' }).click();
+      const row = drawer(page).locator('li', { hasText: NOTE });
+      await expect(row).toBeVisible();
+      await expect(row).not.toContainText('(no text captured)');
+
+      // Clean up after ourselves so the shared fixture is left as found.
+      await page.evaluate(async (id) => {
+        const csrf = (await (await fetch('/api/v1/auth/csrf', { credentials: 'include' })).json()).csrf_token;
+        const j = await (await fetch(`/annotations/${id}/data.json`, { credentials: 'include' })).json();
+        for (const a of (j.annotations || [])) {
+          if (a.position_type === 'unanchored') {
+            await fetch(`/annotations/${id}/${a.annotation_id}`, {
+              method: 'DELETE', credentials: 'include', headers: { 'X-CSRFToken': csrf },
+            });
+          }
+        }
+      }, bookId!);
+    });
+});

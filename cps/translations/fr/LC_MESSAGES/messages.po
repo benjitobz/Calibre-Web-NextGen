@@ -13128,3 +13128,11 @@ msgstr "Afficher la section Lu / Non lu"
 #~ msgid "Click the cover to load metadata to the form"
 #~ msgstr ""
 #~ "Cliquer sur la couverture pour importer les métadonnées dans le formulaire"
+
+#. SPA reader: writing a note that is not tied to a passage (#325)
+msgid "Could not save that note."
+msgstr "Impossible d'enregistrer cette note."
+
+#. SPA reader: writing a note that is not tied to a passage (#325)
+msgid "Write a note"
+msgstr "Écrire une note"

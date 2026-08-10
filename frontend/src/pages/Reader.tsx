@@ -262,7 +262,10 @@ export function Reader({ id }: { id: string }) {
   // Open note composer (#325). 'create' writes the highlight and its note in a
   // single POST; 'edit' PATCHes note_text on a highlight that already exists.
   const [composer, setComposer] = useState<{
-    mode: 'create' | 'edit';
+    /* 'standalone' is a note ABOUT the book with no passage: no CFI, no colour,
+     * nothing to paint. It shares the composer because the writing experience is
+     * the same; only what it commits to differs. */
+    mode: 'create' | 'edit' | 'standalone';
     cfiRange: string;
     text: string;
     annotationId?: string;
@@ -442,6 +445,16 @@ export function Reader({ id }: { id: string }) {
     setComposer({ mode: 'create', cfiRange: sel.cfiRange, text: sel.text, color: 'yellow', note: '' });
   }, [pendingSel]);
 
+  /* Start a note that is not attached to anything. Opened from the drawer,
+   * because that is where a reader's notes already live — asking them to select
+   * text first would defeat the point. */
+  const startStandaloneNote = useCallback(() => {
+    setPendingSel(null);
+    setActiveHl(null);
+    setAnnOpen(false);
+    setComposer({ mode: 'standalone', cfiRange: '', text: '', color: 'yellow', note: '' });
+  }, []);
+
   // "Note" on an existing highlight — prefill from what we already hold.
   const startNoteForHighlight = useCallback(() => {
     const hl = activeHl;
@@ -464,6 +477,28 @@ export function Reader({ id }: { id: string }) {
   ) => {
     const note = rawNote.trim();
     setComposer(null);
+    if (c.mode === 'standalone') {
+      // An empty standalone note is nothing at all — the backend rejects it, and
+      // silently discarding is kinder than an error for a field the reader
+      // simply left blank.
+      if (!note) return;
+      try {
+        const created = await apiPost<Partial<AnnRow>>(`/annotations/${id}`, {
+          position_type: 'unanchored', note_text: note,
+        });
+        setAnnList((rows) => [...rows, {
+          annotation_id: created?.annotation_id ?? '',
+          cfi_range: null,
+          highlighted_text: null,
+          note_text: created?.note_text ?? note,
+          highlight_color: null,
+          source: created?.source ?? 'webreader',
+          position_type: created?.position_type ?? 'unanchored',
+        }]);
+        announce(t('Note saved'));
+      } catch { announce(t('Could not save that note.'), { assertive: true }); }
+      return;
+    }
     if (c.mode === 'create') {
       await persistHighlight(c.cfiRange, c.text, c.color, note);
       announce(note ? t('Note saved') : t('Highlight saved'));
@@ -1058,6 +1093,12 @@ export function Reader({ id }: { id: string }) {
                 <X size={18} aria-hidden="true" focusable={false} />
               </button>
             </div>
+            {/* A note about the book needs no selection, so the way in belongs
+                here rather than behind a text selection the reader has not made. */}
+            <button className={styles.annNewNote} onClick={startStandaloneNote}>
+              <StickyNote size={14} aria-hidden="true" focusable={false} />
+              {t('Write a note')}
+            </button>
             {annList.length === 0 ? (
               <p className={styles.tocEmpty}>
                 {t('No highlights yet. Select text in the book to make one.')}
@@ -1277,10 +1318,12 @@ export function Reader({ id }: { id: string }) {
       {/* Note composer — create (highlight + note in one write) or edit (#325). */}
       {composer && (
         <div ref={notePopRef} className={styles.notePop} role="dialog" aria-modal="true"
-          aria-label={composer.mode === 'create' ? t('Add note') : t('Edit note')} tabIndex={-1}>
+          aria-label={composer.mode === 'standalone' ? t('Write a note')
+            : composer.mode === 'create' ? t('Add note') : t('Edit note')} tabIndex={-1}>
           <div className={styles.noteHead}>
             <span className={styles.hiliteLabel}>
-              {composer.mode === 'create' ? t('Add note') : t('Edit note')}
+              {composer.mode === 'standalone' ? t('Write a note')
+                : composer.mode === 'create' ? t('Add note') : t('Edit note')}
             </span>
             <button className={styles.hiliteCancel} onClick={() => setComposer(null)} aria-label={t('Cancel')}>
               <X size={16} aria-hidden="true" focusable={false} />
