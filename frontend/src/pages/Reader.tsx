@@ -3,7 +3,7 @@ import { Link } from 'wouter';
 import ePub from 'epubjs';
 import {
   ChevronLeft, ChevronRight, X, List, Sun, Moon, Coffee, Loader2, Trash2,
-  SlidersHorizontal, StickyNote, Highlighter, Maximize, Minimize,
+  SlidersHorizontal, StickyNote, Highlighter, MoonStar, Maximize, Minimize,
 } from 'lucide-react';
 import {
   type ReaderSettings, isWorthResending, useBook, useBookmark, useReaderSettings,
@@ -28,7 +28,7 @@ const HILITE_FILL: Record<string, string> = {
   yellow: '#e6c34a', red: '#d9534f', green: '#5cb85c', blue: '#5b9bd5',
 };
 
-type ReaderTheme = 'light' | 'sepia' | 'dark';
+type ReaderTheme = 'light' | 'sepia' | 'dark' | 'black';
 
 interface TocItem {
   label: string;
@@ -58,6 +58,23 @@ const THEMES: Record<ReaderTheme, { body: Record<string, string> }> = {
   light: { body: { background: '#fbf7ee !important', color: '#2a2a2a !important' } },
   sepia: { body: { background: '#f2e6cf !important', color: '#43381f !important' } },
   dark: { body: { background: '#15110c !important', color: '#cdc6bb !important' } },
+  /*
+   * A FOURTH theme, and not a duplicate of dark: the ground is pure black so an
+   * OLED screen switches those pixels off, which is the whole point of a black
+   * theme at night. `dark` is a warm near-black (#15110c) and still lights every
+   * pixel.
+   *
+   * The classic reader has had this for years and stores it as `blackTheme`;
+   * this reader mapped that value onto `dark`, so anyone who chose Black got the
+   * brown-black instead and could not get back — the same shape as the column
+   * preference that was being saved and ignored.
+   *
+   * Ink is the dark theme's #cdc6bb rather than pure white: 12.39:1 on black,
+   * comfortably past the 4.5:1 AA floor, and it keeps the two dark themes
+   * consistent so only the ground changes. Pure white measures 21:1 but haloes
+   * badly on OLED in the dark, which is exactly when this theme gets used.
+   */
+  black: { body: { background: '#000000 !important', color: '#cdc6bb !important' } },
 };
 
 // #1303: Japanese and Traditional Chinese books progress right-to-left, which
@@ -119,10 +136,10 @@ const LS_THEME = 'cwng.reader.theme';
 const LS_FONT = 'cwng.reader.font';
 
 const THEME_TO_READER: Record<ReaderSettings['theme'], ReaderTheme> = {
-  lightTheme: 'light', sepiaTheme: 'sepia', darkTheme: 'dark', blackTheme: 'dark',
+  lightTheme: 'light', sepiaTheme: 'sepia', darkTheme: 'dark', blackTheme: 'black',
 };
 const READER_TO_THEME: Record<ReaderTheme, ReaderSettings['theme']> = {
-  light: 'lightTheme', sepia: 'sepiaTheme', dark: 'darkTheme',
+  light: 'lightTheme', sepia: 'sepiaTheme', dark: 'darkTheme', black: 'blackTheme',
 };
 const FONT_FAMILY: Record<ReaderSettings['font'], string> = {
   default: '', Yahei: 'Microsoft YaHei, sans-serif', SimSun: 'SimSun, serif',
@@ -131,7 +148,7 @@ const FONT_FAMILY: Record<ReaderSettings['font'], string> = {
 
 function loadTheme(): ReaderTheme {
   const v = localStorage.getItem(LS_THEME);
-  if (v === 'light' || v === 'sepia' || v === 'dark') return v;
+  if (v === 'light' || v === 'sepia' || v === 'dark' || v === 'black') return v;
   // First reader visit follows the already-resolved per-user app palette.
   // Thereafter the reader's explicit page-theme choice remains independent.
   const appTheme = document.documentElement.getAttribute('data-theme');
@@ -1091,7 +1108,8 @@ export function Reader({ id }: { id: string }) {
               <legend>{t('Page theme')}</legend>
               <div className={styles.themeChoices}>
                 {([
-                  ['light', Sun, t('Light')], ['sepia', Coffee, t('Sepia')], ['dark', Moon, t('Dark')],
+                  ['light', Sun, t('Light')], ['sepia', Coffee, t('Sepia')],
+                  ['dark', Moon, t('Dark')], ['black', MoonStar, t('Black')],
                 ] as const).map(([value, Icon, label]) => (
                   <button key={value} className={theme === value ? styles.choiceActive : styles.choice}
                     aria-pressed={theme === value} onClick={() => {

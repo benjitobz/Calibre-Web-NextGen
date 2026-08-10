@@ -10917,9 +10917,8 @@ msgid "Open annotations page"
 msgstr ""
 
 #: cps/templates/read.html
-#, fuzzy
 msgid "Black"
-msgstr "មកក្រោយ"
+msgstr ""
 
 #: cps/templates/read.html
 msgid "Font Sizes"

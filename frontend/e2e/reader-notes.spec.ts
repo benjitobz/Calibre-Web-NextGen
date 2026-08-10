@@ -302,6 +302,32 @@ async function waitForReaderRender(page: Page): Promise<void> {
   await page.locator('iframe').waitFor({ state: 'visible', timeout: 40_000 });
 }
 
+/*
+ * Wait until a reader setting is actually PERSISTED, before testing that it
+ * persists.
+ *
+ * `persistSetting` debounces the save, so clicking a control and reloading races
+ * the write: the UI updates instantly and the server may not have been told yet.
+ * Locally the race went one way and in CI the other — the black-theme test
+ * applied the theme correctly, reloaded before the save landed, and came back to
+ * the previous theme, failing deterministically on both projects and every retry
+ * while the feature worked.
+ *
+ * Polling the server closes it honestly: a test that a choice survives a reload
+ * has to establish that the choice was saved, not assume it.
+ */
+async function waitForSavedSetting<K extends string>(
+  page: Page, key: K, value: string,
+): Promise<void> {
+  await expect
+    .poll(async () => {
+      const res = await page.request.get('/api/v1/reader/settings');
+      if (!res.ok()) return null;
+      return ((await res.json()).reader ?? {})[key] ?? null;
+    }, { timeout: 20_000, message: `reader setting ${key} should reach the server` })
+    .toBe(value);
+}
+
 test.describe('reader notes (#325)', () => {
   test.describe.configure({ mode: 'serial' });
 
@@ -645,6 +671,7 @@ test.describe('reader column count (#325)', () => {
         .not.toBe(twoUp);
 
       // The preference is persisted server-side, so it must come back.
+      await waitForSavedSetting(page, 'spread', 'nonespread');
       await page.reload();
       await waitForReaderRender(page);
       await page.getByRole('button', { name: 'Reading appearance' }).click();
@@ -653,4 +680,58 @@ test.describe('reader column count (#325)', () => {
       // ...and be APPLIED, not merely remembered by the button.
       await expect.poll(layout, { timeout: 15_000 }).toBe(oneUp);
     });
+});
+
+/*
+ * The Black page theme (#325).
+ *
+ * Classic has had four page themes for years and stores the choice as
+ * `blackTheme`; this reader mapped that value onto `dark`, so a reader who chose
+ * Black got the warm near-black instead and had no way back to it. Same shape as
+ * the column preference: a saved answer being quietly downgraded.
+ *
+ * Asserts that Black and Dark produce DIFFERENT grounds. Checking only that
+ * Black "works" would pass if it were an alias for Dark, which is precisely the
+ * bug — so the test has to compare the two.
+ */
+test.describe('reader black page theme (#325)', () => {
+  test.describe.configure({ mode: 'serial' });
+
+  test('Black is a distinct pure-black ground, and it persists', async ({ page }) => {
+    test.setTimeout(120_000);
+    const bookId = await openReaderOnEpub(page, 1);
+    expect(bookId, 'an EPUB that renders in the reader').not.toBeNull();
+
+    const ground = () => page.evaluate(() => {
+      const doc = document.querySelector('iframe')?.contentDocument;
+      const body = doc?.querySelector('body');
+      if (!body || !doc?.defaultView) return null;
+      return doc.defaultView.getComputedStyle(body).backgroundColor;
+    });
+
+    await page.getByRole('button', { name: 'Reading appearance' }).click();
+    await expect(page.getByRole('button', { name: 'Black', exact: true })).toBeVisible();
+
+    await page.getByRole('button', { name: 'Dark', exact: true }).click();
+    await expect.poll(ground, { timeout: 15_000 }).not.toBe(null);
+    const darkGround = await ground();
+
+    await page.getByRole('button', { name: 'Black', exact: true }).click();
+    await expect.poll(ground, { timeout: 15_000 }).toBe('rgb(0, 0, 0)');
+    const blackGround = await ground();
+
+    // The point of the feature: Black is not an alias for Dark.
+    expect(blackGround, 'Black must differ from Dark').not.toBe(darkGround);
+
+    // Stored as blackTheme server-side, so it must survive a reload -- both the
+    // pressed state AND the actual ground, since the bug was that the value came
+    // back and was then mapped onto something else.
+    await waitForSavedSetting(page, 'theme', 'blackTheme');
+    await page.reload();
+    await waitForReaderRender(page);
+    await expect.poll(ground, { timeout: 15_000 }).toBe('rgb(0, 0, 0)');
+    await page.getByRole('button', { name: 'Reading appearance' }).click();
+    await expect(page.getByRole('button', { name: 'Black', exact: true }))
+      .toHaveAttribute('aria-pressed', 'true');
+  });
 });
