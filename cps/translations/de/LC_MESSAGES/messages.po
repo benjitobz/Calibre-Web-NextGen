@@ -5182,6 +5182,10 @@ msgid ""
 "link below to authorise this device."
 msgstr ""
 
+#: cps/spa_strings.py cps/templates/read.html
+msgid "One column"
+msgstr "Eine Spalte"
+
 #: cps/spa_strings.py
 msgid "Open Account"
 msgstr ""
@@ -5836,6 +5840,10 @@ msgstr "Am besten bewertet"
 #: cps/spa_strings.py
 msgid "Trust authentication header"
 msgstr ""
+
+#: cps/spa_strings.py cps/templates/read.html
+msgid "Two columns"
+msgstr "Zwei Spalten"
 
 #: cps/spa_strings.py
 msgid "UI / display configuration"
@@ -11288,14 +11296,6 @@ msgstr "Arial"
 #: cps/templates/read.html
 msgid "Spread"
 msgstr "Aufteilung"
-
-#: cps/templates/read.html
-msgid "Two columns"
-msgstr "Zwei Spalten"
-
-#: cps/templates/read.html
-msgid "One column"
-msgstr "Eine Spalte"
 
 #: cps/templates/read.html
 msgid "Reflow text when sidebars are open."

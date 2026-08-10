@@ -5191,6 +5191,10 @@ msgstr ""
 "На другом устройстве, где вы уже выполнили вход, отсканируйте этот код или "
 "откройте ссылку ниже, чтобы авторизовать это устройство."
 
+#: cps/spa_strings.py cps/templates/read.html
+msgid "One column"
+msgstr "Одна колонка"
+
 #: cps/spa_strings.py
 msgid "Open Account"
 msgstr "Открыть аккаунт"
@@ -5862,6 +5866,10 @@ msgstr "Лучшие по рейтингу"
 #: cps/spa_strings.py
 msgid "Trust authentication header"
 msgstr "Доверять заголовку аутентификации"
+
+#: cps/spa_strings.py cps/templates/read.html
+msgid "Two columns"
+msgstr "Две колонки"
 
 #: cps/spa_strings.py
 msgid "UI / display configuration"
@@ -11434,14 +11442,6 @@ msgstr "Arial"
 #: cps/templates/read.html
 msgid "Spread"
 msgstr "Разворот"
-
-#: cps/templates/read.html
-msgid "Two columns"
-msgstr "Две колонки"
-
-#: cps/templates/read.html
-msgid "One column"
-msgstr "Одна колонка"
 
 #: cps/templates/read.html
 msgid "Reflow text when sidebars are open."

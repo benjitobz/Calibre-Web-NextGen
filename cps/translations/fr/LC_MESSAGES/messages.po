@@ -5270,6 +5270,10 @@ msgstr ""
 "Sur un autre appareil où vous êtes déjà connecté, scannez ce code ou ouvrez "
 "le lien ci-dessous pour autoriser cet appareil."
 
+#: cps/spa_strings.py cps/templates/read.html
+msgid "One column"
+msgstr "Une colonne"
+
 #: cps/spa_strings.py
 msgid "Open Account"
 msgstr "Ouvrir le compte"
@@ -5944,6 +5948,10 @@ msgstr "Les mieux notés"
 #: cps/spa_strings.py
 msgid "Trust authentication header"
 msgstr "Faire confiance à l’en-tête d’authentification"
+
+#: cps/spa_strings.py cps/templates/read.html
+msgid "Two columns"
+msgstr "Deux colonnes"
 
 #: cps/spa_strings.py
 msgid "UI / display configuration"
@@ -11438,14 +11446,6 @@ msgstr "Arial"
 #: cps/templates/read.html
 msgid "Spread"
 msgstr "Diffusion"
-
-#: cps/templates/read.html
-msgid "Two columns"
-msgstr "Deux colonnes"
-
-#: cps/templates/read.html
-msgid "One column"
-msgstr "Une colonne"
 
 #: cps/templates/read.html
 msgid "Reflow text when sidebars are open."

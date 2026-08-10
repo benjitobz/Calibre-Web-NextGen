@@ -4963,6 +4963,10 @@ msgid ""
 "the link below to authorise this device."
 msgstr ""
 
+#: cps/spa_strings.py cps/templates/read.html
+msgid "One column"
+msgstr ""
+
 #: cps/spa_strings.py
 msgid "Open Account"
 msgstr ""
@@ -5616,6 +5620,10 @@ msgstr ""
 
 #: cps/spa_strings.py
 msgid "Trust authentication header"
+msgstr ""
+
+#: cps/spa_strings.py cps/templates/read.html
+msgid "Two columns"
 msgstr ""
 
 #: cps/spa_strings.py
@@ -10693,14 +10701,6 @@ msgstr ""
 
 #: cps/templates/read.html
 msgid "Spread"
-msgstr ""
-
-#: cps/templates/read.html
-msgid "Two columns"
-msgstr ""
-
-#: cps/templates/read.html
-msgid "One column"
 msgstr ""
 
 #: cps/templates/read.html

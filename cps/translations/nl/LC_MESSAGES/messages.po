@@ -5146,6 +5146,10 @@ msgstr ""
 "Scan op een ander apparaat waarop je al bent aangemeld deze code of open de "
 "onderstaande link om dit apparaat te autoriseren."
 
+#: cps/spa_strings.py cps/templates/read.html
+msgid "One column"
+msgstr "Éé kolom"
+
 #: cps/spa_strings.py
 msgid "Open Account"
 msgstr "Account openen"
@@ -5819,6 +5823,10 @@ msgstr "Best beoordeeld"
 #: cps/spa_strings.py
 msgid "Trust authentication header"
 msgstr "Authenticatie-header vertrouwen"
+
+#: cps/spa_strings.py cps/templates/read.html
+msgid "Two columns"
+msgstr "Twee kolommen"
 
 #: cps/spa_strings.py
 msgid "UI / display configuration"
@@ -11137,14 +11145,6 @@ msgstr "Arial"
 #: cps/templates/read.html
 msgid "Spread"
 msgstr "Verspreiden"
-
-#: cps/templates/read.html
-msgid "Two columns"
-msgstr "Twee kolommen"
-
-#: cps/templates/read.html
-msgid "One column"
-msgstr "Éé kolom"
 
 #: cps/templates/read.html
 msgid "Reflow text when sidebars are open."
