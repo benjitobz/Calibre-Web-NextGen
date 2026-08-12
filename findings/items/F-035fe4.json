@@ -1,0 +1,11 @@
+{
+  "area": "api",
+  "body": "The SPA e2e suite began running on main pushes with #1557, and it intermittently\nfails with a TRANSPORT error rather than an assertion:\n\n    Error: apiRequestContext.post: socket hang up\n      -> POST http://localhost:8083/api/v1/books/6/metadata\n      at setBookTags (frontend/e2e/tag-merge-delete.spec.ts:74)\n\nThe server closed the connection mid-request. That is a finding about the app\nunder concurrency, not about the test.\n\nEvidence it is load, not a broken spec:\n- The same run tallies \"1 failed, 364 passed\" — most of the visible failures are\n  RETRIES of the same two specs, and they pass on retry.\n- A later main push (#1561, changelog-only) ran the identical suite green:\n  E2E Tests (SPA) success, steps=21.\n- Observed across tag-merge-delete.spec.ts:109/:140 (desktop),\n  reader-rtl.spec.ts:90 and sp2-display-options.spec.ts:61 (mobile) — i.e. it is\n  not localised to one endpoint.\n\nWhy it matters beyond the suite: e2e on main is wired to auto-revert, whose\npremise is \"Test Suite failed on a main push => the head commit broke it\". A lane\nthat fails on load makes that premise false at random, so innocent commits get\nreverted (already seen: #1563 reverted a docs-only commit). #1564 contains the\nrevert side; this finding is the underlying cause.\n\nWorth checking whether the failure is the app (gevent worker exhaustion / a\nblocking call under parallel requests — note this deployment has NO\nmonkey.patch_all(), so one blocking call stalls the hub) or the test harness's\nserver. The distinction decides whether real users hit it under concurrent load.",
+  "created": "2026-08-12",
+  "id": "F-035fe4",
+  "refs": [],
+  "severity": "correctness",
+  "source": "audit",
+  "status": "open",
+  "title": "The server drops connections under parallel e2e load, failing tests transport-level"
+}
