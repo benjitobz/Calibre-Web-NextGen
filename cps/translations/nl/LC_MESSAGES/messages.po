@@ -12939,3 +12939,45 @@ msgstr "Toon gelezen/niet gelezen selectie"
 
 #~ msgid "Click the cover to load metadata to the form"
 #~ msgstr "Klik op de omslag om de metagegevens in het formulier te laden"
+
+#: cps/spa_strings.py
+msgid "Could not open that search result."
+msgstr "Kan dat zoekresultaat niet openen."
+
+#: cps/spa_strings.py
+msgid "Could not search this book."
+msgstr "Kan dit boek niet doorzoeken."
+
+#: cps/spa_strings.py
+msgid "Enter at least 2 characters"
+msgstr "Voer ten minste 2 tekens in"
+
+#: cps/spa_strings.py
+msgid "No matches found in this book."
+msgstr "Geen resultaten gevonden in dit boek."
+
+#: cps/spa_strings.py
+msgid "Search inside book"
+msgstr "Zoeken in het boek"
+
+#: cps/spa_strings.py
+msgid "Search term"
+msgstr "Zoekterm"
+
+#: cps/spa_strings.py
+msgid "Search this book"
+msgstr "Dit boek doorzoeken"
+
+#: cps/spa_strings.py
+msgid "Searching this book…"
+msgstr "Dit boek wordt doorzocht…"
+
+#: cps/spa_strings.py
+#, python-brace-format
+msgid "Showing the first {count} matches."
+msgstr "De eerste {count} resultaten worden weergegeven."
+
+#: cps/spa_strings.py
+#, python-brace-format
+msgid "{count} matches"
+msgstr "{count} resultaten"

@@ -13406,3 +13406,45 @@ msgstr "Afficher la section Lu / Non lu"
 #~ msgid "Click the cover to load metadata to the form"
 #~ msgstr ""
 #~ "Cliquer sur la couverture pour importer les métadonnées dans le formulaire"
+
+#: cps/spa_strings.py
+msgid "Could not open that search result."
+msgstr "Impossible d’ouvrir ce résultat de recherche."
+
+#: cps/spa_strings.py
+msgid "Could not search this book."
+msgstr "Impossible d’effectuer une recherche dans ce livre."
+
+#: cps/spa_strings.py
+msgid "Enter at least 2 characters"
+msgstr "Saisissez au moins 2 caractères"
+
+#: cps/spa_strings.py
+msgid "No matches found in this book."
+msgstr "Aucun résultat trouvé dans ce livre."
+
+#: cps/spa_strings.py
+msgid "Search inside book"
+msgstr "Rechercher dans le livre"
+
+#: cps/spa_strings.py
+msgid "Search term"
+msgstr "Terme de recherche"
+
+#: cps/spa_strings.py
+msgid "Search this book"
+msgstr "Rechercher dans ce livre"
+
+#: cps/spa_strings.py
+msgid "Searching this book…"
+msgstr "Recherche dans le livre…"
+
+#: cps/spa_strings.py
+#, python-brace-format
+msgid "Showing the first {count} matches."
+msgstr "Affichage des {count} premiers résultats."
+
+#: cps/spa_strings.py
+#, python-brace-format
+msgid "{count} matches"
+msgstr "{count} résultats"
