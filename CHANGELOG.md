@@ -114,6 +114,13 @@ is for things you can see or feel when running the app.
   others are **Delete format** on the edit-book page, **Revoke** on an app
   password, and the Kobo/OPDS shelf checkboxes, where the whole row now responds
   rather than just the small square.
+- **The notice bar across the top of the page follows your theme.** It was one
+  fixed dark-teal band whichever theme you picked, so on **Light** and **Sepia**
+  it sat on the page as a near-black slab, and on **High contrast** it ignored
+  that theme's stronger borders entirely. It keeps its own teal identity — it is
+  meant to look distinct from the rest of the UI — but now comes in a version
+  made for each theme. The Ko-fi bar gets the same treatment, and the × that
+  dismisses either one is easier to hit.
 
 ### Added
 - **Highlights made on a Kobo now say which device they came from.** The
