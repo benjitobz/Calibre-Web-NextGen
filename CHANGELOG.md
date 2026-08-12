@@ -107,6 +107,14 @@ is for things you can see or feel when running the app.
   misclick cut off whichever device still used that password with no way to get
   it back. It now names the password you are about to revoke.
 
+- **Four small controls are easier to hit**, most noticeably the ☰ menu button
+  on phones — the main way you open navigation there, and narrower than the
+  minimum size accessibility guidance asks for. They all look exactly the same;
+  the area that responds to your finger or pointer around them is bigger. The
+  others are **Delete format** on the edit-book page, **Revoke** on an app
+  password, and the Kobo/OPDS shelf checkboxes, where the whole row now responds
+  rather than just the small square.
+
 ### Added
 - **Highlights made on a Kobo now say which device they came from.** The
   reader's Highlights and notes panel showed a bare internal word like "kobo";
