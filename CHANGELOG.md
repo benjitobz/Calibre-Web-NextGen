@@ -17,6 +17,14 @@ is for things you can see or feel when running the app.
 ## [Unreleased]
 
 ### Fixed
+- **More of the interface reads in German.** Coverage went from 1,891 to 2,071
+  translated phrases: 121 phrases that had no German at all now have it, and 59
+  entries that gettext had guessed and marked provisional — provisional entries
+  are dropped when the catalogue is compiled, so they were showing in English
+  regardless — are now confirmed translations. One of them was **Import**, which
+  had been guessed as "Wichtig:" ("Important:"). Contributed by
+  [@chaosblog](https://github.com/new-usemame/Calibre-Web-NextGen/pull/1549)
+  ([#1549](https://github.com/new-usemame/Calibre-Web-NextGen/pull/1549)).
 - **The reader's Black page theme is back, and it is actually black.** The
   classic reader has four page themes; the new UI's reader only ever showed
   three, and anyone who had chosen **Black** was quietly given the dark theme
