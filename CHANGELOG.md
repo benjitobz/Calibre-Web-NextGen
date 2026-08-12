@@ -17,6 +17,15 @@ is for things you can see or feel when running the app.
 ## [Unreleased]
 
 ### Fixed
+- **Opening one of your highlights no longer loses your place — or marks the book
+  finished.** Tapping a highlight in the "Highlights and notes" list jumped the
+  book to that passage and then saved *that* as your reading position, so closing
+  the book afterwards reopened at the highlight instead of where you had actually
+  read to. Worse, the same save reports how far through the book you are, and the
+  server treats 99% as finished — so glancing at a highlight near the end of a
+  book could mark the whole book read and pass that on to a connected Kobo or
+  Hardcover account. Jumping to a highlight is now treated as looking, not
+  reading: your place stays put until you turn a page yourself.
 - **More of the interface reads in German.** Coverage went from 1,891 to 2,071
   translated phrases: 121 phrases that had no German at all now have it, and 59
   entries that gettext had guessed and marked provisional — provisional entries

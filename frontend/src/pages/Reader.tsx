@@ -225,6 +225,29 @@ export function Reader({ id }: { id: string }) {
   const saveFailureAnnounced = useRef(false);
   // Hold the freshest saved CFI so it survives re-renders without re-running the effect.
   const savedCfiRef = useRef<string | null>(null);
+  /*
+   * True while the book sits where a JUMP put it rather than where the reader
+   * read to. Going to a saved highlight is "show me that passage", not "this is
+   * my place now" — but epub.js cannot tell the two apart: `display()` reports a
+   * relocation exactly like a page turn does, and the handler below used to
+   * persist every one of them.
+   *
+   * Two things went wrong because of that. The mild one: tapping a highlight to
+   * re-read it moved the reader's bookmark to the highlight. The severe one:
+   * the same save carries a percentage, and the server finishes a book at
+   * FINISHED_PERCENT_THRESHOLD (99.0, kosync.py) — so opening a highlight in a
+   * book's last pages marked the whole book FINISHED and pushed that on to Kobo
+   * sync and Hardcover. Un-finishing is guarded server-side; wrongly finishing
+   * was not.
+   *
+   * Cleared by the reader's OWN navigation, deliberately not by the next
+   * `relocated` event: one `display()` can report more than once while the
+   * layout settles, and a fix keyed to the first report would quietly persist
+   * the second. Keying on user intent instead means the flag holds however many
+   * events a jump produces, and reading on from the destination still saves --
+   * because at that point the reader really is reading there.
+   */
+  const previewingRef = useRef(false);
 
   const [rendered, setRendered] = useState(false);
   const [renderError, setRenderError] = useState<string | null>(null);
@@ -537,11 +560,19 @@ export function Reader({ id }: { id: string }) {
   const goToAnnotation = useCallback((row: AnnRow) => {
     if (!row.cfi_range) return;
     setAnnOpen(false);
+    // Set BEFORE display(): epub.js can report the relocation synchronously, so
+    // arming the flag afterwards would arm it too late to suppress anything.
+    previewingRef.current = true;
     try {
       Promise.resolve(renditionRef.current?.display(row.cfi_range)).catch(() => {
+        // The jump never happened, so the book is still where the reader left
+        // it. Disarm, or the next real page turn would be swallowed as if it
+        // were part of a preview.
+        previewingRef.current = false;
         announce(t('Could not open that highlight.'));
       });
     } catch {
+      previewingRef.current = false;
       announce(t('Could not open that highlight.'));
     }
   }, [announce, t]);
@@ -785,8 +816,11 @@ export function Reader({ id }: { id: string }) {
     } catch { /* same-origin blob content; guard regardless */ }
   }, [fontPct, fontFamily, margin, lineHeight]);
 
-  const goPrev = useCallback(() => renditionRef.current?.prev(), []);
-  const goNext = useCallback(() => renditionRef.current?.next(), []);
+  // A page turn is the reader moving themselves, so it ends any preview: from
+  // here on the relocations are theirs and the position saves again. This is the
+  // ONLY thing that clears the flag — see previewingRef's note.
+  const goPrev = useCallback(() => { previewingRef.current = false; return renditionRef.current?.prev(); }, []);
+  const goNext = useCallback(() => { previewingRef.current = false; return renditionRef.current?.next(); }, []);
 
   // Which way the page physically turns. In an RTL book the left of the screen
   // is forward, so the left zone advances and the right zone goes back. Labels
@@ -881,7 +915,12 @@ export function Reader({ id }: { id: string }) {
           const exact = epubBook.locations.length()
             ? epubBook.locations.percentageFromCfi(cfi) * 100
             : undefined;
-          persistCfi(cfi, exact);
+          // A previewed jump still MOVED the book, so the progress readout
+          // tracks it — that number describes where the reader is looking, and
+          // showing the old one would be a lie about the page on screen. What
+          // it must not do is SAVE: the bookmark, the synced percentage and the
+          // finished-at-99% decision all hang off persistCfi.
+          if (!previewingRef.current) persistCfi(cfi, exact);
           if (exact !== undefined) setProgress(Math.round(exact));
         });
 
