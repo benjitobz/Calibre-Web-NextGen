@@ -16,7 +16,24 @@ is for things you can see or feel when running the app.
 
 ## [Unreleased]
 
+### Changed
+
+- **Running it outside Docker no longer means hunting down `cps.py`.** If you
+  install Calibre-Web NextGen as a Python package — packaging it for a distro,
+  running it under systemd, or just off a checkout — you can now start it with
+  `python -m cps`, the ordinary way to start a Python application. Starting it
+  by the path to `cps.py` still works and is unchanged, so nothing you have set
+  up needs touching. Thanks to @chloeroform.
+
 ### Fixed
+
+- **A first start that fails no longer leaves you with a server you can't log
+  in to.** If creating the settings database failed on first run, startup went
+  on to create an empty one anyway. That empty file looked like an existing
+  install on the next boot, so the step that creates your admin account was
+  skipped and there was no way in — and no way to retry, because the file now
+  existed. The failure is now reported and the empty file is never created, so
+  the next start tries again properly.
 
 - **Metadata and cover enforcement no longer stops until the next restart if the
   enforcer is killed.** The enforcer takes a lock so two copies can't run over
