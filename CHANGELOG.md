@@ -27,6 +27,16 @@ is for things you can see or feel when running the app.
 
 ### Fixed
 
+- **A conversion that never finished no longer blocks the queue.** Converting
+  some books, PDFs most often, started and then sat there forever with nothing
+  in the log but a line saying the target format did not exist yet. The
+  converter writes to two output streams and we only kept reading one of them
+  while it ran, so as soon as the other filled up the converter stopped and
+  waited for us while we waited for it. Both are now read together. The same
+  fault was in the KEPUB conversion path, where a failure also had no error
+  text to show, and in the check that reads Calibre's version. Reported by
+  @auspex.
+
 - **Typing a tag that already exists now offers that tag first, and Enter adds
   what you actually typed.** Typing "Romance" pre-selected "Paranormal Romance",
   and pressing Enter applied it, because suggestions came back in no particular

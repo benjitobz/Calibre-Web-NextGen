@@ -61,6 +61,20 @@ Format: each row is one fork-PR, mapped to its upstream PR or issue (if any), wi
 
 ### Bug fixes
 
+- **Converter pipes are drained together, so a chatty child cannot wedge the
+  task queue** (fork #1110) — `_convert_ebook_format` streamed the child's
+  stdout in a `while p.poll() is None` loop and read stderr only after the
+  child had exited. stdout and stderr are separate pipes with separate kernel
+  buffers, so once the child wrote past its stderr buffer (~64 KB on Linux) it
+  blocked on write while we blocked on a read that could never return. PDF
+  input triggers it because Calibre delegates to poppler's `pdftohtml`, whose
+  syntax warnings go to stderr. One `stream_process_output` helper in
+  `cps/subproc_wrapper.py` now drains stderr on a background thread while
+  stdout keeps feeding the live progress parser; the `calibredb --as-opf`
+  probe, `_convert_kepubify` (which read stdout to EOF and never drained
+  stderr at all) and `process_wait` carried the same defect and are fixed with
+  it. SHA `TBD`, release `TBD`.
+
 - **Book lists have a total order, so "Newest" is newest** (fork #1331) — every
   list pages with LIMIT/OFFSET over an ORDER BY that named one non-unique
   column, so SQLite ordered tied rows by whatever its plan walked; a bulk ingest
