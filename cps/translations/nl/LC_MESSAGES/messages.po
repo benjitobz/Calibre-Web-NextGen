@@ -3516,10 +3516,6 @@ msgid "Open Table view"
 msgstr "Tabelweergave openen"
 
 #: cps/spa_strings.py
-msgid "Open Tasks"
-msgstr "Taken openen"
-
-#: cps/spa_strings.py
 msgid "Open Admin"
 msgstr "Beheer openen"
 
@@ -3538,6 +3534,10 @@ msgstr "Verken je bibliotheek"
 #: cps/spa_strings.py
 msgid "Go to Upload"
 msgstr "Ga naar Uploaden"
+
+#: cps/spa_strings.py
+msgid "Open Tasks"
+msgstr "Taken openen"
 
 #: cps/spa_strings.py
 msgid "Open search"

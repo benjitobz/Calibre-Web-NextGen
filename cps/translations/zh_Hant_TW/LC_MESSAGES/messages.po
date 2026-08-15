@@ -3428,6 +3428,10 @@ msgid "Go to Upload"
 msgstr "前往上傳"
 
 #: cps/spa_strings.py
+msgid "Open Tasks"
+msgstr ""
+
+#: cps/spa_strings.py
 msgid "Open search"
 msgstr "開啟搜尋"
 

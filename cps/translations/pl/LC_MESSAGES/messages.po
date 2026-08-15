@@ -3595,6 +3595,10 @@ msgid "Go to Upload"
 msgstr "Przejdź do przesyłania"
 
 #: cps/spa_strings.py
+msgid "Open Tasks"
+msgstr ""
+
+#: cps/spa_strings.py
 msgid "Open search"
 msgstr "Otwórz wyszukiwanie"
 
