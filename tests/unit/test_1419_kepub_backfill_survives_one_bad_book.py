@@ -46,10 +46,6 @@ class _Query:
     def distinct(self):
         return self
 
-    def scalar(self):
-        # max(KoboSyncedBooks.id) -- the backfill's re-arm watermark
-        return len(self._rows)
-
     def all(self):
         return self._rows
 

@@ -1,21 +1,11 @@
 # -*- coding: utf-8 -*-
 # SPDX-License-Identifier: GPL-3.0-or-later
-"""The KEPUB backfill must re-arm when its work-set grows.
+"""Startup KEPUB backfill is an idempotent scan, not a surrogate-id watermark.
 
-`config_kobo_kepub_backfill_completed` was a one-shot global boolean, but the
-task's work-set is `select distinct book_id from kobo_synced_books` — and
-pairing a device is *precisely* what grows that set. So the latch answered
-"completed" while the newly-synced books had no KEPUB at all.
-
-Measured on a live instance immediately after a Kobo Clara BW paired: **216
-books synced, 34 with a KEPUB, 182 without**, with the flag set to completed.
-Those 182 convert at download time with the device waiting, and a conversion
-failure delivers plain EPUB — which cannot reliably hold highlights on a Kobo
-(upstream janeczku/calibre-web#1484). The stale latch therefore lands as
-"highlighting doesn't work on my new Kobo".
-
-A boolean cannot express "done for the library as it was THEN". A monotonic
-high-water mark over KoboSyncedBooks.id can.
+SQLite may reuse ``INTEGER PRIMARY KEY`` values after deletes, and this table is
+regularly pruned during shelf/device reconciliation.  Startup therefore queues
+the cheap scan whenever KEPUB preference is enabled; the task itself skips
+books that already have KEPUB and converts only missing work.
 """
 
 from __future__ import annotations
@@ -29,13 +19,10 @@ from cps.tasks import kepub_backfill
 
 
 @pytest.fixture
-def app_session(monkeypatch):
+def app_session():
     engine = create_engine("sqlite:///:memory:")
     ub.Base.metadata.create_all(engine)
-    Session = sessionmaker(bind=engine)
-    session = Session()
-    monkeypatch.setattr(ub, "get_new_session_instance", lambda: session)
-    monkeypatch.setattr(kepub_backfill.ub, "get_new_session_instance", lambda: session)
+    session = sessionmaker(bind=engine)()
     yield session
     session.close()
 
@@ -49,7 +36,6 @@ def _sync(session, user_id, book_id):
 
 @pytest.fixture(autouse=True)
 def _enqueueable(monkeypatch):
-    """Make enqueue reachable; the gate under test is the watermark, not these."""
     monkeypatch.setattr(kepub_backfill.config, "config_kobo_prefer_kepub", True, raising=False)
     monkeypatch.setattr(kepub_backfill.config, "config_kepubifypath", "/bin/kepubify", raising=False)
     monkeypatch.setattr(kepub_backfill.config, "config_use_google_drive", False, raising=False)
@@ -59,66 +45,83 @@ def _enqueueable(monkeypatch):
     return queued
 
 
-def test_a_newly_paired_device_rearms_a_completed_backfill(app_session, monkeypatch, _enqueueable):
+def _assert_startup_scan_queued(queue):
+    assert kepub_backfill.enqueue_startup_kepub_backfill() is True
+    assert queue == [{"hidden": True}]
+
+
+def test_startup_always_queues_the_idempotent_scan(_enqueueable):
+    _assert_startup_scan_queued(_enqueueable)
+
+
+def test_a_newly_paired_device_still_rearms_a_completed_backfill(
+    app_session, monkeypatch, _enqueueable,
+):
     for book_id in (1, 2, 3):
         _sync(app_session, user_id=1, book_id=book_id)
-    covered = kepub_backfill._synced_books_watermark(app_session)
-    monkeypatch.setattr(kepub_backfill.config, "config_kobo_kepub_backfill_completed", True, raising=False)
-    monkeypatch.setattr(kepub_backfill.config, "config_kobo_kepub_backfill_watermark", covered, raising=False)
+    monkeypatch.setattr(
+        kepub_backfill.config, "config_kobo_kepub_backfill_completed", True, raising=False)
 
-    assert kepub_backfill.enqueue_startup_kepub_backfill() is False, "nothing new yet"
-
-    # a second device pairs and syncs the same library
     for book_id in (1, 2, 3):
         _sync(app_session, user_id=2, book_id=book_id)
 
-    assert kepub_backfill.enqueue_startup_kepub_backfill() is True
-    assert _enqueueable == [{"hidden": True}]
+    _assert_startup_scan_queued(_enqueueable)
 
 
-def test_no_new_sync_rows_does_not_rearm(app_session, monkeypatch, _enqueueable):
-    _sync(app_session, user_id=1, book_id=1)
-    covered = kepub_backfill._synced_books_watermark(app_session)
-    monkeypatch.setattr(kepub_backfill.config, "config_kobo_kepub_backfill_watermark", covered, raising=False)
+def test_delete_max_then_insert_cannot_suppress_the_startup_scan(app_session, _enqueueable):
+    rows = [_sync(app_session, 1, book_id) for book_id in (1, 2, 3)]
+    old_max = rows[-1].id
+    app_session.delete(rows[-1])
+    app_session.commit()
+    replacement = _sync(app_session, 2, 4)
+    assert replacement.id == old_max, "precondition: SQLite reused the deleted maximum id"
 
-    assert kepub_backfill.enqueue_startup_kepub_backfill() is False
-    assert _enqueueable == []
-
-
-def test_an_upgraded_install_performs_exactly_one_catch_up_scan(app_session, monkeypatch, _enqueueable):
-    """completed=True with no watermark is the population carrying unconverted
-    books. One catch-up scan is the point, not a regression -- and it is cheap,
-    because _backfill_one_book already skips any book that has a KEPUB."""
-    for book_id in (1, 2):
-        _sync(app_session, user_id=1, book_id=book_id)
-    monkeypatch.setattr(kepub_backfill.config, "config_kobo_kepub_backfill_completed", True, raising=False)
-    monkeypatch.setattr(kepub_backfill.config, "config_kobo_kepub_backfill_watermark", 0, raising=False)
-
-    assert kepub_backfill.enqueue_startup_kepub_backfill() is True
-
-    # once that run records what it covered, it stops
-    monkeypatch.setattr(kepub_backfill.config, "config_kobo_kepub_backfill_watermark",
-                        kepub_backfill._synced_books_watermark(app_session), raising=False)
-    assert kepub_backfill.enqueue_startup_kepub_backfill() is False
+    _assert_startup_scan_queued(_enqueueable)
 
 
-def test_the_boolean_alone_no_longer_gates_startup(app_session, monkeypatch, _enqueueable):
-    """The regression in one line: completed=True must NOT suppress new work."""
-    _sync(app_session, user_id=1, book_id=1)
-    monkeypatch.setattr(kepub_backfill.config, "config_kobo_kepub_backfill_completed", True, raising=False)
-    monkeypatch.setattr(kepub_backfill.config, "config_kobo_kepub_backfill_watermark", 0, raising=False)
+def test_clear_and_repopulate_with_lower_ids_cannot_suppress_the_startup_scan(
+    app_session, _enqueueable,
+):
+    rows = [_sync(app_session, 1, book_id) for book_id in (1, 2, 3)]
+    old_max = rows[-1].id
+    app_session.query(ub.KoboSyncedBooks).delete()
+    app_session.commit()
+    replacement = _sync(app_session, 2, 9)
+    assert replacement.id < old_max, "precondition: repopulation restarted below old watermark"
 
-    assert kepub_backfill.enqueue_startup_kepub_backfill() is True
-
-
-def test_watermark_is_none_when_nothing_is_outstanding(app_session, monkeypatch):
-    _sync(app_session, user_id=1, book_id=1)
-    monkeypatch.setattr(kepub_backfill.config, "config_kobo_kepub_backfill_watermark",
-                        kepub_backfill._synced_books_watermark(app_session), raising=False)
-    assert kepub_backfill.outstanding_kepub_backfill_watermark() is None
+    _assert_startup_scan_queued(_enqueueable)
 
 
-def test_an_empty_sync_table_is_not_outstanding(app_session, monkeypatch):
-    monkeypatch.setattr(kepub_backfill.config, "config_kobo_kepub_backfill_watermark", 0, raising=False)
-    assert kepub_backfill.outstanding_kepub_backfill_watermark() is None
+def test_id_reuse_is_irrelevant_even_when_legacy_watermark_equals_current_max(
+    app_session, monkeypatch, _enqueueable,
+):
+    row = _sync(app_session, 1, 1)
+    monkeypatch.setattr(
+        kepub_backfill.config, "config_kobo_kepub_backfill_watermark", row.id, raising=False)
+    app_session.delete(row)
+    app_session.commit()
+    replacement = _sync(app_session, 2, 2)
+    assert replacement.id == row.id
+
+    _assert_startup_scan_queued(_enqueueable)
+
+
+@pytest.mark.parametrize(
+    "prefer_kepub,kepubify,gdrive",
+    [(False, "/bin/kepubify", False), (True, "", False), (True, "/bin/kepubify", True)],
+)
+def test_existing_startup_safety_gates_still_apply(
+    monkeypatch, _enqueueable, prefer_kepub, kepubify, gdrive,
+):
+    monkeypatch.setattr(kepub_backfill.config, "config_kobo_prefer_kepub", prefer_kepub)
+    monkeypatch.setattr(kepub_backfill.config, "config_kepubifypath", kepubify)
+    monkeypatch.setattr(kepub_backfill.config, "config_use_google_drive", gdrive)
+
+    # The startup path delegates these gates to the ordinary enqueue function.
+    # Exercise the real function rather than the recording fixture.
+    monkeypatch.undo()
+    monkeypatch.setattr(kepub_backfill.config, "config_kobo_prefer_kepub", prefer_kepub,
+                        raising=False)
+    monkeypatch.setattr(kepub_backfill.config, "config_kepubifypath", kepubify, raising=False)
+    monkeypatch.setattr(kepub_backfill.config, "config_use_google_drive", gdrive, raising=False)
     assert kepub_backfill.enqueue_startup_kepub_backfill() is False

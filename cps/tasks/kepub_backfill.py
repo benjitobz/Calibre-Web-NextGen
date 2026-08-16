@@ -5,7 +5,6 @@ import os
 import threading
 
 from flask_babel import lazy_gettext as N_
-from sqlalchemy import func
 
 from .. import config, db, helper, logger, ub
 from ..epub import get_epub_layout
@@ -48,8 +47,6 @@ def _clear_pending(task):
 
 class TaskKepubBackfill(CalibreTask):
     def __init__(self):
-        #: highest KoboSyncedBooks.id this run covered; persisted only on success
-        self.covered_watermark = 0
         super().__init__(N_(u"Convert Kobo books missing KEPUB"))
         self.converted = 0
         self.skipped = 0
@@ -69,10 +66,6 @@ class TaskKepubBackfill(CalibreTask):
             app_session = ub.get_new_session_instance()
             try:
                 book_ids = [row[0] for row in app_session.query(ub.KoboSyncedBooks.book_id).distinct().all()]
-                # Captured with the work-set, not after it: a device pairing
-                # mid-run must re-arm the next boot rather than be silently
-                # marked covered by this one.
-                self.covered_watermark = _synced_books_watermark(app_session)
             finally:
                 app_session.close()
 
@@ -107,33 +100,19 @@ class TaskKepubBackfill(CalibreTask):
                 except Exception as error:
                     log.error("KEPUB backfill could not close its database session: %s", error)
 
-            # The startup backfill is a bounded migration attempt. Individual
-            # failures remain visible on the task, but must not make every boot
-            # repeat the same bulk conversion against an unwritable library.
-            #
-            # A run that converted nothing at all and failed at least once is a
-            # broken environment (read-only books volume, a mount that arrived
-            # late), not a finished migration. Checking it off would strand the
-            # library with no KEPUBs, no retry and -- because the startup task is
-            # hidden -- no explanation. Leave the flag clear so the next boot
-            # tries again.
+            # The legacy completion flag no longer gates startup: every eligible
+            # boot performs the cheap idempotent scan. Keep writing it for safe
+            # rollback to an older release, but do not mark a wholly failed run
+            # complete for that older reader.
             if self.converted or not self.failed:
                 # Persist first, then flip the in-memory flag: a save() that
                 # raises would otherwise leave this process believing the
                 # migration is done while the next boot re-reads False.
-                previous_watermark = getattr(
-                    config, "config_kobo_kepub_backfill_watermark", 0)
-                # The boolean no longer gates anything -- the watermark does --
-                # but we keep WRITING it so a rollback to an image that still
-                # reads it behaves correctly instead of re-running the whole
-                # backfill. Write-only on purpose; do not "clean it up".
                 config.config_kobo_kepub_backfill_completed = True
-                config.config_kobo_kepub_backfill_watermark = self.covered_watermark
                 try:
                     config.save()
                 except Exception:
                     config.config_kobo_kepub_backfill_completed = False
-                    config.config_kobo_kepub_backfill_watermark = previous_watermark
                     raise
             if self.failed:
                 self._handleError(N_(u"%(count)d KEPUB conversion(s) failed", count=self.failed))
@@ -205,40 +184,15 @@ def enqueue_kepub_backfill(user="System", hidden=False):
     return True
 
 
-def _synced_books_watermark(app_session):
-    """Highest KoboSyncedBooks.id, or 0. Monotonic, so it only ever grows."""
-    return app_session.query(func.max(ub.KoboSyncedBooks.id)).scalar() or 0
-
-
-def outstanding_kepub_backfill_watermark():
-    """Current watermark if it is ahead of what we last covered, else None.
-
-    The old boolean gate could not express "done for the library as it was
-    THEN". The work-set is `select distinct book_id from kobo_synced_books`,
-    and pairing a device is precisely what grows it -- so the latch reported
-    completed while the new device's books had no KEPUB and were converted at
-    download time with the device waiting (or, on failure, delivered as plain
-    EPUB, which cannot reliably hold highlights). Measured on a live instance
-    right after a device paired: 216 synced, 34 with KEPUB, flag "completed".
-    """
-    app_session = ub.get_new_session_instance()
-    try:
-        current = _synced_books_watermark(app_session)
-    finally:
-        app_session.close()
-    covered = getattr(config, "config_kobo_kepub_backfill_watermark", 0) or 0
-    return current if current > covered else None
-
-
 def enqueue_startup_kepub_backfill():
-    # Deliberately gated on the watermark alone, not on the boolean. An install
-    # upgrading with completed=True and no watermark performs exactly one
-    # catch-up scan -- which is the point: that install is the one carrying
-    # unconverted books. The scan is cheap because _backfill_one_book already
-    # skips any book that has a KEPUB or lacks an EPUB.
-    if outstanding_kepub_backfill_watermark() is not None:
-        return enqueue_kepub_backfill(hidden=True)
-    return False
+    """Queue the cheap idempotent scan whenever KEPUB preference is available.
+
+    KoboSyncedBooks rows are deleted during ordinary reconciliation and SQLite
+    may reuse their INTEGER PRIMARY KEY values, so no max-id watermark can prove
+    the work-set unchanged. The task already skips existing KEPUBs and missing
+    EPUBs before conversion; scanning is the reliable and inexpensive gate.
+    """
+    return enqueue_kepub_backfill(hidden=True)
 
 
 def is_kepub_backfill_pending():
