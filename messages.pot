@@ -11027,11 +11027,10 @@ msgstr ""
 
 #: cps/templates/modal_dialogs.html
 msgid ""
-"Deleting this book also tries to archive its copy on paired Kobo devices the"
-" next time they sync. If that update cannot be recorded, the book may remain"
-" on a device."
+"Deleting this book also tries to archive its copy on paired Kobo devices "
+"the next time they sync. If that update cannot be recorded, the book may "
+"remain on a device."
 msgstr ""
-
 
 #: cps/templates/modal_dialogs.html
 msgid "Choose File Location"
@@ -12094,3 +12093,4 @@ msgstr ""
 #: cps/templates/user_table.html
 msgid "Show Read/Unread Section"
 msgstr ""
+
