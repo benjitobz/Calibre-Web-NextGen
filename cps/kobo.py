@@ -724,10 +724,13 @@ def HandleSyncRequest():
 
     # no. of books returned
     book_count = changed_entries.count()
-    # Mirror the reading-states branch below: only signal `continue` when
-    # the result set exceeds the batch cap, so an exhaustive batch ends
-    # the session and the device persists the advanced synctoken.
-    cont_sync = bool(book_count > SYNC_ITEM_LIMIT)
+    # PR #248 established that Kobo firmware pins the request cursor whenever
+    # `x-kobo-sync: continue` is present.  Comparing against the page cap fixed
+    # partial pages, but a full page still formed a closed loop: firmware kept
+    # the old token, so the same full page was returned forever.  End every
+    # local session so the advanced composite cursor is persisted; the device
+    # starts the next session with that returned token and drains the next page.
+    cont_sync = False
     log.debug("Kobo Sync: remaining books to sync: {}".format(book_count))
     # generate reading state data
     changed_reading_states = ub.session.query(ub.KoboReadingState)
@@ -752,7 +755,9 @@ def HandleSyncRequest():
              ub.KoboReadingState.book_id.notin_(reading_states_in_new_entitlements)))\
         .order_by(ub.KoboReadingState.last_modified)
     log.debug("Kobo Sync: changed states: {}".format(changed_reading_states.count()))
-    cont_sync |= bool(changed_reading_states.count() > SYNC_ITEM_LIMIT)
+    # Do not set local continuation for a full reading-state page.  It has the
+    # same firmware cursor-pinning semantics as the books signal above; ending
+    # the session is what lets the returned reading-state cursor take effect.
     for kobo_reading_state in changed_reading_states.limit(SYNC_ITEM_LIMIT).all():
         book = calibre_db.session.query(db.Books).filter(db.Books.id == kobo_reading_state.book_id).one_or_none()
         if book:
@@ -862,18 +867,9 @@ def HandleSyncRequest():
             ta = ta.replace(tzinfo=None)
         new_archived_last_modified = max(ta, new_archived_last_modified)
 
-    # If there are MORE pending deletions than SYNC_ITEM_LIMIT, mark
-    # cont_sync so the device comes back for the next page rather than
-    # losing tombstones to the page cap.
-    if len(pending_deletions) >= SYNC_ITEM_LIMIT:
-        remaining = (
-            ub.session.query(ub.KoboDeletedBook)
-            .filter(ub.KoboDeletedBook.user_id == current_user.id)
-            .filter(ub.KoboDeletedBook.deleted_at > new_archived_last_modified)
-            .count()
-        )
-        if remaining > 0:
-            cont_sync = True
+    # Likewise, never set local continuation for deletion pages.  The returned
+    # archive cursor must be persisted before the next page can be selected;
+    # pinning the old cursor would just replay these tombstones indefinitely.
 
     # update last created timestamp to distinguish between new and changed entitlements
     if not cont_sync:
@@ -891,12 +887,12 @@ def HandleSyncRequest():
     sync_token.archive_last_modified = new_archived_last_modified
     sync_token.reading_state_last_modified = new_reading_state_last_modified
 
-    return generate_sync_response(sync_token, sync_results, cont_sync)
+    return generate_sync_response(sync_token, sync_results)
 
 
-def generate_sync_response(sync_token, sync_results, set_cont=False):
+def generate_sync_response(sync_token, sync_results):
     extra_headers = {}
-    if config.config_kobo_proxy and not set_cont:
+    if config.config_kobo_proxy:
         # Merge in sync results from the official Kobo store.
         try:
             store_response = make_request_to_kobo_store(sync_token)
@@ -904,14 +900,27 @@ def generate_sync_response(sync_token, sync_results, set_cont=False):
             store_sync_results = store_response.json()
             sync_results += store_sync_results
             sync_token.merge_from_store_response(store_response)
-            extra_headers["x-kobo-sync"] = store_response.headers.get("x-kobo-sync")
-            extra_headers["x-kobo-sync-mode"] = store_response.headers.get("x-kobo-sync-mode")
-            extra_headers["x-kobo-recent-reads"] = store_response.headers.get("x-kobo-recent-reads")
+            for header_name in (
+                "x-kobo-sync",
+                "x-kobo-sync-mode",
+                "x-kobo-recent-reads",
+            ):
+                header_value = store_response.headers.get(header_name)
+                if header_value is None:
+                    continue
+                # Kobo firmware pins the incoming token whenever `continue`
+                # is present.  Local page selection depends on the device
+                # persisting our returned token, so a store continuation must
+                # never escape on the combined response.
+                if (
+                    header_name == "x-kobo-sync"
+                    and str(header_value).strip().lower() == "continue"
+                ):
+                    continue
+                extra_headers[header_name] = header_value
 
         except Exception as ex:
             log.error_or_exception("Failed to receive or parse response from Kobo's sync endpoint: {}".format(ex))
-    if set_cont:
-        extra_headers["x-kobo-sync"] = "continue"
     sync_token.to_headers(extra_headers)
 
     # Track Kobo sync activity

@@ -32,6 +32,11 @@ is for things you can see or feel when running the app.
   needed twice the round trips to finish. Books were never sent twice — this was
   throughput and reporting, not duplication.
 
+- **Kobo full-library sync now completes for libraries with more than about
+  100 pending books.** Large syncs could repeat the same first page forever,
+  adding thousands of duplicate entitlements to the reader until the server
+  failed. Each completed page now advances the device to the next one, so the
+  library drains normally instead of flooding the Kobo.
 
 ## [v4.1.36] - 2026-08-15
 
