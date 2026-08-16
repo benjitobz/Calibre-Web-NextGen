@@ -24,6 +24,13 @@ is for things you can see or feel when running the app.
   someone else's screen. Every authenticated Kobo request already announces its
   model, and the server already records it, so the padding now follows the device.
   An unrecognised model keeps the configured setting exactly as before.
+- **Kobo sync stopped counting formats as books.** With "Produce and prefer KEPUB"
+  on, most books hold both an EPUB and a KEPUB, and the full-library sync was
+  counting each one separately. Two visible effects: the log line reported a number
+  roughly double your library ("changed entries: 3481" on a much smaller shelf), and
+  each sync page carried only about half as many books as it should, so the device
+  needed twice the round trips to finish. Books were never sent twice — this was
+  throughput and reporting, not duplication.
 
 
 ## [v4.1.36] - 2026-08-15

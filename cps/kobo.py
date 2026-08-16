@@ -553,7 +553,29 @@ def HandleSyncRequest():
                                     joinedload(db.Books.series),
                                     joinedload(db.Books.languages),
                                     joinedload(db.Books.comments),
-                                    joinedload(db.Books.data)))
+                                    joinedload(db.Books.data))
+                           # `.join(db.Data)` yields ONE ROW PER KOBO-ELIGIBLE
+                           # FORMAT, not per book, so a book holding both an
+                           # EPUB and a KEPUB counts and paginates twice. The
+                           # shelf branch above already ends `.distinct()`;
+                           # this branch did not, and the asymmetry is the bug.
+                           #
+                           # Two consequences, both measured:
+                           #   * `changed entries` below reports format rows,
+                           #     not books -- which is why users report a
+                           #     number "well past my library size" (#347,
+                           #     #1634) and why that number is not evidence of
+                           #     a loop.
+                           #   * LIMIT applies to the multiplied rows while the
+                           #     ORM uniquifies afterwards, so a page of
+                           #     SYNC_ITEM_LIMIT delivers only ~half that many
+                           #     books and the device needs twice the round
+                           #     trips.
+                           #
+                           # Entitlements were never duplicated -- legacy Query
+                           # uniquifies entity rows -- so this is a throughput
+                           # and diagnostics defect, not data corruption.
+                           .distinct())
     log.debug("Kobo Sync: changed entries: {}".format(changed_entries.count()))
 
     reading_states_in_new_entitlements = []
