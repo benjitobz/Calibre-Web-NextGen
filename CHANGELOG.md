@@ -18,6 +18,18 @@ is for things you can see or feel when running the app.
 
 ### Fixed
 
+- **Basic Configuration now saves when you press Enter in a single-line field,
+  and "Convert missing KEPUBs now" works again.** Both did the same thing: that
+  page was the one settings screen that refused the save it was trying to make,
+  so it answered `405 Method Not Allowed` and dropped you on an error page whose
+  only link is back to the home page — taking every unsaved edit on the page with
+  it. Pressing Enter in a single-line field was enough to trigger it; so was the
+  KEPUB button, which meant the conversion never ran. That is awkward on both
+  counts, because converting to KEPUB is the usual first suggestion when a Kobo
+  is not showing books or holding highlights properly. Both now save through the
+  same path as the rest of the page, so you stay on Settings and get the normal
+  confirmation.
+  Reported by @pahamrick and @roquemore92.
 - **The log now warns when a book cannot show highlights on a Kobo.** Some books
   have a table of contents that points partway into a chapter file rather than at
   the file itself. On a Kobo, every highlight made in such a book is stored

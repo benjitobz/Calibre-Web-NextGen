@@ -98,7 +98,7 @@
 {% block body %}
 <div class="discover">
   <h2 style="font-size: 15px;">{{title}}</h2>
-<form role="form" method="POST" autocomplete="off">
+<form role="form" method="POST" id="config_form" autocomplete="off">
 <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
 
   <div class="settings-container">
@@ -219,7 +219,7 @@
         <p id="kepubify-missing-help" class="help-block">{{_('Kepubify was not found. Set its path under External binaries before this preference can convert books.')}}</p>
         {% else %}
         <p class="help-block">{{_('Missing KEPUB files are created for books already delivered to a Kobo. EPUB remains the source format.')}}</p>
-        <button class="btn btn-default" type="submit" name="kobo_kepub_backfill" value="on">{{_('Convert missing KEPUBs now')}}</button>
+        <button class="btn btn-default" type="button" id="kobo_kepub_backfill" name="kobo_kepub_backfill" value="on">{{_('Convert missing KEPUBs now')}}</button>
         {% endif %}
       </div>
       <div class="form-group" style="margin-left:10px;">
@@ -748,7 +748,7 @@
 
     <div class="cwa-form-actions" style="max-width: 900px; justify-self: center; width: -webkit-fill-available; margin-inline: 2rem;">
       <a href="{{ url_for('admin.admin') }}" id="config_back" class="btn btn-secondary">{{_('Cancel')}}</a>
-      <button type="button" name="submit" id="config_submit" class="btn btn-default">{{_('Save')}}</button>
+      <button type="submit" name="submit" id="config_submit" class="btn btn-default">{{_('Save')}}</button>
     </div>
   </form>
 </div>
