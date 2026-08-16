@@ -2,6 +2,7 @@
 # SPDX-License-Identifier: GPL-3.0-or-later
 """Make kepubify output safe for Kobo's non-normalizing package resolver."""
 
+from collections import Counter
 import copy
 import os
 import posixpath
@@ -341,7 +342,33 @@ def _write_archive(path, entries, comment):
             archive.writestr(info, content)
 
 
+def _escaping_manifest_references(opf_path, opf_bytes):
+    """Count escaping ``manifest/item@href`` references by item identity.
+
+    An item's ``id`` is its stable identity. An item without an ``id`` falls
+    back to its ordinal position among the package's manifest items, so adding,
+    moving, or reassigning an unidentified escaping item fails closed.
+    """
+    opf_directory = posixpath.dirname(opf_path)
+    escaping = Counter()
+    for position, item in enumerate(_manifest_items(opf_bytes)):
+        href = item.get("href")
+        if not href:
+            continue
+        split = _split_local_reference(href)
+        if split is None:
+            continue
+        _, href_path = split
+        if not _inside_directory(
+                _resolve_reference(opf_path, href_path), opf_directory):
+            item_id = item.get("id")
+            identity = ("id", item_id) if item_id else ("position", position)
+            escaping[(identity, href)] += 1
+    return escaping
+
+
 def _validate_rewritten_archive(path, expected_span_counts):
+    """Validate archive-integrity invariants shared by every rewrite."""
     with zipfile.ZipFile(path) as archive:
         infos = archive.infolist()
         _reject_oversized_archive(infos)
@@ -354,22 +381,118 @@ def _validate_rewritten_archive(path, expected_span_counts):
         if archive.testzip() is not None:
             raise ValueError("rewritten KEPUB failed its CRC check")
         opf_path = _package_document_path(archive)
-        opf_directory = posixpath.dirname(opf_path)
         opf_bytes = _read_bounded_member(
             archive, opf_path, MAX_PACKAGE_DOCUMENT_BYTES, "package document")
-        for item in _manifest_items(opf_bytes):
-            href = item.get("href")
-            if not href:
-                continue
-            split = _split_local_reference(href)
-            if split is None:
-                continue
-            _, href_path = split
-            if not _inside_directory(_resolve_reference(opf_path, href_path), opf_directory):
-                raise ValueError("rewritten manifest still escapes the OPF directory")
         contents = {info.filename: archive.read(info) for info in infos}
         if _span_counts(contents) != expected_span_counts:
-            raise ValueError("KoboSpan counts changed while normalizing the package")
+            raise ValueError("KoboSpan counts changed during package rewrite")
+        return opf_path, opf_bytes
+
+
+def _validate_package_document_rewrite(
+        path, expected_span_counts, source_escaping_references):
+    opf_path, opf_bytes = _validate_rewritten_archive(
+        path, expected_span_counts)
+    rewritten_escaping_references = _escaping_manifest_references(
+        opf_path, opf_bytes)
+    if rewritten_escaping_references - source_escaping_references:
+        raise ValueError("package rewrite introduced an escaping manifest href")
+
+
+def _validate_normalized_archive(path, expected_span_counts):
+    opf_path, opf_bytes = _validate_rewritten_archive(
+        path, expected_span_counts)
+    if _escaping_manifest_references(opf_path, opf_bytes):
+        raise ValueError("rewritten manifest still escapes the OPF directory")
+
+
+def rewrite_package_document(path, transform):
+    """Transform a KEPUB package document with an atomic, validated rewrite.
+
+    ``transform`` receives the parsed package element and must return truthy only
+    when it mutated that element. Return ``True`` when the archive was replaced,
+    ``False`` for a byte-identical no-op, and ``None`` on failure. On failure the
+    source archive is untouched and the temporary archive is removed.
+
+    The transaction preserves every non-package member's bytes, the archive
+    comment, and the source file's permission bits. Existing escaping manifest
+    ``item`` hrefs may remain only with the same raw spelling, item identity,
+    and multiplicity; an item without an ``id`` is identified by its manifest
+    position. This check covers only manifest ``item`` hrefs, not ``guide``
+    references, metadata ``link`` elements, or ``xml:base``.
+    """
+    path = os.fspath(path)
+    temporary_path = None
+    try:
+        original_stat = os.stat(path)
+        with zipfile.ZipFile(path) as archive:
+            infos = archive.infolist()
+            _reject_oversized_archive(infos)
+            names = [info.filename for info in infos]
+            if len(names) != len(set(names)):
+                raise ValueError("KEPUB contains duplicate ZIP member names")
+            if archive.testzip() is not None:
+                raise ValueError("KEPUB failed its CRC check")
+
+            package_path = _package_document_path(archive)
+            package_bytes = _read_bounded_member(
+                archive,
+                package_path,
+                MAX_PACKAGE_DOCUMENT_BYTES,
+                "package document",
+            )
+            source_escaping_references = _escaping_manifest_references(
+                package_path, package_bytes)
+            package = etree.fromstring(package_bytes, parser=_XML_PARSER)
+            if not transform(package):
+                return False
+
+            contents = {info.filename: archive.read(info) for info in infos}
+            expected_span_counts = _span_counts(contents)
+            contents[package_path] = etree.tostring(
+                package.getroottree(),
+                encoding="utf-8",
+                xml_declaration=package_bytes.lstrip().startswith(b"<?xml"),
+            )
+            entries = [(info, contents[info.filename]) for info in infos]
+            comment = archive.comment
+
+        descriptor, temporary_path = tempfile.mkstemp(
+            dir=os.path.dirname(os.path.abspath(path)),
+            prefix="." + os.path.basename(path) + ".",
+            suffix=".package-rewrite.tmp",
+        )
+        os.close(descriptor)
+        _write_archive(temporary_path, entries, comment)
+        _validate_package_document_rewrite(
+            temporary_path, expected_span_counts, source_escaping_references)
+
+        with zipfile.ZipFile(temporary_path) as rewritten:
+            if rewritten.comment != comment:
+                raise ValueError("archive comment changed during package rewrite")
+            for name, content in contents.items():
+                if name != package_path and rewritten.read(name) != content:
+                    raise ValueError(
+                        "non-package ZIP member changed during package rewrite: " + name
+                    )
+
+        os.chmod(temporary_path, stat.S_IMODE(original_stat.st_mode))
+        os.replace(temporary_path, path)
+        temporary_path = None
+        return True
+    except Exception as error:
+        log.warning(
+            "Could not rewrite KEPUB package document %s; original preserved: %s",
+            path,
+            error,
+        )
+        return None
+    finally:
+        if temporary_path is not None:
+            try:
+                os.unlink(temporary_path)
+            except OSError:
+                pass
 
 
 def normalize_kepub_package(path):
@@ -412,7 +535,7 @@ def normalize_kepub_package(path):
         )
         os.close(descriptor)
         _write_archive(temporary_path, entries, comment)
-        _validate_rewritten_archive(temporary_path, expected_span_counts)
+        _validate_normalized_archive(temporary_path, expected_span_counts)
         os.chmod(temporary_path, stat.S_IMODE(original_stat.st_mode))
         os.replace(temporary_path, path)
         temporary_path = None
