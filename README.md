@@ -523,7 +523,32 @@ Read your CWA library on a Kobo e-reader, with reading progress syncing both way
 1. In Admin → Edit Basic Configuration, turn on **Enable Kobo sync**.
 2. Open your user page (Admin → Users → your user, or your own profile) and click **Create/View** next to **Kobo Sync Token**. The dialog shows the exact `api_endpoint=` line for your account.
 3. Plug the Kobo into a computer over USB and open `.kobo/Kobo/Kobo eReader.conf` in a text editor. Add or replace the `api_endpoint=` line with the one from the dialog, save, and eject the device cleanly.
-4. On the Kobo, sync. Books on your Kobo Sync shelves appear on the device, and progress flows back to CWA.
+4. **In the same file, also set `reading_services_host=` to the same base URL** (no token path — e.g. `reading_services_host=https://books.example.com`). See the warning below for why this matters.
+5. On the Kobo, sync. Books on your Kobo Sync shelves appear on the device, and progress flows back to CWA.
+
+> ### ⚠️ `api_endpoint` alone does not route your highlights
+>
+> `api_endpoint` routes **library sync**. Your **highlights and notes** travel over a separate
+> reading-services channel governed by `reading_services_host`, and if that key still points at
+> Kobo, your annotation traffic never reaches your server at all.
+>
+> That matters because the server-side protection against a Kobo deleting its own highlights after
+> a sync (upstream [calibre-web#2610](https://github.com/janeczku/calibre-web/issues/2610)) works by
+> answering that channel — **and it cannot protect a request it never receives.**
+>
+> CWA does advertise the correct host during sync initialization, but a device that already has the
+> key set to Kobo's server has been **observed keeping it**: on a Kobo Clara BW (firmware 4.42),
+> seven syncs with highlights present produced **zero** annotation-path requests until the key was
+> set by hand. Set it explicitly rather than relying on the handshake.
+>
+> **To verify it took**, make a highlight on the device and sync while watching the log. You should
+> see the annotation path, e.g.:
+>
+> ```bash
+> docker logs -f calibre-web 2>&1 | grep -iE "annotations|reading services"
+> ```
+>
+> Silence there means annotations are still going to Kobo, whatever the library sync is doing.
 
 To confirm the device is reaching your server, watch the logs while you sync — you should see requests to `/kobo/<token>/v1/...`:
 
