@@ -1,4 +1,4 @@
-# Kobo highlight loss — two independent root causes, both measured on hardware
+# Kobo highlight loss — four root causes, all measured on hardware
 
 **Date:** 2026-08-15 · **Reporter:** household instance · **Symptom as reported:**
 *"On a Kobo reading a KEPUB, I highlight something, leave the book, come back, and the highlight is gone."*
@@ -10,6 +10,11 @@ against the mounted volume fails with *unable to open database file*).
 ---
 
 ## Cause 1 — highlights never render: a `../` OPF href splits the chapter identity
+
+> **A second, much more common way to produce this same split is [Cause 1b](#cause-1b--a-fragment-anchored-toc-wider-than-the--case)
+> below** — a TOC that anchors *into* a spine document (`chapter.xhtml#frag`). Measured at **92 of
+> 216 books (42.6%)** of one library against 2.3% for the `../` case here, and it accounts for the
+> orphans this note originally attributed to "book no longer on the device".
 
 Kobo identifies a chapter as `<book-uuid>!<opf-dir>!<href>`. A `Bookmark` renders only when
 `Bookmark.ContentID` **exactly equals** a `content` row with `ContentType=9`. No fuzzy matching.
@@ -106,7 +111,7 @@ Bookmark.ContentID     <uuid>!OEBPS!..._541-h-0.htm.xhtml#pgepubid00005
 content ContentType=9  <uuid>!OEBPS!..._541-h-0.htm.xhtml
 ```
 
-Measured on a Clara BW / 4.42, both books converted by current `main`: **1984** — 6 highlights, 6
+Measured on a Clara BW / **4.45.23792**, both books converted by current `main`: **1984** — 6 highlights, 6
 anchored, TOC carries 0 fragments. **The Age of Innocence** — 3 highlights, **0 anchored**, all 42
 TOC links carry a fragment. Both OPF manifests are clean.
 
@@ -135,6 +140,26 @@ for books that already carry highlights, and probably applies to new conversions
 
 **The 810-highlight recovery is independent of all of this** and stands alone: stripping the
 fragment from `Bookmark.ContentID` re-anchors every one, with no conversion change.
+
+### ⚠️ Open: what deleted the local rows is NOT established
+
+After a sync in which the Cause-2 guard fired for The Age of Innocence, that book's **3 local
+`Bookmark` rows were deleted** while 6 rows in 1984 survived with identical row ids. All 3 were
+captured server-side first, with full text, colour and real KoboSpan anchors — so nothing was lost.
+
+Two explanations fit equally, and they are **confounded** here because the deleted set and the
+unanchored set are the same three rows:
+
+1. the guard's refusal did not prevent Nickel deleting the local rows;
+2. Nickel **pruned** them for being unanchored, independent of the download.
+
+🚨 **The two devices point in opposite directions.** On the Libra the *anchored* rows died (87 of
+88, after repair — see Cause 2) and the unanchored survived; on the Clara the reverse. **No model
+explains both. Do not cite either device as evidence that the Cause-2 guard holds or fails.**
+
+**The experiment that separates them, and it is one reading session:** highlight both a
+fragment-TOC book and a clean-TOC book, then sync once. Only the fragmented book losing rows ⇒
+pruning. Both losing rows ⇒ the download path.
 
 **Library scan:** 5 of 216 books (2.3%) carry an escaping OPF href, every one `../nav.xhtml`.
 Perfect correlation on the instance: every book with one has **zero** stored annotations ever;
@@ -198,3 +223,24 @@ It shipped because the gate was dead code in tests: the dispatcher fixture's `_b
 Fixed in #1635 (never discard) and #1638 (normalize contained traversals so `content_id` is correct
 rather than NULL). The validator was *right* that the value was malformed — it was the canary for
 Cause 1 — but it was wrong to charge the user for the discovery.
+
+---
+
+## 🚨 Re-read `.kobo/version` at the moment of measurement
+
+A Kobo **self-updates as soon as it has Wi-Fi**, without being asked. The Clara BW above went from
+4.42.23291 to 4.45.23792 at 20:30:52 in the middle of this session, and several findings were first
+written up against the version read an hour earlier.
+
+**A run attributed to the wrong firmware is worse than a run not done**, because it looks like
+evidence and will be cited as a data point. Read the version file as part of taking the
+measurement, not as part of setting up the device.
+
+Firmware seen so far, for anyone building a behaviour picture:
+
+| firmware | device | what it showed |
+|---|---|---|
+| 4.41 | Clara Colour (upstream reporter) | could not reproduce the Cause-2 deletion at all |
+| 4.42.23291 | Clara BW | first library sync clean — 216 books, 3 pages, terminated |
+| 4.45.23792 | Clara BW | Cause 1b above, and the open deletion question |
+| 4.45.23697 | Libra Colour | Cause 1/2/3 as originally documented |
