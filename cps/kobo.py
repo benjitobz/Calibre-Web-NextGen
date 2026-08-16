@@ -29,6 +29,7 @@ from flask import (
     Response,
     send_from_directory,
     g,
+    has_request_context,
 )
 from .cw_login import current_user
 from werkzeug.datastructures import Headers
@@ -1113,12 +1114,91 @@ def _normalize_cover_uuid(image_id):
     return normalize_cover_uuid(image_id)
 
 
+_REQUESTING_DEVICE_ASPECT_G_KEY = "_kobo_requesting_device_aspect"
+
+
+def _requesting_device_aspect():
+    """Aspect preset for the Kobo making *this* request, or None.
+
+    The padding aspect is a single instance-wide setting, which is wrong the
+    moment a household owns two different Kobos: one of them gets covers shaped
+    for the other. We already record every device's model (`Device.model`, fed
+    by the `x-kobo-devicemodel` header on every authenticated Kobo request), so
+    the information needed to shape covers correctly is present and was simply
+    never consulted.
+
+    Resolution order:
+      1. the `x-kobo-devicemodel` header on this request -- the device speaking
+         for itself, and the only source that is certainly about *this* device;
+      2. the model recorded for this user's Kobo, when the header is absent and
+         the answer is unambiguous (exactly one preset is implied).
+
+    Returns None whenever the answer is not certain -- unknown model, no
+    request context, no user, or more than one candidate device with no header
+    to disambiguate. None means "keep the configured aspect", i.e. exactly
+    today's behaviour, so this can only make covers more correct, never less.
+    """
+    if not has_request_context():
+        return None
+
+    resolved = None
+    try:
+        if hasattr(g, _REQUESTING_DEVICE_ASPECT_G_KEY):
+            return getattr(g, _REQUESTING_DEVICE_ASPECT_G_KEY)
+
+        header_model = request.headers.get("x-kobo-devicemodel")
+        preset = cover_preview.preset_for_device_model(header_model)
+        if preset:
+            resolved = preset
+        else:
+            # No usable header. Fall back to what this user's Kobos told us
+            # earlier, but only when their mapped models imply one preset.
+            # Different presets with no header are ambiguous; the configured
+            # value is the more honest answer.
+            user_id = getattr(current_user, "id", None)
+            if user_id:
+                models = [
+                    row[0]
+                    for row in ub.session.query(ub.Device.model)
+                    .filter(ub.Device.user_id == user_id,
+                            ub.Device.kind == "kobo",
+                            ub.Device.active.is_(True))
+                    .all()
+                ]
+                candidates = {cover_preview.preset_for_device_model(m) for m in models}
+                candidates.discard(None)
+                if len(candidates) == 1:
+                    resolved = candidates.pop()
+    except Exception as exc:
+        # Cover shaping must never be the reason a sync or a cover fetch fails.
+        log.debug("Kobo Sync: could not resolve a per-device cover aspect: %s", exc)
+        resolved = None
+
+    # This function runs once per book on sync-metadata construction. Cache
+    # both a preset and the fail-safe None for this request so an absent or
+    # unrecognised header cannot turn into one Device query per book.
+    try:
+        setattr(g, _REQUESTING_DEVICE_ASPECT_G_KEY, resolved)
+    except Exception as exc:
+        # A cache failure must not make cover shaping fail. Resolution remains
+        # usable for this call; the next call will simply resolve again.
+        log.debug("Kobo Sync: could not cache the per-device cover aspect: %s", exc)
+    return resolved
+
+
 def _current_padding_settings():
-    """Snapshot of the admin's Kobo-padding config. Centralized so the
-    sync-metadata path and the cover-serving path agree on the same hash."""
+    """Snapshot of the admin's Kobo-padding config, with the aspect narrowed to
+    the requesting device when we can identify it.
+
+    Centralized so the sync-metadata path and the cover-serving path agree on
+    the same hash -- and note that agreement is what makes the per-device
+    aspect safe: `settings_hash()` already folds in `target_aspect`, so two
+    devices resolve to two different CoverImageIds and two different cache
+    entries, with no cross-contamination and no extra bookkeeping."""
+    configured = getattr(config, "config_kobo_cover_padding_aspect", "kobo_libra_color") or "kobo_libra_color"
     return cover_preview.CoverPreviewSettings(
         enabled=bool(getattr(config, "config_kobo_cover_padding_enabled", False)),
-        target_aspect=getattr(config, "config_kobo_cover_padding_aspect", "kobo_libra_color") or "kobo_libra_color",
+        target_aspect=_requesting_device_aspect() or configured,
         fill_mode=getattr(config, "config_kobo_cover_padding_fill_mode", "edge_mirror") or "edge_mirror",
         manual_color=getattr(config, "config_kobo_cover_padding_color", "") or "",
     )
