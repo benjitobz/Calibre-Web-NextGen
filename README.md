@@ -523,32 +523,42 @@ Read your CWA library on a Kobo e-reader, with reading progress syncing both way
 1. In Admin → Edit Basic Configuration, turn on **Enable Kobo sync**.
 2. Open your user page (Admin → Users → your user, or your own profile) and click **Create/View** next to **Kobo Sync Token**. The dialog shows the exact `api_endpoint=` line for your account.
 3. Plug the Kobo into a computer over USB and open `.kobo/Kobo/Kobo eReader.conf` in a text editor. Add or replace the `api_endpoint=` line with the one from the dialog, save, and eject the device cleanly.
-4. **In the same file, also set `reading_services_host=` to the same base URL** (no token path — e.g. `reading_services_host=https://books.example.com`). See the warning below for why this matters.
-5. On the Kobo, sync. Books on your Kobo Sync shelves appear on the device, and progress flows back to CWA.
+4. On the Kobo, sync. Books on your Kobo Sync shelves appear on the device, and progress flows back to CWA.
 
-> ### ⚠️ `api_endpoint` alone does not route your highlights
+> ### ℹ️ Where your highlights travel, and how to check
 >
 > `api_endpoint` routes **library sync**. Your **highlights and notes** travel over a separate
-> reading-services channel governed by `reading_services_host`, and if that key still points at
-> Kobo, your annotation traffic never reaches your server at all.
+> reading-services channel governed by a different key, `reading_services_host`.
 >
-> That matters because the server-side protection against a Kobo deleting its own highlights after
-> a sync (upstream [calibre-web#2610](https://github.com/janeczku/calibre-web/issues/2610)) works by
-> answering that channel — **and it cannot protect a request it never receives.**
+> **You should not normally need to touch that key.** CWA advertises the right value during sync
+> initialization, and a device that performs a full initialization against your server adopts it on
+> its own. That is the supported path.
 >
-> CWA does advertise the correct host during sync initialization, but a device that already has the
-> key set to Kobo's server has been **observed keeping it**: on a Kobo Clara BW (firmware 4.42),
-> seven syncs with highlights present produced **zero** annotation-path requests until the key was
-> set by hand. Set it explicitly rather than relying on the handshake.
+> 🚨 **Do not hand-edit `reading_services_host` in the conf file.** Doing so has been measured to
+> break syncing outright on at least one device — a Kobo Clara BW on firmware 4.42.23291 began
+> failing every sync with `FailedSync / WebRequestErr`, and recovered only when the key was set back
+> to `readingservices.kobo.com`. A Kobo Libra Colour on 4.45.23697 is unaffected and routes
+> annotations through CWA happily, so this is **not** universal — but we cannot yet predict which
+> devices tolerate it, and the failure leaves you with a reader that will not sync and no obvious
+> cause.
 >
-> **To verify it took**, make a highlight on the device and sync while watching the log. You should
-> see the annotation path, e.g.:
+> **If your sync has already broken after editing that key:** set `reading_services_host` back to
+> `readingservices.kobo.com`, save, eject cleanly, and sync again.
+>
+> **To see whether annotations are reaching CWA**, make a highlight on the device, sync, and watch:
 >
 > ```bash
 > docker logs -f calibre-web 2>&1 | grep -iE "annotations|reading services"
 > ```
 >
-> Silence there means annotations are still going to Kobo, whatever the library sync is doing.
+> Silence means your highlights are going to Kobo's servers rather than yours. The safe way to
+> change that is to get the device to perform a **full initialization** against CWA — re-generate
+> the Kobo Sync Token and re-pair — rather than editing the key by hand.
+>
+> This matters because CWA's protection against a Kobo deleting its own highlights after a sync
+> (upstream [calibre-web#2610](https://github.com/janeczku/calibre-web/issues/2610)) works by
+> answering that channel, and it cannot protect a request it never receives. Until the device is
+> routing annotations through CWA, treat highlights made on it as device-only and back them up.
 
 To confirm the device is reaching your server, watch the logs while you sync — you should see requests to `/kobo/<token>/v1/...`:
 
