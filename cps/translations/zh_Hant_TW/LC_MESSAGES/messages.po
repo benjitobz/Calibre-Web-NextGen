@@ -334,6 +334,38 @@ msgid ""
 msgstr ""
 "書籍 {0} 不在用戶 {1} 的 last_modified 同步記錄中因此裝置會在下一次接收中同步"
 
+#: cps/admin.py cps/templates/kobo_reconcile.html
+#, python-format
+msgid "Reconcile deleted Kobo books for %(user)s"
+msgstr ""
+
+#: cps/admin.py
+msgid "Choose a KoboReader.sqlite file."
+msgstr ""
+
+#: cps/admin.py
+msgid "The uploaded file is not a SQLite database."
+msgstr ""
+
+#: cps/admin.py
+#, python-format
+msgid "The file is larger than %(max)d MB."
+msgstr ""
+
+#: cps/admin.py
+msgid "This preview is invalid or expired. Upload the device database again."
+msgstr ""
+
+#: cps/admin.py
+msgid "Select at least one book to archive."
+msgstr ""
+
+#: cps/admin.py
+msgid ""
+"The selected books do not match this preview. Upload the device database "
+"again."
+msgstr ""
+
 #: cps/admin.py cps/api/browse.py cps/spa_strings.py
 msgid "Tag not found"
 msgstr "標籤未找到"
@@ -839,13 +871,13 @@ msgid "No file uploaded."
 msgstr "無檔案上傳"
 
 #: cps/annotations.py
+msgid "Uploaded file is not a SQLite database."
+msgstr "上傳的檔案不是 SQLite 資料庫"
+
+#: cps/annotations.py
 #, python-format
 msgid "File exceeds %(max)d MB."
 msgstr "檔案超過 %(max)d MB"
-
-#: cps/annotations.py
-msgid "Uploaded file is not a SQLite database."
-msgstr "上傳的檔案不是 SQLite 資料庫"
 
 #: cps/annotations.py cps/templates/annotations_view.html
 #, python-format
@@ -1350,7 +1382,8 @@ msgstr "已成功更新元數據"
 msgid "Error editing book: {}"
 msgstr "編輯書籍時出錯： {}"
 
-#: cps/editbooks.py cps/updater.py cps/uploader.py
+#: cps/editbooks.py cps/templates/kobo_reconcile.html cps/updater.py
+#: cps/uploader.py
 msgid "Unknown"
 msgstr "未知"
 
@@ -2521,12 +2554,12 @@ msgid "Not rated"
 msgstr "無評價"
 
 #: cps/spa_strings.py cps/templates/book_edit.html
-#: cps/templates/search_form.html
+#: cps/templates/kobo_reconcile.html cps/templates/search_form.html
 msgid "Yes"
 msgstr "確認"
 
 #: cps/spa_strings.py cps/templates/book_edit.html
-#: cps/templates/search_form.html
+#: cps/templates/kobo_reconcile.html cps/templates/search_form.html
 msgid "No"
 msgstr "沒有"
 
@@ -2717,7 +2750,8 @@ msgid "App passwords"
 msgstr "App 密碼"
 
 #: cps/spa_strings.py cps/templates/book_edit.html
-#: cps/templates/cwa_settings.html cps/templates/search_form.html
+#: cps/templates/cwa_settings.html cps/templates/kobo_reconcile.html
+#: cps/templates/search_form.html
 msgid "Author"
 msgstr "作者"
 
@@ -3871,7 +3905,7 @@ msgid "Applying…"
 msgstr ""
 
 #: cps/spa_strings.py cps/templates/book_table.html
-#: cps/templates/duplicates.html
+#: cps/templates/duplicates.html cps/templates/kobo_reconcile.html
 msgid "Archive"
 msgstr "歸檔"
 
@@ -7363,7 +7397,7 @@ msgid ""
 "never stored on the server."
 msgstr ""
 
-#: cps/templates/annotations_import.html
+#: cps/templates/annotations_import.html cps/templates/kobo_reconcile.html
 msgid "KoboReader.sqlite"
 msgstr ""
 
@@ -10472,7 +10506,7 @@ msgstr ""
 msgid "Keep Largest File Size - Keep book with largest total file size"
 msgstr ""
 
-#: cps/templates/duplicates.html
+#: cps/templates/duplicates.html cps/templates/kobo_reconcile.html
 #, fuzzy
 msgid "Preview"
 msgstr "上一個"
@@ -10847,6 +10881,147 @@ msgstr "隱藏書架"
 msgid "Add Series to Shelf"
 msgstr "添加叢書到書架"
 
+#: cps/templates/kobo_reconcile.html
+msgid ""
+"Upload this user's KoboReader.sqlite to find device books whose UUID no "
+"longer exists in this library."
+msgstr ""
+
+#: cps/templates/kobo_reconcile.html
+msgid ""
+"Preview and sample entries are excluded automatically when Kobo marks them "
+"with Accessibility -1."
+msgstr ""
+
+#: cps/templates/kobo_reconcile.html
+msgid ""
+"No genuine Kobo Store purchase was available for validation. Kobo Store "
+"books may appear in the preview, and the evidence shown is not proof that "
+"this server delivered a book."
+msgstr ""
+
+#: cps/templates/kobo_reconcile.html
+msgid ""
+"Select only books you know came from this server. Selecting a book schedules "
+"its device copy for archival on the next sync."
+msgstr ""
+
+#: cps/templates/kobo_reconcile.html
+msgid ""
+"Recorded sync means this server retained a UUID-bearing delivery record. No "
+"does not prove the book was never delivered by an older version."
+msgstr ""
+
+#: cps/templates/kobo_reconcile.html
+msgid "The uploaded database is deleted as soon as the preview is built."
+msgstr ""
+
+#: cps/templates/kobo_reconcile.html
+#, python-format
+msgid ""
+"%(count)d deleted books were scheduled to be archived the next time this "
+"user's Kobo syncs."
+msgstr ""
+
+#: cps/templates/kobo_reconcile.html
+#, python-format
+msgid "%(count)d were already scheduled."
+msgstr ""
+
+#: cps/templates/kobo_reconcile.html
+#, python-format
+msgid "%(count)d are currently in the library and were not changed."
+msgstr ""
+
+#: cps/templates/kobo_reconcile.html
+#, python-format
+msgid "%(count)d could not be verified and were not changed."
+msgstr ""
+
+#: cps/templates/kobo_reconcile.html
+#, python-format
+msgid "%(count)d device books are not in the library and require your review."
+msgstr ""
+
+#: cps/templates/kobo_reconcile.html
+msgid "Device title"
+msgstr ""
+
+#: cps/templates/kobo_reconcile.html
+msgid "ISBN"
+msgstr ""
+
+#: cps/templates/kobo_reconcile.html
+msgid "Recorded sync"
+msgstr ""
+
+#: cps/templates/kobo_reconcile.html
+msgid "File size"
+msgstr ""
+
+#: cps/templates/kobo_reconcile.html
+msgid "Book UUID"
+msgstr ""
+
+#: cps/templates/kobo_reconcile.html
+#, python-format
+msgid "Archive %(title)s"
+msgstr ""
+
+#: cps/templates/kobo_reconcile.html
+#, python-format
+msgid "%(count)d bytes"
+msgstr ""
+
+#: cps/templates/kobo_reconcile.html
+msgid "Archive selected books on the next Kobo sync"
+msgstr ""
+
+#: cps/templates/kobo_reconcile.html
+msgid "Excluded from this action"
+msgstr ""
+
+#: cps/templates/kobo_reconcile.html
+#, python-format
+msgid "%(count)d preview or sample entries were excluded."
+msgstr ""
+
+#: cps/templates/kobo_reconcile.html
+#, python-format
+msgid ""
+"%(count)d device entries could not be classified because Accessibility was "
+"unavailable."
+msgstr ""
+
+#: cps/templates/kobo_reconcile.html
+#, python-format
+msgid "%(count)d device volume rows had no usable UUID."
+msgstr ""
+
+#: cps/templates/kobo_reconcile.html
+#, python-format
+msgid "%(count)d books are still in the library."
+msgstr ""
+
+#: cps/templates/kobo_reconcile.html
+#, python-format
+msgid "%(count)d library lookups could not be completed."
+msgstr ""
+
+#: cps/templates/kobo_reconcile.html
+#, python-format
+msgid "%(count)d books were already scheduled for archival."
+msgstr ""
+
+#: cps/templates/kobo_reconcile.html
+#, python-format
+msgid "Maximum file size: %(max)d MB."
+msgstr ""
+
+#: cps/templates/kobo_reconcile.html
+msgid "Build preview"
+msgstr ""
+
 #: cps/templates/kosync_plugin.html
 msgid "KOReader Sync is disabled."
 msgstr "KOReader 同步已禁用"
@@ -11186,11 +11361,10 @@ msgstr "，包括從硬碟中"
 
 #: cps/templates/modal_dialogs.html
 msgid ""
-"Deleting this book also tries to archive its copy on paired Kobo devices the"
-" next time they sync. If that update cannot be recorded, the book may remain"
-" on a device."
+"Deleting this book also tries to archive its copy on paired Kobo devices the "
+"next time they sync. If that update cannot be recorded, the book may remain "
+"on a device."
 msgstr ""
-
 
 #: cps/templates/modal_dialogs.html
 msgid "Choose File Location"
@@ -11974,6 +12148,16 @@ msgid ""
 msgstr ""
 
 #: cps/templates/user_edit.html
+msgid "Reconcile books deleted before Kobo archival tracking"
+msgstr ""
+
+#: cps/templates/user_edit.html
+msgid ""
+"Upload this user's KoboReader.sqlite, then select only books you know this "
+"server delivered and that are no longer in the library."
+msgstr ""
+
+#: cps/templates/user_edit.html
 msgid "Sync only books in selected shelves with Kobo"
 msgstr "僅同步所選書架中的書籍到 Kobo"
 
@@ -12495,6 +12679,6 @@ msgstr "顯示已讀/未讀選擇"
 #~ msgstr "Kobo 重要說明：被刪除的書籍將保留在任何配對的 Kobo 設備上。"
 
 #~ msgid ""
-#~ "Books must first be archived and the device synced before a book can safely "
-#~ "be deleted."
+#~ "Books must first be archived and the device synced before a book can "
+#~ "safely be deleted."
 #~ msgstr "必須先將書籍存檔並同步設備，然後才能安全地刪除書籍。"

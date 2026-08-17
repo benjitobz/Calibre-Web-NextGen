@@ -351,6 +351,38 @@ msgid ""
 "the device will receive on next sync"
 msgstr ""
 
+#: cps/admin.py cps/templates/kobo_reconcile.html
+#, python-format
+msgid "Reconcile deleted Kobo books for %(user)s"
+msgstr ""
+
+#: cps/admin.py
+msgid "Choose a KoboReader.sqlite file."
+msgstr ""
+
+#: cps/admin.py
+msgid "The uploaded file is not a SQLite database."
+msgstr ""
+
+#: cps/admin.py
+#, python-format
+msgid "The file is larger than %(max)d MB."
+msgstr ""
+
+#: cps/admin.py
+msgid "This preview is invalid or expired. Upload the device database again."
+msgstr ""
+
+#: cps/admin.py
+msgid "Select at least one book to archive."
+msgstr ""
+
+#: cps/admin.py
+msgid ""
+"The selected books do not match this preview. Upload the device database "
+"again."
+msgstr ""
+
 #: cps/admin.py cps/api/browse.py cps/spa_strings.py
 msgid "Tag not found"
 msgstr "Címke nem található"
@@ -905,12 +937,12 @@ msgid "No file uploaded."
 msgstr ""
 
 #: cps/annotations.py
-#, python-format
-msgid "File exceeds %(max)d MB."
+msgid "Uploaded file is not a SQLite database."
 msgstr ""
 
 #: cps/annotations.py
-msgid "Uploaded file is not a SQLite database."
+#, python-format
+msgid "File exceeds %(max)d MB."
 msgstr ""
 
 #: cps/annotations.py cps/templates/annotations_view.html
@@ -1432,7 +1464,8 @@ msgstr "A metaadatok sikeresen frissültek"
 msgid "Error editing book: {}"
 msgstr "Hiba a könyv szerkesztésénél: {}"
 
-#: cps/editbooks.py cps/updater.py cps/uploader.py
+#: cps/editbooks.py cps/templates/kobo_reconcile.html cps/updater.py
+#: cps/uploader.py
 msgid "Unknown"
 msgstr "Ismeretlen"
 
@@ -2637,12 +2670,12 @@ msgid "Not rated"
 msgstr ""
 
 #: cps/spa_strings.py cps/templates/book_edit.html
-#: cps/templates/search_form.html
+#: cps/templates/kobo_reconcile.html cps/templates/search_form.html
 msgid "Yes"
 msgstr "Igen"
 
 #: cps/spa_strings.py cps/templates/book_edit.html
-#: cps/templates/search_form.html
+#: cps/templates/kobo_reconcile.html cps/templates/search_form.html
 msgid "No"
 msgstr "Nem"
 
@@ -2833,7 +2866,8 @@ msgid "App passwords"
 msgstr ""
 
 #: cps/spa_strings.py cps/templates/book_edit.html
-#: cps/templates/cwa_settings.html cps/templates/search_form.html
+#: cps/templates/cwa_settings.html cps/templates/kobo_reconcile.html
+#: cps/templates/search_form.html
 msgid "Author"
 msgstr "Szerző"
 
@@ -3985,7 +4019,7 @@ msgid "Applying…"
 msgstr "Frissítés…"
 
 #: cps/spa_strings.py cps/templates/book_table.html
-#: cps/templates/duplicates.html
+#: cps/templates/duplicates.html cps/templates/kobo_reconcile.html
 msgid "Archive"
 msgstr "Archiválás"
 
@@ -7492,7 +7526,7 @@ msgid ""
 "never stored on the server."
 msgstr ""
 
-#: cps/templates/annotations_import.html
+#: cps/templates/annotations_import.html cps/templates/kobo_reconcile.html
 msgid "KoboReader.sqlite"
 msgstr ""
 
@@ -10793,7 +10827,7 @@ msgstr ""
 "Legnagyobb fájlméret megtartása – azt a könyvet tartja meg, amelynek a "
 "teljes fájlmérete a legnagyobb"
 
-#: cps/templates/duplicates.html
+#: cps/templates/duplicates.html cps/templates/kobo_reconcile.html
 msgid "Preview"
 msgstr "Előnézet"
 
@@ -11180,6 +11214,147 @@ msgstr "Polc elrejtése"
 msgid "Add Series to Shelf"
 msgstr "Hozzáadás polchoz"
 
+#: cps/templates/kobo_reconcile.html
+msgid ""
+"Upload this user's KoboReader.sqlite to find device books whose UUID no "
+"longer exists in this library."
+msgstr ""
+
+#: cps/templates/kobo_reconcile.html
+msgid ""
+"Preview and sample entries are excluded automatically when Kobo marks them "
+"with Accessibility -1."
+msgstr ""
+
+#: cps/templates/kobo_reconcile.html
+msgid ""
+"No genuine Kobo Store purchase was available for validation. Kobo Store "
+"books may appear in the preview, and the evidence shown is not proof that "
+"this server delivered a book."
+msgstr ""
+
+#: cps/templates/kobo_reconcile.html
+msgid ""
+"Select only books you know came from this server. Selecting a book schedules "
+"its device copy for archival on the next sync."
+msgstr ""
+
+#: cps/templates/kobo_reconcile.html
+msgid ""
+"Recorded sync means this server retained a UUID-bearing delivery record. No "
+"does not prove the book was never delivered by an older version."
+msgstr ""
+
+#: cps/templates/kobo_reconcile.html
+msgid "The uploaded database is deleted as soon as the preview is built."
+msgstr ""
+
+#: cps/templates/kobo_reconcile.html
+#, python-format
+msgid ""
+"%(count)d deleted books were scheduled to be archived the next time this "
+"user's Kobo syncs."
+msgstr ""
+
+#: cps/templates/kobo_reconcile.html
+#, python-format
+msgid "%(count)d were already scheduled."
+msgstr ""
+
+#: cps/templates/kobo_reconcile.html
+#, python-format
+msgid "%(count)d are currently in the library and were not changed."
+msgstr ""
+
+#: cps/templates/kobo_reconcile.html
+#, python-format
+msgid "%(count)d could not be verified and were not changed."
+msgstr ""
+
+#: cps/templates/kobo_reconcile.html
+#, python-format
+msgid "%(count)d device books are not in the library and require your review."
+msgstr ""
+
+#: cps/templates/kobo_reconcile.html
+msgid "Device title"
+msgstr ""
+
+#: cps/templates/kobo_reconcile.html
+msgid "ISBN"
+msgstr ""
+
+#: cps/templates/kobo_reconcile.html
+msgid "Recorded sync"
+msgstr ""
+
+#: cps/templates/kobo_reconcile.html
+msgid "File size"
+msgstr ""
+
+#: cps/templates/kobo_reconcile.html
+msgid "Book UUID"
+msgstr ""
+
+#: cps/templates/kobo_reconcile.html
+#, python-format
+msgid "Archive %(title)s"
+msgstr ""
+
+#: cps/templates/kobo_reconcile.html
+#, python-format
+msgid "%(count)d bytes"
+msgstr ""
+
+#: cps/templates/kobo_reconcile.html
+msgid "Archive selected books on the next Kobo sync"
+msgstr ""
+
+#: cps/templates/kobo_reconcile.html
+msgid "Excluded from this action"
+msgstr ""
+
+#: cps/templates/kobo_reconcile.html
+#, python-format
+msgid "%(count)d preview or sample entries were excluded."
+msgstr ""
+
+#: cps/templates/kobo_reconcile.html
+#, python-format
+msgid ""
+"%(count)d device entries could not be classified because Accessibility was "
+"unavailable."
+msgstr ""
+
+#: cps/templates/kobo_reconcile.html
+#, python-format
+msgid "%(count)d device volume rows had no usable UUID."
+msgstr ""
+
+#: cps/templates/kobo_reconcile.html
+#, python-format
+msgid "%(count)d books are still in the library."
+msgstr ""
+
+#: cps/templates/kobo_reconcile.html
+#, python-format
+msgid "%(count)d library lookups could not be completed."
+msgstr ""
+
+#: cps/templates/kobo_reconcile.html
+#, python-format
+msgid "%(count)d books were already scheduled for archival."
+msgstr ""
+
+#: cps/templates/kobo_reconcile.html
+#, python-format
+msgid "Maximum file size: %(max)d MB."
+msgstr ""
+
+#: cps/templates/kobo_reconcile.html
+msgid "Build preview"
+msgstr ""
+
 #: cps/templates/kosync_plugin.html
 msgid "KOReader Sync is disabled."
 msgstr "KOReader szinkronizáció letiltva."
@@ -11531,11 +11706,10 @@ msgstr " és a merevlemezről"
 
 #: cps/templates/modal_dialogs.html
 msgid ""
-"Deleting this book also tries to archive its copy on paired Kobo devices the"
-" next time they sync. If that update cannot be recorded, the book may remain"
-" on a device."
+"Deleting this book also tries to archive its copy on paired Kobo devices the "
+"next time they sync. If that update cannot be recorded, the book may remain "
+"on a device."
 msgstr ""
-
 
 #: cps/templates/modal_dialogs.html
 msgid "Choose File Location"
@@ -12342,6 +12516,16 @@ msgstr ""
 msgid ""
 "Clears the sync record for one book so the device re-downloads it on next "
 "sync. Find the book ID in the book detail page URL."
+msgstr ""
+
+#: cps/templates/user_edit.html
+msgid "Reconcile books deleted before Kobo archival tracking"
+msgstr ""
+
+#: cps/templates/user_edit.html
+msgid ""
+"Upload this user's KoboReader.sqlite, then select only books you know this "
+"server delivered and that are no longer in the library."
 msgstr ""
 
 #: cps/templates/user_edit.html
@@ -13200,8 +13384,8 @@ msgstr "Olvasott/olvasatlan mutatása"
 #~ "párosított Kobo eszközön."
 
 #~ msgid ""
-#~ "Books must first be archived and the device synced before a book can safely "
-#~ "be deleted."
+#~ "Books must first be archived and the device synced before a book can "
+#~ "safely be deleted."
 #~ msgstr ""
-#~ "A könyvek archiválása és az eszköz szinkronizálása szükséges ahhoz, hogy egy "
-#~ "könyvet biztonságosan törölhessen."
+#~ "A könyvek archiválása és az eszköz szinkronizálása szükséges ahhoz, hogy "
+#~ "egy könyvet biztonságosan törölhessen."
