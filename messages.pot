@@ -6907,6 +6907,12 @@ msgstr ""
 msgid "%(count)d KEPUB repair(s) failed"
 msgstr ""
 
+#: cps/tasks/kepub_package_repair.py
+msgid ""
+"KEPUB repair finished, but the completion marker could not be saved; the "
+"scan will run again"
+msgstr ""
+
 #: cps/tasks/mail.py
 msgid "E-mail"
 msgstr ""
