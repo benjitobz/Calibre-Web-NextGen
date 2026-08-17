@@ -16,6 +16,8 @@ is for things you can see or feel when running the app.
 
 ## [Unreleased]
 
+## [v4.1.38] - 2026-08-17
+
 ### Added
 
 - **A Kobo two-way annotation sync opt-in appears in settings, switched off, and

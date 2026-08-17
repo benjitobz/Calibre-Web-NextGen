@@ -56,6 +56,24 @@ export interface WhatsNewRelease {
 /** Newest release first. The `whats-new-populate` skill prepends here. */
 export const WHATS_NEW: WhatsNewRelease[] = [
   {
+    version: 'v4.1.38',
+    date: '2026-08-17',
+    items: [
+      {
+        title: 'Kobo two-way annotation sync begins with a safe opt-in',
+        body: 'Settings now include separate server-wide and per-user opt-ins for future two-way Kobo highlight sync, both switched off by default. This first stage only stores recovery evidence: turning the controls on does not change anything sent to a Kobo yet.',
+        category: 'Sync',
+        link: { to: '/admin', label: 'Open administration' },
+      },
+      {
+        title: 'An unsupported KEPUB no longer restarts the whole repair scan',
+        body: 'A KEPUB that is too large to repair or has an older unsupported structure could make every server restart scan the entire library again, causing high CPU, database lock errors, and repeated crashes. The repair task now records that refusal once, reports the book as unsupported, and finishes normally; genuine read failures are still retried.',
+        category: 'Library',
+        link: { to: '/tasks', label: 'Open Tasks' },
+      },
+    ],
+  },
+  {
     version: 'v4.1.37',
     date: '2026-08-17',
     items: [
