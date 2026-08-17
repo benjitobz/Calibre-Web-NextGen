@@ -14,7 +14,9 @@ These routes are at the root level: /api/v3/..., /api/UserStorage/...
 """
 
 import json
+import hashlib
 import os
+import secrets
 import zipfile
 import re
 from datetime import datetime, timezone
@@ -55,9 +57,10 @@ def redact_headers(headers):
     mutating the original headers object.
     """
     redacted = dict(headers)
-    for sensitive_header in ['Authorization', 'x-kobo-userkey', 'Cookie', 'Set-Cookie']:
-        if sensitive_header in redacted:
-            redacted[sensitive_header] = '***REDACTED***'
+    sensitive_headers = {'authorization', 'x-kobo-userkey', 'cookie', 'set-cookie'}
+    for header_name in redacted:
+        if header_name.lower() in sensitive_headers:
+            redacted[header_name] = '***REDACTED***'
     return redacted
 
 
@@ -68,7 +71,9 @@ def proxy_to_kobo_reading_services(data=None):
         if request.query_string:
             kobo_url += "?" + request.query_string.decode('utf-8')
         
-        log.debug(f"Proxying {request.method} to Kobo Reading Services: {kobo_url}")
+        # Query values can carry opaque tokens.  The method + route prove the
+        # proxy leg without putting credentials in logs.
+        log.debug("Proxying %s to Kobo Reading Services path=%s", request.method, request.path)
         
         # Forward headers (including Authorization, x-kobo-userkey, etc.)
         outgoing_headers = Headers(request.headers)
@@ -90,7 +95,11 @@ def proxy_to_kobo_reading_services(data=None):
         
         if readingservices_response.status_code >= 400:
             log.warning(f"Kobo Reading Services error {readingservices_response.status_code}")
-            log.warning(f"Response body: {readingservices_response.text[:5000]}")
+            log.warning(
+                "Kobo error response bytes=%d sha256=%s",
+                len(readingservices_response.content),
+                hashlib.sha256(readingservices_response.content).hexdigest(),
+            )
             log.warning(f"Response headers: {redact_headers(dict(readingservices_response.headers))}")
         
         response_headers = readingservices_response.headers
@@ -252,28 +261,20 @@ def get_book_identifiers(book):
 
 
 def log_annotation_data(entitlement_id, method, data=None):
-    """Log annotation data and link to book identifiers."""
-    log.debug(f"ANNOTATION {method}")
-    log.debug(f"Entitlement ID: {entitlement_id}")
-    log.debug(f"User: {current_user.name}")
-    
-    # Try to link to book
+    """Log structural annotation telemetry without user content or secrets."""
     book = get_book_by_entitlement_id(entitlement_id)
-    if book:
-        log.debug(f"Book: {book.title}")
-        log.debug(f"Book ID: {book.id}")
-        
-        # Log identifiers
-        if book.identifiers:
-            log.debug("Identifiers:")
-            for identifier in book.identifiers:
-                log.debug(f"  {identifier.type}: {identifier.val}")
-    else:
-        log.warning(f"Could not find book for entitlement ID: {entitlement_id}")
-    
-    if data:
-        log.debug("Annotation Data:")
-        log.debug(json.dumps(data, indent=2))
+    updated_count = 0
+    deleted_count = 0
+    if isinstance(data, dict):
+        updated = data.get("updatedAnnotations")
+        deleted = data.get("deletedAnnotationIds")
+        updated_count = len(updated) if isinstance(updated, list) else 0
+        deleted_count = len(deleted) if isinstance(deleted, list) else 0
+    log.debug(
+        "ANNOTATION method=%s user_id=%s book_id=%s updated_count=%s deleted_count=%s",
+        method, getattr(current_user, "id", None), getattr(book, "id", None),
+        updated_count, deleted_count,
+    )
 
 
 class EpubProgressCalculator:
@@ -452,6 +453,7 @@ def handle_annotations(entitlement_id):
     """
     if request.method == "PATCH":
         try:
+            raw_body = request.get_data(cache=True)
             data = request.get_json(silent=True)
             if not isinstance(data, dict):
                 log.warning(
@@ -489,9 +491,41 @@ def handle_annotations(entitlement_id):
                         entitlement_id,
                     )
                 elif updated:
+                    trace_id = secrets.token_hex(8)
+                    raw_materializations = None
+                    try:
+                        from cps.services.kobo_annotation_capture import (
+                            extract_updated_annotation_materializations,
+                        )
+                        raw_materializations = extract_updated_annotation_materializations(raw_body)
+                        from cps.services import kobo_annotation_stage0
+                        kobo_annotation_stage0.record_event(
+                            "raw_capture", "extracted", trace_id=trace_id,
+                            user_id=getattr(current_user, "id", None), book_id=book.id,
+                            annotation_count=len(raw_materializations),
+                        )
+                    except Exception:
+                        log.warning(
+                            "Kobo raw lexical capture failed trace_id=%s user_id=%s book_id=%s",
+                            trace_id, getattr(current_user, "id", None), book.id,
+                            exc_info=True,
+                        )
+                        from cps.services import kobo_annotation_stage0
+                        kobo_annotation_stage0.record_event(
+                            "raw_capture", "failed", trace_id=trace_id,
+                            user_id=getattr(current_user, "id", None), book_id=book.id,
+                            annotation_count=len(updated),
+                        )
+                    dispatch_kwargs = {
+                        "origin_device_id": getattr(g, "annotation_origin_device_id", None),
+                    }
+                    if raw_materializations is not None:
+                        dispatch_kwargs.update(
+                            raw_materializations=raw_materializations,
+                            trace_id=trace_id,
+                        )
                     annotation_sync.dispatch_annotation_sync(
-                        updated, book, current_user,
-                        origin_device_id=getattr(g, "annotation_origin_device_id", None),
+                        updated, book, current_user, **dispatch_kwargs,
                     )
                 if deleted is not None and not isinstance(deleted, list):
                     log.warning(

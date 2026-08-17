@@ -670,6 +670,10 @@ def configuration():
                                  config=config,
                                  provider=oauth_bb.oauthblueprints,
                                  feature_support=feature_support,
+                                 kobo_two_way_emergency_disabled=(
+                                     os.environ.get("CWNG_KOBO_TWO_WAY_ANNOTATIONS", "").strip().lower()
+                                     in {"0", "false", "off", "no"}
+                                 ),
                                  hardcover_token_status=hardcover_status,
                                  title=_("Basic Configuration"), page="config")
 
@@ -2806,6 +2810,7 @@ def _configuration_update_helper():
         _config_checkbox_int(to_save, "config_register_email")
         prev_kobo_sync = bool(config.config_kobo_sync)
         reboot_required |= _config_checkbox_int(to_save, "config_kobo_sync")
+        _config_checkbox_int(to_save, "config_kobo_two_way_annotation_sync")
         _config_int(to_save, "config_external_port")
         _config_checkbox_int(to_save, "config_kobo_proxy")
         _config_checkbox(to_save, "config_kobo_prefer_kepub")
@@ -3088,6 +3093,9 @@ def _handle_new_user(to_save, content, languages, translations, kobo_support):
         content.denied_column_value = config.config_denied_column_value
         # No default value for kobo sync shelf setting
         content.kobo_only_shelves_sync = to_save.get("kobo_only_shelves_sync", 0) == "on"
+        content.kobo_two_way_annotation_sync = (
+            to_save.get("kobo_two_way_annotation_sync", 0) == "on"
+        )
         content.opds_only_shelves_sync = to_save.get("opds_only_shelves_sync", 0) == "on"
         ub.session.add(content)
         ub.session.commit()
@@ -3168,6 +3176,10 @@ def _handle_edit_user(to_save, content, languages, translations, kobo_support):
         # the setting, so the two cannot disagree.
         kobo_sync_status.update_on_sync_shelfs(content.id)
     content.opds_only_shelves_sync = int(to_save.get("opds_only_shelves_sync") == "on") or 0
+    if "kobo_two_way_annotation_sync_present" in to_save:
+        content.kobo_two_way_annotation_sync = int(
+            to_save.get("kobo_two_way_annotation_sync") == "on"
+        ) or 0
     # Auto-send and metadata fetch settings
     content.auto_send_enabled = to_save.get("auto_send_enabled") == "on"
     content.auto_metadata_fetch = to_save.get("auto_metadata_fetch") == "on"

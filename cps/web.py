@@ -2894,6 +2894,10 @@ def change_profile(kobo_support, hardcover_support, local_oauth_check, oauth_sta
             # with the setting, so the two cannot disagree.
             kobo_sync_status.update_on_sync_shelfs(current_user.id)
         current_user.opds_only_shelves_sync = int(to_save.get("opds_only_shelves_sync") == "on") or 0
+        if "kobo_two_way_annotation_sync_present" in to_save:
+            current_user.kobo_two_way_annotation_sync = int(
+                to_save.get("kobo_two_way_annotation_sync") == "on"
+            ) or 0
         current_user.hardcover_token = to_save.get("hardcover_token","" ).replace("Bearer ","" ) or None
         # Auto-send and metadata fetch settings
         current_user.auto_send_enabled = to_save.get("auto_send_enabled") == "on"

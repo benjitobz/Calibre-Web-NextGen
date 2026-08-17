@@ -219,14 +219,59 @@ def purge_user_book_data(book_id=None, user_id=None, session=None,
             query = query.filter(model.user_id == user_id)
         return query
 
-    # Annotations: delete sync-target children first (bulk deletes bypass
-    # ORM cascade, and SQLite FK enforcement can't be relied on).
+    # Annotations: delete all children first (bulk deletes bypass ORM cascade,
+    # and SQLite FK enforcement can't be relied on). Raw materializations can
+    # contain verbatim annotation text and must leave before ids can recycle.
     ann_ids = _scoped(session.query(ub.Annotation.id), ub.Annotation)
+    session.query(ub.KoboAnnotationMaterialization).filter(
+        ub.KoboAnnotationMaterialization.annotation_id.in_(
+            ann_ids.scalar_subquery())).delete(synchronize_session=False)
     session.query(ub.AnnotationSyncTarget).filter(
         ub.AnnotationSyncTarget.annotation_id.in_(
             ann_ids.scalar_subquery())).delete(synchronize_session=False)
     _scoped(session.query(ub.Annotation), ub.Annotation).delete(
         synchronize_session=False)
+
+    # Stage 0 book authority and immutable seed/page evidence all belong to
+    # the same user/book scope. Children go first because their compressed
+    # payloads may contain annotation data and FK cascades are not active.
+    book_state_ids = _scoped(
+        session.query(ub.KoboAnnotationBookState.id),
+        ub.KoboAnnotationBookState,
+    )
+    capture_ids = session.query(ub.KoboAnnotationSeedCapture.id).filter(
+        ub.KoboAnnotationSeedCapture.book_state_id.in_(
+            book_state_ids.scalar_subquery())
+    )
+    session.query(ub.KoboAnnotationSeedCapturePage).filter(
+        ub.KoboAnnotationSeedCapturePage.seed_capture_id.in_(
+            capture_ids.scalar_subquery())
+    ).delete(synchronize_session=False)
+    snapshot_ids = session.query(ub.KoboAnnotationPageSnapshot.snapshot_id).filter(
+        ub.KoboAnnotationPageSnapshot.book_state_id.in_(
+            book_state_ids.scalar_subquery())
+    )
+    session.query(ub.KoboAnnotationPageCursor).filter(
+        ub.KoboAnnotationPageCursor.snapshot_id.in_(
+            snapshot_ids.scalar_subquery())
+    ).delete(synchronize_session=False)
+    for child in (
+        ub.KoboDeviceBookAnnotationState,
+        ub.KoboAnnotationSeedCapture,
+        ub.KoboAnnotationPageSnapshot,
+    ):
+        session.query(child).filter(
+            child.book_state_id.in_(book_state_ids.scalar_subquery())
+        ).delete(synchronize_session=False)
+    _scoped(
+        session.query(ub.KoboAnnotationBookState), ub.KoboAnnotationBookState,
+    ).delete(synchronize_session=False)
+    # This durable guard is intentionally removed only by a complete privacy
+    # or book purge; deleting mutable authority state alone retains it.
+    _scoped(
+        session.query(ub.KoboOpaqueContentPresentGuard),
+        ub.KoboOpaqueContentPresentGuard,
+    ).delete(synchronize_session=False)
 
     # Kobo reading state + children.
     krs_ids = _scoped(session.query(ub.KoboReadingState.id), ub.KoboReadingState)

@@ -126,6 +126,8 @@ kobo_annotation_materialization
 
 **[ASSUMED — RECOMMENDATION]** The ingest parser must operate on `request.get_data()` or the upstream response bytes and retain lexical byte spans. Calling `request.get_json()` and then `json.dumps()` cannot guarantee byte-identical replay because it may change object order, whitespace, Unicode escape spelling, and slash/dot escaping.
 
+**[OBSERVED — STAGE 0 IMPLEMENTATION]** The lexical scanner rejects duplicate JSON object keys before storing any sidecar. In particular, duplicate `updatedAnnotations`, `id`, or `location` members enter the existing logged best-effort capture-failure path. Python's decoder otherwise keeps the last duplicate while a first-match lexical scan can keep different bytes; accepting either representation would invalidate the parsed/raw agreement claim.
+
 **[ASSUMED — RECOMMENDATION]** On output, the serializer emits the stored `raw_location_json` bytes directly as the `location` value. It may rebuild the surrounding annotation object after a valid server edit, but a test must assert that the emitted byte range for `location` is identical to the stored byte range.
 
 **[ASSUMED — RECOMMENDATION]** `raw_annotation_json` is the replay template and forward-compatibility record; the parsed `Annotation` columns remain the query/edit/render representation. A materialization update and its parsed-column update occur in one transaction, and the transaction aborts if the two representations fail invariant checks.
@@ -173,6 +175,8 @@ kobo_annotation_book_state
 
 **[ASSUMED — RECOMMENDATION]** `generation_id` is a random UUID created with the state row and never reused after a destructive reset/reseed. It prevents an old device ETag from accidentally matching a new authority history whose integer revision restarted.
 
+**[OBSERVED — STAGE 0 IMPLEMENTATION]** `kobo_annotation_book_state.content_id` means the bare Kobo book content ID only after live wire/entitlement evidence binds it. `annotation.content_id` is chapter-scoped (`book!!chapter`) and must never be copied into this field. Legacy migration rows therefore use a bounded `legacy-book:<book_id>` sentinel that is explicitly not a wire lookup key. Stage 1 must resolve the wire content ID to a library `book_id`, fall back to the existing `(user_id, book_id)` row, and atomically replace its sentinel; it must not insert a second row and collide with `UNIQUE(user_id, book_id)`.
+
 **[ASSUMED — RECOMMENDATION]** `authority_revision` advances atomically with every accepted member change or tombstone affecting the served set. `set_digest` is SHA-256 over the ordered, exact outgoing annotation objects and is an integrity check, not the protocol ETag.
 
 **[ASSUMED — RECOMMENDATION]** `authority_status='authoritative'` is a positive assertion that CWNG knows the complete set, including the complete empty set. No other status may result in a successful annotation GET.
@@ -186,6 +190,18 @@ kobo_annotation_book_state
 **[ASSUMED — RECOMMENDATION]** One opaque row blocks authoring of the entire Kobo set for that book, including edits or deletions of otherwise ordinary highlights and notes. The implementation must not scope the prohibition only to the markup row.
 
 **[ASSUMED — RECOMMENDATION]** `present` is sticky: ordinary cloud seeds, PATCH deltas, omission from a later response, type changes, or an empty attachments observation cannot downgrade it. A future explicit recovery procedure would require a fresh complete device-database audit plus a matching accepted cloud seed and is outside this first implementation.
+
+**[OBSERVED — STAGE 0 IMPLEMENTATION]** Sticky knowledge is stored independently of the mutable authority row:
+
+```text
+kobo_opaque_content_present_guard
+  user_id          INTEGER NOT NULL REFERENCES user(id) ON DELETE CASCADE
+  book_id          INTEGER NOT NULL
+  first_observed_at DATETIME NOT NULL
+  PRIMARY KEY(user_id, book_id)
+```
+
+**[OBSERVED — STAGE 0 IMPLEMENTATION]** SQLite triggers reject a direct `present -> unknown|absent` update and reject an `unknown|absent` insert whenever this guard exists. Inserts or updates to `present` create the guard. Deleting and reinserting mutable authority state therefore cannot erase the observation, and `INSERT OR REPLACE` cannot bypass it. A complete user/book privacy purge intentionally deletes both authority state and the guard; deleting authority state alone retains the guard.
 
 **[ASSUMED — RECOMMENDATION]** `absent` requires set-level evidence, not a spot check: either a contemporaneous database audit of the same device whose declared ETag exactly matches the accepted cloud seed, with the same annotation IDs and NULL `ExtraAnnotationData` on every row for that book; or, after the carrier experiment succeeds, an accepted complete seed in which every annotation has empty attachments. An audit of a different/stale device or a subset of rows leaves status `unknown`.
 
@@ -330,17 +346,23 @@ annotation_revision
 
 **[ASSUMED — RECOMMENDATION]** Do not backfill `kobo_annotation_materialization` from parsed path columns. Reconstructing JSON would lose the observed escape spelling, optional-field presence, property order, `attachments`, and exact timestamp spelling.
 
-**[ASSUMED — RECOMMENDATION]** Insert one `kobo_annotation_book_state` for every distinct existing `(user_id, book_id)` with status `unseeded`, revision `0`, no digest, no ETag, and `opaque_content_status='unknown'`. Existing annotations remain fully usable in the web UI but are not declared a complete Kobo set or safe for authoring.
+**[OBSERVED — STAGE 0 IMPLEMENTATION]** Insert one `kobo_annotation_book_state` for every distinct existing non-NULL `(user_id, book_id)` whose user still exists, with status `unseeded`, revision `0`, no digest, no ETag, `opaque_content_status='unknown'`, and a non-wire `legacy-book:<book_id>` content sentinel. NULL-key and deleted-user groups are left unchanged and logged by count. Existing annotations remain fully usable in the web UI but are not declared a complete Kobo set or safe for authoring.
 
 **[ASSUMED — RECOMMENDATION]** Leave `last_editor_device_id` NULL for historical rows. `source='kobo'` identifies an ingest protocol, not a specific physical actor.
 
 **[ASSUMED — RECOMMENDATION]** Before any two-way implementation is enabled, increment the annotation backup format to schema version 3 and include every generic annotation column plus the Kobo materialization and book-authority metadata. Add a synchronous pre-replacement backup that records empty sets; the current asynchronous rolling backup is supplementary, not the transaction precondition.
 
-**[ASSUMED — RECOMMENDATION]** A schema-capability check runs before route ownership logic. If any required table, column, or index is missing, the instance-wide two-way feature evaluates false and owned books stay behind the current `checkforchanges -> []` containment behavior.
+**[OBSERVED — STAGE 0 IMPLEMENTATION]** A schema-capability check runs before route ownership logic. If any required table, column, index, sticky-evidence table, or sticky trigger is missing, the instance-wide two-way feature evaluates false and owned books stay behind the current `checkforchanges -> []` containment behavior. Fresh `create_all`, upgrade migration, and the end of the full startup migration sequence all install/heal the triggers so a later table rebuild cannot leave the same boot certified as capable without them.
 
-**[ASSUMED — RECOMMENDATION]** If the startup migration cannot complete or its postconditions fail, startup should fail before serving requests. If an older binary is rolled back over the additive schema, it ignores the new tables/columns and continues to use the existing annotation paths; it must not drop them automatically.
+**[OBSERVED — STAGE 0 IMPLEMENTATION]** Startup raises for a Stage 0 DDL failure, an annotation row-count change, a newly created Stage 0 foreign-key violation, or a newly inserted authority row that is not `unseeded/unknown`. If an older binary is rolled back over the additive schema, it ignores the new tables/columns and continues to use the existing annotation paths; it must not drop them automatically.
 
-**[ASSUMED — RECOMMENDATION]** Migration postconditions are: annotation row count unchanged; all pre-existing text, note, color, content IDs, parsed locations, CFI/xpointer/PDF/comic positions, hidden state, source, and device fields value-identical; every existing group has exactly one unseeded state row; and `PRAGMA foreign_key_check` is clean. Any failed postcondition rolls back.
+**[OBSERVED — STAGE 0 IMPLEMENTATION]** Production migration postconditions are deliberately provenance-scoped:
+
+- Annotation row count is fatal if changed. Per-value identity for text, notes, colors, content IDs, parsed locations, CFI/xpointer/PDF/comic positions, hidden/source/device fields is proven by migration tests and production-snapshot dry runs, not by duplicating every annotation value into memory during each startup. The migration updates only newly added columns.
+- Every eligible legacy group is expected to have one state. Failure of a new insert is fatal; a surviving non-one cardinality can only come from pre-existing partial/non-canonical state and is count-logged while gates remain fail-closed. NULL-key and deleted-user groups are also count-logged and skipped rather than making an unrelated historical row prevent startup.
+- Foreign-key checks are fatal only for new violations in Stage 0-owned tables or `annotation.last_editor_device_id`. The migration records the scoped baseline before DDL/backfill and compares afterward. Database-wide historical orphans are count-logged because long-lived SQLite installations commonly accumulated them with FK enforcement off; Stage 0 must not claim or block startup on violations it did not create.
+
+**[OBSERVED — STAGE 0 IMPLEMENTATION]** User/book purge is part of the schema lifecycle. It deletes raw materializations before annotation IDs can recycle, then device acknowledgment, seed-page, seed-capture, cursor, snapshot, authority, and sticky-guard rows in child-first order. Immutable seed/snapshot children are deleted because they can contain annotation payloads and have no valid ownership or restore meaning after their user/book scope is erased. ORM parent relationships mirror those cascades for ordinary non-bulk deletes; the explicit purge remains authoritative because app-wide SQLite FK enforcement and bulk cascades cannot be assumed.
 
 ## 4. Verbatim location and web-reader coexistence
 
@@ -534,6 +556,8 @@ annotation_revision
 **[ASSUMED — RECOMMENDATION]** Add `settings.config_kobo_two_way_annotation_sync BOOLEAN NOT NULL DEFAULT 0` as the instance/library kill switch.
 
 **[ASSUMED — RECOMMENDATION]** Add `user.kobo_two_way_annotation_sync BOOLEAN NOT NULL DEFAULT 0` as the per-user opt-in. Existing and new users both default off because this feature can delete native rows by omission.
+
+**[OBSERVED — STAGE 0 IMPLEMENTATION]** The rendered user checkbox submits a companion presence marker. Profile/admin save paths mutate the opt-in only when that marker is present: rendered+checked enables, rendered+unchecked disables, and a form where Kobo controls were not rendered preserves the stored value. This avoids a hidden control silently resetting an opt-in and is required before Stage 1 consumes the flag.
 
 **[ASSUMED — RECOMMENDATION]** Both flags must be true and the book state must be authoritative. Disabling either flag immediately stops naming owned books in `checkforchanges`; it does not delete authority data, annotations, seed captures, or backups.
 

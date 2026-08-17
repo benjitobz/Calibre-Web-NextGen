@@ -299,6 +299,102 @@ class TestPurge:
 
         assert session.query(ub.BookShelf).count() == 1
 
+    def test_stage0_evidence_is_purged_before_annotation_id_reuse(self, session):
+        """Account erasure must not alias old raw bytes onto a recycled id."""
+        from cps import ub
+        from cps.user_book_data import purge_user_book_data
+
+        user = ub.User(name="stage0-owner", email="owner@example.invalid", role=0)
+        user.password = "x"
+        session.add(user)
+        session.commit()
+        annotation = _annotation(
+            ub, LOSER, annotation_id="old-annotation", user_id=user.id,
+            text="SECRET HIGHLIGHT TEXT",
+        )
+        session.add(annotation)
+        session.commit()
+        old_annotation_id = annotation.id
+        session.add(ub.KoboAnnotationMaterialization(
+            annotation_id=annotation.id,
+            raw_annotation_json=b'{"highlightedText":"SECRET HIGHLIGHT TEXT"}',
+            raw_location_json=b'{"span":{}}',
+            raw_client_modified_utc="t",
+            payload_sha256="0" * 64,
+            provenance="kobo_patch",
+            attachments_state="missing",
+            serveable=False,
+        ))
+        state = ub.KoboAnnotationBookState(
+            user_id=user.id, book_id=LOSER, content_id="legacy-book:202",
+            generation_id="generation", authority_status="authoritative",
+            authority_revision=1, opaque_content_status="present",
+        )
+        session.add(state)
+        session.commit()
+        capture = ub.KoboAnnotationSeedCapture(
+            book_state_id=state.id, result="accepted",
+        )
+        snapshot = ub.KoboAnnotationPageSnapshot(
+            snapshot_id="purge-snapshot", book_state_id=state.id,
+            authority_revision=1, etag="etag", ordered_payload_gzip=b"payload",
+            annotation_count=1, page_size=10,
+            expires_at=datetime.now(timezone.utc) + timedelta(days=1),
+        )
+        session.add_all([
+            ub.KoboDeviceBookAnnotationState(
+                device_id=999, book_state_id=state.id,
+            ),
+            capture,
+            snapshot,
+        ])
+        session.commit()
+        session.add_all([
+            ub.KoboAnnotationSeedCapturePage(
+                seed_capture_id=capture.id, page_number=0,
+                response_body_gzip=b"page", response_sha256="1" * 64,
+            ),
+            ub.KoboAnnotationPageCursor(
+                token="purge-cursor", snapshot_id=snapshot.snapshot_id,
+                page_offset=0,
+            ),
+        ])
+        session.commit()
+
+        purge_user_book_data(user_id=user.id, session=session)
+        session.delete(user)
+        session.commit()
+
+        for model in (
+            ub.KoboAnnotationMaterialization,
+            ub.KoboAnnotationBookState,
+            ub.KoboOpaqueContentPresentGuard,
+            ub.KoboDeviceBookAnnotationState,
+            ub.KoboAnnotationSeedCapture,
+            ub.KoboAnnotationSeedCapturePage,
+            ub.KoboAnnotationPageSnapshot,
+            ub.KoboAnnotationPageCursor,
+        ):
+            assert session.query(model).count() == 0, model.__name__
+
+        replacement_user = ub.User(
+            name="replacement-owner", email="replacement@example.invalid", role=0,
+        )
+        replacement_user.password = "x"
+        session.add(replacement_user)
+        session.commit()
+        replacement = _annotation(
+            ub, WINNER, annotation_id="new-annotation",
+            user_id=replacement_user.id, text="new owner text",
+        )
+        session.add(replacement)
+        session.commit()
+
+        assert replacement.id == old_annotation_id
+        assert session.query(ub.KoboAnnotationMaterialization).filter_by(
+            annotation_id=replacement.id,
+        ).count() == 0
+
     def test_book_purge_can_retain_backup_snapshots(self, session, tmp_path):
         from cps import ub
         from cps.user_book_data import purge_user_book_data

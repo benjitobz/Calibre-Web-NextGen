@@ -278,7 +278,8 @@ def _upsert_annotation(session, payload, book, user, *, origin_device_id=None):
             # payloads therefore use arrival order as the deterministic tie.
             if _kobo_payload_matches_row(ann, payload, span, normalized_content_id):
                 return None
-    if ann is None:
+    created = ann is None
+    if created:
         ann = ub.Annotation(
             user_id=user.id,
             annotation_id=annotation_id,
@@ -287,6 +288,10 @@ def _upsert_annotation(session, payload, book, user, *, origin_device_id=None):
             origin_device_id=origin_device_id,
         )
         session.add(ann)
+    elif getattr(ann, "content_revision", None) is None:
+        ann.content_revision = 1
+    else:
+        ann.content_revision += 1
     # If a previously soft-deleted (hidden) annotation comes back, un-hide it.
     ann.hidden = False
     # Content fields
@@ -296,6 +301,10 @@ def _upsert_annotation(session, payload, book, user, *, origin_device_id=None):
         ann.note_text = payload.get("noteText")
     if "highlightColor" in payload:
         ann.highlight_color = payload.get("highlightColor")
+    if "type" in payload:
+        native_type = payload.get("type")
+        if isinstance(native_type, str) and len(native_type) <= 32:
+            ann.annotation_type = native_type
     # Position fields — pulled from Kobo's location.span block.
     chapter_progress = span.get("chapterProgress")
     if chapter_progress is not None:
@@ -314,9 +323,63 @@ def _upsert_annotation(session, payload, book, user, *, origin_device_id=None):
         ann.context_string = span.get("contextString") or span.get("context")
     if client_time is not _CLIENT_TIME_MISSING:
         ann.client_modified_at = client_time
+    ann.server_modified_at = _now()
+    ann.last_editor_device_id = origin_device_id
     ann.last_synced = _now()
     session.flush()
     return ann
+
+
+def _store_raw_materialization(session, annotation, raw_record, *, trace_id=None):
+    """Best-effort sidecar upsert isolated behind a SQLite savepoint."""
+    from cps import ub
+    from cps.services import kobo_annotation_stage0
+
+    if raw_record is None or raw_record.annotation_id != annotation.annotation_id:
+        return None
+    try:
+        with session.begin_nested():
+            row = (
+                session.query(ub.KoboAnnotationMaterialization)
+                .filter(ub.KoboAnnotationMaterialization.annotation_id == annotation.id)
+                .first()
+            )
+            now = _now()
+            if row is None:
+                row = ub.KoboAnnotationMaterialization(
+                    annotation_id=annotation.id,
+                    materialization_revision=1,
+                    provenance="kobo_patch",
+                    serveable=False,
+                    created_at=now,
+                    updated_at=now,
+                )
+                session.add(row)
+            else:
+                row.materialization_revision += 1
+                row.updated_at = now
+            row.raw_annotation_json = raw_record.raw_annotation_json
+            row.raw_location_json = raw_record.raw_location_json
+            row.raw_client_modified_utc = raw_record.raw_client_modified_utc
+            row.payload_sha256 = raw_record.payload_sha256
+            row.attachments_state = raw_record.attachments_state
+            row.provenance = "kobo_patch"
+            # PATCH is a delta and never establishes serveability in Stage 0.
+            row.serveable = False
+            row.quarantine_reason = None
+            session.flush()
+        return True
+    except Exception:
+        log.exception(
+            "Kobo raw lexical capture failed trace_id=%s user_id=%s book_id=%s",
+            trace_id, annotation.user_id, annotation.book_id,
+        )
+        kobo_annotation_stage0.record_event(
+            "raw_capture", "failed", trace_id=trace_id,
+            user_id=annotation.user_id, book_id=annotation.book_id,
+            annotation_count=1,
+        )
+        return False
 
 
 def _apply_result(st, result):
@@ -510,7 +573,8 @@ def _mark_pending(session, annotation, user):
     return queued
 
 
-def dispatch_annotation_sync(payload_annotations, book, user, *, origin_device_id=None) -> None:
+def dispatch_annotation_sync(payload_annotations, book, user, *, origin_device_id=None,
+                             raw_materializations=None, trace_id=None) -> None:
     """Persist each valid annotation independently, then fan it out.
 
     Device batches are a transport convenience, not a transaction boundary: one
@@ -537,6 +601,12 @@ def dispatch_annotation_sync(payload_annotations, book, user, *, origin_device_i
             )
             if ann is None:
                 continue
+            raw_record = None
+            if raw_materializations is not None and index < len(raw_materializations):
+                raw_record = raw_materializations[index]
+            raw_capture_staged = _store_raw_materialization(
+                ub.session, ann, raw_record, trace_id=trace_id,
+            )
             if _background_enqueue() is not None:
                 if _mark_pending(ub.session, ann, user):
                     pending_job = {"op": "push", "annotation": ann.id,
@@ -550,6 +620,13 @@ def dispatch_annotation_sync(payload_annotations, book, user, *, origin_device_i
                     payload.get("id"),
                 )
                 continue
+            if raw_capture_staged:
+                from cps.services import kobo_annotation_stage0
+                kobo_annotation_stage0.record_event(
+                    "raw_capture", "stored", trace_id=trace_id,
+                    user_id=ann.user_id, book_id=ann.book_id,
+                    annotation_count=1,
+                )
         except Exception:
             # A failed SQLAlchemy transaction poisons the scoped session until an
             # explicit rollback. Do that here, then continue: prior annotations
@@ -625,6 +702,8 @@ def dispatch_annotation_deletes(deleted_ids, user, book_id=None) -> None:
             delete_sync_target(ub.session, st, user)
         # Soft-delete the local row regardless of sync target outcome.
         ann.hidden = True
+        ann.content_revision = (ann.content_revision or 1) + 1
+        ann.server_modified_at = _now()
         log.info(
             "annotation_sync: soft-delete annotation_id=%s (hidden=True)",
             annotation_id,

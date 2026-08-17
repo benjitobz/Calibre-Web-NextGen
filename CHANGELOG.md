@@ -16,6 +16,18 @@ is for things you can see or feel when running the app.
 
 ## [Unreleased]
 
+### Added
+
+- **A Kobo two-way annotation sync opt-in appears in settings, switched off, and
+  deliberately does nothing yet.** Work has started on letting the server hold the
+  authoritative copy of your Kobo highlights, so an edit made in the browser could
+  reach the device. That is a replace protocol — whatever the server answers becomes
+  the reader's entire set for that book — so it is being built in stages behind two
+  opt-ins that both default to off. This release adds only the storage and the
+  controls: nothing your Kobo receives changes, whether the opt-ins are on or off.
+  The setting explains the same thing where it appears, so a new checkbox in your
+  settings is not a feature you have missed.
+
 ## [v4.1.37] - 2026-08-17
 
 ### Added
