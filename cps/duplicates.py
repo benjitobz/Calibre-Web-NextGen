@@ -1957,8 +1957,9 @@ def auto_resolve_duplicates(strategy='newest', dry_run=False, user_id=None, trig
                         # #708: record the Kobo deletion tombstone BEFORE anything
                         # touches kobo_synced_books. record_book_deletion reads this
                         # book's kobo_synced_books rows to learn which users had it on
-                        # a device (so their next sync emits a DeletedEntitlement that
-                        # removes it), but migrate_user_book_data below deletes exactly
+                        # a device (so their next sync emits an archived
+                        # ChangedEntitlement that removes it), but
+                        # migrate_user_book_data below deletes exactly
                         # those rows — and delete_whole_book's own tombstone call runs
                         # even later. Run in that order the tombstone is silently
                         # skipped and the removed duplicate lingers on the Kobo forever.

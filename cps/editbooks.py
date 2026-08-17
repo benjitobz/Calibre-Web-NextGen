@@ -1489,7 +1489,8 @@ class _DeletedBookFileRef:
 def delete_whole_book(book_id, book):
     # Capture a tombstone for every Kobo-synced user BEFORE we touch
     # any of the metadata.db / app.db rows. The Kobo protocol needs the
-    # book's UUID to address a DeletedEntitlement on the device; once
+    # book's UUID to address the archived ChangedEntitlement on the device;
+    # once
     # the book row is gone there is no way to recover it. Sync handler
     # consumes these on the next sync and tells each affected device to
     # archive its local copy. Without this, hard-deleted books linger on

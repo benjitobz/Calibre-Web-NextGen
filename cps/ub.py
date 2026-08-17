@@ -772,6 +772,7 @@ class KoboSyncedBooks(Base):
     id = Column(Integer, primary_key=True, autoincrement=True)
     user_id = Column(Integer, ForeignKey('user.id'))
     book_id = Column(Integer)
+    book_uuid = Column(String(64), nullable=True)
 
     __table_args__ = (
         UniqueConstraint('user_id', 'book_id', name='uq_kobo_synced_books_user_book'),
@@ -884,19 +885,19 @@ class BookOriginalFilename(Base):
 
 class KoboDeletedBook(Base):
     """Tombstone table for books deleted from CW that need to be reported
-    to Kobo devices as DeletedEntitlement on next sync.
+    to Kobo devices as archived ChangedEntitlement entries on next sync.
 
     Why we need it: calibre's metadata.db row goes away the moment the
     book is deleted (cps/editbooks.py:delete_whole_book), and the
     KoboSyncedBooks table carries only (user_id, book_id) — no UUID. The
-    Kobo protocol needs the book's UUID to address the DeletedEntitlement
+    Kobo protocol needs the book's UUID to address the ChangedEntitlement
     on the device. So we snapshot (user_id, book_uuid, deleted_at) at
     delete time, before the book row is gone.
 
     Lifecycle: rows live as long as the deletion is "newer than" any
     device's sync cursor. With cursor-based emission (advance
-    archive_last_modified past deleted_at on emit), each device sees
-    each DeletedEntitlement exactly once. Rows can be GC'd by a
+    archive_last_modified past deleted_at on emit), each device cursor moves
+    beyond each ChangedEntitlement. Rows can be GC'd by a
     periodic cleanup once they're older than the oldest active sync
     token's archive_last_modified — left as a follow-up; current
     storage cost is one short row per deleted book per affected user.
@@ -2019,6 +2020,31 @@ def migrate_magic_shelf_table(engine, _session):
         _run_ddl_with_retry(engine, "ALTER TABLE magic_shelf ADD column 'kobo_sync' Boolean DEFAULT 0")
 
 
+def migrate_kobo_synced_book_uuid(engine, _session):
+    """Add delivery-time UUID retention to the existing Kobo sync ledger."""
+    with engine.begin() as conn:
+        table = conn.execute(text(
+            "SELECT 1 FROM sqlite_master "
+            "WHERE type='table' AND name='kobo_synced_books'"
+        )).fetchone()
+        if table is None:
+            return
+        columns = {
+            row[1] for row in conn.execute(
+                text("PRAGMA table_info(kobo_synced_books)"))
+        }
+        if "book_uuid" in columns:
+            return
+    try:
+        _run_ddl_with_retry(
+            engine,
+            "ALTER TABLE kobo_synced_books ADD COLUMN book_uuid VARCHAR(64)",
+        )
+    except exc.OperationalError as error:
+        if "duplicate column" not in str(error).lower():
+            raise
+
+
 def migrate_kobo_unique_constraints(engine, _session):
     """One-time migration: dedupe + uniquify (user_id, book_id) on Kobo
     state tables (audit 2026-05-11).
@@ -2318,7 +2344,7 @@ def migrate_kobo_deleted_book(engine, _session):
 
     Why this table exists: see the KoboDeletedBook model docstring.
     Captures (user_id, book_uuid, deleted_at) at the moment a book is
-    deleted, so HandleSyncRequest can emit DeletedEntitlement on the
+    deleted, so HandleSyncRequest can emit an archived ChangedEntitlement on the
     next sync per affected user — the existing two-way deletion logic
     can only handle books removed from kobo_sync shelves, not hard
     deletes from the calibre library.
@@ -3227,6 +3253,7 @@ def migrate_Database(_session):
     migrate_oauth_provider_table(engine, _session)
     migrate_config_table(engine, _session)
     migrate_magic_shelf_table(engine, _session)
+    migrate_kobo_synced_book_uuid(engine, _session)
     migrate_kobo_unique_constraints(engine, _session)
     migrate_kobo_deleted_book(engine, _session)
     migrate_kobo_bookmark_created_at(engine, _session)

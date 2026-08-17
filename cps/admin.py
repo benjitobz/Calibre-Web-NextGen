@@ -22,8 +22,9 @@ import subprocess
 import tempfile
 import fcntl
 
-from flask import Blueprint, flash, redirect, url_for, abort, request, make_response, send_from_directory, g, Response, jsonify
+from flask import Blueprint, current_app, flash, redirect, url_for, abort, request, make_response, send_from_directory, g, Response, jsonify
 from markupsafe import Markup
+from itsdangerous import BadSignature, SignatureExpired, URLSafeTimedSerializer
 from .cw_login import current_user
 from flask_babel import gettext as _
 from flask_babel import get_locale, format_time, format_datetime, format_timedelta, LazyString
@@ -42,6 +43,18 @@ from .embed_helper import get_calibre_binarypath
 from .gdriveutils import is_gdrive_ready, gdrive_support
 from .render_template import render_title_template, get_sidebar_config
 from .services.worker import WorkerThread
+from .services.kobo_import import (
+    KoboContentDatabaseError,
+    KoboUploadError,
+    MAX_KOBO_DATABASE_UPLOAD_BYTES,
+    ParsedKoboBook,
+    parse_kobo_device_books,
+    temporary_kobo_database,
+)
+from .services.kobo_reconcile import (
+    build_reconciliation_preview,
+    scan_from_candidates,
+)
 from .usermanagement import user_login_required
 from .ui_themes import config_theme_code
 from .cw_babel import get_available_translations, get_available_locale, get_user_locale_language
@@ -1450,6 +1463,147 @@ def do_kobo_resend(userid, bookid):
     ub.session_commit(message)
     return Response(json.dumps([{"type": "success", "message": message}]),
                     mimetype='application/json')
+
+
+_KOBO_RECONCILE_TOKEN_SALT = "kobo-stranded-entitlement-preview"
+_KOBO_RECONCILE_TOKEN_MAX_AGE = 30 * 60
+
+
+def _kobo_reconcile_serializer():
+    return URLSafeTimedSerializer(
+        current_app.config["SECRET_KEY"], salt=_KOBO_RECONCILE_TOKEN_SALT)
+
+
+def _kobo_reconcile_user(user_id):
+    return ub.session.query(ub.User).filter(ub.User.id == int(user_id)).first()
+
+
+def _kobo_reconciliation_preview(user_id, scan):
+    tombstone_uuids = {
+        row.book_uuid for row in
+        ub.session.query(ub.KoboDeletedBook.book_uuid).filter(
+            ub.KoboDeletedBook.user_id == user_id).all()
+    }
+    synced_book_uuids = {
+        row.book_uuid for row in
+        ub.session.query(ub.KoboSyncedBooks.book_uuid).filter(
+            ub.KoboSyncedBooks.user_id == user_id,
+            ub.KoboSyncedBooks.book_uuid.isnot(None),
+        ).all()
+    }
+    return build_reconciliation_preview(
+        scan,
+        existing_tombstone_uuids=tombstone_uuids,
+        synced_book_uuids=synced_book_uuids,
+        book_lookup=calibre_db.get_book_by_uuid,
+    )
+
+
+def _render_kobo_reconcile(user, preview=None, confirmation_token=None,
+                           result=None, error=None):
+    return render_title_template(
+        "kobo_reconcile.html",
+        user=user,
+        preview=preview,
+        confirmation_token=confirmation_token,
+        result=result,
+        error=error,
+        max_upload_mb=MAX_KOBO_DATABASE_UPLOAD_BYTES // (1024 * 1024),
+        title=_("Reconcile deleted Kobo books for %(user)s", user=user.name),
+        page="edituser",
+    )
+
+
+@admi.route("/admin/user/<int:user_id>/kobo-reconcile", methods=["GET", "POST"])
+@user_login_required
+@admin_required
+def kobo_reconcile(user_id):
+    user = _kobo_reconcile_user(user_id)
+    if user is None or user.role_anonymous():
+        abort(404)
+    if request.method == "GET":
+        return _render_kobo_reconcile(user)
+
+    try:
+        with temporary_kobo_database(
+                request.files.get("file"), request.content_length or 0) as sqlite_path:
+            scan = parse_kobo_device_books(sqlite_path)
+    except KoboUploadError as upload_error:
+        messages = {
+            "no_file": _("Choose a KoboReader.sqlite file."),
+            "not_sqlite": _("The uploaded file is not a SQLite database."),
+            "too_large": _(
+                "The file is larger than %(max)d MB.",
+                max=MAX_KOBO_DATABASE_UPLOAD_BYTES // (1024 * 1024),
+            ),
+        }
+        return _render_kobo_reconcile(user, error=messages[upload_error.code]), \
+            upload_error.status_code
+    except KoboContentDatabaseError as database_error:
+        return _render_kobo_reconcile(user, error=str(database_error)), 400
+
+    preview = _kobo_reconciliation_preview(user.id, scan)
+    confirmation_token = None
+    if preview.candidates:
+        confirmation_token = _kobo_reconcile_serializer().dumps({
+            "user_id": user.id,
+            "books": [
+                [book.uuid, book.title]
+                for book in preview.candidates
+            ],
+        })
+    return _render_kobo_reconcile(
+        user, preview=preview, confirmation_token=confirmation_token)
+
+
+@admi.route("/admin/user/<int:user_id>/kobo-reconcile/confirm", methods=["POST"])
+@user_login_required
+@admin_required
+def kobo_reconcile_confirm(user_id):
+    user = _kobo_reconcile_user(user_id)
+    if user is None or user.role_anonymous():
+        abort(404)
+    try:
+        payload = _kobo_reconcile_serializer().loads(
+            request.form.get("confirmation_token", ""),
+            max_age=_KOBO_RECONCILE_TOKEN_MAX_AGE,
+        )
+        if payload.get("user_id") != user.id:
+            raise BadSignature("preview belongs to another user")
+        preview_books = {
+            str(book_uuid): ParsedKoboBook(uuid=str(book_uuid), title=str(title))
+            for book_uuid, title in payload.get("books", [])
+        }
+    except (BadSignature, SignatureExpired, TypeError, ValueError):
+        return _render_kobo_reconcile(
+            user,
+            error=_("This preview is invalid or expired. Upload the device database again."),
+        ), 400
+
+    selected_uuids = list(dict.fromkeys(request.form.getlist("book_uuid")))
+    if not selected_uuids:
+        return _render_kobo_reconcile(
+            user, error=_("Select at least one book to archive.")), 400
+    if any(book_uuid not in preview_books for book_uuid in selected_uuids):
+        return _render_kobo_reconcile(
+            user,
+            error=_("The selected books do not match this preview. Upload the device database again."),
+        ), 400
+    candidates = tuple(preview_books[book_uuid] for book_uuid in selected_uuids)
+
+    preview = _kobo_reconciliation_preview(user.id, scan_from_candidates(candidates))
+    written = kobo_sync_status.record_user_book_deletions(
+        user.id,
+        [book.uuid for book in preview.candidates],
+        session=ub.session,
+    )
+    result = {
+        "written": written,
+        "already_scheduled": preview.already_scheduled,
+        "skipped_present": preview.skipped_present,
+        "skipped_unresolved": preview.skipped_unresolved,
+    }
+    return _render_kobo_reconcile(user, result=result)
 
 
 def check_valid_read_column(column):

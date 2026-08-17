@@ -345,6 +345,12 @@
           </div>
           <small class="help-block">{{_('Clears the sync record for one book so the device re-downloads it on next sync. Find the book ID in the book detail page URL.')}}</small>
         </div>
+        <div style="margin-top: 10px;">
+          <a class="btn btn-default" href="{{ url_for('admin.kobo_reconcile', user_id=content.id) }}">
+            {{ _('Reconcile books deleted before Kobo archival tracking') }}
+          </a>
+          <small class="help-block">{{ _('Upload this user\'s KoboReader.sqlite, then select only books you know this server delivered and that are no longer in the library.') }}</small>
+        </div>
         {% endif %}
         {% if kobo_support and not content.role_anonymous() and not simple %}
         <div style="margin-top: 20px;

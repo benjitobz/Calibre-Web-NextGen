@@ -38,7 +38,6 @@ import io
 import json
 import os
 import re
-import tempfile
 import uuid
 from datetime import datetime, timezone
 from typing import Optional
@@ -51,7 +50,12 @@ from sqlalchemy.exc import SQLAlchemyError
 from . import calibre_db, logger, ub
 from .cw_login import current_user
 from .render_template import render_title_template
-from .services.kobo_import import looks_like_sqlite, parse_kobo_bookmarks
+from .services.kobo_import import (
+    KoboUploadError,
+    MAX_KOBO_DATABASE_UPLOAD_BYTES,
+    parse_kobo_bookmarks,
+    temporary_kobo_database,
+)
 from .usermanagement import user_login_required
 
 log = logger.create()
@@ -60,7 +64,7 @@ annotations_bp = Blueprint("annotations", __name__)
 
 # Defense-in-depth file-size cap. Typical real-device KoboReader.sqlite
 # files are 30-50 MB; reject anything over 100 MB.
-MAX_UPLOAD_BYTES = 100 * 1024 * 1024
+MAX_UPLOAD_BYTES = MAX_KOBO_DATABASE_UPLOAD_BYTES
 
 
 def _commit_required(commit):
@@ -289,56 +293,23 @@ def annotations_import_submit():
     skipped_hidden, total_seen}`` — the upload form swaps to a result
     pane without a page reload.
     """
-    upload = request.files.get("file")
-    if not upload or not upload.filename:
-        return jsonify({"error": "no_file", "message": _("No file uploaded.")}), 400
-
-    # Size precheck via Content-Length. Some clients omit it; we also
-    # bound the actual read below.
-    content_length = request.content_length or 0
-    if content_length > MAX_UPLOAD_BYTES:
-        return jsonify({
-            "error": "too_large",
-            "message": _("File exceeds %(max)d MB.", max=MAX_UPLOAD_BYTES // (1024 * 1024)),
-        }), 413
-
-    tmp_path = None
     try:
-        with tempfile.NamedTemporaryFile(
-            mode="wb", suffix=".sqlite", delete=False
-        ) as tmp:
-            tmp_path = tmp.name
-            total = 0
-            # Stream-copy so we can cap mid-read on clients that lied
-            # about Content-Length.
-            while True:
-                chunk = upload.stream.read(64 * 1024)
-                if not chunk:
-                    break
-                total += len(chunk)
-                if total > MAX_UPLOAD_BYTES:
-                    tmp.close()
-                    os.unlink(tmp_path)
-                    return jsonify({
-                        "error": "too_large",
-                        "message": _("File exceeds %(max)d MB.",
-                                     max=MAX_UPLOAD_BYTES // (1024 * 1024)),
-                    }), 413
-                tmp.write(chunk)
-
-        if not looks_like_sqlite(tmp_path):
-            return jsonify({
-                "error": "not_sqlite",
-                "message": _("Uploaded file is not a SQLite database."),
-            }), 400
-
-        summary = _ingest_bookmarks(tmp_path)
-    finally:
-        if tmp_path and os.path.exists(tmp_path):
-            try:
-                os.unlink(tmp_path)
-            except OSError as e:
-                log.warning("annotations: failed to remove temp %s: %s", tmp_path, e)
+        with temporary_kobo_database(
+                request.files.get("file"), request.content_length or 0) as tmp_path:
+            summary = _ingest_bookmarks(tmp_path)
+    except KoboUploadError as error:
+        messages = {
+            "no_file": _("No file uploaded."),
+            "not_sqlite": _("Uploaded file is not a SQLite database."),
+            "too_large": _(
+                "File exceeds %(max)d MB.",
+                max=MAX_UPLOAD_BYTES // (1024 * 1024),
+            ),
+        }
+        return jsonify({
+            "error": error.code,
+            "message": messages[error.code],
+        }), error.status_code
 
     return jsonify(summary), 200
 

@@ -29,6 +29,16 @@ is for things you can see or feel when running the app.
   You should know that rather than discover it later. Dismissing a notice
   dismisses that occurrence only — if the same book is affected again, you are
   told again.
+- **Clear books off a Kobo that were deleted before the fix for it existed.**
+  Hard-deleting a book now tells paired Kobos to archive their copy, but books
+  deleted before that shipped are stranded on the device permanently — no amount
+  of syncing, re-pairing or a full resync clears them. Upload your device's
+  `KoboReader.sqlite` and CWNG lists what is on the reader but no longer in your
+  library, so you can pick which to clear. Nothing is sent until you tick it: the
+  list starts unchecked, Kobo store samples are excluded outright, and anything
+  the server cannot resolve with certainty is left alone. Purchased Kobo books
+  can still appear in the list, so read it before you confirm — that is why it
+  asks per book rather than deciding for you.
 
 ### Fixed
 

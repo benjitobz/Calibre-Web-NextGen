@@ -16,19 +16,25 @@ sketch this module implements.
 
 Security shape:
 
-* Caller is responsible for size capping + MIME validation before
-  invoking this module. We validate the SQLite header anyway as
-  defense-in-depth.
+* :func:`temporary_kobo_database` caps and validates uploads before
+  either parser opens them. Both parsers validate the SQLite header
+  again as defense-in-depth.
 * We open the upload read-only via ``mode=ro`` URI and never write
   back to it.
-* The Bookmark table is the only table touched; any other contents
-  are ignored even if present.
+* Annotation import reads only ``Bookmark``. Stranded-entitlement
+  reconciliation reads only UUID-addressable volume rows from ``content``.
+  Device columns are not treated as delivery provenance; ownership is an
+  explicit administrator decision. All other device data is ignored.
 """
 
 from __future__ import annotations
 
 import logging
+import os
 import sqlite3
+import tempfile
+import uuid
+from contextlib import contextmanager
 from dataclasses import dataclass
 from pathlib import Path
 from typing import Iterator, Optional
@@ -41,6 +47,19 @@ _COLOR_MAP = {0: "yellow", 1: "red", 2: "green", 3: "blue"}
 
 # SQLite database file magic — first 16 bytes of any valid SQLite 3.x file.
 _SQLITE_MAGIC = b"SQLite format 3\x00"
+
+MAX_KOBO_DATABASE_UPLOAD_BYTES = 100 * 1024 * 1024
+
+
+class KoboUploadError(ValueError):
+    def __init__(self, code, status_code):
+        super().__init__(code)
+        self.code = code
+        self.status_code = status_code
+
+
+class KoboContentDatabaseError(ValueError):
+    pass
 
 
 @dataclass(frozen=True)
@@ -67,6 +86,160 @@ class ParsedBookmark:
     hidden: bool
     date_created: Optional[str]    # ISO-8601 strings as stored by Kobo
     date_modified: Optional[str]
+
+
+@dataclass(frozen=True)
+class ParsedKoboBook:
+    uuid: str
+    title: str
+    author: Optional[str] = None
+    has_isbn: Optional[bool] = None
+    file_size: Optional[int] = None
+    synced: bool = False
+
+
+@dataclass(frozen=True)
+class KoboContentScan:
+    books: tuple[ParsedKoboBook, ...]
+    volume_rows: int
+    skipped_invalid: int
+    skipped_preview: int
+    skipped_unclassified: int
+
+
+@contextmanager
+def temporary_kobo_database(upload, content_length=0,
+                            max_bytes=MAX_KOBO_DATABASE_UPLOAD_BYTES):
+    """Copy one uploaded Kobo database to a capped temporary file."""
+    if not upload or not upload.filename:
+        raise KoboUploadError("no_file", 400)
+    if content_length and content_length > max_bytes:
+        raise KoboUploadError("too_large", 413)
+
+    tmp_path = None
+    try:
+        with tempfile.NamedTemporaryFile(
+                mode="wb", suffix=".sqlite", delete=False) as tmp:
+            tmp_path = tmp.name
+            total = 0
+            while True:
+                chunk = upload.stream.read(64 * 1024)
+                if not chunk:
+                    break
+                total += len(chunk)
+                if total > max_bytes:
+                    raise KoboUploadError("too_large", 413)
+                tmp.write(chunk)
+        if not looks_like_sqlite(tmp_path):
+            raise KoboUploadError("not_sqlite", 400)
+        yield Path(tmp_path)
+    finally:
+        if tmp_path and os.path.exists(tmp_path):
+            try:
+                os.unlink(tmp_path)
+            except OSError as error:
+                log.warning("kobo_import: failed to remove temp %s: %s", tmp_path, error)
+
+
+def parse_kobo_device_books(sqlite_path):
+    """Return UUID-addressable top-level books for explicit human review."""
+    path = Path(sqlite_path)
+    if not looks_like_sqlite(path):
+        raise KoboContentDatabaseError("Uploaded file is not a SQLite database")
+
+    uri = "file:{}?mode=ro&immutable=1".format(path)
+    try:
+        connection = sqlite3.connect(uri, uri=True)
+    except sqlite3.Error as error:
+        raise KoboContentDatabaseError("Could not open the device database") from error
+
+    try:
+        table = connection.execute(
+            "SELECT 1 FROM sqlite_master WHERE type='table' AND name='content'"
+        ).fetchone()
+        if table is None:
+            raise KoboContentDatabaseError("Device database has no content table")
+        columns = {
+            row[1] for row in connection.execute("PRAGMA table_info(content)").fetchall()
+        }
+        required = {"ContentID", "ContentType", "BookID", "Title"}
+        if not required.issubset(columns):
+            raise KoboContentDatabaseError(
+                "Device content table lacks reconciliation columns")
+        volume_rows = connection.execute("""
+            SELECT COUNT(*) FROM content
+            WHERE BookID IS NULL AND CAST(ContentType AS TEXT) = '6'
+        """).fetchone()[0]
+        if "Accessibility" not in columns:
+            rows = []
+            skipped_unclassified = volume_rows
+        else:
+            author_column = "Attribution" if "Attribution" in columns else "NULL"
+            isbn_column = "ISBN" if "ISBN" in columns else "NULL"
+            file_size_column = "___FileSize" if "___FileSize" in columns else "NULL"
+            rows = connection.execute("""
+                SELECT ContentID, Title, Accessibility, {author}, {isbn}, {file_size}
+                FROM content
+                WHERE BookID IS NULL AND CAST(ContentType AS TEXT) = '6'
+            """.format(
+                author=author_column,
+                isbn=isbn_column,
+                file_size=file_size_column,
+            )).fetchall()
+            skipped_unclassified = 0
+    except sqlite3.Error as error:
+        raise KoboContentDatabaseError("Could not read the device content table") from error
+    finally:
+        connection.close()
+
+    books_by_uuid = {}
+    ambiguous = set()
+    skipped_preview = 0
+    isbn_available = "ISBN" in columns
+    for content_id, title, accessibility, author, isbn, file_size in rows:
+        # Accessibility=-1 is Kobo's preview/sample state, not a full book
+        # entitlement, so those rows are excluded rather than offered for a
+        # tombstone. The hardware sample validating this exclusion contained
+        # no genuine Kobo purchases; author, ISBN and file size remain human
+        # evidence only and are never used as ownership rules.
+        if str(accessibility).strip() == "-1":
+            skipped_preview += 1
+            continue
+        try:
+            content_uuid = str(uuid.UUID(str(content_id)))
+        except (TypeError, ValueError, AttributeError):
+            continue
+        try:
+            parsed_file_size = int(file_size) if file_size is not None else None
+        except (TypeError, ValueError):
+            parsed_file_size = None
+        parsed_has_isbn = None
+        if isbn_available:
+            parsed_has_isbn = bool(str(isbn).strip()) if isbn is not None else False
+        parsed = ParsedKoboBook(
+            uuid=content_uuid,
+            title=str(title or content_uuid),
+            author=str(author).strip() if author else None,
+            has_isbn=parsed_has_isbn,
+            file_size=parsed_file_size,
+        )
+        existing = books_by_uuid.get(content_uuid)
+        if existing is not None and existing != parsed:
+            ambiguous.add(content_uuid)
+            books_by_uuid.pop(content_uuid, None)
+        elif content_uuid not in ambiguous:
+            books_by_uuid[content_uuid] = parsed
+
+    books = tuple(sorted(
+        books_by_uuid.values(), key=lambda book: (book.title.casefold(), book.uuid)))
+    return KoboContentScan(
+        books=books,
+        volume_rows=volume_rows,
+        skipped_invalid=(
+            volume_rows - skipped_preview - skipped_unclassified - len(books)),
+        skipped_preview=skipped_preview,
+        skipped_unclassified=skipped_unclassified,
+    )
 
 
 def looks_like_sqlite(blob_or_path) -> bool:
