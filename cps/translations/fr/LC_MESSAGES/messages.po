@@ -6342,13 +6342,13 @@ msgstr "Sans titre"
 msgid "Update failed."
 msgstr "Échec de la mise à jour."
 
-#: cps/spa_strings.py cps/templates/cover_picker.html
-msgid "Upload as cover"
-msgstr "Téléverser comme couverture"
-
 #: cps/spa_strings.py
 msgid "Upload a book"
 msgstr "Téléverser un livre"
+
+#: cps/spa_strings.py cps/templates/cover_picker.html
+msgid "Upload as cover"
+msgstr "Téléverser comme couverture"
 
 #: cps/spa_strings.py
 msgid "Upload books"

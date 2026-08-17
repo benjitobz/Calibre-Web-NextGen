@@ -5473,6 +5473,10 @@ msgid "Open Account"
 msgstr "Otwórz konto"
 
 #: cps/spa_strings.py
+msgid "Open administration"
+msgstr ""
+
+#: cps/spa_strings.py
 msgid "Open classic reader"
 msgstr "Otwórz klasyczny czytnik"
 
@@ -6250,6 +6254,10 @@ msgstr "Bez tytułu"
 #: cps/spa_strings.py
 msgid "Update failed."
 msgstr "Aktualizacja nie powiodła się."
+
+#: cps/spa_strings.py
+msgid "Upload a book"
+msgstr ""
 
 #: cps/spa_strings.py cps/templates/cover_picker.html
 msgid "Upload as cover"

@@ -5270,6 +5270,10 @@ msgid "Open Account"
 msgstr ""
 
 #: cps/spa_strings.py
+msgid "Open administration"
+msgstr ""
+
+#: cps/spa_strings.py
 msgid "Open classic reader"
 msgstr ""
 
@@ -6032,6 +6036,10 @@ msgstr "無書名"
 #: cps/spa_strings.py
 msgid "Update failed."
 msgstr "上傳失敗"
+
+#: cps/spa_strings.py
+msgid "Upload a book"
+msgstr ""
 
 #: cps/spa_strings.py cps/templates/cover_picker.html
 msgid "Upload as cover"

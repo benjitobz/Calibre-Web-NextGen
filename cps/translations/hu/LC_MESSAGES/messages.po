@@ -5386,6 +5386,10 @@ msgid "Open Account"
 msgstr ""
 
 #: cps/spa_strings.py
+msgid "Open administration"
+msgstr ""
+
+#: cps/spa_strings.py
 msgid "Open classic reader"
 msgstr ""
 
@@ -6150,6 +6154,10 @@ msgstr ""
 #: cps/spa_strings.py
 msgid "Update failed."
 msgstr "A frissítés sikertelen."
+
+#: cps/spa_strings.py
+msgid "Upload a book"
+msgstr ""
 
 #: cps/spa_strings.py cps/templates/cover_picker.html
 msgid "Upload as cover"
