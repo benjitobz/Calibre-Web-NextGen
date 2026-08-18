@@ -1732,8 +1732,7 @@ def HandleStateRequest(book_uuid):
             # Use the device's own timestamp so the GET response mirrors it back,
             # preventing the "newer PT" conflict popup. Official Kobo cloud does the same.
             lm_str = request_reading_state.get("LastModified")
-            request_lm = (datetime.strptime(lm_str, "%Y-%m-%dT%H:%M:%SZ").replace(tzinfo=timezone.utc)
-                          if lm_str else datetime.now(timezone.utc))
+            request_lm = parse_kobo_timestamp(lm_str) or datetime.now(timezone.utc)
             g.kobo_reading_state_lm = request_lm
 
             request_bookmark = request_reading_state["CurrentBookmark"]
@@ -1888,6 +1887,37 @@ def get_ub_read_status(kobo_read_status):
         "Reading": ub.ReadBook.STATUS_IN_PROGRESS,
     }
     return string_to_enum_map[kobo_read_status]
+
+
+def parse_kobo_timestamp(value):
+    """Parse a Kobo ``LastModified`` into an aware UTC datetime, or ``None``.
+
+    Kobo sends ISO-8601 UTC, but **not** always to whole seconds: a Libra Colour
+    on 5.10.226356 sends ``2026-08-17T17:56:53.254Z`` (#1706). The previous
+    ``strptime(value, "%Y-%m-%dT%H:%M:%SZ")`` raised ValueError on the
+    fractional part, which the caller's ``except`` turned into a 400 -- so one
+    unexpected millisecond field failed the whole reading-state sync, and the
+    error text blamed a missing ``ReadingStates`` key.
+
+    Returns ``None`` rather than raising: this timestamp exists only to mirror
+    the device's own value back so it does not raise a "newer progress" popup.
+    Losing it costs a popup; failing the request costs the sync.
+    """
+    if not isinstance(value, str):
+        return None
+    text = value.strip()
+    if not text:
+        return None
+    # fromisoformat only learned to accept a trailing "Z" in 3.11.
+    if text.endswith(("Z", "z")):
+        text = text[:-1] + "+00:00"
+    try:
+        parsed = datetime.fromisoformat(text)
+    except ValueError:
+        return None
+    if parsed.tzinfo is None:
+        return parsed.replace(tzinfo=timezone.utc)
+    return parsed.astimezone(timezone.utc)
 
 
 def get_or_create_reading_state(book_id):
