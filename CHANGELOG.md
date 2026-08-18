@@ -18,6 +18,32 @@ is for things you can see or feel when running the app.
 
 ### Fixed
 
+- **Highlights imported from a Kobo are the colour you actually made them.**
+  Every highlight pulled in from a `KoboReader.sqlite` upload arrived yellow on
+  a black-and-white reader such as a Clara BW, and on a colour reader the
+  greens came in blue and the blues came in green. The device records a
+  highlight's colour as a number, and the number-to-colour table this app was
+  using did not match what the hardware actually writes: it had no entry at all
+  for the shade every greyscale reader uses, so those all fell through to
+  yellow, and two of the four it did know were swapped. Highlights now import
+  as yellow, pink, blue, green or grey to match the device, and the reader,
+  the highlights page, and the Markdown, CSV and JSON exports all show and
+  name them correctly, including the pink and grey a Kobo can make but the web
+  reader's own palette does not offer. Existing highlights are read correctly
+  as they are — nothing in your library is rewritten. One visible change comes
+  with that: the classic EPUB reader used to paint a highlight synced from a
+  device in the Kobo's own pale ink, because that raw value reached it
+  untouched while every other screen showed it yellow. It now paints the shade
+  this app uses for that colour everywhere else, so the same highlight looks
+  the same wherever you open it. A highlight whose colour the app cannot work
+  out is no longer labelled and drawn as yellow: it is shown in a neutral shade
+  and, on the highlights page, named as unknown — so a highlight you really did
+  make yellow is no longer indistinguishable from one whose colour was lost.
+  Adding a note to an imported highlight also works again — saving one on
+  a pink or grey highlight used to fail silently, because the note editor sent
+  the highlight's colour back with it and the server does not accept those as a
+  choice.
+
 - **Active imports no longer incorrectly ask for a manual duplicate scan on
   bare-metal installs or when ingest marker paths are customized.** Both the
   importer and the duplicate index now look for the batch markers in the same

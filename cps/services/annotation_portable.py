@@ -25,6 +25,8 @@ from typing import Optional, Tuple
 
 from sqlalchemy import exc
 
+from .annotation_colors import to_display_name, to_storage_color
+
 _VALID_SOURCES = {"kobo", "webreader", "koreader"}
 
 
@@ -68,7 +70,14 @@ def to_portable(row) -> dict:
         "annotation_id": row.annotation_id,
         "highlighted_text": row.highlighted_text,
         "note_text": row.note_text,
-        "color": row.highlight_color,
+        # The portable wire speaks display names (the KOReader plugin's own
+        # provider builds and consumes names); the column speaks canonical hex.
+        # Normalise on the way out so a device never sees "#A0A0A0". A colour
+        # this app cannot name is passed through as the stored token rather
+        # than dropped — the receiving provider is then the one deciding what
+        # to do with a word it does not know, which is better than us deleting
+        # the user's colour on its behalf.
+        "color": to_display_name(row.highlight_color),
         "content_id": row.content_id,
         "start_kobospan": _extract_kobospan_id(row.start_container_path or ""),
         "start_offset": row.start_offset,
@@ -147,7 +156,11 @@ def apply_portable(payload, *, user_id, book, session, commit,
     if "note_text" in payload:
         row.note_text = payload.get("note_text")
     if "color" in payload:
-        row.highlight_color = payload.get("color")
+        # Accepts a name (what KOReader and older backups send) or a hex, and
+        # stores the canonical form. A legacy-name row rewritten to its hex
+        # counts as an update on the first push after this change; that is the
+        # normalisation landing, not a content change.
+        row.highlight_color = to_storage_color(payload.get("color"))
     if payload.get("content_id"):
         from .annotation_content_id import normalize_content_id
         row.content_id = normalize_content_id(
