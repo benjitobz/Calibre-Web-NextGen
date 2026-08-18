@@ -35,12 +35,17 @@ is for things you can see or feel when running the app.
   you make in that chapter under a name nothing on the device answers to, so the
   marks are saved and drawn nowhere. Nothing looks wrong and no error appears;
   the highlights simply never show up. On one 212-book library this affected 57
-  books. Where the anchor sits at the very top of the chapter it points at it
+  books. (Those two figures were counted on the library's source EPUBs; a Kobo is
+  served the converted copy. The two carry the same table of contents, so the
+  counts match, but the repair itself was measured directly and is reported at
+  the end of this entry.) Where the anchor sits at the very top of the chapter it points at it
   says nothing the file path does not already say, so conversion now drops it:
   517 such targets across 25 of those books, with every table-of-contents entry
   kept exactly as it was. Books already in your library are repaired on the first
   restart after upgrading, not only newly converted ones — each one is copied and
-  hash-checked before it is touched. Chapter files themselves are left byte-for-byte
+  hash-checked before it is touched. Measured on the reference instance after this
+  shipped: 37 books repaired, every one completed, and no converted copy left
+  needing work. Chapter files themselves are left byte-for-byte
   alone, so highlights you already hold keep their positions. In a few books the
   contents page is part of the reading order and so is rewritten too — five of
   the twenty-five here — but only its links change, and it carries none of the
