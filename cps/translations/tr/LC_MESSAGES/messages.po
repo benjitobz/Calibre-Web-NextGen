@@ -4790,6 +4790,10 @@ msgid "Gradient — palette-matched top/bottom blend"
 msgstr ""
 
 #: cps/spa_strings.py
+msgid "Grey"
+msgstr ""
+
+#: cps/spa_strings.py
 msgid "Group by"
 msgstr ""
 
@@ -5398,6 +5402,10 @@ msgstr ""
 #: cps/spa_strings.py
 #, python-brace-format
 msgid "Picked up {label}. Drag to reorder, release to drop."
+msgstr ""
+
+#: cps/spa_strings.py
+msgid "Pink"
 msgstr ""
 
 #: cps/spa_strings.py cps/templates/admin.html
@@ -6061,6 +6069,10 @@ msgstr ""
 
 #: cps/spa_strings.py
 msgid "Unhide"
+msgstr ""
+
+#: cps/spa_strings.py
+msgid "Unknown color"
 msgstr ""
 
 #: cps/spa_strings.py

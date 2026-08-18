@@ -4958,6 +4958,10 @@ msgid "Gradient — palette-matched top/bottom blend"
 msgstr "Degradado: transición superior/inferior ajustada a la paleta"
 
 #: cps/spa_strings.py
+msgid "Grey"
+msgstr ""
+
+#: cps/spa_strings.py
 msgid "Group by"
 msgstr ""
 
@@ -5578,6 +5582,10 @@ msgstr ""
 msgid "Picked up {label}. Drag to reorder, release to drop."
 msgstr ""
 "Elemento tomado: {label}. Arrastra para reordenar, suelta para colocarlo."
+
+#: cps/spa_strings.py
+msgid "Pink"
+msgstr ""
 
 #: cps/spa_strings.py cps/templates/admin.html
 msgid "Port"
@@ -6252,6 +6260,10 @@ msgstr ""
 #: cps/spa_strings.py
 msgid "Unhide"
 msgstr "Mostrar de nuevo"
+
+#: cps/spa_strings.py
+msgid "Unknown color"
+msgstr ""
 
 #: cps/spa_strings.py
 msgid "Unknown device"

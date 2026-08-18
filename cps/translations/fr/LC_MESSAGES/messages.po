@@ -3495,18 +3495,6 @@ msgstr "Téléverser une image"
 msgid "Uploading…"
 msgstr "Téléversement…"
 
-#: cps/spa_strings.py
-msgid "Grey"
-msgstr "Gris"
-
-#: cps/spa_strings.py
-msgid "Pink"
-msgstr "Rose"
-
-#: cps/spa_strings.py
-msgid "Unknown color"
-msgstr "Couleur inconnue"
-
 #: cps/spa_strings.py cps/templates/read.html
 msgid "Yellow"
 msgstr "Jaune"
@@ -5020,6 +5008,10 @@ msgid "Gradient — palette-matched top/bottom blend"
 msgstr "Dégradé — fondu haut/bas assorti à la palette"
 
 #: cps/spa_strings.py
+msgid "Grey"
+msgstr "Gris"
+
+#: cps/spa_strings.py
 msgid "Group by"
 msgstr "Grouper par"
 
@@ -5652,6 +5644,10 @@ msgstr ""
 #, python-brace-format
 msgid "Picked up {label}. Drag to reorder, release to drop."
 msgstr "{label} saisi. Faites glisser pour réorganiser, relâchez pour déposer."
+
+#: cps/spa_strings.py
+msgid "Pink"
+msgstr "Rose"
 
 #: cps/spa_strings.py cps/templates/admin.html
 msgid "Port"
@@ -6329,6 +6325,10 @@ msgstr "Annuler"
 #: cps/spa_strings.py
 msgid "Unhide"
 msgstr "Afficher"
+
+#: cps/spa_strings.py
+msgid "Unknown color"
+msgstr "Couleur inconnue"
 
 #: cps/spa_strings.py
 msgid "Unknown device"

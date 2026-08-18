@@ -3385,18 +3385,6 @@ msgstr "Afbeelding uploaden"
 msgid "Uploading…"
 msgstr "Uploaden…"
 
-#: cps/spa_strings.py
-msgid "Grey"
-msgstr "Grijs"
-
-#: cps/spa_strings.py
-msgid "Pink"
-msgstr "Roze"
-
-#: cps/spa_strings.py
-msgid "Unknown color"
-msgstr "Onbekende kleur"
-
 #: cps/spa_strings.py cps/templates/read.html
 msgid "Yellow"
 msgstr "Geel"
@@ -4898,6 +4886,10 @@ msgid "Gradient — palette-matched top/bottom blend"
 msgstr "Kleurverloop — op palet afgestemde menging van boven- en onderkant"
 
 #: cps/spa_strings.py
+msgid "Grey"
+msgstr "Grijs"
+
+#: cps/spa_strings.py
 msgid "Group by"
 msgstr "Groeperen op"
 
@@ -5525,6 +5517,10 @@ msgstr ""
 #, python-brace-format
 msgid "Picked up {label}. Drag to reorder, release to drop."
 msgstr "{label} opgepakt. Sleep om te herschikken, laat los om neer te zetten."
+
+#: cps/spa_strings.py
+msgid "Pink"
+msgstr "Roze"
 
 #: cps/spa_strings.py cps/templates/admin.html
 msgid "Port"
@@ -6202,6 +6198,10 @@ msgstr "Ongedaan maken"
 #: cps/spa_strings.py
 msgid "Unhide"
 msgstr "Zichtbaar maken"
+
+#: cps/spa_strings.py
+msgid "Unknown color"
+msgstr "Onbekende kleur"
 
 #: cps/spa_strings.py
 msgid "Unknown device"

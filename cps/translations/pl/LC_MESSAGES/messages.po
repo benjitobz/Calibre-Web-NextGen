@@ -4937,6 +4937,10 @@ msgid "Gradient — palette-matched top/bottom blend"
 msgstr "Gradient — przejście góra/dół dopasowane do palety"
 
 #: cps/spa_strings.py
+msgid "Grey"
+msgstr ""
+
+#: cps/spa_strings.py
 msgid "Group by"
 msgstr ""
 
@@ -5558,6 +5562,10 @@ msgid "Picked up {label}. Drag to reorder, release to drop."
 msgstr ""
 "Podniesiono \"{label}\". Przeciągnij, aby zmienić kolejność, i puść, aby "
 "upuścić."
+
+#: cps/spa_strings.py
+msgid "Pink"
+msgstr ""
 
 #: cps/spa_strings.py cps/templates/admin.html
 msgid "Port"
@@ -6230,6 +6238,10 @@ msgstr ""
 #: cps/spa_strings.py
 msgid "Unhide"
 msgstr "Odkryj"
+
+#: cps/spa_strings.py
+msgid "Unknown color"
+msgstr ""
 
 #: cps/spa_strings.py
 msgid "Unknown device"
