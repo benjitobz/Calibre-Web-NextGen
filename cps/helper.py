@@ -27,6 +27,7 @@ from flask_babel import gettext as _
 from flask_babel import lazy_gettext as N_
 from flask_babel import get_locale
 from .cw_login import current_user
+from .cover_version import COVER_VERSION_ARG, cover_version_token
 from sqlalchemy.sql.expression import true, false, and_, or_, text, func
 from sqlalchemy.exc import InvalidRequestError, OperationalError
 from werkzeug.datastructures import Headers
@@ -88,7 +89,25 @@ def mark_book_modified(book, *, set_dirty=True, unsync=False):
     The caller still owns the ``calibre_db.session.commit()``. ``kobo_sync_status``
     is imported lazily to keep this module's import graph unchanged.
     """
-    book.last_modified = datetime.now(timezone.utc)
+    # Strictly increasing per book. The wall clock has microsecond RESOLUTION
+    # but no uniqueness guarantee — successive datetime.now() calls can return
+    # the same value — and this column is now a cache key: two writes sharing a
+    # timestamp would share a URL, so the first image would stay in a browser's
+    # cache for a year while the file underneath had changed. Nudging past a
+    # same-instant collision costs a microsecond and removes the class.
+    #
+    # Bounded to a one-second window on purpose: a stored timestamp far in the
+    # future is bad data, and chaining +1us off it would keep the book in the
+    # future forever (and it also feeds Kobo's `last_modified > sync_token`
+    # selection). Beyond that window the clock wins.
+    now = datetime.now(timezone.utc)
+    previous = book.last_modified
+    if previous is not None:
+        if previous.tzinfo is None:
+            previous = previous.replace(tzinfo=timezone.utc)
+        if now <= previous < now + timedelta(seconds=1):
+            now = previous + timedelta(microseconds=1)
+    book.last_modified = now
     if set_dirty:
         calibre_db.set_metadata_dirty(book.id)
     if unsync:
@@ -1386,6 +1405,120 @@ def delete_book(book, calibrepath, book_format):
         return delete_book_file(book, calibrepath, book_format)
 
 
+# ############################### Cover cache policy ##################################################################
+#
+# A cover response may be cached for a year. What makes that safe is that the
+# URL changes when the cover changes — the stored copy is never invalidated.
+# Two conditions must BOTH hold before the long lifetime is granted, and they
+# are the whole policy:
+#
+#   1. The URL carries a ``c=`` token that MATCHES this book's current cover
+#      version (``cover_version.cover_version_token`` — microsecond-resolution
+#      ``Books.last_modified``, the column ``mark_book_modified`` stamps). A
+#      token is not taken on trust: an arbitrary or stale ``c=`` value names a
+#      version we are not serving, so it gets the ordinary revalidating answer.
+#      This is also what stops a *series* cover URL — whose ``c=`` is a rolling
+#      calendar stamp, not a book version — from pinning a book cover it fell
+#      through to.
+#   2. The bytes being sent are the ones that URL will ALWAYS name. A request
+#      for ``sm``/``md``/``lg`` whose thumbnail does not exist yet is answered
+#      from the original ``cover.jpg`` while generation is queued in the
+#      background; that response is a *stand-in*, and the same URL will serve
+#      the real thumbnail minutes later. Marking it immutable would pin the
+#      full-size original for a year and defeat the resizing entirely, so a
+#      fallback stays revalidating. ``og`` and the bare ``/cover/<id>`` ask for
+#      the original, so for those the original IS canonical.
+#
+# Anything that fails either condition keeps the framework default —
+# ``Cache-Control: no-cache``, i.e. revalidate against the ETag ``send_file``
+# already emits. That is the behaviour on main for every cover URL, so nothing
+# regresses; caching is added only where it can be proven correct.
+#
+# ``private``, never ``public``, plus an explicit ``Vary: Cookie``:
+# ``get_book_cover`` resolves the book through ``get_filtered_book``, which
+# applies the CURRENT USER's visibility (hidden and archived books included).
+# ``private`` keeps shared caches out; ``Vary: Cookie`` keeps one browser
+# profile from reusing user A's cover for user B after a re-login. Flask
+# already adds that ``Vary`` as a side effect of touching the session — it is
+# restated here so the guarantee is the code's, not a side effect's.
+#
+# What this does NOT cover, stated so nobody reads more into it than is there:
+#   * A cover replaced OUTSIDE the app (editing ``cover.jpg`` on disk, or in
+#     Google Drive, without touching the database) does not move
+#     ``last_modified``. Versioning is only as good as the timestamp, and
+#     out-of-band file edits are not supported by it.
+#   * The token comes from a wall clock. ``mark_book_modified`` guarantees it
+#     strictly increases for SEQUENTIAL writes to one book, which is what a
+#     clock's lack of uniqueness would otherwise break; two genuinely CONCURRENT
+#     writes to the same book read the same previous value and can still land on
+#     one token. That race already decides which cover.jpg survives by
+#     last-write-wins, so both clients end up naming the file that won — but it
+#     is a wall clock, not an atomic revision, and this is where that shows.
+#   * An already-open page keeps the URL it rendered with until it re-renders.
+#     Versioning invalidates on the next fetch, it does not push.
+COVER_VERSIONED_CACHE_CONTROL = "private, max-age=31536000, immutable"
+
+
+def cover_cache_control(book, canonical):
+    """The Cache-Control value for this cover response, or None to leave the
+    framework default (``no-cache``) in place.
+
+    ``canonical`` is the caller's answer to condition 2 above: whether the
+    bytes about to be sent are the ones this URL permanently names.
+    """
+    try:
+        if not canonical:
+            return None
+        from flask import has_request_context, request
+        if not has_request_context():
+            return None
+        token = (request.args.get(COVER_VERSION_ARG) or "").strip()
+        if not token:
+            return None
+        expected = cover_version_token(book)
+        if not expected or token != expected:
+            return None
+        return COVER_VERSIONED_CACHE_CONTROL
+    except Exception:  # pragma: no cover - defensive; never fail a cover request
+        return None
+
+
+def apply_cover_cache_headers(response, book, canonical):
+    """Stamp the immutable policy on a cover response when it is earned, and
+    the revalidating default when it is not.
+
+    The default is set EXPLICITLY rather than relied upon. ``send_file`` emits
+    ``no-cache`` on its own, but the Google Drive branch builds a plain
+    ``Response`` with no cache directives at all — which a browser is free to
+    treat as heuristically fresh. "Everything that does not earn the long
+    lifetime revalidates" is a claim this policy makes, so it has to be written
+    down rather than inherited from whichever helper produced the response.
+    """
+    try:
+        cache_control = cover_cache_control(book, canonical)
+        if cache_control:
+            response.headers["Cache-Control"] = cache_control
+            # Explicit rather than inherited: the cover a user may see depends
+            # on their session, so the browser's cache key must include it.
+            response.vary.add("Cookie")
+        elif not response.headers.get("Cache-Control"):
+            response.headers["Cache-Control"] = "no-cache"
+    except Exception:  # pragma: no cover - defensive; never fail a cover request
+        pass
+    return response
+
+
+def send_cover_from_directory(directory, filename, book, canonical):
+    """``send_from_directory`` for cover bytes, with the cache policy applied.
+
+    ETag / Last-Modified / conditional-304 / Range handling is left to
+    ``send_file`` untouched; this only decides how long the client may reuse the
+    answer without asking again.
+    """
+    return apply_cover_cache_headers(send_from_directory(directory, filename),
+                                     book, canonical)
+
+
 def get_cover_on_failure():
     try:
         return send_from_directory(_STATIC_DIR, "generic_cover.svg")
@@ -1506,8 +1639,35 @@ def get_book_cover_internal(book, resolution=None):
                 # Fallback if we can't determine request context
                 thumbnail_to_serve = webp_thumb if webp_exists else (jpg_thumb if jpg_exists else None)
             if thumbnail_to_serve:
-                return send_from_directory(cache.get_cache_file_dir(thumbnail_to_serve.filename, CACHE_TYPE_THUMBNAILS),
-                                           thumbnail_to_serve.filename)
+                # Canonical only when BOTH formats are already on disk and both
+                # carry a generation time.
+                #
+                # Both formats: when one is missing, generation was queued above
+                # and the *other* format is being served as a stand-in — a web
+                # request falls back to JPEG, a Kobo one to WebP. Minutes later
+                # the same URL selects the preferred format instead, so pinning
+                # the stand-in would freeze the wrong representation for a year.
+                #
+                # Both generated_at: a row with no generation time cannot be
+                # compared against book.last_modified, so the staleness check
+                # above cannot prove it belongs to the current cover (that is
+                # exactly the CWA #1339 shape — a thumbnail left behind by a
+                # previous book at the same id). Unprovable is not cacheable.
+                canonical_thumbnail = bool(
+                    webp_exists and jpg_exists
+                    and getattr(webp_thumb, "generated_at", None) is not None
+                    and getattr(jpg_thumb, "generated_at", None) is not None)
+                return send_cover_from_directory(
+                    cache.get_cache_file_dir(thumbnail_to_serve.filename, CACHE_TYPE_THUMBNAILS),
+                    thumbnail_to_serve.filename, book, canonical=canonical_thumbnail)
+
+        # Everything below serves the ORIGINAL cover.jpg. That is canonical only
+        # when the URL asked for the original (``og`` -> COVER_THUMBNAIL_ORIGINAL
+        # == 0, or no resolution at all). Reaching here WITH a resolution means
+        # the thumbnail was missing or stale and generation was queued above —
+        # the same URL will serve the real thumbnail shortly, so this response
+        # must stay revalidating or the full-size stand-in gets pinned for a year.
+        canonical = not resolution
 
         # Send the book cover from Google Drive if configured
         if config.config_use_google_drive:
@@ -1516,7 +1676,8 @@ def get_book_cover_internal(book, resolution=None):
                     return get_cover_on_failure()
                 cover_file = gd.get_cover_via_gdrive(book.path)
                 if cover_file:
-                    return Response(cover_file, mimetype='image/jpeg')
+                    return apply_cover_cache_headers(
+                        Response(cover_file, mimetype='image/jpeg'), book, canonical)
                 else:
                     log.error('{}/cover.jpg not found on Google Drive'.format(book.path))
                     return get_cover_on_failure()
@@ -1528,7 +1689,7 @@ def get_book_cover_internal(book, resolution=None):
         else:
             cover_file_path = os.path.join(config.get_book_path(), book.path)
             if os.path.isfile(os.path.join(cover_file_path, "cover.jpg")):
-                return send_from_directory(cover_file_path, "cover.jpg")
+                return send_cover_from_directory(cover_file_path, "cover.jpg", book, canonical)
             else:
                 return get_cover_on_failure()
     else:

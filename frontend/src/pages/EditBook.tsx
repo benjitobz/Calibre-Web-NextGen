@@ -688,9 +688,11 @@ function CoverManager({ id }: { id: string }) {
     });
   };
 
-  // setCover.data is the response to the most recent successful replacement,
-  // which carries a ?t=<ts> cache-buster. Falls back to the book's stable URL
-  // before any upload has happened, so a normal page load stays cacheable.
+  // setCover.data is the response to the most recent successful replacement. It
+  // carries the book's NEW ?c=<cover version>, because the endpoint now bumps
+  // last_modified — so it differs from the URL this page was rendered with.
+  // Falls back to the book's own URL before any upload, which is versioned too
+  // and therefore cacheable on a normal page load.
   const previewUrl = setCover.data?.cover_url ?? book?.cover_url;
 
   const onUrl = () => {
@@ -705,12 +707,15 @@ function CoverManager({ id }: { id: string }) {
   return (
     <section className={styles.coverSection}>
       <div className={styles.coverPreview}>
-        {/* Prefer the URL the upload returned. The cover lives at a stable
-            path (/cover/<id>/og), so after a replacement the refetched book
-            hands back a byte-identical src — React re-renders, the browser
-            serves its cached copy, and the upload looks like it did nothing
-            (#989, reported by @chloeroform). The API already answers with a
-            cache-busted URL for exactly this; it was simply being discarded. */}
+        {/* Prefer the URL the upload returned. The cover used to live at a
+            stable path, so after a replacement the refetched book handed back a
+            byte-identical src — React re-renders, the browser serves its cached
+            copy, and the upload looks like it did nothing (#989, reported by
+            @chloeroform). The API already answered with a cache-busted URL for
+            exactly this; it was simply being discarded. Cover URLs now carry
+            ?c=<version> and the endpoint bumps it, so the refetched book changes
+            too — this still prefers the response so the preview updates without
+            waiting for the refetch. */}
         {previewUrl
           ? <img src={resourceUrl(previewUrl)} alt={t('Current cover')} className={styles.coverImg} />
           : <div className={styles.coverPlaceholder}><ImageIcon size={28} /></div>}

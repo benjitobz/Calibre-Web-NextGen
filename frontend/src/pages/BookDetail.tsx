@@ -15,12 +15,24 @@ import { AUTHOR_SEPARATOR } from '../lib/authors';
 import { SpinnerCentered, Spinner } from '../components/Spinner';
 import { EmptyState } from '../components/EmptyState';
 import type { CustomColumn, CustomColumnValue, EntityRef } from '../lib/api';
-import { ApiError, resourceUrl } from '../lib/api';
+import { ApiError, resourceUrl, resourceSrcSet } from '../lib/api';
 import { useT } from '../lib/i18n';
 import { getPrimaryReadTarget } from '../lib/readerTarget';
 import styles from './BookDetail.module.css';
 import { useCardActionsHidden } from '../lib/useCardActionsHidden';
 import { BookUserNotices } from '../components/UserNotices';
+
+/* `fetchpriority` is a plain DOM attribute. react-dom 18.3 has no knowledge of
+   it, so the camelCase `fetchPriority` that @types/react declares would trip its
+   "React does not recognize the prop" development warning — it still renders,
+   because setAttribute lowercases the name, but the warning is noise. Spelling
+   it the way the DOM does avoids that. It is declared with its own type rather
+   than asserted to be ImgHTMLAttributes, because it demonstrably is NOT one of
+   those attributes in these typings — that is the whole reason this exists.
+   Spreading a typed variable (not an inline literal) is what keeps TS happy.
+   Drop the indirection on the React 19 upgrade, which knows the attribute. */
+type LowercaseFetchPriority = { fetchpriority: 'high' | 'low' | 'auto' };
+const COVER_PRIORITY: LowercaseFetchPriority = { fetchpriority: 'high' };
 
 function formatBytes(bytes: number): string {
   const mb = bytes / (1024 * 1024);
@@ -296,11 +308,25 @@ export function BookDetail() {
         {/* LEFT: cover */}
         <div className={styles.coverCol}>
           <div className={styles.coverWrap}>
+            {/* This cover is the page's largest paint, and the SPA builds it in
+                JS — the preload scanner never sees it, so it starts at the
+                browser's default (low) image priority. COVER_PRIORITY lifts it.
+                `decoding="async"` is a HINT, not a guarantee: it allows the
+                browser to present the rest of the page before this image's
+                decode completes — it does not promise a particular thread, and
+                the browser may also choose to present the image later. The srcset offers sm at 1x and md at 2x —
+                the resolution constants ARE density multipliers (1/2/4) and the
+                column is a fixed 280px, so md suits 2x while lg would usually be
+                the unresized original again (its 4x target height exceeds most
+                covers, and the thumbnailer only downscales). */}
             {book.cover_url ? (
               <img
                 src={resourceUrl(book.cover_url)}
+                srcSet={book.cover_srcset ? resourceSrcSet(book.cover_srcset) : undefined}
                 alt={book.title}
                 className={styles.cover}
+                decoding="async"
+                {...COVER_PRIORITY}
               />
             ) : (
               <div className={styles.coverFallback} aria-label={book.title}>

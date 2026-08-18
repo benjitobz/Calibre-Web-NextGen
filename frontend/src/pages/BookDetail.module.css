@@ -43,6 +43,14 @@
    still has a visible edge. Matches the shared BookCover frame and EditBook. */
 .cover {
   width: 100%;
+  height: auto;
+  /* Reserve the cover's box before the image arrives, the way .coverFallback
+     below already does. `auto 2 / 3` is the two-value form: a replaced element
+     that HAS a natural ratio keeps its own, so a cover that isn't 2:3 is never
+     stretched or letterboxed — the 2/3 applies only while there is no image
+     yet. (A browser that doesn't parse the two-value form drops the whole
+     declaration and behaves exactly as before.) */
+  aspect-ratio: auto 2 / 3;
   border: 1px solid var(--border);
   border-radius: var(--r-md);
   box-shadow: var(--cover-shadow);

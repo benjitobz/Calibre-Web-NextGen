@@ -35,6 +35,26 @@ export function resourceUrl(u: string): string {
   return BASE_PREFIX + u;
 }
 
+/** Apply the reverse-proxy mount prefix (#571) to a SERVER-GENERATED `srcset`.
+ *  Deliberately not a general srcset parser: it splits on every comma and only
+ *  recognises a literal space before the descriptor, which is correct for the
+ *  `"/cover/<id>/<res>?c=<n> <n>x"` candidates the API emits and wrong for a
+ *  `data:` URL or any URL containing a comma. Pass it only server-built cover
+ *  srcsets; use resourceUrl() for anything else. */
+export function resourceSrcSet(set: string): string {
+  return set
+    .split(',')
+    .map((candidate) => candidate.trim())
+    .filter(Boolean)
+    .map((candidate) => {
+      const space = candidate.indexOf(' ');
+      return space < 0
+        ? resourceUrl(candidate)
+        : resourceUrl(candidate.slice(0, space)) + candidate.slice(space);
+    })
+    .join(', ');
+}
+
 export interface ServerFeatures {
   hide_books: boolean;
   mail_configured: boolean;
@@ -162,6 +182,9 @@ export interface BookDetail {
    *  or null when the book is unrated. Divide by 2 for a 0–5 star display. */
   rating: number | null;
   cover_url: string | null;
+  /** Density candidates for the detail cover (`sm` 1x, `md` 2x). Absent on
+   *  older servers — fall back to `cover_url` alone. */
+  cover_srcset?: string | null;
   pubdate: string | null;
   date_added: string | null;
   last_modified: string | null;

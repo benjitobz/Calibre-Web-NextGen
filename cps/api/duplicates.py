@@ -16,6 +16,7 @@ from . import api_v1
 from .. import logger
 from ..cw_login import current_user
 from ..usermanagement import login_required_if_no_ano
+from .serializers import cover_url_for
 
 log = logger.create()
 
@@ -70,7 +71,7 @@ def list_duplicates():
                 "title": b.title,
                 "authors": (getattr(b, "author_names", "") or "").replace("|", ","),
                 "formats": [d.format for d in (getattr(b, "data", None) or [])],
-                "cover_url": ("/cover/%d/sm" % b.id) if getattr(b, "has_cover", 0) else None,
+                "cover_url": cover_url_for(b, "sm"),
             } for b in g.get("books", [])],
         })
     return jsonify({"items": items, "needs_scan": needs_scan})

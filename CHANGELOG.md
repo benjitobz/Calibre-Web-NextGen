@@ -18,6 +18,31 @@ is for things you can see or feel when running the app.
 
 ### Fixed
 
+- **The new UI no longer checks with the server for every book cover as you
+  scroll, and the book page no longer fetches a 280KB cover to show it at
+  postcard size.** Every cover was sent with instructions never to reuse it, so
+  scrolling a library asked the server about images the browser already had —
+  one round trip per cover, every time, on every page. Covers now carry their
+  own version in the address, so your browser reuses the copy it has and fetches
+  again once the cover changes. The book page also asks for the resized cover it
+  actually displays instead of the full-size original from your library — the
+  same picture at as little as a fifth of the bytes — choosing the size that
+  matches your screen rather than always sending the biggest one. The app's own
+  program files, whose names already change whenever their contents do, are
+  cached the same way instead of being re-checked on every load. On a slow or
+  metered connection this is the difference between a scroll that stutters and
+  one that does not. Two limits worth knowing: the cover savings apply once a
+  book's resized covers have been generated — until then, and on a server
+  without the image tools to make them, the app keeps checking with the server
+  exactly as it did before — and a page that is already open still shows the
+  cover it loaded with until it is reopened or refreshed.
+- **Replacing a cover now counts as a change to the book, from the new UI and
+  from an automatic metadata fetch.** Both updated the image on disk without
+  recording that the book had changed, so the classic interface and any page
+  already open kept showing the old cover, Kobo devices were never told to
+  re-sync it, and nothing asked for the new cover to be written into the
+  downloaded book file. Both now queue that last step; it is a background job,
+  so it is requested rather than guaranteed.
 - **Highlights imported from a Kobo are the colour you actually made them.**
   Every highlight pulled in from a `KoboReader.sqlite` upload arrived yellow on
   a black-and-white reader such as a Clara BW, and on a colour reader the

@@ -17,6 +17,7 @@ from flask_babel import format_date
 from .cw_login import current_user
 
 from . import constants, logger
+from .cover_version import cover_version_token
 from .clean_html import clean_string
 
 jinjia = Blueprint('jinjia', __name__)
@@ -195,7 +196,16 @@ def cache_timestamp(rolling_period='month'):
 
 @jinjia.app_template_filter('last_modified')
 def book_last_modified(book):
-    return str(int(book.last_modified.timestamp()))
+    """The ``c=`` cover-version token for ``book``, or None.
+
+    Routed through ``cps.cover_version`` because ``helper`` now VALIDATES this
+    value before granting a cover response a long cache lifetime — if this
+    filter and that check disagreed by so much as a rounding, every classic
+    cover URL would silently lose its caching. It also used to raise on a row
+    with no ``last_modified``; returning None makes ``url_for`` drop the
+    parameter, which yields an unversioned (revalidating) URL instead of a 500.
+    """
+    return cover_version_token(book)
 
 
 @jinjia.app_template_filter('get_cover_srcset')
