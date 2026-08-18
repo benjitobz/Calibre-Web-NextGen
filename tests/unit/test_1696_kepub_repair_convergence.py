@@ -226,6 +226,26 @@ def test_startup_repair_converges_with_permanently_unsupported_book(
 
 
 @pytest.mark.unit
+def test_repair_version_two_rescans_install_completed_at_version_one(monkeypatch):
+    calls = []
+    monkeypatch.setattr(
+        repair_task.config,
+        "config_kobo_kepub_package_repair_version",
+        1,
+        raising=False,
+    )
+    monkeypatch.setattr(
+        repair_task,
+        "enqueue_kepub_package_repair",
+        lambda hidden: calls.append(hidden) or True,
+    )
+
+    assert repair_task.REPAIR_VERSION == 2
+    assert repair_task.enqueue_startup_kepub_package_repair() is True
+    assert calls == [True]
+
+
+@pytest.mark.unit
 def test_unsupported_skip_invalidates_for_file_identity_and_repair_version(
     app_session, tmp_path, monkeypatch
 ):

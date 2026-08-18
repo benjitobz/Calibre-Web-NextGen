@@ -61,6 +61,45 @@ Format: each row is one fork-PR, mapped to its upstream PR or issue (if any), wi
 
 ### Bug fixes
 
+- **Kobo highlights render in books whose TOC anchors into a chapter file**
+  (fork #1657) — Kobo draws a `Bookmark` only when `Bookmark.ContentID` exactly
+  equals a `content` row with `ContentType=9`, and it derives that id from the
+  TOC entry verbatim, fragment included. A TOC pointing at
+  `chapter.xhtml#ch1` therefore files every highlight in that chapter under an
+  id no spine row matches, and the marks are stored but never drawn. Measured on
+  a Kobo Libra Colour: 810 of 3,016 bookmarks orphaned, perfect correlation
+  (fragment present → orphaned, absent → anchored) with the Odyssey as a
+  400/400 clean control, and 810/810 exact-matching once the fragment is
+  stripped. 57 of 212 books in the reference library carry fragment-anchored
+  navMap targets. `cps/services/kepub_package_normalizer.py` now strips a TOC
+  fragment during conversion when it is provably redundant: exactly one distinct
+  fragment targets that document, the anchor exists, and nothing rendered
+  precedes it — no non-whitespace text and no `img`/`svg`/`video`/`audio`/
+  `object`/`iframe`/`embed`/`canvas`/`table`. 690 targets qualify, fully fixing
+  15 books; verified across the real 212-book library at 25 books rewritten and
+  517 targets stripped with every non-TOC member byte-identical, no navMap
+  collapse, and a byte-identical second pass. Non-TOC spine documents are
+  byte-identical; the five books that declare the EPUB3 nav in the spine change
+  only `href` values there and carry zero KoboSpan ids, so ids never move and
+  existing highlights keep their anchors. A document or TOC that will not parse fails only the redundancy
+  proof — the target is left alone and unrelated relocation work still runs —
+  which keeps HTML-ish EPUBs (unclosed `<meta>`, 7 books in the library) at
+  `clean` instead of regressing them to a `retryable` repair loop. Also narrows
+  `count_fragment_anchored_toc_targets` to navMap/`epub:type="toc"` targets; it
+  had counted Gutenberg `pageList` page anchors, reporting 12,862 library-wide
+  where the true count is 1,821. Verified end-to-end on a Kobo Clara BW
+  (4.45.23792) through the real sync path: a highlight made in an unrepaired
+  fragment-anchored book stored a `ContentID` carrying `#` that matched 0
+  `ContentType=9` rows and did not render; after the server repaired the book and
+  the device re-downloaded it, the same highlight matched exactly 1 and is drawn
+  on the page, with no bookmark rows lost. Existing highlights are therefore
+  repaired, not merely prevented. Not covered: a TOC anchoring genuinely
+  mid-document (several chapters per file), which needs spine splitting and a
+  re-anchoring migration story — 1,126 targets across 40 books, tracked
+  separately. 46 tests in `tests/unit/test_1657_kepub_toc_fragments.py`, plus
+  probe/normalize convergence coverage in
+  `tests/unit/test_1696_kepub_repair_convergence.py`.
+
 - **RTL metadata renders right-to-left in both UIs** (fork #1073) — there was no
   `dir` attribute anywhere in the SPA or the classic templates, so Arabic,
   Hebrew and Farsi titles, authors, series and descriptions inherited the

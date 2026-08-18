@@ -29,6 +29,35 @@ is for things you can see or feel when running the app.
   retried. Nothing on screen depended on it. That was unnecessary traffic
   whenever the unfiltered library view loaded, and it is the second half of the
   same bandwidth complaint as the focus-refetch fix above.
+- **Highlights made on a Kobo now appear in more books.** When a book's table of
+  contents points *into* a chapter file rather than at the file itself —
+  `chapter.xhtml#ch1` rather than `chapter.xhtml` — a Kobo files every highlight
+  you make in that chapter under a name nothing on the device answers to, so the
+  marks are saved and drawn nowhere. Nothing looks wrong and no error appears;
+  the highlights simply never show up. On one 212-book library this affected 57
+  books. Where the anchor sits at the very top of the chapter it points at it
+  says nothing the file path does not already say, so conversion now drops it:
+  517 such targets across 25 of those books, with every table-of-contents entry
+  kept exactly as it was. Books already in your library are repaired on the first
+  restart after upgrading, not only newly converted ones — each one is copied and
+  hash-checked before it is touched. Chapter files themselves are left byte-for-byte
+  alone, so highlights you already hold keep their positions. In a few books the
+  contents page is part of the reading order and so is rewritten too — five of
+  the twenty-five here — but only its links change, and it carries none of the
+  markers a highlight attaches to. **Highlights you already made in an affected
+  book come back, too** — once your reader downloads the repaired book it files
+  them under the corrected name and draws them again. Measured on a Kobo Clara BW
+  (firmware 4.45.23792): a highlight that matched no chapter on the device before
+  the repair matched exactly one after it, and appears on the page. Your reader
+  picks the repaired book up the next time it syncs and you open it. One honest
+  limit remains: a table of contents that points genuinely into the middle of a
+  file — several chapters packed into one document, common in Project Gutenberg
+  editions — still needs those files split, which is not part of this change.
+- **The log no longer overstates how many books cannot show highlights.** The
+  warning added in v4.1.37 counted page-number anchors alongside real chapter
+  entries, reporting 12,862 affected targets on a library whose true count is
+  1,821, and 516 for one book whose table of contents has 63 chapters. It now
+  counts only the entries a Kobo actually derives chapter identity from.
 
 ## [v4.1.38] - 2026-08-17
 

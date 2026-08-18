@@ -49,13 +49,15 @@ CHAPTER_XHTML = b"""<?xml version="1.0" encoding="UTF-8"?>
 """
 
 
-def _write_package(path, *, opf=FLATLAND_OPF, nav_path="nav.xhtml", extra_entries=()):
+def _write_package(
+        path, *, opf=FLATLAND_OPF, nav_path="nav.xhtml",
+        nav_content=NAV_XHTML, chapter_content=CHAPTER_XHTML, extra_entries=()):
     entries = [
         ("mimetype", b"application/epub+zip", zipfile.ZIP_STORED),
         ("META-INF/container.xml", CONTAINER_XML, zipfile.ZIP_DEFLATED),
         ("OPS/epb.opf", opf, zipfile.ZIP_DEFLATED),
-        (nav_path, NAV_XHTML, zipfile.ZIP_DEFLATED),
-        ("OPS/chapter-001.xml", CHAPTER_XHTML, zipfile.ZIP_DEFLATED),
+        (nav_path, nav_content, zipfile.ZIP_DEFLATED),
+        ("OPS/chapter-001.xml", chapter_content, zipfile.ZIP_DEFLATED),
     ]
     entries.extend((name, content, zipfile.ZIP_DEFLATED) for name, content in extra_entries)
     with zipfile.ZipFile(path, "w") as archive:
@@ -112,6 +114,55 @@ def test_second_normalization_is_a_byte_identical_no_op(tmp_path):
 
 
 @pytest.mark.unit
+def test_escaping_href_relocation_composes_with_redundant_toc_fragment_strip(tmp_path):
+    package = tmp_path / "composed.kepub"
+    nav = NAV_XHTML.replace(
+        b"<html xmlns=\"http://www.w3.org/1999/xhtml\"><body><nav>",
+        b"<html xmlns=\"http://www.w3.org/1999/xhtml\" "
+        b"xmlns:epub=\"http://www.idpf.org/2007/ops\"><body><nav epub:type=\"toc\">",
+    )
+    chapter = CHAPTER_XHTML.replace(
+        b'<a href="../nav.xhtml">Contents</a>',
+        b'<a id="start" href="../nav.xhtml">Contents</a>',
+    )
+    _write_package(package, nav_content=nav, chapter_content=chapter)
+
+    assert _normalizer()(package) is True
+
+    with zipfile.ZipFile(package) as archive:
+        hrefs = _manifest_hrefs(archive.read("OPS/epb.opf"))
+        relocated_nav = "OPS/" + hrefs[0]
+        rewritten_nav = archive.read(relocated_nav)
+        assert relocated_nav in archive.namelist()
+    assert b'href="chapter-001.xml"' in rewritten_nav
+    assert b'href="chapter-001.xml#start"' not in rewritten_nav
+
+
+@pytest.mark.unit
+def test_repair_probe_reports_redundant_toc_fragment(tmp_path):
+    from cps.services import kepub_package_normalizer as normalizer
+
+    opf = CLEAN_OPF
+    nav = NAV_XHTML.replace(
+        b"<html xmlns=\"http://www.w3.org/1999/xhtml\"><body><nav>",
+        b"<html xmlns=\"http://www.w3.org/1999/xhtml\" "
+        b"xmlns:epub=\"http://www.idpf.org/2007/ops\"><body><nav epub:type=\"toc\">",
+    ).replace(b'href="OPS/chapter-001.xml#start"', b'href="chapter-001.xml#start"')
+    chapter = CHAPTER_XHTML.replace(
+        b'<a href="../nav.xhtml">Contents</a>',
+        b'<a id="start" href="../nav.xhtml">Contents</a>',
+    )
+    package = tmp_path / "probe-fragment.kepub"
+    _write_package(
+        package, opf=opf, nav_path="OPS/nav.xhtml",
+        nav_content=nav, chapter_content=chapter)
+
+    inspection = normalizer.kepub_package_needs_normalization(package)
+
+    assert inspection.status == normalizer.PROBE_NEEDS_NORMALIZATION
+
+
+@pytest.mark.unit
 def test_clean_package_is_completely_untouched(tmp_path):
     package = tmp_path / "clean.kepub"
     _write_package(package, opf=CLEAN_OPF, nav_path="OPS/nav.xhtml")
@@ -123,7 +174,7 @@ def test_clean_package_is_completely_untouched(tmp_path):
 
 
 @pytest.mark.unit
-def test_clean_package_reads_only_container_and_opf(tmp_path, monkeypatch):
+def test_clean_package_reads_only_bounded_structural_documents(tmp_path, monkeypatch):
     import cps.services.kepub_package_normalizer as normalizer
 
     package = tmp_path / "clean.kepub"
@@ -138,11 +189,11 @@ def test_clean_package_reads_only_container_and_opf(tmp_path, monkeypatch):
     monkeypatch.setattr(normalizer.zipfile, "ZipFile", RecordingZipFile)
 
     assert normalizer.normalize_kepub_package(package) is False
-    assert read_names == ["META-INF/container.xml", "OPS/epb.opf"]
+    assert read_names == ["META-INF/container.xml", "OPS/epb.opf", "OPS/nav.xhtml"]
 
 
 @pytest.mark.unit
-def test_clean_repair_probe_reads_only_container_and_opf(tmp_path, monkeypatch):
+def test_clean_repair_probe_reads_only_bounded_structural_documents(tmp_path, monkeypatch):
     import cps.services.kepub_package_normalizer as normalizer
 
     package = tmp_path / "clean-probe.kepub"
@@ -158,7 +209,7 @@ def test_clean_repair_probe_reads_only_container_and_opf(tmp_path, monkeypatch):
 
     inspection = normalizer.kepub_package_needs_normalization(package)
     assert inspection.status == normalizer.PROBE_CLEAN
-    assert read_names == ["META-INF/container.xml", "OPS/epb.opf"]
+    assert read_names == ["META-INF/container.xml", "OPS/epb.opf", "OPS/nav.xhtml"]
 
 
 @pytest.mark.unit

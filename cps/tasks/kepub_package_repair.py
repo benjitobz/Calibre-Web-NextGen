@@ -28,7 +28,7 @@ from ..services.worker import (
 
 
 log = logger.create()
-REPAIR_VERSION = 1
+REPAIR_VERSION = 2
 NOTICE_TYPE = "kepub-package-repair"
 REPAIR_STATUS_DETECTED = "detected"
 REPAIR_STATUS_FILE_REPAIRED = "file_repaired"
