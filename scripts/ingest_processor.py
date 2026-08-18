@@ -34,6 +34,7 @@ import service_user
 # no-op fallback so callsites that reference these names work even if
 # the lazy load hasn't happened yet (or fails in a test environment).
 _calibre_plugins = None
+_normalize_kepub_package = None
 _CPS_ROOT = str(app_paths.app_root())
 
 # Anchor for the shared conversion budget (#1094). Bound at import so it
@@ -64,7 +65,7 @@ def _load_fork_cps_imports() -> None:
     @navels' fast-exit design. Safe to call multiple times; both
     rebinds are idempotent.
     """
-    global _calibre_plugins, metadata_db_write_lock
+    global _calibre_plugins, metadata_db_write_lock, _normalize_kepub_package
 
     if _CPS_ROOT not in sys.path:
         sys.path.insert(0, _CPS_ROOT)
@@ -80,6 +81,14 @@ def _load_fork_cps_imports() -> None:
         metadata_db_write_lock = _module_lock
     except ImportError:
         metadata_db_write_lock = _noop_metadata_db_write_lock
+
+    try:
+        from cps.services.kepub_package_normalizer import (
+            normalize_kepub_package as _module_normalize,
+        )
+        _normalize_kepub_package = _module_normalize
+    except ImportError:
+        _normalize_kepub_package = None
 
 
 # Retry calibredb add on transient "database is locked" / BusyError.
@@ -1571,6 +1580,26 @@ class NewBookProcessor:
 
 
     def add_book_to_library(self, book_path:str, text: bool=True, format: str="text" ) -> None:
+        # Normalize a KEPUB before it enters the library (#1715). Every ingest
+        # route lands here -- kepubify output, a file already in the target
+        # format, and a format the user told CWA not to convert -- and none of
+        # them normalized, so a Kobo would derive each chapter's id from the TOC
+        # entry verbatim, fragment included, and file every highlight made there
+        # under an id no spine row carries. The repair task cannot cover for this:
+        # it is one-shot per REPAIR_VERSION.
+        # Non-fatal by design: normalize_kepub_package logs and returns None with
+        # the archive untouched, and importing an un-normalized KEPUB beats
+        # refusing the ingest.
+        if os.path.splitext(book_path)[1].lower() == ".kepub":
+            if _normalize_kepub_package is None:
+                _load_optional_cps_modules()
+            if _normalize_kepub_package is not None:
+                try:
+                    _normalize_kepub_package(book_path)
+                except Exception as e:
+                    print(f"[ingest-processor] WARN: could not normalize KEPUB "
+                          f"{book_path}: {e}", flush=True)
+
         # If kindle-epub-fixer is on, run it first and import the *fixed* file.
         if self.target_format == "epub" and self.is_kindle_epub_fixer:
             fixed_epub_path = Path(self.tmp_conversion_dir) / os.path.basename(book_path)
