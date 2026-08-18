@@ -38,6 +38,7 @@ from .redirect import get_redirect_location
 from .file_helper import validate_mime_type
 from .cwa_functions import get_ingest_dir
 from .services.calibre_db_lock import metadata_db_write_lock
+from .services.kepub_package_normalizer import normalize_kepub_package
 from .services.pubdate_parse import parse_partial_pubdate
 from .usermanagement import user_login_required, login_required_if_no_ano
 from .string_helper import strip_whitespaces
@@ -2057,6 +2058,20 @@ def upload_book_formats(requested_files, book, book_id, no_cover=True):
                 error = True
                 continue
 
+            if file_ext == "kepub":
+                # An uploaded KEPUB never passes through conversion, and the
+                # repair task is one-shot per REPAIR_VERSION, so without this it
+                # would keep its fragment-anchored TOC targets forever and a
+                # Kobo would file every highlight in those chapters under an id
+                # no spine row carries (#1715, same defect as #1657).
+                # normalize_kepub_package logs and returns None on any failure,
+                # leaving the archive untouched -- storing an un-normalized
+                # KEPUB is strictly better than refusing the upload, which is
+                # the same trade-off convert.py makes.
+                normalize_kepub_package(saved_filename)
+
+            # AFTER normalization: it rewrites the archive, so measuring first
+            # would record a stale size in the Calibre data row.
             file_size = os.path.getsize(saved_filename)
 
             # Format entry already exists, no need to update the database
