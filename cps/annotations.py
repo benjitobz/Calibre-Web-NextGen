@@ -437,6 +437,12 @@ def ingest_bookmarks(sqlite_path, user_id, session, book_lookup, commit,
             end_offset=bm.end_offset,
             context_string=bm.context_string,
             chapter_progress=bm.chapter_progress,
+            # The device's own word for what this row is, carried through
+            # unchanged (F-7e418c). The live PATCH path stores the same
+            # vocabulary from `payload["type"]`, so a row recovered from
+            # KoboReader.sqlite and the same annotation arriving over the wire
+            # now agree instead of one of them being NULL.
+            annotation_type=getattr(bm, "annotation_type", None),
             source="kobo",
             origin_device_id=origin_device_id,
             hidden=False,
