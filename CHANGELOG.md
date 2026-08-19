@@ -18,6 +18,12 @@ is for things you can see or feel when running the app.
 
 ### Fixed
 
+- **Asking your system to reduce motion now stops every spinning icon in the new
+  UI, not just some of them.** The app has seven loading spinners; four stopped
+  when you turned on "reduce motion" and three kept spinning — including the
+  shared one used on more screens than any other, so the same page could show a
+  still spinner in one place and a spinning one in another. All seven now follow
+  the same rule. Nothing changes if you have not asked for reduced motion.
 - **Container updates and restarts no longer spend the entire shutdown grace
   period frozen before being killed.** The ingest watcher installed a graceful
   shutdown handler but then blocked in a foreground polling or filesystem-watch
