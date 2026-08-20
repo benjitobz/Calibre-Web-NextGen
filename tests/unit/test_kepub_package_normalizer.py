@@ -686,3 +686,66 @@ def test_repair_probe_classifies_io_failure_as_retryable(tmp_path, monkeypatch):
 
     assert inspection.status == mod.PROBE_RETRYABLE
     assert "temporarily unavailable" in inspection.error_message
+
+
+@pytest.mark.unit
+def test_kepubify_conversion_RE_splits_an_annotated_book_that_was_already_split(
+        tmp_path, monkeypatch):
+    """The guard's second clause, which the convert path had no test for.
+
+    "Never split an annotated book" is the wrong rule when the STORED package is
+    already one of ours. Piece naming is deterministic, so re-splitting the same
+    source reproduces the exact member names the existing annotations are
+    anchored to -- while withholding the split deletes the very files those
+    anchors name. Splitting preserves them; not splitting strands them.
+
+    The upload path has covered this since F-bbd10e
+    (test_1715_uploaded_kepub_is_normalized.py ::
+    test_an_annotated_book_that_was_ALREADY_split_is_split_again). The
+    conversion path carries the identical clause at cps/tasks/convert.py and had
+    only the plain "annotated => do not split" case, so simplifying the
+    expression to `may_split = not self._book_has_annotations()` -- the obvious
+    reading -- left every conversion test green while silently stranding the
+    anchors of every annotated, already-split book.
+
+    The stored package here is a REAL splitter output, not a mock: the assertion
+    exercises `package_was_split_by_us` itself rather than a stand-in for it.
+    """
+    from types import SimpleNamespace
+
+    import cps.helper  # noqa: F401 - establish the application's normal import order
+    from cps.tasks import convert
+
+    book_path = tmp_path / "book"
+    (tmp_path / "book.epub").write_bytes(b"source")
+    _write_splittable_package(tmp_path / "book.kepub.epub")
+
+    # The already-stored package: genuinely produced by our own splitter, so
+    # `package_was_split_by_us` answers True on its real spine check.
+    destination = tmp_path / "book.kepub"
+    _write_splittable_package(destination)
+    _normalizer()(str(destination), split_chapters=True)
+
+    from cps.services.kepub_spine_splitter import package_was_split_by_us
+    assert package_was_split_by_us(str(destination)), (
+        "fixture is wrong: the stored package is not one the splitter produced, "
+        "so this test could not tell the two branches apart")
+
+    process = SimpleNamespace(returncode=0)
+    monkeypatch.setattr(convert.config, "config_embed_metadata", False, raising=False)
+    monkeypatch.setattr(convert.config, "config_binariesdir", "", raising=False)
+    monkeypatch.setattr(convert.config, "config_kepubifypath", "/bin/kepubify", raising=False)
+    monkeypatch.setattr(convert, "process_open", lambda *_args, **_kwargs: process)
+    monkeypatch.setattr(convert, "stream_process_output", lambda *_args, **_kwargs: [])
+    _patch_annotation_store(monkeypatch, convert, annotations=1)
+    task = convert.TaskConvert(str(book_path), 1, "convert", {}, None)
+
+    check, error = task._convert_kepubify(str(book_path), ".epub", ".kepub")
+
+    assert check == 0, error
+    assert _ncx_sources(destination) == [
+        "chapter-split-1.xhtml",
+        "chapter-split-2.xhtml",
+    ], ("an annotated book whose stored KEPUB was already split came back "
+        "unsplit; the chapter files its highlights are anchored to no longer "
+        "exist, so they would stop rendering on the device")
