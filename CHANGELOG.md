@@ -34,6 +34,15 @@ is for things you can see or feel when running the app.
   stop those highlights showing on your device — unless it was already stored
   chapter-by-chapter, in which case re-uploading or re-converting it keeps the
   same chapter files and your highlights keep working.
+- **The notice you get after CWNG repairs a Kobo book now tells you what to do
+  about it, in a way that works whichever way your device behaves.** It used to say the app had "repaired a book previously sent to your
+  Kobo" and that "older highlights may still need to be recreated" — accurate, but
+  it never said the thing that actually helps: sync, then try highlighting again.
+  It now leads with that, and adds the fallback for the case where syncing alone
+  is not enough — remove the book from the Kobo and let it download again — so the
+  advice holds whether or not your device re-downloads a repaired book on its own.
+  The version shown on a book's own page also tells you to download the book again
+  if you read it somewhere other than a Kobo.
 - **Highlight colours synced through the KOReader plugin were wrong, and on a
   black-and-white Kobo every highlight came back yellow.** The plugin used a
   colour table that had blue and green the wrong way round, called Kobo's pink
