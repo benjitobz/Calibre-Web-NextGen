@@ -2131,8 +2131,10 @@ def upload_book_formats(requested_files, book, book_id, no_cover=True):
                 # KEPUB is strictly better than refusing the upload, which is
                 # the same trade-off convert.py makes.
                 #
-                # Splitting is opted into only when the book carries no
-                # annotations. This route is reached from EDIT BOOK, so
+                # Splitting is withheld for an annotated book unless the stored
+                # KEPUB was already split by us; _may_split_replacement explains
+                # why re-splitting is then the anchor-preserving choice. This
+                # route is reached from EDIT BOOK, so
                 # `book_id` can be a book that has been in the library for
                 # years: a split renames its spine documents, and a Kobo matches
                 # its stored Bookmark rows by ContentID, so it would keep the

@@ -14,6 +14,7 @@ collaborators, so they exercise the actual code path rather than pinning source.
 """
 import os
 import zipfile
+from pathlib import Path
 
 import pytest
 
@@ -352,3 +353,24 @@ def test_the_decision_rule_itself(monkeypatch):
                         raising=False)
     assert editbooks._may_split_replacement(1, False) is False
     assert editbooks._may_split_replacement(1, True) is True
+
+
+def test_upload_comment_describes_the_annotated_replacement_exception():
+    """The call-site prose must not contradict the decision directly below it.
+
+    The stale wording said splitting happened only without annotations, hiding
+    the already-split exception this suite exists to protect. Pin both the
+    removal and the corrected rule because a wrong comment disables review of
+    the real branch even while behavioural tests remain green.
+    """
+    from cps import editbooks
+
+    source = Path(editbooks.__file__).read_text(encoding="utf-8")
+    stale = "Splitting is opted into only when the book carries no"
+    corrected = (
+        "Splitting is withheld for an annotated book unless the stored\n"
+        "                # KEPUB was already split by us"
+    )
+
+    assert stale not in source
+    assert corrected in source

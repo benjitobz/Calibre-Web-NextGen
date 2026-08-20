@@ -749,3 +749,66 @@ def test_kepubify_conversion_RE_splits_an_annotated_book_that_was_already_split(
     ], ("an annotated book whose stored KEPUB was already split came back "
         "unsplit; the chapter files its highlights are anchored to no longer "
         "exist, so they would stop rendering on the device")
+
+
+@pytest.mark.unit
+def test_kepubify_conversion_keeps_an_existing_UNSPLIT_annotated_book_unsplit(
+        tmp_path, monkeypatch):
+    """The convert boundary must use the detector's False result, not existence.
+
+    The positive partner above proves a real splitter output is accepted. This
+    case supplies the missing other half: the destination exists, but its spine
+    is ordinary and unsplit. Merely checking ``os.path.exists(destination)`` --
+    or replacing ``package_was_split_by_us`` with an always-True predicate --
+    would split the replacement and strand annotations anchored to
+    ``chapter.xhtml``.
+
+    Wrap the real detector and record its argument so the assertion proves the
+    decision was made at the conversion boundary, against the stored package.
+    """
+    from types import SimpleNamespace
+
+    import cps.helper  # noqa: F401 - establish the application's normal import order
+    from cps.services import kepub_spine_splitter
+    from cps.tasks import convert
+
+    book_path = tmp_path / "book"
+    (tmp_path / "book.epub").write_bytes(b"source")
+    _write_splittable_package(tmp_path / "book.kepub.epub")
+
+    destination = tmp_path / "book.kepub"
+    _write_splittable_package(destination)
+    assert _ncx_sources(destination) == [
+        "chapter.xhtml#one",
+        "chapter.xhtml#two",
+    ], "fixture is wrong: the stored package is not an ordinary unsplit KEPUB"
+
+    real_detector = kepub_spine_splitter.package_was_split_by_us
+    detector_calls = []
+
+    def record_detector_call(path):
+        detector_calls.append(path)
+        return real_detector(path)
+
+    monkeypatch.setattr(
+        kepub_spine_splitter, "package_was_split_by_us", record_detector_call)
+
+    process = SimpleNamespace(returncode=0)
+    monkeypatch.setattr(convert.config, "config_embed_metadata", False, raising=False)
+    monkeypatch.setattr(convert.config, "config_binariesdir", "", raising=False)
+    monkeypatch.setattr(convert.config, "config_kepubifypath", "/bin/kepubify", raising=False)
+    monkeypatch.setattr(convert, "process_open", lambda *_args, **_kwargs: process)
+    monkeypatch.setattr(convert, "stream_process_output", lambda *_args, **_kwargs: [])
+    _patch_annotation_store(monkeypatch, convert, annotations=1)
+    task = convert.TaskConvert(str(book_path), 1, "convert", {}, None)
+
+    check, error = task._convert_kepubify(str(book_path), ".epub", ".kepub")
+
+    assert check == 0, error
+    assert detector_calls == [str(destination)], (
+        "conversion did not ask the real detector about the stored package")
+    assert _ncx_sources(destination) == [
+        "chapter.xhtml#one",
+        "chapter.xhtml#two",
+    ], ("an annotated book whose stored KEPUB was unsplit came back split; "
+        "its highlights were anchored to the chapter.xhtml spine document")

@@ -39,6 +39,14 @@ function BookLinks({ notices }: { notices: UserNotice[] }) {
   );
 }
 
+/*
+ * #1748 final invariant: the repair instructions below are the operator-chosen
+ * copy. They lead with sync, retain the remove-and-download fallback, and
+ * deliberately omit the superseded pre-repair-highlight warning.
+ * The squash message records intermediate drafts; these exact literals are the
+ * final decision and are pinned by the unit and end-to-end tests.
+ */
+
 export function UserNoticeBanner() {
   const t = useT();
   const announce = useAnnouncer();
