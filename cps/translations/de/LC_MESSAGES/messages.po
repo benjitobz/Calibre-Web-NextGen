@@ -948,6 +948,10 @@ msgid "Uploaded file is not a SQLite database."
 msgstr "Hochgeladene Datei ist keine SQLite-Datenbank."
 
 #: cps/annotations.py
+msgid "Uploaded database has no readable Kobo Bookmark table."
+msgstr ""
+
+#: cps/annotations.py
 #, python-format
 msgid "File exceeds %(max)d MB."
 msgstr "Datei übersteigt %(max)d MB."
