@@ -44,11 +44,11 @@ def parse_client_modified_utc(value):
         raw = raw[:-1] + "+00:00"
     try:
         parsed = datetime.fromisoformat(raw)
-    except ValueError:
+        if parsed.tzinfo is None:
+            return None
+        return parsed.astimezone(timezone.utc).replace(tzinfo=None)
+    except (ValueError, OverflowError):
         return None
-    if parsed.tzinfo is None:
-        return None
-    return parsed.astimezone(timezone.utc).replace(tzinfo=None)
 
 # Background dispatch seam (#920)
 # ------------------------------
