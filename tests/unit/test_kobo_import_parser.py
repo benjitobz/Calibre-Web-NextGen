@@ -147,11 +147,15 @@ class TestParseKoboBookmarks:
 
 @pytest.mark.unit
 class TestParserEdgeCases:
-    def test_no_bookmark_table_yields_empty(self, tmp_path):
-        from cps.services.kobo_import import parse_kobo_bookmarks
+    def test_no_bookmark_table_is_not_reported_as_an_empty_success(self, tmp_path):
+        from cps.services.kobo_import import (
+            KoboBookmarkDatabaseError,
+            parse_kobo_bookmarks,
+        )
 
         p = build_empty_sqlite_no_bookmark_table(tmp_path / "empty.sqlite")
-        assert list(parse_kobo_bookmarks(p)) == []
+        with pytest.raises(KoboBookmarkDatabaseError, match="Bookmark table"):
+            list(parse_kobo_bookmarks(p))
 
     def test_not_sqlite_yields_empty(self, tmp_path):
         from cps.services.kobo_import import parse_kobo_bookmarks

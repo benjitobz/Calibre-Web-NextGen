@@ -309,6 +309,7 @@ def annotations_import_submit():
         messages = {
             "no_file": _("No file uploaded."),
             "not_sqlite": _("Uploaded file is not a SQLite database."),
+            "not_kobo": _("Uploaded database has no readable Kobo Bookmark table."),
             "too_large": _(
                 "File exceeds %(max)d MB.",
                 max=MAX_UPLOAD_BYTES // (1024 * 1024),

@@ -64,6 +64,15 @@ class KoboContentDatabaseError(ValueError):
     pass
 
 
+class KoboBookmarkDatabaseError(KoboUploadError):
+    """The upload is SQLite, but not a readable Kobo annotation source."""
+
+    def __init__(self, detail="Could not read the Kobo Bookmark table"):
+        super().__init__("not_kobo", 400)
+        self.detail = detail
+        self.args = (detail,)
+
+
 @dataclass(frozen=True)
 class ParsedBookmark:
     """One row from a Kobo Bookmark table, plus the bits we derive
@@ -269,9 +278,10 @@ def looks_like_sqlite(blob_or_path) -> bool:
 def parse_kobo_bookmarks(sqlite_path: Path) -> Iterator[ParsedBookmark]:
     """Open ``sqlite_path`` read-only and yield every ``Bookmark`` row.
 
-    Yields nothing if the file is not SQLite, the Bookmark table doesn't exist,
-    the table is empty, or a read fails. Read failures are logged; this iterator
-    deliberately has no separate error channel.
+    Yields nothing if the file is not SQLite or does not exist (the upload
+    boundary rejects those before calling this parser). A valid empty Bookmark
+    table yields nothing. A missing or unreadable Bookmark table raises so the
+    import cannot misreport a failed recovery as a successful zero-row scan.
     """
     if not isinstance(sqlite_path, Path):
         sqlite_path = Path(sqlite_path)
@@ -287,7 +297,7 @@ def parse_kobo_bookmarks(sqlite_path: Path) -> Iterator[ParsedBookmark]:
         conn = sqlite3.connect(uri, uri=True)
     except sqlite3.OperationalError as e:
         log.warning("kobo_import: cannot open %s read-only: %s", sqlite_path, e)
-        return
+        raise KoboBookmarkDatabaseError("Could not open the Kobo database read-only") from e
 
     try:
         # Keep the connection non-writing at both layers. ``mode=ro`` is the
@@ -298,8 +308,7 @@ def parse_kobo_bookmarks(sqlite_path: Path) -> Iterator[ParsedBookmark]:
             "SELECT name FROM sqlite_master WHERE type='table' AND name='Bookmark'"
         )
         if cur.fetchone() is None:
-            log.info("kobo_import: %s has no Bookmark table — skipping", sqlite_path)
-            return
+            raise KoboBookmarkDatabaseError("Kobo database has no Bookmark table")
 
         # Bookmark.Type is the device's own word for what a row is
         # (normally "highlight" or "dogear"). Selected conditionally: naming a
@@ -321,7 +330,7 @@ def parse_kobo_bookmarks(sqlite_path: Path) -> Iterator[ParsedBookmark]:
         """.format(type_column="Type" if has_type else "NULL")).fetchall()
     except sqlite3.DatabaseError as e:
         log.warning("kobo_import: SQL error on %s: %s", sqlite_path, e)
-        return
+        raise KoboBookmarkDatabaseError() from e
     finally:
         conn.close()
 

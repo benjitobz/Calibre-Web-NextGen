@@ -35,6 +35,8 @@ def validate_portable_payload(payload, *, book_uuid=None) -> Optional[str]:
     """Return a validation error for fields that would make an upsert unsafe."""
     if not isinstance(payload, dict):
         return None  # non-object entries are deliberately counted as skipped
+    if "source" in payload and payload.get("source") not in _VALID_SOURCES:
+        return "source must be one of: " + ", ".join(sorted(_VALID_SOURCES))
     for field in ("annotation_id", "highlighted_text", "note_text", "color",
                   "content_id", "context_string", "position_type",
                   "start_xpointer", "end_xpointer", "device_origin_id"):
@@ -120,6 +122,13 @@ def apply_portable(payload, *, user_id, book, session, commit,
     if not isinstance(annotation_id, str) or not annotation_id.strip():
         return None, "skipped"
     annotation_id = annotation_id.strip()
+    source = payload.get("source", "koreader")
+    if source not in _VALID_SOURCES:
+        # The HTTP boundary rejects this with a reason. Keep the core helper
+        # defensive as well: coercing an unrecognised observation to
+        # ``koreader`` invents provenance and grants KOReader delete authority
+        # over a row whose origin it did not establish.
+        return None, "skipped"
 
     row = (
         session.query(ub.Annotation)
@@ -130,9 +139,6 @@ def apply_portable(payload, *, user_id, book, session, commit,
     )
     created = False
     if row is None:
-        source = payload.get("source")
-        if source not in _VALID_SOURCES:
-            source = "koreader"
         row = ub.Annotation(
             user_id=user_id, annotation_id=annotation_id,
             book_id=book.id, source=source, origin_device_id=origin_device_id,

@@ -717,6 +717,13 @@ def dispatch_annotation_deletes(deleted_ids, user, book_id=None) -> None:
         return
     jobs = []
     for annotation_id in deleted_ids:
+        if not isinstance(annotation_id, str) or not annotation_id:
+            # A malformed member has no addressable annotation identity. Skip
+            # only that member: letting it reach SQL can poison the session and
+            # prevent later, valid deletions in the same device delta from
+            # being applied before the outer route proxies success.
+            log.warning("Skipping malformed deletedAnnotationIds member %r", annotation_id)
+            continue
         query = ub.session.query(ub.Annotation).filter(
             ub.Annotation.user_id == user.id,
             ub.Annotation.annotation_id == annotation_id,
