@@ -3292,6 +3292,10 @@ msgstr "Editoriales (separadas por comas)"
 msgid "Read"
 msgstr "Leído"
 
+#: cps/spa_strings.py cps/templates/image.html
+msgid "Reading"
+msgstr "Lectura"
+
 #: cps/spa_strings.py
 msgid "Reading progress"
 msgstr "Progreso de lectura"
@@ -3554,10 +3558,6 @@ msgid ""
 msgstr ""
 "La interfaz está traducida a tu idioma; estas notas de actualización están "
 "escritas en inglés."
-
-#: cps/spa_strings.py cps/templates/image.html
-msgid "Reading"
-msgstr "Lectura"
 
 #: cps/spa_strings.py
 msgid "Grid view"

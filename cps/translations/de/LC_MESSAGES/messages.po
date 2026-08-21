@@ -3271,6 +3271,10 @@ msgstr "Verleger (mit Komma trennen)"
 msgid "Read"
 msgstr "Gelesen"
 
+#: cps/spa_strings.py cps/templates/image.html
+msgid "Reading"
+msgstr "Gerade am Lesen"
+
 #: cps/spa_strings.py
 msgid "Reading progress"
 msgstr "Lesefortschritt"
@@ -3531,10 +3535,6 @@ msgid ""
 msgstr ""
 "Die Oberfläche wurde in Ihre Sprache übersetzt. Diese Update-Hinweise sind "
 "auf Englisch."
-
-#: cps/spa_strings.py cps/templates/image.html
-msgid "Reading"
-msgstr "Gerade am Lesen"
 
 #: cps/spa_strings.py
 msgid "Grid view"

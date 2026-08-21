@@ -3212,6 +3212,10 @@ msgstr "Uitgevers (komma-gescheiden)"
 msgid "Read"
 msgstr "Gelezen"
 
+#: cps/spa_strings.py cps/templates/image.html
+msgid "Reading"
+msgstr "Lezen"
+
 #: cps/spa_strings.py
 msgid "Reading progress"
 msgstr "Leesvoortgang"
@@ -3471,10 +3475,6 @@ msgid ""
 msgstr ""
 "De interface is vertaald naar jouw taal; deze update-notities zijn "
 "geschreven in het Engels."
-
-#: cps/spa_strings.py cps/templates/image.html
-msgid "Reading"
-msgstr "Lezen"
 
 #: cps/spa_strings.py
 msgid "Grid view"

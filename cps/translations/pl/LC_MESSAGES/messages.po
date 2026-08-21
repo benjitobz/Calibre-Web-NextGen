@@ -3268,6 +3268,10 @@ msgstr "Wydawcy (oddzieleni przecinkami)"
 msgid "Read"
 msgstr "Przeczytane"
 
+#: cps/spa_strings.py cps/templates/image.html
+msgid "Reading"
+msgstr "Czytanie"
+
 #: cps/spa_strings.py
 msgid "Reading progress"
 msgstr "Postęp czytania"
@@ -3528,10 +3532,6 @@ msgid ""
 msgstr ""
 "Interfejs jest przetłumaczony na Twój język; te informacje o aktualizacji są "
 "napisane w języku angielskim."
-
-#: cps/spa_strings.py cps/templates/image.html
-msgid "Reading"
-msgstr "Czytanie"
 
 #: cps/spa_strings.py
 msgid "Grid view"

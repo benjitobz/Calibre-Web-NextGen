@@ -3322,6 +3322,10 @@ msgstr "Éditeurs (séparés par des virgules)"
 msgid "Read"
 msgstr "Lu"
 
+#: cps/spa_strings.py cps/templates/image.html
+msgid "Reading"
+msgstr "Lecture"
+
 #: cps/spa_strings.py
 msgid "Reading progress"
 msgstr "Progression de lecture"
@@ -3584,10 +3588,6 @@ msgid ""
 msgstr ""
 "L’interface est traduite dans votre langue ; ces notes de mise à jour sont "
 "rédigées en anglais."
-
-#: cps/spa_strings.py cps/templates/image.html
-msgid "Reading"
-msgstr "Lecture"
 
 #: cps/spa_strings.py
 msgid "Grid view"

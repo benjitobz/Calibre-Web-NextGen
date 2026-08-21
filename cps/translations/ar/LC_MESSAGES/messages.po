@@ -3156,6 +3156,10 @@ msgstr ""
 msgid "Read"
 msgstr "قراءة"
 
+#: cps/spa_strings.py cps/templates/image.html
+msgid "Reading"
+msgstr ""
+
 #: cps/spa_strings.py
 msgid "Reading progress"
 msgstr ""
@@ -3411,10 +3415,6 @@ msgstr ""
 msgid ""
 "The interface is translated into your language; these update notes are "
 "written in English."
-msgstr ""
-
-#: cps/spa_strings.py cps/templates/image.html
-msgid "Reading"
 msgstr ""
 
 #: cps/spa_strings.py
