@@ -8,8 +8,14 @@
     "F-1927e0",
     "#1790"
   ],
+  "resolution": {
+    "commit": "39da46bf5",
+    "date": "2026-08-22",
+    "note": "Fixed and merged as #1793. dispatch_annotation_deletes now takes a REQUIRED keyword-only deletable_sources; Kobo PATCH passes {'kobo'}, KOReader passes _DELETABLE_SOURCES, the authenticated web-reader delete passes None (user authority across provenance). Verified on merged main: the original proof now shows both foreign rows surviving while the honest kobo delete still lands, refusals logged with provenance. Degrading the guard to constant-true (exactly the pre-fix behaviour) fails test_kobo_delete_authority_refuses_foreign_sources_and_fans_out_owned. /security-review returned no findings at confidence >=8 and independently confirmed the None sentinel is unreachable from any device path and that no other writer bypasses the gate.",
+    "release": ""
+  },
   "severity": "data-integrity",
   "source": "audit",
-  "status": "open",
+  "status": "resolved",
   "title": "Kobo PATCH deletedAnnotationIds has no provenance authority: one push soft-deletes webreader and koreader rows"
 }
