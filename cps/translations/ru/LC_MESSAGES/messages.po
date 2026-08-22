@@ -743,8 +743,8 @@ msgid ""
 "https://your-domain.com)"
 msgstr ""
 "В поле «Хост перенаправления OAuth» не следует указывать путь. Используйте "
-"только базовый URL (например, [https://your-domain.com](https://your-"
-"domain.com))"
+"только базовый URL (например, [https://your-domain.com](https://your-domain."
+"com))"
 
 #: cps/admin.py
 msgid "Password length has to be between 1 and 40"
@@ -3824,23 +3824,6 @@ msgid "{count} notices dismissed permanently."
 msgstr "{count} уведомлений скрыто навсегда."
 
 #: cps/spa_strings.py
-#, python-brace-format
-msgid ""
-"CWNG repaired {count} books previously sent to your Kobo. Older highlights "
-"may still need to be recreated on the device."
-msgstr ""
-"CWNG исправил {count} книг, ранее отправленных на ваш Kobo. Старые "
-"выделения, возможно, всё равно придётся создать заново на устройстве."
-
-#: cps/spa_strings.py
-msgid ""
-"CWNG repaired a book previously sent to your Kobo. Older highlights may "
-"still need to be recreated on the device."
-msgstr ""
-"CWNG исправил книгу, ранее отправленную на ваш Kobo. Старые выделения, "
-"возможно, всё равно придётся создать заново на устройстве."
-
-#: cps/spa_strings.py
 msgid "There is new information about your library."
 msgstr "Появилась новая информация о вашей библиотеке."
 
@@ -3852,16 +3835,6 @@ msgstr "Скрыть все уведомления ({count}) навсегда"
 #: cps/spa_strings.py
 msgid "Dismiss all"
 msgstr "Скрыть все"
-
-#: cps/spa_strings.py
-msgid ""
-"This book was repaired after it had already been sent to a Kobo. Download "
-"the updated book; highlights created before the repair may remain invisible "
-"and may need to be recreated."
-msgstr ""
-"Эта книга была исправлена после того, как уже была отправлена на Kobo. "
-"Скачайте обновлённую книгу; выделения, созданные до исправления, могут "
-"оставаться невидимыми и, возможно, их придётся создать заново."
 
 #: cps/spa_strings.py
 msgid "There is new information about this book."
@@ -8790,9 +8763,9 @@ msgid ""
 msgstr ""
 "Необязательно. Без ключа для Google Books действует ограничение около 1000 "
 "запросов на IP-адрес в день, которое легко исчерпать на общих серверах "
-"(ошибка HTTP 429). Бесплатный ключ можно получить на [https://"
-"console.cloud.google.com](https://console.cloud.google.com) — включите "
-"«Books API» и создайте API-ключ."
+"(ошибка HTTP 429). Бесплатный ключ можно получить на [https://console.cloud."
+"google.com](https://console.cloud.google.com) — включите «Books API» и "
+"создайте API-ключ."
 
 #: cps/templates/config_edit.html
 msgid "Allow Reverse Proxy Authentication"
@@ -9792,9 +9765,9 @@ msgid ""
 "\">kindle-epub-fix.netlify.app</a> tool made by <a href=\"https://github.com/"
 "innocenat\">innocenat</a>."
 msgstr ""
-"Этот инструмент был адаптирован из утилиты <a href=\"https://kindle-epub-"
-"fix.netlify.app/\">kindle-epub-fix.netlify.app</a>, созданной <a "
-"href=\"https://github.com/innocenat\">innocenat</a>."
+"Этот инструмент был адаптирован из утилиты <a href=\"https://kindle-epub-fix."
+"netlify.app/\">kindle-epub-fix.netlify.app</a>, созданной <a href=\"https://"
+"github.com/innocenat\">innocenat</a>."
 
 #: cps/templates/cwa_settings.html
 msgid "Enable KOReader Sync (NextGen Plugin)"
@@ -9817,9 +9790,9 @@ msgid ""
 "container after disabling."
 msgstr ""
 "Примечание: Включение этой опции запускает службу фонового вычисления "
-"контрольных сумм при старте, что может временно заблокировать файл "
-"metadata.db. Чтобы остановить запущенный процесс, отключите опцию и "
-"перезапустите контейнер."
+"контрольных сумм при старте, что может временно заблокировать файл metadata."
+"db. Чтобы остановить запущенный процесс, отключите опцию и перезапустите "
+"контейнер."
 
 #: cps/templates/cwa_settings.html
 msgid "Enable Aggressive EPUB Fixer Mode (riskier)"
@@ -13287,6 +13260,30 @@ msgstr "Показывать выбранные полки в OPDS"
 msgid "Show Read/Unread Section"
 msgstr "Показать раздел прочитанного/непрочитанного"
 
+#, python-brace-format
+#~ msgid ""
+#~ "CWNG repaired {count} books previously sent to your Kobo. Older "
+#~ "highlights may still need to be recreated on the device."
+#~ msgstr ""
+#~ "CWNG исправил {count} книг, ранее отправленных на ваш Kobo. Старые "
+#~ "выделения, возможно, всё равно придётся создать заново на устройстве."
+
+#~ msgid ""
+#~ "CWNG repaired a book previously sent to your Kobo. Older highlights may "
+#~ "still need to be recreated on the device."
+#~ msgstr ""
+#~ "CWNG исправил книгу, ранее отправленную на ваш Kobo. Старые выделения, "
+#~ "возможно, всё равно придётся создать заново на устройстве."
+
+#~ msgid ""
+#~ "This book was repaired after it had already been sent to a Kobo. Download "
+#~ "the updated book; highlights created before the repair may remain "
+#~ "invisible and may need to be recreated."
+#~ msgstr ""
+#~ "Эта книга была исправлена после того, как уже была отправлена на Kobo. "
+#~ "Скачайте обновлённую книгу; выделения, созданные до исправления, могут "
+#~ "оставаться невидимыми и, возможно, их придётся создать заново."
+
 #~ msgid "new highlights imported"
 #~ msgstr "импортированы новые выделения"
 
@@ -13539,9 +13536,9 @@ msgstr "Показать раздел прочитанного/непрочит�
 #~ "metadata.db при запуске. Если найдена только одна библиотека, она "
 #~ "монтируется автоматически; если найдено несколько, по умолчанию будет "
 #~ "смонтирована самая большая, а если ни одной нет, будет автоматически "
-#~ "создана и смонтирована новая. Для подробностей, <a href=\"https://"
-#~ "github.com/crocodilestick/Calibre-Web-Automated/wiki/"
-#~ "Configuration#database-configuration\">см. здесь</a>!"
+#~ "создана и смонтирована новая. Для подробностей, <a href=\"https://github."
+#~ "com/crocodilestick/Calibre-Web-Automated/wiki/Configuration#database-"
+#~ "configuration\">см. здесь</a>!"
 
 #~ msgid ""
 #~ "Therefore, when configuring your docker-compose file for CWA, <b>DO NOT "
