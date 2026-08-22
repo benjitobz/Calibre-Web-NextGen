@@ -7,8 +7,14 @@
     "cps/user_book_data.py:67",
     "cps/user_book_data.py:112"
   ],
+  "resolution": {
+    "commit": "f8cac66d1",
+    "date": "2026-08-22",
+    "note": "Fixed and merged as #1794. migrate_user_book_data now keeps the newer coherent annotation row on an (user_id, annotation_id) clash: newest non-null of server_modified_at/client_modified_at, a present clock outranking a null one, content_revision breaking clock ties, and the destination row retained on a total tie. Verified on merged main: my original proof inverts - the rev=9 row with the note survives and is re-pointed to to_book_id, where before the stale rev=1 row won. Degrading the recency check to constant-false (the old arbitrary winner) fails 3 tests. Field-level merge was deliberately NOT done: combining content, anchors and lifecycle metadata could produce a version no client authored. Checked and cleared during review: _delete_annotation removes only AnnotationSyncTarget children, but KoboAnnotationMaterialization cascades via the ORM (cascade all,delete-orphan with no passive_deletes), so no orphan holding verbatim text survives against a recyclable id.",
+    "release": ""
+  },
   "severity": "data-integrity",
   "source": "audit",
-  "status": "open",
+  "status": "resolved",
   "title": "Duplicate-book merge hard-deletes the newer annotation with no recency check, while reading state in the same file keeps the newer"
 }
