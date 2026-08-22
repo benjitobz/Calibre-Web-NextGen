@@ -18,6 +18,14 @@ is for things you can see or feel when running the app.
 
 ### Fixed
 
+- **A Kobo can no longer erase a book's local highlights when its Calibre-Web
+  session expires or an admin has just disabled Kobo sync.** Those transition
+  windows, plus alternate spellings of Kobo's `checkforchanges` request, could
+  bypass the owned-book filter and tell the device to replace its complete
+  local highlight set from the cloud response. Every equivalent request now
+  reaches the same ownership containment; owned books receive an empty change
+  list, while Kobo-store content continues to proxy normally.
+
 - **Two people could not find how to delete a book in the new UI and switched
   back to the classic view over it.** Deletion worked, but the edit page had no
   whole-book delete control and the book page buried Delete at the end of a

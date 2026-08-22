@@ -61,6 +61,25 @@ Format: each row is one fork-PR, mapped to its upstream PR or issue (if any), wi
 
 ### Bug fixes
 
+- **Kobo `checkforchanges` containment now covers session/config transition
+  windows and alternate route spellings** (finding F-30d264) — the shared
+  Reading Services decorator previously proxied the request untouched when the
+  Flask session was unauthenticated or Kobo sync had just been disabled, so the
+  owned-content filter from #1679 never ran. The trailing-slash spelling also
+  matched the API-v3 catch-all and proxied directly; executed route probes found
+  the same bypass for case variants, doubled slashes, and an encoded trailing
+  slash after WSGI decoding. The decorator now lets semantic
+  `checkforchanges` requests reach containment in both transition windows, and
+  the catch-all delegates equivalent spellings to the same handler. Owned or
+  ownership-unknown ids produce `200 []` when no foreign entries remain—the
+  hardware-proven answer that prevents Nickel from issuing its destructive
+  annotations GET—while foreign ids and their response entries still proxy
+  unchanged. Twelve real-blueprint tests cover the two transition windows,
+  four alternate spellings, and foreign-id preservation. Red on
+  `origin/main`: 6 failed / 2 passed; mutations restored each pre-fix guard
+  independently and produced 2 failures (auth/config) and 4 failures
+  (catch-all). | SHA `TBD` | release `TBD`.
+
 - **Kobo highlights render in books whose TOC anchors into a chapter file**
   (fork #1657) — Kobo draws a `Bookmark` only when `Bookmark.ContentID` exactly
   equals a `content` row with `ContentType=9`, and it derives that id from the
