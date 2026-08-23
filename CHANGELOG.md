@@ -151,6 +151,21 @@ is for things you can see or feel when running the app.
   the rest of the application finish shutting down normally. Signals arriving
   during the instant a background process is started are held until its process
   group ID has been recorded, so that startup edge cannot leave a watcher behind.
+- **A book now takes you back to the list you opened it from instead of
+  dropping you at the library root.** The back link returns to the same author,
+  series, tag, publisher, language, rating, format, shelf, magic shelf, or
+  discovery view (Hot, Discover, Top rated, Favourites, or Archived), so a
+  filtered view no longer has to be rebuilt by hand. A library search also
+  returns with its `?q=` query intact. Advanced search is an honest exception:
+  `/search` returns to the search page with an empty form, not the previous
+  criteria or results, because that page keeps its criteria in component state
+  and puts nothing in the URL. The destination survives a reload of the book
+  page, but the list's loaded pages and scroll position do not, so it returns at
+  the top; a book opened from a deep link with no recorded origin still falls
+  back to the library root as before. Opening a book from somewhere that is not
+  a list — a notice banner on another page, for example — or going straight
+  from one book to another shows “← Library”, because there is no list behind
+  it. Reported by @Arjan61 in #666.
 - **The new UI no longer checks with the server for every book cover as you
   scroll, and the book page no longer fetches a 280KB cover to show it at
   postcard size.** Every cover was sent with instructions never to reuse it, so
@@ -201,7 +216,6 @@ is for things you can see or feel when running the app.
   a pink or grey highlight used to fail silently, because the note editor sent
   the highlight's colour back with it and the server does not accept those as a
   choice.
-
 - **Active imports no longer incorrectly ask for a manual duplicate scan on
   bare-metal installs or when ingest marker paths are customized.** Both the
   importer and the duplicate index now look for the batch markers in the same
