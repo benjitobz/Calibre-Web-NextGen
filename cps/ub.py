@@ -1781,6 +1781,9 @@ def filename(context):
 
 class Thumbnail(Base):
     __tablename__ = 'thumbnail'
+    __table_args__ = (
+        Index('ix_thumbnail_cover_lookup', 'type', 'entity_id', 'resolution', 'format'),
+    )
 
     id = Column(Integer, primary_key=True)
     entity_id = Column(Integer)
@@ -3995,9 +3998,30 @@ def migrate_bookmark_format_lowercase(engine, _session):
             log.info("[bookmark-format-migration] merged %d rows; lowercased %d rows", merged, updated)
 
 
+def migrate_thumbnail_lookup_index(engine, _session):
+    """Ensure the current app.db has the cover-thumbnail lookup index.
+
+    Do not gate this on a CONFIG_DIR marker: callers can select or restore a
+    different app.db while keeping the same config directory. The database-
+    scoped ``IF NOT EXISTS`` is the idempotency guard.
+    """
+    try:
+        _run_ddl_with_retry(
+            engine,
+            "CREATE INDEX IF NOT EXISTS ix_thumbnail_cover_lookup "
+            "ON thumbnail(type, entity_id, resolution, format)",
+        )
+    except Exception as error:
+        log.warning(
+            "[thumbnail-lookup-index-migration] index creation failed: %s",
+            error,
+        )
+
+
 def migrate_Database(_session):
     engine = _session.bind
     add_missing_tables(engine, _session)
+    migrate_thumbnail_lookup_index(engine, _session)
     migrate_registration_table(engine, _session)
     migrate_user_session_table(engine, _session)
     migrate_user_table(engine, _session)
