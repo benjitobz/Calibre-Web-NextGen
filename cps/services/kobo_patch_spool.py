@@ -529,10 +529,10 @@ def _write_new_record(spool_id, compressed, cancelled=None):
             path = root / (
                 f"patch-{time.time_ns():020d}-{spool_id}-staged.json.gz"
             )
+            _schedule_retention(root, time.time() + MAX_AGE_SECONDS)
             _install_record_locked(
                 path, compressed, victims=victims, cancelled=cancelled,
             )
-    _schedule_retention(root, time.time() + MAX_AGE_SECONDS)
     return path
 
 
@@ -561,7 +561,6 @@ def _mark_dispatch_outcome_blocking(path, status, cancelled=None):
                 replacing_path=path,
                 cancelled=cancelled,
             )
-    _schedule_retention(root, time.time() + MAX_AGE_SECONDS)
     return new_path
 
 

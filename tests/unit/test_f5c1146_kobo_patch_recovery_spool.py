@@ -303,6 +303,24 @@ def test_failed_new_write_does_not_destroy_the_existing_recovery_record(
 
 
 @pytest.mark.unit
+def test_retention_schedule_failure_happens_before_record_commit(monkeypatch, tmp_path):
+    """A post-write maintenance failure cannot create an unreported record."""
+    spool, root = _root(monkeypatch, tmp_path)
+
+    def _fail_schedule(*_args, **_kwargs):
+        raise RuntimeError("simulated timer creation failure")
+
+    monkeypatch.setattr(spool, "_schedule_retention", _fail_schedule)
+    ticket = spool.stage_patch(
+        raw_body=RAW_PATCH, entitlement_id=BOOK_UUID,
+        user_id=7, origin_device_id=None,
+    )
+
+    assert ticket is None
+    assert list(root.glob("patch-*.json.gz")) == []
+
+
+@pytest.mark.unit
 def test_cross_process_lock_contention_fails_open_without_waiting(monkeypatch, tmp_path):
     """A busy peer must not block this gevent worker's entire request hub."""
     spool, root = _root(monkeypatch, tmp_path)
