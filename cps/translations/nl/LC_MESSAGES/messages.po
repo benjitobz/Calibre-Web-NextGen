@@ -13620,3 +13620,14 @@ msgstr "Toon gelezen/niet gelezen selectie"
 #~ msgstr ""
 #~ "Boeken moeten eerst worden gearchiveerd en het apparaat moet worden "
 #~ "gesynchroniseerd, voordat een boek veilig kan worden verwijderd."
+msgid "{succeeded} added to the shelf; {failed} failed."
+msgstr "{succeeded} toegevoegd aan de plank; {failed} mislukt."
+
+msgid "{succeeded} book(s) deleted; {failed} failed."
+msgstr "{succeeded} boek(en) verwijderd; {failed} mislukt."
+
+msgid "{succeeded} updated; {failed} failed."
+msgstr "{succeeded} bijgewerkt; {failed} mislukt."
+
+msgid "Metadata applied to {succeeded}; {failed} failed."
+msgstr "Metadata toegepast op {succeeded}; {failed} mislukt."
