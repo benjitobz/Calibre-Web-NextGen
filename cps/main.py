@@ -152,5 +152,8 @@ def main():
         from . import logger
         logger.create().error_or_exception(f"Could not queue startup KEPUB package repair: {ex}")
 
+    from . import content_server
+    content_server.start()
     success = web_server.start()
+    content_server.stop()
     sys.exit(0 if success else 1)
