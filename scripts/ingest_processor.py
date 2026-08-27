@@ -169,7 +169,7 @@ DUPLICATE_FULL_SCAN_WAIT_INTERVAL_SECONDS = 2
 DUPLICATE_FULL_SCAN_WAIT_TIMEOUT_SECONDS = int(os.environ.get("CWA_DUPLICATE_FULL_SCAN_WAIT_TIMEOUT_SECONDS", "7200"))
 
 class ProcessLock:
-    """Robust process lock using both file locking and PID tracking"""
+    """Process lock using flock for ownership and the PID for diagnostics."""
 
     def __init__(self, lock_name="ingest_processor"):
         self.lock_name = lock_name
@@ -180,8 +180,9 @@ class ProcessLock:
     def acquire(self, timeout=5):
         """Acquire the lock with timeout. Returns True if successful, False if another process has it."""
         try:
-            # Try to open/create the lock file
-            self.lock_file = open(self.lock_path, 'w+')
+            # Keep one stable inode: truncating or unlinking a contended lock file
+            # would let another opener acquire a different inode.
+            self.lock_file = open(self.lock_path, 'a+')
 
             # Try to acquire an exclusive lock with timeout
             start_time = time.time()
@@ -189,21 +190,19 @@ class ProcessLock:
                 try:
                     fcntl.flock(self.lock_file.fileno(), fcntl.LOCK_EX | fcntl.LOCK_NB)
 
-                    # Successfully acquired lock, write our PID
+                    # Successfully acquired lock, replace the diagnostic PID.
                     self.lock_file.seek(0)
+                    self.lock_file.truncate()
                     self.lock_file.write(str(os.getpid()))
                     self.lock_file.flush()
-                    self.lock_file.truncate()  # Truncate at current position to remove any leftover data
 
                     self.acquired = True
                     print(f"[ingest-processor] Lock acquired successfully (PID: {os.getpid()})")
                     return True
 
                 except (IOError, OSError):
-                    # Lock is held by another process
-                    # Check if the holding process is still alive
-                    if self._check_stale_lock():
-                        continue  # Try again as we cleaned up a stale lock
+                    # The flock is authoritative. PID text is only diagnostic;
+                    # invalid text cannot make a contended lock stale.
                     time.sleep(0.1)  # Brief wait before retry
 
             # Timeout reached
@@ -228,59 +227,6 @@ class ProcessLock:
             pass
         return "unknown"
 
-    def _check_stale_lock(self):
-        """Check if the lock is stale (holding process no longer exists) and clean it up"""
-        try:
-            if not self.lock_file:
-                return False
-
-            self.lock_file.seek(0)
-            pid_str = self.lock_file.read().strip()
-
-            if not pid_str.isdigit():
-                print("[ingest-processor] Lock file contains invalid PID, treating as stale")
-                return self._cleanup_stale_lock()
-
-            holding_pid = int(pid_str)
-
-            # Check if process is still running
-            try:
-                os.kill(holding_pid, 0)  # Signal 0 just checks if process exists
-                return False  # Process is still running
-            except ProcessLookupError:
-                # Process doesn't exist, lock is stale
-                print(f"[ingest-processor] Detected stale lock from non-existent process {holding_pid}, cleaning up")
-                return self._cleanup_stale_lock()
-            except PermissionError:
-                # Process exists but we can't signal it (different user), assume it's running
-                return False
-
-        except Exception as e:
-            print(f"[ingest-processor] Error checking stale lock: {e}")
-            return False
-
-    def _cleanup_stale_lock(self):
-        """Clean up a stale lock file"""
-        try:
-            if self.lock_file:
-                try:
-                    fcntl.flock(self.lock_file.fileno(), fcntl.LOCK_UN)
-                except (OSError, IOError):
-                    # We might not have had the lock in the first place
-                    pass
-                self.lock_file.close()
-                self.lock_file = None
-
-            # Remove the lock file
-            if os.path.exists(self.lock_path):
-                os.remove(self.lock_path)
-                print(f"[ingest-processor] Cleaned up stale lock file: {self.lock_path}")
-
-            return True
-        except Exception as e:
-            print(f"[ingest-processor] Error cleaning up stale lock: {e}")
-            return False
-
     def release(self):
         """Release the lock"""
         if self.acquired and self.lock_file:
@@ -288,10 +234,6 @@ class ProcessLock:
                 fcntl.flock(self.lock_file.fileno(), fcntl.LOCK_UN)
                 self.lock_file.close()
                 self.lock_file = None
-
-                # Remove lock file
-                if os.path.exists(self.lock_path):
-                    os.remove(self.lock_path)
 
                 self.acquired = False
                 print(f"[ingest-processor] Lock released (PID: {os.getpid()})")
