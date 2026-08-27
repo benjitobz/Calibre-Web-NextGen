@@ -847,6 +847,14 @@ msgid "Restore failed: app.db not found at %(path)s"
 msgstr "復原失敗：在 %(path)s 找不到 app.db 檔案"
 
 #: cps/admin.py
+msgid "An ingest run is in progress; try again when it finishes."
+msgstr ""
+
+#: cps/admin.py
+msgid "Cover enforcement is in progress; try again when it finishes."
+msgstr ""
+
+#: cps/admin.py
 #, python-format
 msgid "Restore failed: %(err)s"
 msgstr "復原失敗：%(err)s"

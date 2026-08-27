@@ -909,6 +909,14 @@ msgstr ""
 "Visszaállítás sikertelen: app.db nem található ezen az útvonalon: %(path)s"
 
 #: cps/admin.py
+msgid "An ingest run is in progress; try again when it finishes."
+msgstr ""
+
+#: cps/admin.py
+msgid "Cover enforcement is in progress; try again when it finishes."
+msgstr ""
+
+#: cps/admin.py
 #, python-format
 msgid "Restore failed: %(err)s"
 msgstr "Visszaállítás sikertelen: %(err)s"
