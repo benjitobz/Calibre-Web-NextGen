@@ -343,7 +343,7 @@ run_post_batch_follow_up() {
         if [ -n "${CWA_INGEST_POST_BATCH_CMD:-}" ]; then
                 "$CWA_INGEST_POST_BATCH_CMD"
         else
-                python3 /app/calibre-web-automated/scripts/ingest_processor.py --post-batch-follow-up
+                cwa-as-abc python3 /app/calibre-web-automated/scripts/ingest_processor.py --post-batch-follow-up
         fi
 }
 

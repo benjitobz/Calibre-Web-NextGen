@@ -182,7 +182,20 @@ class ProcessLock:
         try:
             # Keep one stable inode: truncating or unlinking a contended lock file
             # would let another opener acquire a different inode.
-            self.lock_file = open(self.lock_path, 'a+')
+            lock_existed = os.path.exists(self.lock_path)
+            lock_writable = True
+            try:
+                lock_fd = os.open(self.lock_path, os.O_RDWR | os.O_CREAT, 0o666)
+            except PermissionError:
+                lock_fd = os.open(self.lock_path, os.O_RDONLY)
+                lock_writable = False
+            else:
+                if not lock_existed:
+                    try:
+                        os.fchmod(lock_fd, 0o666)
+                    except OSError:
+                        pass
+            self.lock_file = os.fdopen(lock_fd, 'r+' if lock_writable else 'r')
 
             # Try to acquire an exclusive lock with timeout
             start_time = time.time()
@@ -190,11 +203,13 @@ class ProcessLock:
                 try:
                     fcntl.flock(self.lock_file.fileno(), fcntl.LOCK_EX | fcntl.LOCK_NB)
 
-                    # Successfully acquired lock, replace the diagnostic PID.
-                    self.lock_file.seek(0)
-                    self.lock_file.truncate()
-                    self.lock_file.write(str(os.getpid()))
-                    self.lock_file.flush()
+                    # Successfully acquired lock. Replace the diagnostic PID
+                    # only when this user can write the persistent inode.
+                    if lock_writable:
+                        self.lock_file.seek(0)
+                        self.lock_file.truncate()
+                        self.lock_file.write(str(os.getpid()))
+                        self.lock_file.flush()
 
                     self.acquired = True
                     print(f"[ingest-processor] Lock acquired successfully (PID: {os.getpid()})")
