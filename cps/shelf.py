@@ -90,7 +90,9 @@ def add_book_to_shelf(shelf_obj, book_id):
                                              ub.BookShelf.book_id == book_id).first():
         return SHELF_ALREADY_PRESENT, "Book is already part of the shelf: %s" % shelf_obj.name
 
-    book = calibre_db.session.query(db.Books).filter(db.Books.id == book_id).one_or_none()
+    book = (calibre_db.session.query(db.Books)
+            .filter(db.Books.id == book_id)
+            .filter(calibre_db.common_filters()).one_or_none())
     if not book:
         return SHELF_INVALID_BOOK, "%s is a invalid Book Id. Could not be added to Shelf" % book_id
 
@@ -470,9 +472,14 @@ def order_shelf(shelf_id):
 
         result = list()
         if shelf:
+            # Keep the legacy KeyedTuple contract consumed by
+            # shelf_order.html. Visibility is a labelled presentation bit:
+            # filtered rows render as "Hidden Book" placeholders instead of
+            # changing the stored shelf or crashing the template on bare
+            # Books entities.
             result = calibre_db.session.query(db.Books) \
-                .join(ub.BookShelf, ub.BookShelf.book_id == db.Books.id, isouter=True) \
                 .add_columns(calibre_db.common_filters().label("visible")) \
+                .join(ub.BookShelf, ub.BookShelf.book_id == db.Books.id, isouter=True) \
                 .filter(ub.BookShelf.shelf == shelf_id).order_by(ub.BookShelf.order.asc()).all()
         return render_title_template('shelf_order.html', entries=result,
                                      title=_("Change order of Shelf: '%(name)s'", name=shelf.name),
@@ -603,10 +610,14 @@ def delete_shelf_helper(cur_shelf):
 
 
 def change_shelf_order(shelf_id, order):
+    # This mutates the shelf owner's stored order, so it is deliberately
+    # global. Applying the current viewer's hidden/archive/library predicate
+    # here renumbers only an intersection and leaves duplicate order values.
     result = calibre_db.session.query(db.Books).outerjoin(db.books_series_link,
                                                           db.Books.id == db.books_series_link.c.book)\
         .outerjoin(db.Series).join(ub.BookShelf, ub.BookShelf.book_id == db.Books.id) \
-        .filter(ub.BookShelf.shelf == shelf_id).order_by(*order).all()
+        .filter(ub.BookShelf.shelf == shelf_id) \
+        .order_by(*order).all()
     for index, entry in enumerate(result):
         book = ub.session.query(ub.BookShelf).filter(ub.BookShelf.shelf == shelf_id) \
             .filter(ub.BookShelf.book_id == entry.id).first()
@@ -716,7 +727,9 @@ def add_selected_to_shelf():
         ub.BookShelf.shelf == shelf_id).scalar() or 0
 
     for book_id in book_ids:
-        book = calibre_db.session.query(db.Books).filter(db.Books.id == book_id).one_or_none()
+        book = (calibre_db.session.query(db.Books)
+                .filter(db.Books.id == book_id)
+                .filter(calibre_db.common_filters()).one_or_none())
         if not book:
             errors.append(f"Book with ID {book_id} not found.")
             log.error(f"Invalid Book Id: {book_id}. Could not be added to shelf {shelf.name}")

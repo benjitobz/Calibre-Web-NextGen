@@ -11,7 +11,9 @@ from sqlalchemy.sql.functions import coalesce
 
 from . import api_v1
 from .serializers import serialize_book_list_item, serialize_book_detail
-from .. import calibre_db, config, db, ub, isoLanguages, logger
+from .. import (
+    calibre_db, config, constants, db, ub, isoLanguages, logger, user_library,
+)
 from ..cw_login import current_user
 from ..helper import edit_book_read_status, book_in_progress_ids, book_is_in_progress, \
     get_convert_options, get_kosync_progress_display, \
@@ -82,6 +84,16 @@ def _real_user_id():
         return int(current_user.id)
     except (AttributeError, RuntimeError):
         return None
+
+
+def _can_browse_global():
+    """Role gate that stays safe in stripped-decorator unit contexts."""
+    if _real_user_id() is None:
+        return False
+    try:
+        return bool(current_user.role_browse_global())
+    except (AttributeError, RuntimeError):
+        return False
 
 
 def _hidden_book_ids():
@@ -378,12 +390,96 @@ def list_books():
     })
 
 
+@api_v1.route("/library/global")
+@login_required_if_no_ano
+def list_global_library():
+    """List the global archive, including recent books absent from My Library.
+
+    ``filter=not_in_my_library&sort=new`` is the discovery view for curated
+    accounts. It never auto-adds a book.
+    """
+    if (not current_user.is_authenticated or current_user.is_anonymous
+            or not current_user.role_browse_global()):
+        return jsonify({
+            "error": {"code": "forbidden", "message": "Global library access required"}
+        }), 403
+    page = max(1, request.args.get("page", 1, type=int))
+    per_page = max(1, min(200, request.args.get(
+        "per_page", config.config_books_per_page, type=int
+    )))
+    sort = request.args.get("sort", "new")
+    order = SORT_MAP.get(sort, SORT_MAP["new"])
+    term = (request.args.get("search") or "").strip()
+    filter_name = request.args.get("filter", "all")
+    if filter_name not in ("all", "not_in_my_library"):
+        return jsonify({
+            "error": {
+                "code": "invalid_filter",
+                "message": "filter must be 'all' or 'not_in_my_library'",
+            }
+        }), 400
+    filters = []
+    if filter_name == "not_in_my_library":
+        filters.append(user_library.global_missing_filter(
+            current_user, cdb=calibre_db
+        ))
+    if term:
+        like = "%" + term + "%"
+        filters.append(or_(
+            func.lower(db.Books.title).ilike(func.lower(like)),
+            db.Books.authors.any(func.lower(db.Authors.name).ilike(func.lower(like))),
+            db.Books.series.any(func.lower(db.Series.name).ilike(func.lower(like))),
+        ))
+    global_filter = and_(*filters) if filters else True
+    series_join = (
+        db.books_series_link,
+        db.Books.id == db.books_series_link.c.book,
+        db.Series,
+    )
+    entries, _random, pagination = calibre_db.fill_indexpage(
+        page, per_page, db.Books, global_filter, order,
+        True, config.config_read_column, *series_join,
+        allow_show_global=True,
+    )
+    member_ids = set()
+    personal_library_mode = (
+        user_library.mode_for_user(current_user)
+        == constants.LIBRARY_MODE_PERSONAL
+    )
+    if personal_library_mode:
+        page_ids = [int(getattr(entry, "Books", entry).id) for entry in entries]
+        member_ids = {int(row[0]) for row in (
+            ub.session.query(ub.UserLibraryBook.book_id)
+            .filter(ub.UserLibraryBook.user_id == int(current_user.id),
+                    ub.UserLibraryBook.book_id.in_(page_ids)).all()
+        )}
+    items = _rows_to_items(entries)
+    for item in items:
+        item["in_my_library"] = (
+            not personal_library_mode
+            or item["id"] in member_ids
+        )
+    return jsonify({
+        "items": items,
+        "page": pagination.page,
+        "per_page": pagination.per_page,
+        "total": pagination.total_count,
+        "library_mode": user_library.mode_for_user(current_user),
+        "filter": filter_name,
+    })
+
+
 @api_v1.route("/books/<int:book_id>")
 @login_required_if_no_ano
 def book_detail(book_id):
+    # A global-library card is a valid deep link for a curator even when the
+    # book is outside their selection. Bypass only the membership predicate;
+    # language/content restrictions still flow through common_filters().
+    allow_show_global = _can_browse_global()
     result = calibre_db.get_book_read_archived(
         book_id, config.config_read_column,
         allow_show_archived=True, allow_show_hidden=True,
+        allow_show_global=allow_show_global,
     )
     if not result:
         return jsonify({"error": {"code": "not_found", "message": "Book not found"}}), 404
@@ -441,6 +537,14 @@ def book_detail(book_id):
         in_progress=in_progress,
         custom_column_definitions=_detail_custom_columns(),
         original_filename=_original_filename(book_id),
+    )
+    body["in_my_library"] = (
+        user_library.mode_for_user(current_user)
+        != constants.LIBRARY_MODE_PERSONAL
+        or ub.session.query(ub.UserLibraryBook.id).filter(
+            ub.UserLibraryBook.user_id == int(current_user.id),
+            ub.UserLibraryBook.book_id == int(book_id),
+        ).first() is not None
     )
     source_formats, target_formats = get_convert_options(book)
     body["convert_options"] = {

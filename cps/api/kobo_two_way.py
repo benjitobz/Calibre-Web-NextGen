@@ -76,6 +76,9 @@ def _book_titles(book_ids):
     if not book_ids:
         return {}
     try:
+        # Deliberately global metadata hydration. These rows are the user's
+        # retained device-trailing annotation state; removing a book from My
+        # Library must not erase its title while that preserved state remains.
         rows = (calibre_db.session.query(db.Books.id, db.Books.title)
                 .filter(db.Books.id.in_(book_ids)).all())
         return {row.id: row.title for row in rows}

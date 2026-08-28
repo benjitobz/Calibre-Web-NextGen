@@ -196,6 +196,15 @@ class UserBase:
     def role_viewer(self):
         return self._has_role(constants.ROLE_VIEWER)
 
+    def role_browse_global(self):
+        return self._has_role(constants.ROLE_BROWSE_GLOBAL)
+
+    def library_mode(self):
+        """Return the named #1939 mode; false is deliberate monolibrary."""
+        if bool(getattr(self, "has_own_library", False)):
+            return constants.LIBRARY_MODE_PERSONAL
+        return constants.LIBRARY_MODE_MONOLIBRARY
+
     @property
     def is_active(self):
         return True
@@ -292,6 +301,22 @@ class User(UserBase, Base):
     view_settings = Column(JSON, default={})
     kobo_only_shelves_sync = Column(Integer, default=0)
     opds_only_shelves_sync = Column(Integer, default=0)
+    # Named library-mode selector. False is monolibrary mode: this account's
+    # library continuously mirrors the global archive. True is personal mode:
+    # CalibreDB.common_filters limits it to UserLibraryBook rows.
+    has_own_library = Column(
+        Boolean, nullable=False, default=False, server_default=text("0"),
+    )
+    # Durable seed-once marker, intentionally separate from membership count.
+    # A user may curate a personal library to zero rows; a later mode toggle
+    # must restore that empty set, not mistake it for never-initialized state.
+    user_library_seeded = Column(
+        Boolean, nullable=False, default=False, server_default=text("0"),
+    )
+    # The My Library introductory card is account state, not browser storage.
+    my_library_intro_dismissed = Column(
+        Boolean, nullable=False, default=False, server_default=text("0"),
+    )
     # Stage 0 Kobo two-way annotation opt-in.  No route consumes this flag
     # until a later rollout stage; existing and new users are safely off.
     kobo_two_way_annotation_sync = Column(
@@ -369,6 +394,9 @@ class Anonymous(AnonymousUserMixin, UserBase):
         self.hardcover_token = None
         self.kobo_only_shelves_sync = None
         self.opds_only_shelves_sync = None
+        self.has_own_library = False
+        self.user_library_seeded = False
+        self.my_library_intro_dismissed = False
         self.kobo_two_way_annotation_sync = False
         self.kobo_two_way_annotation_scope = 'all'
         self.view_settings = {}
@@ -404,6 +432,9 @@ class Anonymous(AnonymousUserMixin, UserBase):
         self.view_settings = data.view_settings
         self.kobo_only_shelves_sync = data.kobo_only_shelves_sync
         self.opds_only_shelves_sync = data.opds_only_shelves_sync
+        self.has_own_library = data.has_own_library
+        self.user_library_seeded = data.user_library_seeded
+        self.my_library_intro_dismissed = data.my_library_intro_dismissed
         self.kobo_two_way_annotation_sync = data.kobo_two_way_annotation_sync
         self.kobo_two_way_annotation_scope = data.kobo_two_way_annotation_scope
         self.hardcover_token = data.hardcover_token
@@ -791,6 +822,26 @@ class FavoriteBook(Base):
 
     __table_args__ = (
         UniqueConstraint('user_id', 'book_id', name='uq_favorite_book'),
+    )
+
+
+class UserLibraryBook(Base):
+    """A user's membership set over the one global Calibre library.
+
+    Book ids deliberately have no foreign key: they belong to metadata.db,
+    while this table lives in app.db. Removing a membership row never removes
+    reading state, Kobo ownership, annotations, or the global book record.
+    """
+    __tablename__ = 'user_library_book'
+
+    id = Column(Integer, primary_key=True)
+    user_id = Column(Integer, ForeignKey('user.id', ondelete='CASCADE'),
+                     nullable=False, index=True)
+    book_id = Column(Integer, nullable=False, index=True)
+    added_at = Column(DateTime, default=lambda: datetime.now(timezone.utc))
+
+    __table_args__ = (
+        UniqueConstraint('user_id', 'book_id', name='uq_user_library_book'),
     )
 
 
@@ -1828,6 +1879,7 @@ def add_missing_tables(engine, _session):
         ("hidden_magic_shelf_templates", HiddenMagicShelfTemplate.__table__),
         ("kobo_annotation_backup", KoboAnnotationBackup.__table__),
         ("favorite_book", FavoriteBook.__table__),
+        ("user_library_book", UserLibraryBook.__table__),
     )
     for table_name, table in tables:
         # Explicit transaction control means even schema inspection begins a
@@ -2198,6 +2250,77 @@ def migrate_user_table(engine, _session):
     except exc.OperationalError:
         _safe_session_rollback(_session, "user.ui_font_display")
         _run_ddl_with_retry(engine, "ALTER TABLE user ADD column 'ui_font_display' String DEFAULT ''")
+
+    # #1939 — named per-user library mode. Existing rows remain in monolibrary
+    # mode, which is byte-for-byte the historical global-library behavior.
+    try:
+        _session.query(exists().where(User.has_own_library)).scalar()
+        _session.commit()
+    except exc.OperationalError:
+        _safe_session_rollback(_session, "user.has_own_library")
+        _run_ddl_with_retry(
+            engine,
+            "ALTER TABLE user ADD column 'has_own_library' Boolean "
+            "NOT NULL DEFAULT 0",
+        )
+
+    # Seed completion is durable and independent of membership row count.
+    # Adding this column never changes an account's mode: upgrades remain in
+    # whole-library mode until an administrator or permitted user opts in.
+    try:
+        _session.query(exists().where(User.user_library_seeded)).scalar()
+        _session.commit()
+    except exc.OperationalError:
+        _safe_session_rollback(_session, "user.user_library_seeded")
+        _run_ddl_with_retry(
+            engine,
+            "ALTER TABLE user ADD column 'user_library_seeded' Boolean "
+            "NOT NULL DEFAULT 0",
+        )
+
+    try:
+        _session.query(exists().where(User.my_library_intro_dismissed)).scalar()
+        _session.commit()
+    except exc.OperationalError:
+        _safe_session_rollback(_session, "user.my_library_intro_dismissed")
+        _run_ddl_with_retry(
+            engine,
+            "ALTER TABLE user ADD column 'my_library_intro_dismissed' Boolean "
+            "NOT NULL DEFAULT 0",
+        )
+
+
+def rollback_user_library_schema(engine):
+    """Remove the #1939 schema additions, safely and idempotently.
+
+    This is an explicit downgrade hook because this project uses startup
+    migrations rather than Alembic. Membership data is discarded by design;
+    all Kobo ownership, annotations, shelves, and progress tables are left
+    untouched. Supported SQLite versions provide ``DROP COLUMN``.
+    """
+    from sqlalchemy import inspect as sa_inspect
+
+    inspector = sa_inspect(engine)
+    tables = set(inspector.get_table_names())
+    if "user" in tables:
+        # Strip the permission bit before older code (which does not know it)
+        # reads the role mask.
+        _run_ddl_with_retry(
+            engine,
+            "UPDATE user SET role = role & -513 WHERE role & 512 = 512",
+        )
+        user_columns = {column["name"] for column in inspector.get_columns("user")}
+        for column_name in (
+            "my_library_intro_dismissed",
+            "user_library_seeded",
+            "has_own_library",
+        ):
+            if column_name in user_columns:
+                _run_ddl_with_retry(
+                    engine, "ALTER TABLE user DROP COLUMN %s" % column_name
+                )
+    if "user_library_book" in tables:
+        _run_ddl_with_retry(engine, "DROP TABLE user_library_book")
 
 def migrate_oauth_provider_table(engine, _session):
     """Ensure every migration-managed column on oauthProvider exists.

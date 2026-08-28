@@ -32,7 +32,7 @@ from werkzeug.datastructures import Headers
 from werkzeug.security import generate_password_hash, check_password_hash
 
 from . import constants, logger, isoLanguages, services, helper, spa, oauth_auto_redirect
-from . import db, ub, config, app
+from . import db, ub, config, app, user_library
 from . import calibre_db, kobo_sync_status
 from .services.ereader_send import send_includes_own_address
 from .services import reading_position
@@ -356,6 +356,44 @@ def toggle_favorite(book_id):
         favorited = True
     ub.session_commit("Book {} favorite bit toggled".format(book_id))
     return json.dumps({"favorited": favorited})
+
+
+@web.route("/ajax/mylibrary/<int:book_id>/add", methods=['POST'])
+@user_login_required
+def add_to_my_library(book_id):
+    from . import user_library
+    try:
+        user_library.add_book(current_user, book_id)
+    except user_library.UserLibraryError as ex:
+        return json.dumps({"error": str(ex)}), 403
+    return json.dumps({"in_my_library": True})
+
+
+@web.route("/ajax/mylibrary/<int:book_id>/remove", methods=['POST'])
+@user_login_required
+def remove_from_my_library(book_id):
+    from . import user_library
+    try:
+        shelves = user_library.remove_book(current_user, book_id)
+    except user_library.UserLibraryError as ex:
+        return json.dumps({"error": str(ex)}), 409
+    return json.dumps({
+        "in_my_library": False,
+        "affected_shelves": shelves,
+        "kobo_removal_on_next_sync": True,
+        "reading_data_preserved": True,
+    })
+
+
+@web.route("/ajax/mylibrary/<int:book_id>/removal-impact", methods=['GET'])
+@user_login_required
+def my_library_removal_impact(book_id):
+    """Describe removal effects before the classic UI confirms the action."""
+    from . import user_library
+    try:
+        return json.dumps(user_library.removal_impact(current_user, book_id))
+    except user_library.UserLibraryError as ex:
+        return json.dumps({"error": str(ex)}), 409
 
 
 # --- Web-reader per-user display settings -----------------------------------
@@ -1518,7 +1556,7 @@ def index(page):
     # SPA is sticky too. Only the web index does this; books_list, authors,
     # OPDS, Kobo and the API never touch the cookie.
     if request.args.get('cwng_feedback'):
-        response = make_response(render_books_list("newest", sort_param, 1, page))
+        response = make_response(render_books_list("root", sort_param, 1, page))
         spa.clear_prefer_spa_cookie(response)
         return response
 
@@ -1528,7 +1566,53 @@ def index(page):
     if spa.classic_index_redirects_to_spa():
         return redirect(spa.spa_shell_url())
 
-    return render_books_list("newest", sort_param, 1, page)
+    return render_books_list("root", sort_param, 1, page)
+
+
+@web.route('/global-library', defaults={'sort_param': 'stored', 'page': 1})
+@web.route('/global-library/<sort_param>', defaults={'page': 1})
+@web.route('/global-library/<sort_param>/<int:page>')
+@user_login_required
+def global_library(sort_param, page):
+    if current_user.is_anonymous or not current_user.role_browse_global():
+        abort(403, description=_("You don't have permission to browse the global library."))
+    recent_missing = sort_param == "recent-missing"
+    search_term = (request.args.get("search") or "").strip()
+    order = get_sort_function(
+        "new" if recent_missing else sort_param, "global_library"
+    )
+    filters = []
+    if recent_missing:
+        filters.append(user_library.global_missing_filter(current_user, cdb=calibre_db))
+    if search_term:
+        like = "%" + search_term + "%"
+        filters.append(or_(
+            func.lower(db.Books.title).ilike(func.lower(like)),
+            db.Books.authors.any(func.lower(db.Authors.name).ilike(func.lower(like))),
+            db.Books.series.any(func.lower(db.Series.name).ilike(func.lower(like))),
+        ))
+    global_filter = and_(*filters) if filters else True
+    entries, random, pagination = calibre_db.fill_indexpage(
+        page, 0, db.Books, global_filter, order[0],
+        True, config.config_read_column,
+        db.books_series_link,
+        db.Books.id == db.books_series_link.c.book,
+        db.Series,
+        allow_show_global=True,
+    )
+    page_ids = [int(getattr(entry, "Books", entry).id) for entry in entries]
+    global_member_ids = {int(row[0]) for row in (
+        ub.session.query(ub.UserLibraryBook.book_id)
+        .filter(ub.UserLibraryBook.user_id == int(current_user.id),
+                ub.UserLibraryBook.book_id.in_(page_ids)).all()
+    )}
+    return render_title_template(
+        'index.html', random=random, entries=entries, pagination=pagination,
+        title=_("Global Library (%(count)s)", count=pagination.total_count),
+        page="global_library", order=order[1], global_library=True,
+        recent_missing=recent_missing, global_member_ids=global_member_ids,
+        global_search=search_term,
+    )
 
 
 @web.route('/<data>/<sort_param>', defaults={'page': 1, 'book_id': 1})
@@ -3059,7 +3143,23 @@ def logout():
 def change_profile(kobo_support, hardcover_support, local_oauth_check, oauth_status, translations, languages):
     to_save = request.form.to_dict()
     current_user.random_books = 0
+    desired_library_mode = to_save.get(
+        "library_mode", user_library.mode_for_user(current_user)
+    )
+    library_seed_prepared = False
     try:
+        if desired_library_mode not in constants.LIBRARY_MODES:
+            raise ValueError(_("Invalid library mode"))
+        if (desired_library_mode != user_library.mode_for_user(current_user)
+                and not current_user.role_browse_global()):
+            raise user_library.UserLibraryError(
+                _("Your library contents are managed by an administrator."))
+        if (desired_library_mode == constants.LIBRARY_MODE_PERSONAL
+                and not bool(current_user.user_library_seeded)):
+            # This combined classic form edits many fields. Seed first so its
+            # bounded commits cannot persist unrelated half-validated input.
+            user_library.prepare_user_library_seed(current_user)
+            library_seed_prepared = True
         if current_user.role_passwd() or current_user.role_admin():
             if to_save.get("password", "") != "":
                 current_user.password = generate_password_hash(valid_password(to_save.get("password")))
@@ -3330,11 +3430,20 @@ def change_profile(kobo_support, hardcover_support, local_oauth_check, oauth_sta
         current_user.sidebar_view += constants.DETAIL_RANDOM
 
     try:
+        user_library.set_library_mode(
+            current_user,
+            desired_library_mode,
+            seed_rows_prepared=library_seed_prepared,
+            commit=False,
+        )
         ub.session.commit()
         flash(_("Success! Profile Updated"), category="success")
         log.debug("Profile updated")
         # Redirect to refresh sidebar with updated shelf visibility
         return redirect(url_for('web.profile'))
+    except user_library.UserLibraryError as ex:
+        ub.session.rollback()
+        flash(str(ex), category="error")
     except IntegrityError:
         ub.session.rollback()
         flash(_("Oops! An account already exists for this Email."), category="error")

@@ -200,6 +200,16 @@ ROLE_ANONYMOUS          = 1 << 5
 ROLE_EDIT_SHELFS        = 1 << 6
 ROLE_DELETE_BOOKS       = 1 << 7
 ROLE_VIEWER             = 1 << 8
+# The single whole-archive capability. It gates both Global Library and a
+# user's ability to switch their own account between the two library modes.
+ROLE_BROWSE_GLOBAL      = 1 << 9
+
+# #1939 user-facing library modes. ``has_own_library`` is the persisted
+# selector, but false is not "feature disabled": it is the named monolibrary
+# mode where the account continuously follows the global Calibre library.
+LIBRARY_MODE_MONOLIBRARY = "monolibrary"
+LIBRARY_MODE_PERSONAL = "personal_library"
+LIBRARY_MODES = frozenset((LIBRARY_MODE_MONOLIBRARY, LIBRARY_MODE_PERSONAL))
 
 ALL_ROLES = {
                 "admin_role": ROLE_ADMIN,
@@ -210,6 +220,7 @@ ALL_ROLES = {
                 "edit_shelf_role": ROLE_EDIT_SHELFS,
                 "delete_role": ROLE_DELETE_BOOKS,
                 "viewer_role": ROLE_VIEWER,
+                "browse_global_role": ROLE_BROWSE_GLOBAL,
             }
 
 DETAIL_RANDOM           = 1 <<  0

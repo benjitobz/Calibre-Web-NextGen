@@ -1,7 +1,7 @@
 import { keepPreviousData, useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import type { QueryClient } from '@tanstack/react-query';
 import {
-  apiGet, apiPost, apiDelete, apiUpload, apiPostForm, ApiError,
+  apiGet, apiPost, apiPut, apiDelete, apiUpload, apiPostForm, ApiError,
   navigateToLogout, noteSessionIdentity,
   getMetadataProviders, setMetadataProviderActive,
 } from './api';
@@ -14,6 +14,7 @@ import type {
   SearchOptions, AdvancedSearchParams, AdvSearchResult, Account, ProfileUpdate,
   BookMetadata, MetadataUpdate, UploadResult, AdminUser, AboutInfo, TaskItem, AuthConfig,
   NoticeInbox, KoboTwoWaySettings, KoboTwoWayBookState, KoboTwoWayUpdate,
+  GlobalLibraryPage, LibraryModePayload, LibraryRemovalImpact,
 } from './api';
 
 /** Entity kinds the catalog can be filtered by. Singular here; the browse-list
@@ -97,8 +98,10 @@ export function useUpdateSidebar() {
  *  identity would otherwise land after the switch and repopulate the cache with
  *  the wrong identity's answer. */
 async function dropIdentityScopedQueries(queryClient: QueryClient) {
-  await queryClient.cancelQueries({ queryKey: ['about'] });
-  queryClient.removeQueries({ queryKey: ['about'] });
+  for (const key of ['about', 'books', 'book', 'global-library', 'account', 'shelves', 'shelf']) {
+    await queryClient.cancelQueries({ queryKey: [key] });
+    queryClient.removeQueries({ queryKey: [key] });
+  }
 }
 
 export function useLogin() {
@@ -253,6 +256,137 @@ export function useBooks(q: BooksQuery) {
     queryFn: () => apiGet<BooksPage>(`/api/v1/books?${params.toString()}`),
     placeholderData: (prev) => prev,
     enabled,
+  });
+}
+
+export interface GlobalLibraryQuery {
+  page: number;
+  perPage?: number;
+  search?: string;
+  sort?: string;
+  filter?: 'all' | 'not_in_my_library';
+}
+
+export function useGlobalLibrary(q: GlobalLibraryQuery) {
+  const params = new URLSearchParams({
+    page: String(q.page), per_page: String(q.perPage ?? 24),
+    sort: q.sort ?? 'new', filter: q.filter ?? 'all',
+  });
+  if (q.search) params.set('search', q.search);
+  return useQuery<GlobalLibraryPage>({
+    queryKey: ['global-library', q.page, q.perPage ?? 24, q.search ?? '', q.sort ?? 'new', q.filter ?? 'all'],
+    queryFn: () => apiGet<GlobalLibraryPage>(`/api/v1/library/global?${params.toString()}`),
+    placeholderData: keepPreviousData,
+    retry: false,
+  });
+}
+
+function setGlobalMembership(qc: QueryClient, bookId: number, owned: boolean) {
+  qc.setQueriesData<GlobalLibraryPage>({ queryKey: ['global-library'] }, (page) => page ? {
+    ...page,
+    items: page.items.map((book) => book.id === bookId ? { ...book, in_my_library: owned } : book),
+  } : page);
+}
+
+function setBookMembership(qc: QueryClient, bookId: number, owned: boolean) {
+  qc.setQueryData<BookDetail>(['book', String(bookId)], (book) => book ? {
+    ...book,
+    in_my_library: owned,
+  } : book);
+}
+
+export function useAddToMyLibrary() {
+  const qc = useQueryClient();
+  return useMutation({
+    mutationFn: (bookId: number) => apiPut<{ in_my_library: true }>(`/api/v1/books/${bookId}/my-library`),
+    onMutate: async (bookId) => {
+      await Promise.all([
+        qc.cancelQueries({ queryKey: ['global-library'] }),
+        qc.cancelQueries({ queryKey: ['book', String(bookId)] }),
+      ]);
+      const previous = qc.getQueriesData<GlobalLibraryPage>({ queryKey: ['global-library'] });
+      const previousDetail = qc.getQueryData<BookDetail>(['book', String(bookId)]);
+      setGlobalMembership(qc, bookId, true);
+      setBookMembership(qc, bookId, true);
+      return { previous, previousDetail };
+    },
+    onError: (_error, bookId, context) => {
+      context?.previous.forEach(([key, value]) => qc.setQueryData(key, value));
+      if (context?.previousDetail !== undefined) {
+        qc.setQueryData(['book', String(bookId)], context.previousDetail);
+      }
+    },
+    onSettled: () => {
+      void qc.invalidateQueries({ queryKey: ['global-library'] });
+      void qc.invalidateQueries({ queryKey: ['books'] });
+    },
+  });
+}
+
+export function useMyLibraryRemovalImpact() {
+  return useMutation({
+    mutationFn: (bookId: number) => apiGet<LibraryRemovalImpact>(`/api/v1/books/${bookId}/my-library`),
+  });
+}
+
+export function useRemoveFromMyLibrary() {
+  const qc = useQueryClient();
+  return useMutation({
+    mutationFn: (bookId: number) => apiDelete<LibraryRemovalImpact & { in_my_library: false }>(
+      `/api/v1/books/${bookId}/my-library`),
+    onMutate: async (bookId) => {
+      await Promise.all([
+        qc.cancelQueries({ queryKey: ['books'] }),
+        qc.cancelQueries({ queryKey: ['book', String(bookId)] }),
+      ]);
+      const previous = qc.getQueriesData<BooksPage>({ queryKey: ['books'] });
+      const previousDetail = qc.getQueryData<BookDetail>(['book', String(bookId)]);
+      qc.setQueriesData<BooksPage>({ queryKey: ['books'] }, (page) => page ? {
+        ...page, items: page.items.filter((book) => book.id !== bookId),
+        total: Math.max(0, page.total - 1),
+      } : page);
+      setGlobalMembership(qc, bookId, false);
+      setBookMembership(qc, bookId, false);
+      return { previous, previousDetail };
+    },
+    onError: (_error, bookId, context) => {
+      context?.previous.forEach(([key, value]) => qc.setQueryData(key, value));
+      if (context?.previousDetail !== undefined) {
+        qc.setQueryData(['book', String(bookId)], context.previousDetail);
+      }
+    },
+    onSettled: () => {
+      void qc.invalidateQueries({ queryKey: ['books'] });
+      void qc.invalidateQueries({ queryKey: ['global-library'] });
+      void qc.invalidateQueries({ queryKey: ['shelves'] });
+      void qc.invalidateQueries({ queryKey: ['shelf'] });
+    },
+  });
+}
+
+export function useUpdateLibraryMode() {
+  const qc = useQueryClient();
+  return useMutation({
+    mutationFn: (mode: LibraryModePayload['library_mode']) =>
+      apiPost<LibraryModePayload>('/api/v1/account/library-mode', { mode }),
+    onSuccess: (payload) => {
+      qc.setQueryData<Me | null>(['me'], (me) => me ? { ...me, ...payload } : me);
+      qc.setQueryData<Account>(['account'], (account) => account ? { ...account, ...payload } : account);
+      qc.removeQueries({ queryKey: ['books'] });
+      qc.removeQueries({ queryKey: ['global-library'] });
+      void qc.invalidateQueries({ queryKey: ['me'] });
+    },
+  });
+}
+
+export function useDismissMyLibraryIntro() {
+  const qc = useQueryClient();
+  return useMutation({
+    mutationFn: () => apiPost<LibraryModePayload>('/api/v1/account/my-library-intro/dismiss'),
+    onSuccess: (payload) => {
+      qc.setQueryData<Me | null>(['me'], (me) => me ? { ...me, ...payload } : me);
+      qc.setQueryData<Account>(['account'], (account) => account ? { ...account, ...payload } : account);
+    },
   });
 }
 
@@ -624,10 +758,36 @@ export function useUpdateSecurityConfig() {
 export function useUpdateAdminUser() {
   const qc = useQueryClient();
   return useMutation({
-    mutationFn: (v: { id: number; roles?: Record<string, boolean>; email?: string }) => {
+    mutationFn: (v: { id: number; roles?: Record<string, boolean>; email?: string; library_mode?: LibraryModePayload['library_mode'] }) => {
       const { id, ...body } = v;
       return apiPost<AdminUser>(`/api/v1/admin/users/${id}`, body);
     },
+    onSuccess: () => void qc.invalidateQueries({ queryKey: ['admin-users'] }),
+  });
+}
+
+export interface MyLibraryMigrationRow {
+  user_id: number; name: string; status: string; seeded_books: number;
+  membership_count?: number; library_mode: LibraryModePayload['library_mode']; error?: string;
+}
+
+export function useMigrateMyLibrary() {
+  const qc = useQueryClient();
+  return useMutation({
+    mutationFn: (userId?: number) => apiPost<{
+      results: MyLibraryMigrationRow[]; accounts: number; seeded_books: number; errors: number;
+    }>('/api/v1/admin/my-library/migrate', userId === undefined ? {} : { user_id: userId }),
+    onSuccess: () => void qc.invalidateQueries({ queryKey: ['admin-users'] }),
+  });
+}
+
+export function useAdminAddBookToLibrary() {
+  const qc = useQueryClient();
+  return useMutation({
+    mutationFn: ({ userId, bookId }: { userId: number; bookId: number }) =>
+      apiPut<{ in_my_library: true; user_id: number; book_id: number; book_title: string; membership_count: number }>(
+        `/api/v1/admin/users/${userId}/my-library/${bookId}`,
+      ),
     onSuccess: () => void qc.invalidateQueries({ queryKey: ['admin-users'] }),
   });
 }

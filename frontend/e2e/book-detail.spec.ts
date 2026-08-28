@@ -131,7 +131,11 @@ test('a permitted user gets a delete action that confirms, calls the delete endp
 
   await page.goto(`/app/book/${bookId}`, { waitUntil: 'domcontentloaded' });
 
-  const del = page.getByRole('button', { name: 'Delete book' });
+  // #1939 renamed the accessible name to disambiguate irreversible global
+  // deletion from "remove from my library". The flow this test guards (#803) -
+  // confirm dialog, whole-book delete endpoint, return to the library - is
+  // unchanged.
+  const del = page.getByRole('button', { name: 'Delete from the global library' });
   await expect(del).toBeVisible({ timeout: 10_000 });
 
   // Clicking fires the confirm dialog, then a POST to the whole-book delete
@@ -169,7 +173,10 @@ test('the delete action is hidden for a user without the delete role (#803)', as
   await page.goto(`/app/book/${bookId}`, { waitUntil: 'domcontentloaded' });
   // The page has rendered (an existing action is present) but delete is absent.
   await expect(page.getByRole('button', { name: /Mark as (read|unread)/ })).toBeVisible({ timeout: 10_000 });
-  await expect(page.getByRole('button', { name: 'Delete book' })).toHaveCount(0);
+  // #1939 renamed the book-detail destructive control's accessible name. This
+  // absence assertion MUST track the rename: against the old name it would now
+  // pass whether or not the control is hidden, i.e. prove nothing.
+  await expect(page.getByRole('button', { name: 'Delete from the global library' })).toHaveCount(0);
 });
 
 test('book detail with a "More by" strip has no horizontal overflow on mobile', async ({ page }) => {

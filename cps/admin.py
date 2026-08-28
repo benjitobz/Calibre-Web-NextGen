@@ -917,6 +917,9 @@ def edit_list_user(param):
                         kobo_shelf_sync_users.append(user.id)
                 elif param == 'opds_only_shelves_sync':
                     user.opds_only_shelves_sync = int(vals['value'] == 'true')
+                elif param == 'has_own_library':
+                    from . import user_library
+                    user_library.set_enabled(user, vals['value'] == 'true')
                 elif param == 'kindle_mail':
                     user.kindle_mail = valid_email(vals['value']) if vals['value'] else ""
                 elif param == 'kindle_mail_subject':
@@ -927,7 +930,7 @@ def edit_list_user(param):
                       [constants.ROLE_ADMIN, constants.ROLE_PASSWD, constants.ROLE_EDIT_SHELFS]:
                         raise Exception(_("Guest can't have this role"))
                     # check for valid value, last on checks for power of 2 value
-                    if value > 0 and value <= constants.ROLE_VIEWER and (value & value - 1 == 0 or value == 1):
+                    if value > 0 and value <= constants.ROLE_BROWSE_GLOBAL and (value & value - 1 == 0 or value == 1):
                         if vals['value'] == 'true':
                             user.role |= value
                         elif vals['value'] == 'false':
@@ -3149,7 +3152,9 @@ def _delete_user(content):
             # here left the user's annotation rows and backup gzips behind
             # (PII surviving the account deletion).
             user_book_data.purge_user_book_data(user_id=content.id)
-            # User-scoped (not per-book) rows + the user itself stay here.
+            # UserLibraryBook is included in that enumerator because SQLite
+            # foreign-key cascades are not enabled. User-scoped (not
+            # per-book) rows + the user itself stay here.
             for us in ub.session.query(ub.Shelf).filter(content.id == ub.Shelf.user_id):
                 ub.session.query(ub.BookShelf).filter(us.id == ub.BookShelf.shelf).delete()
             ub.session.query(ub.Shelf).filter(content.id == ub.Shelf.user_id).delete()
@@ -3181,6 +3186,28 @@ def _handle_edit_user(to_save, content, languages, translations, kobo_support):
         log.warning("No admin user remaining, can't remove admin role from {}".format(content.name))
         flash(_("No admin user remaining, can't remove admin role"), category="error")
         return redirect(url_for('admin.admin'))
+
+    from . import user_library
+    desired_library_mode = to_save.get(
+        "library_mode", user_library.mode_for_user(content)
+    )
+    if desired_library_mode not in constants.LIBRARY_MODES:
+        flash(_("Invalid library mode"), category="error")
+        return "", 400
+    library_seed_prepared = False
+    if (desired_library_mode == constants.LIBRARY_MODE_PERSONAL
+            and not bool(content.user_library_seeded)):
+        try:
+            # Seed before mutating the rest of the combined admin form. Its
+            # bounded commits must never make unrelated half-validated edits
+            # durable; the membership rows remain dormant if a later field
+            # fails validation.
+            user_library.prepare_user_library_seed(content)
+            library_seed_prepared = True
+        except Exception as ex:
+            ub.session.rollback()
+            flash(str(ex), category="error")
+            return "", 400
 
     val = [int(k[5:]) for k in to_save if k.startswith('show_') and not k.startswith('show_magic_shelf_') and not k.startswith('show_custom_shelf_')]
     sidebar, __ = get_sidebar_config()
@@ -3349,7 +3376,6 @@ def _handle_edit_user(to_save, content, languages, translations, kobo_support):
             content.role &= ~constants.ROLE_ANONYMOUS
             if to_save.get("password", ""):
                 content.password = generate_password_hash(helper.valid_password(to_save.get("password", "")))
-
         new_email = valid_email(to_save.get("email", content.email))
         if not new_email:
             raise Exception(_("Email can't be empty and has to be a valid Email"))
@@ -3392,8 +3418,18 @@ def _handle_edit_user(to_save, content, languages, translations, kobo_support):
                                      title=_("Edit User %(nick)s", nick=content.name),
                                      page="edituser")
     try:
-        ub.session_commit()
+        user_library.set_library_mode(
+            content,
+            desired_library_mode,
+            seed_rows_prepared=library_seed_prepared,
+            commit=False,
+        )
+        ub.session.commit()
         flash(_("User '%(nick)s' updated", nick=content.name), category="success")
+    except user_library.UserLibraryError as ex:
+        ub.session.rollback()
+        log.error(ex)
+        flash(str(ex), category="error")
     except IntegrityError as ex:
         ub.session.rollback()
         log.error("An unknown error occurred while changing user: {}".format(str(ex)))

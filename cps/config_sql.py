@@ -385,6 +385,9 @@ class ConfigSQL(object):
     def role_viewer(self):
         return self._has_role(constants.ROLE_VIEWER)
 
+    def role_browse_global(self):
+        return self._has_role(constants.ROLE_BROWSE_GLOBAL)
+
     def role_upload(self):
         return self._has_role(constants.ROLE_UPLOAD)
 

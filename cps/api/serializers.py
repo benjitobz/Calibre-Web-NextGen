@@ -75,7 +75,7 @@ def serialize_sidebar_order(user):
 
 
 def serialize_user(user):
-    return {
+    payload = {
         "id": user.id,
         "name": user.name,
         "locale": user.locale,
@@ -90,6 +90,9 @@ def serialize_user(user):
             "delete_books": user.role_delete_books(),
             "edit_shelfs": user.role_edit_shelfs(),
             "viewer": user.role_viewer(),
+            "browse_global": bool(
+                getattr(user, "role_browse_global", lambda: False)()
+            ),
             "passwd": user.role_passwd(),
             "anonymous": user.role_anonymous(),
         },
@@ -103,6 +106,29 @@ def serialize_user(user):
         # account payload (app passwords, locale + language lists) for one bool.
         "kobo_only_shelves_sync": bool(getattr(user, "kobo_only_shelves_sync", False)),
     }
+    mode = getattr(user, "library_mode", None)
+    payload.update({
+        "library_mode": (
+            mode() if callable(mode)
+            else (constants.LIBRARY_MODE_PERSONAL
+                  if bool(getattr(user, "has_own_library", False))
+                  else constants.LIBRARY_MODE_MONOLIBRARY)
+        ),
+        "my_library_seeded": bool(
+            getattr(user, "user_library_seeded", False)
+        ),
+        "can_switch_library_mode": bool(
+            getattr(user, "role_browse_global", lambda: False)()
+        ),
+        "library_mode_managed": not bool(
+            getattr(user, "role_browse_global", lambda: False)()
+        ),
+        "show_my_library_intro": (
+            not user.role_anonymous()
+            and not bool(getattr(user, "my_library_intro_dismissed", False))
+        ),
+    })
+    return payload
 
 
 def serialize_shelf(shelf, count, is_owner):

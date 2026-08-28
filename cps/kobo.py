@@ -40,7 +40,7 @@ from sqlalchemy.orm import joinedload
 from sqlalchemy.sql import select
 import requests
 
-from . import config, logger, kobo_auth, db, calibre_db, helper, shelf as shelf_lib, ub, csrf, kobo_sync_status, magic_shelf
+from . import config, constants, logger, kobo_auth, db, calibre_db, helper, shelf as shelf_lib, ub, csrf, kobo_sync_status, magic_shelf, user_library
 from . import isoLanguages
 from .epub import get_epub_layout
 from .constants import COVER_THUMBNAIL_SMALL, COVER_THUMBNAIL_MEDIUM, COVER_THUMBNAIL_LARGE, CACHE_TYPE_THUMBNAILS
@@ -106,6 +106,15 @@ def normalized_books_last_modified(value):
 def books_keyset_after_cursor(cursor_lm, cursor_id):
     """Build the normalized ``(last_modified, id)`` Kobo keyset predicate."""
     normalized_stored = normalized_books_last_modified(db.Books.last_modified)
+    normalized_cursor = normalized_books_last_modified(cursor_lm)
+    return or_(
+        normalized_stored > normalized_cursor,
+        and_(normalized_stored == normalized_cursor, db.Books.id > cursor_id),
+    )
+
+
+def delivery_keyset_after_cursor(normalized_stored, cursor_lm, cursor_id):
+    """Build a composite Kobo keyset for an already-normalized time key."""
     normalized_cursor = normalized_books_last_modified(cursor_lm)
     return or_(
         normalized_stored > normalized_cursor,
@@ -301,6 +310,20 @@ def compute_kobo_books_to_archive(synced_book_ids, allowed_book_ids, membership_
     return set(synced_book_ids) - set(allowed_book_ids)
 
 
+def archive_membership_reliable(kobo_only_shelves_sync,
+                                magic_shelf_membership_reliable):
+    """Whether every source that informed the allowed set was reliable.
+
+    Magic shelves inform deletions only in shelf-sync mode. In sync-all mode,
+    personal-library membership alone scopes the device, so an unrelated magic
+    shelf failure must not indefinitely suppress an intentional removal.
+    """
+    return (
+        not bool(kobo_only_shelves_sync)
+        or bool(magic_shelf_membership_reliable)
+    )
+
+
 def get_magic_shelf_membership_added_at(user_id):
     """Return the most-recent MagicShelfCache.created_at across the user's
     kobo-sync magic shelves, or ``None`` if no cache rows exist.
@@ -387,34 +410,60 @@ def HandleSyncRequest():
     magic_shelf_book_ids, magic_shelf_membership_reliable = get_magic_shelf_book_ids_for_kobo(current_user.id)
     magic_shelf_membership_added_at = get_magic_shelf_membership_added_at(current_user.id)
 
-    # Two-Way-Sync Deletion Logic (kobo_only_shelves_sync=True only — outer
-    # membership filter is what drives the deletion detection)
-    if current_user.kobo_only_shelves_sync:
+    # Device reconciliation covers both scoping modes. Shelf-only mode uses
+    # the user's Kobo shelves; sync-all mode now means My Library when that
+    # feature is enabled. The membership set is intersected with shelves so a
+    # stale shelf link can never keep a removed book on the device.
+    # Keep this compatibility input explicit: older integrations and tests
+    # construct user-shaped objects without the named-mode helper.
+    membership_enabled = bool(getattr(current_user, 'has_own_library', False))
+    personal_library_mode = (
+        membership_enabled
+        or user_library.mode_for_user(current_user)
+        == constants.LIBRARY_MODE_PERSONAL
+    )
+    if current_user.kobo_only_shelves_sync or membership_enabled:
         try:
             # Check all books that are on Kobo according to the database
             synced_books_query = ub.session.query(ub.KoboSyncedBooks.book_id).filter(ub.KoboSyncedBooks.user_id == current_user.id)
             synced_book_ids = {item.book_id for item in synced_books_query}
 
-            # Check all books currently on a Kobo Sync shelf
-            allowed_books_query = (ub.session.query(ub.BookShelf.book_id)
-                                   .join(ub.Shelf, ub.BookShelf.shelf == ub.Shelf.id)
-                                   .filter(ub.Shelf.user_id == current_user.id, ub.Shelf.kobo_sync == True))
-            allowed_book_ids = {item.book_id for item in allowed_books_query}
-            if magic_shelf_book_ids:
-                allowed_book_ids |= magic_shelf_book_ids
+            if current_user.kobo_only_shelves_sync:
+                # Check all books currently on a Kobo Sync shelf.
+                allowed_books_query = (ub.session.query(ub.BookShelf.book_id)
+                                       .join(ub.Shelf, ub.BookShelf.shelf == ub.Shelf.id)
+                                       .filter(ub.Shelf.user_id == current_user.id,
+                                               ub.Shelf.kobo_sync.is_(True)))
+                allowed_book_ids = {item.book_id for item in allowed_books_query}
+                if magic_shelf_book_ids:
+                    allowed_book_ids |= magic_shelf_book_ids
+            else:
+                allowed_book_ids = set(synced_book_ids)
 
-            # Spot the difference: books that need to be deleted. FAIL-SAFE
-            # (#468): if the magic-shelf membership was unreliable (a query
-            # failed), compute_kobo_books_to_archive returns empty so we skip
-            # archiving this round rather than wrongly removing books — e.g. the
-            # one the user is reading — off the device.
-            if not magic_shelf_membership_reliable:
+            if personal_library_mode:
+                library_book_ids = {
+                    row.book_id for row in
+                    ub.session.query(ub.UserLibraryBook.book_id)
+                    .filter(ub.UserLibraryBook.user_id == current_user.id)
+                }
+                allowed_book_ids &= library_book_ids
+
+            # #468's fail-safe applies only when magic shelves informed this
+            # allowed set. With shelf sync off, personal membership is the sole
+            # scoping source and remains authoritative even if an unrelated
+            # magic-shelf query failed.
+            deletion_membership_reliable = archive_membership_reliable(
+                current_user.kobo_only_shelves_sync,
+                magic_shelf_membership_reliable,
+            )
+            if not deletion_membership_reliable:
                 log.warning(
                     "Kobo Sync: magic-shelf membership unreliable for user %s; "
                     "skipping two-way-sync deletion this round to avoid wrongly "
                     "archiving books (#468)", current_user.name)
             books_to_delete_ids = compute_kobo_books_to_archive(
-                synced_book_ids, allowed_book_ids, magic_shelf_membership_reliable)
+                synced_book_ids, allowed_book_ids,
+                deletion_membership_reliable)
 
             if books_to_delete_ids:
                 log.info(f"Kobo Sync: Found {len(books_to_delete_ids)} books to remove from device for user {current_user.name}")
@@ -525,16 +574,27 @@ def HandleSyncRequest():
             composite_keyset_books_only,
         )
 
-    # else branch does not join BookShelf — drop the date_added arm but keep
-    # the composite keyset + magic-shelf arm (when active). This is what
-    # closes the @recruiterguy gap: in sync-all mode, magic-shelf-only books
-    # with old Books.last_modified still get through the inner cursor via
-    # the third arm.
+    # The sync-all branch does not join BookShelf, but personal-library mode
+    # has its own membership timestamp. A book selected from the global
+    # archive is commonly older than the device cursor, so its delivery key is
+    # max(Books.last_modified, UserLibraryBook.added_at). Filtering AND ordering
+    # on that same composite key is load-bearing: folding added_at into a cursor
+    # while ordering only by Books.last_modified skips later membership rows
+    # when a page is capped.
+    library_delivery_key = func.max(
+        normalized_books_last_modified(db.Books.last_modified),
+        normalized_books_last_modified(ub.UserLibraryBook.added_at),
+    )
+    library_composite_keyset = delivery_keyset_after_cursor(
+        library_delivery_key, cursor_lm, cursor_id)
     if magic_shelf_arm_active:
         inner_cursor_filter_sync_all = or_(
-            composite_keyset_books_only,
+            (library_composite_keyset if personal_library_mode
+             else composite_keyset_books_only),
             magic_shelf_arm,
         )
+    elif personal_library_mode:
+        inner_cursor_filter_sync_all = library_composite_keyset
     else:
         inner_cursor_filter_sync_all = composite_keyset_books_only
 
@@ -593,6 +653,17 @@ def HandleSyncRequest():
         # magic-shelf arm DOES participate (when active), letting magic-shelf
         # books with old Books.last_modified deliver in 'sync-all' mode too —
         # fixing the @recruiterguy regression in v4.0.147.
+        if personal_library_mode:
+            changed_entries = (changed_entries
+                               .add_columns(
+                                   ub.UserLibraryBook.added_at.label(
+                                       "library_added_at"))
+                               .join(
+                                   ub.UserLibraryBook,
+                                   and_(
+                                       db.Books.id == ub.UserLibraryBook.book_id,
+                                       ub.UserLibraryBook.user_id == current_user.id,
+                                   )))
         changed_entries = (changed_entries
                            .join(db.Data).outerjoin(ub.ArchivedBook, and_(db.Books.id == ub.ArchivedBook.book_id,
                                                                           ub.ArchivedBook.user_id == current_user.id))
@@ -600,7 +671,10 @@ def HandleSyncRequest():
                            .filter(inner_cursor_filter_sync_all)
                            .filter(calibre_db.common_filters(allow_show_archived=True))
                            .filter(db.Data.format.in_(KOBO_FORMATS))
-                           .order_by(normalized_books_last_modified(db.Books.last_modified))
+                           .order_by(
+                               library_delivery_key if personal_library_mode
+                               else normalized_books_last_modified(
+                                   db.Books.last_modified))
                            .order_by(db.Books.id)
                            .options(joinedload(db.Books.authors),
                                     joinedload(db.Books.publishers),
@@ -680,6 +754,18 @@ def HandleSyncRequest():
                 date_added = date_added.replace(tzinfo=None)
             new_books_last_modified = max(date_added, new_books_last_modified)
 
+        # Personal-library membership is a second delivery clock in sync-all
+        # mode. Fold it into the same device cursor that admitted the row so
+        # an old book selected from the global archive arrives once, then the
+        # added_at arm closes on the following request.
+        library_added_at = getattr(book, "library_added_at", None)
+        if library_added_at is not None:
+            if (hasattr(library_added_at, "replace")
+                    and getattr(library_added_at, "tzinfo", None) is not None):
+                library_added_at = library_added_at.replace(tzinfo=None)
+            new_books_last_modified = max(
+                library_added_at, new_books_last_modified)
+
         new_books_last_created = max(ts_created, new_books_last_created)
         delivered_book_identities.append((book.Books.id, str(book.Books.uuid)))
 
@@ -712,11 +798,12 @@ def HandleSyncRequest():
     else:
         new_magic_shelf_last_id = magic_shelf_last_id
 
-    # Composite-keyset cursor: keep books_last_id aligned with new_books_last_modified.
-    # The query ORDER BY (last_modified, id) means books_list iteration is sorted, so
-    # the last emitted row is the highest (last_modified, id) tuple in the batch.
-    #   - If new_books_last_modified == that row's last_modified, store the row's id so
-    #     the next sync's keyset arm `id > books_last_id` walks past it.
+    # Composite-keyset cursor: keep books_last_id aligned with
+    # new_books_last_modified. The query order is (delivery time, id), where
+    # delivery time is Books.last_modified normally and the maximum of book
+    # modification/membership addition in personal sync-all mode.
+    #   - If new_books_last_modified == the last row's delivery time, store the
+    #     row id so the next sync walks past ties without dropping a capped page.
     #   - If new_books_last_modified got pushed past the batch's max ts (via the
     #     date_added fold from fork #220 or via the magic-shelf cache fold below),
     #     reset id to -1 — there are no books at the new ts in this batch, so any
@@ -725,6 +812,11 @@ def HandleSyncRequest():
     if books_list:
         last_book = books_list[-1]
         last_book_lm = books_cursor_datetime(last_book.Books.last_modified)
+        last_library_added_at = getattr(last_book, "library_added_at", None)
+        if last_library_added_at is not None:
+            last_library_added_at = books_cursor_datetime(
+                last_library_added_at)
+            last_book_lm = max(last_book_lm, last_library_added_at)
         if new_books_last_modified == last_book_lm:
             new_books_last_id = last_book.Books.id
         else:
