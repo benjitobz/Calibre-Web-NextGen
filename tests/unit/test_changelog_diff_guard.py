@@ -196,6 +196,7 @@ def test_other_allowlisted_non_shipping_paths_do_not_require_an_entry():
         "notes/kobo-hardware-run.md",
         "docs/install/compose.md",
         "wiki-src/Contributing.md",
+        "examples/.env.example",
         "tests/unit/test_changelog_diff_guard.py",
         "changelog.d/README.md",
         "scripts/check_changelog_diff.py",

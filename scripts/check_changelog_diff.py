@@ -20,6 +20,8 @@ NON_SHIPPING_PATH_PREFIXES = (
     # 2026-08-27; #1896 was forced to invent a fragment).
     "cps/translations/",
     "docs/",
+    # Example configuration files document; they do not ship.
+    "examples/",
     "findings/",
     "frontend/e2e/",
     "notes/",
