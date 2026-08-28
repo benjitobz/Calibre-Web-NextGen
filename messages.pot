@@ -1077,7 +1077,8 @@ msgstr ""
 msgid "Timestamp"
 msgstr ""
 
-#: cps/cwa_functions.py cps/templates/tasks.html cps/templates/user_edit.html
+#: cps/cwa_functions.py cps/spa_strings.py cps/templates/tasks.html
+#: cps/templates/user_edit.html
 msgid "Book ID"
 msgstr ""
 
@@ -2585,6 +2586,15 @@ msgstr ""
 msgid "Adding…"
 msgstr ""
 
+#: cps/spa_strings.py
+msgid "Add book to this library"
+msgstr ""
+
+#: cps/spa_strings.py
+#, python-brace-format
+msgid "Added book {book} to {name}."
+msgstr ""
+
 #: cps/spa_strings.py cps/templates/config_view_edit.html
 #: cps/templates/user_edit.html cps/templates/user_table.html
 msgid "Browse global library"
@@ -2592,6 +2602,14 @@ msgstr ""
 
 #: cps/spa_strings.py cps/templates/index.html
 msgid "Browse the global library"
+msgstr ""
+
+#: cps/spa_strings.py
+msgid "Could not add the book."
+msgstr ""
+
+#: cps/spa_strings.py
+msgid "Could not add this book to the shelf."
 msgstr ""
 
 #: cps/spa_strings.py
@@ -2619,6 +2637,10 @@ msgstr ""
 
 #: cps/spa_strings.py cps/templates/user_edit.html
 msgid "Everything on the server, including every new book added to it."
+msgstr ""
+
+#: cps/spa_strings.py
+msgid "Enter a valid book ID."
 msgstr ""
 
 #: cps/spa_strings.py

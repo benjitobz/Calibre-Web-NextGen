@@ -12,8 +12,8 @@ msgstr ""
 "Automated\n"
 "POT-Creation-Date: 2026-07-17 21:21-0400\n"
 "PO-Revision-Date: 2026-04-26 13:31+0200\n"
-"Last-Translator: Michiel Cornelissen <michiel.cornelissen+gitbhun at "
-"proton.me>\n"
+"Last-Translator: Michiel Cornelissen <michiel.cornelissen+gitbhun at proton."
+"me>\n"
 "Language-Team: ed.driesen@telenet.be\n"
 "Language: nl\n"
 "MIME-Version: 1.0\n"
@@ -1144,7 +1144,8 @@ msgstr ""
 msgid "Timestamp"
 msgstr "Tijdstempel"
 
-#: cps/cwa_functions.py cps/templates/tasks.html cps/templates/user_edit.html
+#: cps/cwa_functions.py cps/spa_strings.py cps/templates/tasks.html
+#: cps/templates/user_edit.html
 msgid "Book ID"
 msgstr "Boek ID"
 
@@ -2716,6 +2717,15 @@ msgstr ""
 msgid "Adding…"
 msgstr "Toevoegen…"
 
+#: cps/spa_strings.py
+msgid "Add book to this library"
+msgstr "Boek aan deze bibliotheek toevoegen"
+
+#: cps/spa_strings.py
+#, python-brace-format
+msgid "Added book {book} to {name}."
+msgstr "Boek {book} toegevoegd aan de bibliotheek van {name}."
+
 #: cps/spa_strings.py cps/templates/config_view_edit.html
 #: cps/templates/user_edit.html cps/templates/user_table.html
 msgid "Browse global library"
@@ -2724,6 +2734,14 @@ msgstr "Door de globale bibliotheek bladeren"
 #: cps/spa_strings.py cps/templates/index.html
 msgid "Browse the global library"
 msgstr "Door de globale bibliotheek bladeren"
+
+#: cps/spa_strings.py
+msgid "Could not add the book."
+msgstr "Kon het boek niet toevoegen."
+
+#: cps/spa_strings.py
+msgid "Could not add this book to the shelf."
+msgstr "Kon dit boek niet aan de plank toevoegen."
 
 #: cps/spa_strings.py
 msgid "Could not add the book. Please try again."
@@ -2754,6 +2772,10 @@ msgstr "Elk boek hier staat al in je bibliotheek."
 msgid "Everything on the server, including every new book added to it."
 msgstr ""
 "Alles op de server, inclusief elk nieuw boek dat eraan wordt toegevoegd."
+
+#: cps/spa_strings.py
+msgid "Enter a valid book ID."
+msgstr "Voer een geldig boek-ID in."
 
 #: cps/spa_strings.py
 #, python-brace-format
@@ -7371,8 +7393,8 @@ msgstr "Kies e-mailadressen:"
 #, fuzzy
 msgid "Success! Book queued for sending to the selected address(es)!"
 msgstr ""
-"Het boek is in de wachtrij geplaatst om te worden verstuurd aan %"
-"(eReadermail)s"
+"Het boek is in de wachtrij geplaatst om te worden verstuurd aan "
+"%(eReadermail)s"
 
 #: cps/web.py
 msgid "Please wait one minute to register next user"
@@ -13731,11 +13753,10 @@ msgstr "Toon gelezen/niet gelezen selectie"
 #~ msgstr ""
 #~ "Deze paden zijn alleen intern voor CWA, je kunt aan de linkerkant naar "
 #~ "hartenlust wijzigen waar ze aan gekoppeld zijn, maar er is geen reden om "
-#~ "de paden aan de rechterkant te wijzigen.<br><br>Als je je "
-#~ "<code>metadata.db</code> bestand op een andere locatie wilt dan de rest "
-#~ "van je bibliotheek, gebruik dan de <b>Scheid Boekbestanden van "
-#~ "Bibliotheek Optie hieronder en voer daar het pad naar de rest van de "
-#~ "bibliotheek in</b>"
+#~ "de paden aan de rechterkant te wijzigen.<br><br>Als je je <code>metadata."
+#~ "db</code> bestand op een andere locatie wilt dan de rest van je "
+#~ "bibliotheek, gebruik dan de <b>Scheid Boekbestanden van Bibliotheek Optie "
+#~ "hieronder en voer daar het pad naar de rest van de bibliotheek in</b>"
 
 #~ msgid "Enable CWA Auto-Convert"
 #~ msgstr "Schakel CWA Auto-Conversie in"
@@ -14059,19 +14080,3 @@ msgstr "Toon gelezen/niet gelezen selectie"
 #~ msgstr ""
 #~ "Boeken moeten eerst worden gearchiveerd en het apparaat moet worden "
 #~ "gesynchroniseerd, voordat een boek veilig kan worden verwijderd."
-
-msgid "Add book to this library"
-msgstr "Boek aan deze bibliotheek toevoegen"
-
-#, python-brace-format
-msgid "Added book {book} to {name}."
-msgstr "Boek {book} toegevoegd aan de bibliotheek van {name}."
-
-msgid "Could not add the book."
-msgstr "Kon het boek niet toevoegen."
-
-msgid "Could not add this book to the shelf."
-msgstr "Kon dit boek niet aan de plank toevoegen."
-
-msgid "Enter a valid book ID."
-msgstr "Voer een geldig boek-ID in."
