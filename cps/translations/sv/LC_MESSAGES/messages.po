@@ -9647,6 +9647,23 @@ msgid ""
 msgstr ""
 
 #: cps/templates/cwa_settings.html
+msgid "Move a misplaced ComicInfo.xml to the archive root on ingest"
+msgstr ""
+
+#: cps/templates/cwa_settings.html
+msgid ""
+"The ComicInfo.xml standard requires the file to sit at the root of the "
+"archive; comicapi (and every other reader we're aware of) only looks there. "
+"Some real-world .cbz releases package it one folder down instead, so their "
+"title/series/author/publisher never get picked up. When enabled, ingest "
+"rewrites a copy of the archive with ComicInfo.xml moved to the root before "
+"it's imported — only when it's present but misplaced, never touching an "
+"already-correct file. Zip-based archives (.cbz) only; .cbr/.cb7/.cbt are not "
+"zip containers and are left as-is. Your original download is never modified, "
+"only the copy that gets imported."
+msgstr ""
+
+#: cps/templates/cwa_settings.html
 #, fuzzy
 msgid "Enable Archived Book Cleanup"
 msgstr "Arkiverade böcker"
