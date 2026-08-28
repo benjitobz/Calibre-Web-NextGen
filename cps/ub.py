@@ -10,6 +10,7 @@ import os
 import re
 import sys
 import sqlite3
+import threading
 import time
 from datetime import datetime, timezone, timedelta
 import itertools
@@ -45,6 +46,7 @@ from sqlalchemy.orm import backref, relationship, sessionmaker, Session, scoped_
 from werkzeug.security import generate_password_hash
 
 from . import constants, logger
+from .sqlite_utils import network_share_mode_enabled
 from .string_helper import strip_whitespaces
 
 log = logger.create()
@@ -1814,28 +1816,27 @@ def add_missing_tables(engine, _session):
     # NameError on any app.db missing kosync_progress (a fresh install).
     from .progress_syncing.models import KOSyncProgress
 
-    if not engine.dialect.has_table(engine.connect(), "archived_book"):
-        ArchivedBook.__table__.create(bind=engine, checkfirst=True)
-    if not engine.dialect.has_table(engine.connect(), "thumbnail"):
-        Thumbnail.__table__.create(bind=engine, checkfirst=True)
-    if not engine.dialect.has_table(engine.connect(), "kosync_progress"):
-        KOSyncProgress.__table__.create(bind=engine, checkfirst=True)
-    if not engine.dialect.has_table(engine.connect(), "magic_shelf"):
-        MagicShelf.__table__.create(bind=engine, checkfirst=True)
-    if not engine.dialect.has_table(engine.connect(), "magic_shelf_cache"):
-        MagicShelfCache.__table__.create(bind=engine, checkfirst=True)
-    if not engine.dialect.has_table(engine.connect(), "opds_shelf_exposure"):
-        OpdsShelfExposure.__table__.create(bind=engine, checkfirst=True)
-    if not engine.dialect.has_table(engine.connect(), "book_original_filename"):
-        BookOriginalFilename.__table__.create(bind=engine, checkfirst=True)
-    if not engine.dialect.has_table(engine.connect(), "opds_magic_shelf_exposure"):
-        OpdsMagicShelfExposure.__table__.create(bind=engine, checkfirst=True)
-    if not engine.dialect.has_table(engine.connect(), "hidden_magic_shelf_templates"):
-        HiddenMagicShelfTemplate.__table__.create(bind=engine, checkfirst=True)
-    if not engine.dialect.has_table(engine.connect(), "kobo_annotation_backup"):
-        KoboAnnotationBackup.__table__.create(bind=engine, checkfirst=True)
-    if not engine.dialect.has_table(engine.connect(), "favorite_book"):
-        FavoriteBook.__table__.create(bind=engine, checkfirst=True)
+    tables = (
+        ("archived_book", ArchivedBook.__table__),
+        ("thumbnail", Thumbnail.__table__),
+        ("kosync_progress", KOSyncProgress.__table__),
+        ("magic_shelf", MagicShelf.__table__),
+        ("magic_shelf_cache", MagicShelfCache.__table__),
+        ("opds_shelf_exposure", OpdsShelfExposure.__table__),
+        ("book_original_filename", BookOriginalFilename.__table__),
+        ("opds_magic_shelf_exposure", OpdsMagicShelfExposure.__table__),
+        ("hidden_magic_shelf_templates", HiddenMagicShelfTemplate.__table__),
+        ("kobo_annotation_backup", KoboAnnotationBackup.__table__),
+        ("favorite_book", FavoriteBook.__table__),
+    )
+    for table_name, table in tables:
+        # Explicit transaction control means even schema inspection begins a
+        # real read transaction. Close it before opening the separate DDL
+        # transaction or the inspection connection can block its commit.
+        with engine.connect() as connection:
+            table_exists = engine.dialect.has_table(connection, table_name)
+        if not table_exists:
+            table.create(bind=engine, checkfirst=True)
 
 
 # migrate all settings missing in registration table
@@ -1844,11 +1845,13 @@ def migrate_registration_table(engine, _session):
         # Handle table exists, but no content
         cnt = _session.query(Registration).count()
         if not cnt:
-            with engine.connect() as conn:
-                trans = conn.begin()
-                conn.execute(text("insert into registration (domain, allow) values('%.%',1)"))
-                trans.commit()
+            _session.add(Registration(domain='%.%', allow=1))
+        # The inspection SELECT now opens a real transaction. Commit on the
+        # same session both to persist the seed row and to release its read
+        # lock before later migrations use independent engine connections.
+        _session.commit()
     except exc.OperationalError:  # Database is not writeable
+        _session.rollback()
         print('Settings database is not writeable. Exiting...')
         sys.exit(2)
 
@@ -4136,8 +4139,11 @@ def migrate_Database(_session):
                 created = magic_shelf.create_system_magic_shelves(user.id, templates_to_create)
                 total_created += created
         
+        # Even a no-op pass performed SELECTs and therefore owns a real read
+        # transaction under explicit BEGIN handling. End it before the trigger
+        # guard below opens a separate DDL transaction on the same database.
+        _session.commit()
         if total_deleted > 0 or total_created > 0:
-            _session.commit()
             log.info(f"System shelf migration complete: {total_deleted} old shelves removed, {total_created} new shelves created")
     except Exception as e:
         log.error(f"Error during system shelf migration: {e}")
@@ -4234,6 +4240,96 @@ def create_system_magic_shelves_for_user(user_id):
         return 0
 
 
+def _request_app_db_wal(dbapi_connection):
+    """Request WAL on a raw sqlite3 connection, before SQLAlchemy autobegins."""
+    cursor = dbapi_connection.cursor()
+    try:
+        row = cursor.execute("PRAGMA journal_mode=WAL").fetchone()
+        return (row[0] if row else None), None
+    except sqlite3.Error as error:
+        return None, error
+    finally:
+        cursor.close()
+
+
+def begin_contained_nested(db_session):
+    """Open a SAVEPOINT inside a real outer SQLite transaction.
+
+    sqlite3's legacy transaction control does not emit BEGIN for SELECT or
+    SAVEPOINT. If a session has only read before ``Session.begin_nested()``,
+    releasing that SAVEPOINT commits its writes and a later outer rollback
+    cannot undo them. Start an immediate transaction on that same connection
+    only when the driver has no real transaction yet, then let SQLAlchemy open
+    the nested transaction normally.
+
+    Localizing BEGIN IMMEDIATE here is essential: applying it to every outer
+    SQLAlchemy transaction makes read-only sessions reserve the writer slot and
+    block unrelated pooled connections for their entire lifetime.
+    """
+    connection = db_session.connection()
+    if connection.dialect.name == 'sqlite':
+        driver_connection = connection.connection.driver_connection
+        if not driver_connection.in_transaction:
+            connection.exec_driver_sql('BEGIN IMMEDIATE')
+    return db_session.begin_nested()
+
+
+def _create_app_db_engine(app_db_path):
+    """Create an app.db engine with WAL and legacy sqlite3 transactions.
+
+    Python's sqlite3 legacy transaction mode emits BEGIN for DML only. A
+    SAVEPOINT reached after SELECTs therefore has no enclosing transaction,
+    and releasing it makes its writes durable before Session.commit(). The
+    ``begin_contained_nested`` helper fixes that locally at SAVEPOINT call sites
+    without changing transaction behavior for every request and startup step.
+
+    WAL support is decided once per engine. If the first raw connection cannot
+    enable it (for example, app.db is on a network share), the engine remains in
+    rollback-journal mode and warns once. Every connection retains sqlite3's
+    legacy transaction control in either journal mode.
+    """
+    engine = create_engine(
+        'sqlite:///{0}'.format(app_db_path),
+        echo=False,
+        connect_args={'timeout': 30},
+    )
+    wal_mode = {'configured': False}
+    wal_mode_lock = threading.Lock()
+    network_share_mode = network_share_mode_enabled()
+
+    @event.listens_for(engine, 'connect')
+    def _configure_app_db_journal_mode(dbapi_connection, _connection_record):
+        if not wal_mode['configured']:
+            with wal_mode_lock:
+                if not wal_mode['configured']:
+                    if network_share_mode:
+                        log.warning(
+                            "NETWORK_SHARE_MODE=true disables SQLite WAL for every database, "
+                            "including app.db %s even when /config is on local disk, because "
+                            "WAL is unsafe on network filesystems. app.db is using legacy "
+                            "sqlite3 transaction control with a rollback journal; call sites "
+                            "requiring contained SAVEPOINTs acquire a local write transaction.",
+                            app_db_path,
+                        )
+                    else:
+                        journal_mode, wal_error = _request_app_db_wal(dbapi_connection)
+                        wal_enabled = str(journal_mode).lower() == 'wal'
+                        if not wal_enabled:
+                            reason = ("PRAGMA journal_mode=WAL failed: {}".format(wal_error)
+                                      if wal_error is not None
+                                      else "SQLite kept journal_mode={!r}".format(journal_mode))
+                            log.warning(
+                                "SQLite WAL is unavailable for app.db %s (%s). Using a "
+                                "rollback journal with legacy sqlite3 transaction control; "
+                                "call sites requiring contained SAVEPOINTs acquire a local "
+                                "write transaction.",
+                                app_db_path, reason,
+                            )
+                    wal_mode['configured'] = True
+
+    return engine
+
+
 def init_db_thread():
     global app_DB_path
     if not app_DB_path:
@@ -4246,8 +4342,7 @@ def init_db_thread():
         raise RuntimeError(
             "ub.init_db_thread() called before ub.init_db(); app_DB_path "
             "is unset, refusing to create a stray 'None' SQLite file")
-    engine = create_engine('sqlite:///{0}'.format(app_DB_path), echo=False,
-                           connect_args={'timeout': 30})
+    engine = _create_app_db_engine(app_DB_path)
 
     Session = scoped_session(sessionmaker())
     Session.configure(bind=engine)
@@ -4260,8 +4355,7 @@ def init_db(app_db_path):
     global app_DB_path
 
     app_DB_path = app_db_path
-    engine = create_engine('sqlite:///{0}'.format(app_db_path), echo=False,
-                           connect_args={'timeout': 30})
+    engine = _create_app_db_engine(app_db_path)
 
     Session = scoped_session(sessionmaker())
     Session.configure(bind=engine)
@@ -4294,8 +4388,7 @@ def _healthcheck_app_db(app_db_path: str) -> None:
             return
         if not os.access(app_db_path, os.W_OK):
             log.error("app.db is not writable: %s", app_db_path)
-        network_share_mode = os.environ.get("NETWORK_SHARE_MODE", "false").lower() in ("1", "true", "yes")
-        if network_share_mode:
+        if network_share_mode_enabled():
             log.info("Skipping PRAGMA quick_check for app.db due to NETWORK_SHARE_MODE=true")
             return
         try:
@@ -4336,8 +4429,7 @@ def password_change(user_credentials=None):
 
 
 def get_new_session_instance():
-    new_engine = create_engine('sqlite:///{0}'.format(app_DB_path), echo=False,
-                               connect_args={'timeout': 30})
+    new_engine = _create_app_db_engine(app_DB_path)
     new_session = scoped_session(sessionmaker())
     new_session.configure(bind=new_engine)
 

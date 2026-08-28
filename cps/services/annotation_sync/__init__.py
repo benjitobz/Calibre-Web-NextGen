@@ -359,7 +359,7 @@ def _store_raw_materialization(session, annotation, raw_record, *, trace_id=None
     if raw_record is None or raw_record.annotation_id != annotation.annotation_id:
         return None
     try:
-        with session.begin_nested():
+        with ub.begin_contained_nested(session):
             row = (
                 session.query(ub.KoboAnnotationMaterialization)
                 .filter(ub.KoboAnnotationMaterialization.annotation_id == annotation.id)
@@ -461,7 +461,7 @@ def _upsert_sync_target(session, annotation, target_name, result):
             updated_at=_now(),
         )
         try:
-            with session.begin_nested():
+            with ub.begin_contained_nested(session):
                 session.add(st)
                 session.flush()
         except IntegrityError:

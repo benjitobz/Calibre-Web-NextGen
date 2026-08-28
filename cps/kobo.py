@@ -1838,7 +1838,7 @@ def share_kobo_progress_with_koreader(user_id, book_id, percentage):
         # rollback here would take them with it (#1318, same precondition the
         # web reader path documents).
         ub.session_flush()
-        with ub.session.begin_nested():
+        with ub.begin_contained_nested(ub.session):
             record_percentage_only_progress(user_id, book_id, percentage, device="Kobo")
     except Exception as e:
         log.warning("Could not share Kobo progress with KOReader for user %s book %s: %s",

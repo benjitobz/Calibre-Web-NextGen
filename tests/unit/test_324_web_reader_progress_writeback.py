@@ -510,7 +510,7 @@ def test_progress_lookup_does_not_autoflush_the_callers_bookmark():
         "the KoboReadingState lookup must not autoflush a caller's pending write"
     lookup = src.index("query(ub.KoboReadingState)")
     guard = src.index("with ub.session.no_autoflush:")
-    savepoint = src.index("with ub.session.begin_nested():")
+    savepoint = src.index("with ub.begin_contained_nested(ub.session):")
     assert guard < lookup < savepoint, \
         "the no_autoflush guard must wrap the lookup, which must precede the savepoint"
 

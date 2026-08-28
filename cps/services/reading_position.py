@@ -214,7 +214,7 @@ def record_web_reader_progress(user, book_id: int, percentage: float) -> bool:
     # leave the two devices disagreeing about where the user is — worse than
     # neither being updated, which is a state the next save corrects.
     try:
-        with ub.session.begin_nested():
+        with ub.begin_contained_nested(ub.session):
             update_book_read_status(user, book_id, percentage)
             record_percentage_only_progress(
                 user_id, book_id, percentage, device="Web reader",
