@@ -48,6 +48,7 @@ from flask import flash, url_for, has_request_context
 from . import logger, ub, isoLanguages
 from .pagination import Pagination
 from .string_helper import strip_whitespaces
+from .sqlite_utils import network_share_mode_enabled
 from .unicode_collation import unicode_initial, unicode_sort_key
 
 log = logger.create()
@@ -1168,7 +1169,7 @@ class CalibreDB:
                 # Try enabling WAL to improve concurrency unless running on a network share
                 # Controlled by env var NETWORK_SHARE_MODE (default False)
                 try:
-                    nsm = os.getenv('NETWORK_SHARE_MODE', 'False').lower() in ('1', 'true', 'yes', 'on')
+                    nsm = network_share_mode_enabled()
                     dc = os.getenv('DESKTOP_COMPAT_MODE', 'False').lower() in ('1', 'true', 'yes', 'on')
                     if not nsm and not dc and db_writable:
                         connection.execute(text("PRAGMA calibre.journal_mode=WAL"))
@@ -1260,7 +1261,7 @@ class CalibreDB:
                 return None
 
             db_writable = os.access(dbpath, os.W_OK)
-            nsm = os.getenv('NETWORK_SHARE_MODE', 'False').lower() in ('1', 'true', 'yes', 'on')
+            nsm = network_share_mode_enabled()
             desktop_compat = os.getenv('DESKTOP_COMPAT_MODE', 'False').lower() in ('1', 'true', 'yes', 'on')
 
             try:
