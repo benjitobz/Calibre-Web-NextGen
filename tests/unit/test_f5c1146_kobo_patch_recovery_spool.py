@@ -65,6 +65,28 @@ def _wait_for_full_request_io_capacity(spool, timeout=2):
     return capacity
 
 
+def _require_full_request_io_capacity(spool, boundary):
+    """Fail the permit owner, then restore isolation for the next test."""
+    capacity = _wait_for_full_request_io_capacity(spool)
+    if capacity == [True, True, False]:
+        return
+    spool._reset_request_io_slots_after_fork()
+    pytest.fail(
+        "Kobo PATCH request I/O permit leak "
+        f"{boundary}: expected [True, True, False], observed {capacity}; "
+        "resetting capacity so later tests are not poisoned"
+    )
+
+
+@pytest.fixture(autouse=True)
+def _isolate_request_io_capacity():
+    """Attribute permit leaks to their owner instead of the next test."""
+    spool = _module()
+    _require_full_request_io_capacity(spool, "before test setup")
+    yield
+    _require_full_request_io_capacity(spool, "during test teardown")
+
+
 @pytest.fixture(autouse=True)
 def _cancel_spool_retention_timers_after_test():
     """Secondary test isolation; production dependency capture is the fix."""
@@ -635,10 +657,15 @@ def test_forked_child_recovers_full_request_io_capacity(monkeypatch, tmp_path):
     ready = [threading.Event(), threading.Event()]
 
     def _hold_slot(signal):
-        assert spool._REQUEST_IO_SLOTS.acquire(blocking=False)
-        signal.set()
-        assert release.wait(5)
-        spool._REQUEST_IO_SLOTS.release()
+        slots = spool._REQUEST_IO_SLOTS
+        acquired = slots.acquire(blocking=False)
+        try:
+            assert acquired
+            signal.set()
+            assert release.wait(5)
+        finally:
+            if acquired:
+                slots.release()
 
     holders = [
         threading.Thread(target=_hold_slot, args=(signal,), daemon=True)
@@ -646,20 +673,25 @@ def test_forked_child_recovers_full_request_io_capacity(monkeypatch, tmp_path):
     ]
     for holder in holders:
         holder.start()
-    assert all(signal.wait(2) for signal in ready)
-
-    context = multiprocessing.get_context("fork")
-    result_parent, result_child = context.Pipe(duplex=False)
-    child = context.Process(
-        target=_stage_in_forked_child, args=(root, result_child),
-    )
-    child.start()
+    child = None
     try:
+        assert all(signal.wait(2) for signal in ready), (
+            "Kobo PATCH request I/O permit leak prevented both parent holders "
+            "from acquiring capacity"
+        )
+
+        context = multiprocessing.get_context("fork")
+        result_parent, result_child = context.Pipe(duplex=False)
+        child = context.Process(
+            target=_stage_in_forked_child, args=(root, result_child),
+        )
+        child.start()
         assert result_parent.poll(5), "forked child did not report its stage"
         body, capacity, process_lock_inherited_locked = result_parent.recv()
     finally:
         release.set()
-        child.join(5)
+        if child is not None:
+            child.join(5)
         for holder in holders:
             holder.join(5)
 
@@ -733,13 +765,17 @@ def test_spawn_enqueue_then_raise_releases_the_permit_exactly_once(
     [(_path, record)] = _records(spool, root)
     assert record["body"] == RAW_PATCH
 
-    assert spool._REQUEST_IO_SLOTS.acquire(blocking=False)
-    assert spool._REQUEST_IO_SLOTS.acquire(blocking=False)
+    capacity = []
     try:
-        assert not spool._REQUEST_IO_SLOTS.acquire(blocking=False)
+        capacity = [
+            spool._REQUEST_IO_SLOTS.acquire(blocking=False)
+            for _index in range(spool.MAX_PENDING_IO_OPERATIONS + 1)
+        ]
+        assert capacity == [True, True, False]
     finally:
-        spool._REQUEST_IO_SLOTS.release()
-        spool._REQUEST_IO_SLOTS.release()
+        for acquired in capacity:
+            if acquired:
+                spool._REQUEST_IO_SLOTS.release()
 
 
 @pytest.mark.unit
@@ -804,9 +840,12 @@ def test_timed_out_stage_finishes_and_does_not_poison_its_successor(
 def test_pending_spool_work_is_bounded(monkeypatch, tmp_path):
     """Two pending operations cannot grow into an unbounded memory queue."""
     spool, root = _root(monkeypatch, tmp_path)
-    assert spool._REQUEST_IO_SLOTS.acquire(blocking=False)
-    assert spool._REQUEST_IO_SLOTS.acquire(blocking=False)
+    acquired = []
     try:
+        for _index in range(spool.MAX_PENDING_IO_OPERATIONS):
+            permit = spool._REQUEST_IO_SLOTS.acquire(blocking=False)
+            acquired.append(permit)
+            assert permit
         started = time.monotonic()
         ticket = spool.stage_patch(
             raw_body=RAW_PATCH, entitlement_id=BOOK_UUID,
@@ -814,8 +853,9 @@ def test_pending_spool_work_is_bounded(monkeypatch, tmp_path):
         )
         elapsed = time.monotonic() - started
     finally:
-        spool._REQUEST_IO_SLOTS.release()
-        spool._REQUEST_IO_SLOTS.release()
+        for permit in acquired:
+            if permit:
+                spool._REQUEST_IO_SLOTS.release()
 
     assert ticket is None
     assert elapsed < 0.05
