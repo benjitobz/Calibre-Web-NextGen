@@ -78,6 +78,18 @@ Format: each row is one fork-PR, mapped to its upstream PR or issue (if any), wi
   cases, preserve the server-unreachable fallback, and cover successful LDAP
   authentication with auto-creation disabled. | SHA `TBD` | release `TBD`.
 
+- **The book-detail page no longer presents infrequent whole-book deletion as
+  a full-width danger banner** (fork #1862; reported via the in-app feedback
+  form) — deletion stays role-gated, keyboard-visible, clearly labelled, and
+  separate from ordinary action chips, with its existing confirmation and
+  alert error path unchanged. The region now uses a transparent surface,
+  neutral divider, and subdued label while danger emphasis remains on the
+  button. Four Playwright regressions pin permission-on/off visibility,
+  accessible naming, declined-confirmation endpoint safety, and the unfilled
+  treatment in light and dark themes; the new suite was red against the prior
+  banner and green 9/9 across desktop and mobile after the change. Fork-original.
+  | SHA `TBD` | release `TBD`.
+
 - **Kobo annotation PATCH parse failures now preserve the device retry instead
   of acknowledging an upload CWNG could not address** (fork #1827) — a
   non-empty non-object body and any non-empty non-list `updatedAnnotations`
