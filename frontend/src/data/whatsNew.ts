@@ -56,6 +56,17 @@ export interface WhatsNewRelease {
 /** Newest release first. The `whats-new-populate` skill prepends here. */
 export const WHATS_NEW: WhatsNewRelease[] = [
   {
+    version: 'v4.1.43',
+    date: '2026-08-28',
+    items: [
+      {
+        title: 'Kobo books no longer flip back to "Download" after a sync',
+        body: 'When a reader has to re-sync from scratch, unchanged books now arrive exactly as they did before, so Kobo keeps the copy it already has. Your place in the book is kept either way: if a book ever shows "Download" again, tap it and just open the book.',
+        category: 'Sync',
+      },
+    ],
+  },
+  {
     version: 'v4.1.42',
     date: '2026-08-28',
     items: [

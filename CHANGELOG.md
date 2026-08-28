@@ -16,6 +16,12 @@ is for things you can see or feel when running the app.
 
 ## [Unreleased]
 
+## [v4.1.43] - 2026-08-28
+
+### Fixed
+
+- **Stabilized replayed Kobo book metadata to prevent false "Download" resets.** Unchanged entitlements no longer contain response-time timestamps or advertise source-file sizes for generated and metadata-rewritten downloads.
+
 ## [v4.1.42] - 2026-08-28
 
 ### Added
