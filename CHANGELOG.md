@@ -16,6 +16,12 @@ is for things you can see or feel when running the app.
 
 ## [Unreleased]
 
+## [v4.1.43] - 2026-08-28
+
+### Fixed
+
+- Kobo no longer shows Download again for books you already have after a sync hiccup.
+
 ## [v4.1.42] - 2026-08-28
 
 ### Added
