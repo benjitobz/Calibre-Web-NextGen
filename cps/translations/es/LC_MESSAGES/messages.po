@@ -7156,6 +7156,11 @@ msgid "Could not login: %(message)s"
 msgstr "No se pudo iniciar sesión: %(message)s"
 
 #: cps/web.py
+#, python-format
+msgid "Local Login as: '%(nickname)s', LDAP authentication rejected"
+msgstr ""
+
+#: cps/web.py
 msgid "Wrong Username or Password"
 msgstr "Usuario o contraseña incorrectos"
 

@@ -6986,6 +6986,11 @@ msgid "Could not login: %(message)s"
 msgstr "Det gick inte att logga in: %(message)s"
 
 #: cps/web.py
+#, python-format
+msgid "Local Login as: '%(nickname)s', LDAP authentication rejected"
+msgstr ""
+
+#: cps/web.py
 #, fuzzy
 msgid "Wrong Username or Password"
 msgstr "Fel användarnamn eller lösenord"

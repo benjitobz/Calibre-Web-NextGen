@@ -7113,6 +7113,11 @@ msgid "Could not login: %(message)s"
 msgstr "Inloggen mislukt: %(message)s"
 
 #: cps/web.py
+#, python-format
+msgid "Local Login as: '%(nickname)s', LDAP authentication rejected"
+msgstr ""
+
+#: cps/web.py
 #, fuzzy
 msgid "Wrong Username or Password"
 msgstr "Verkeerde gebruikersnaam of wachtwoord"

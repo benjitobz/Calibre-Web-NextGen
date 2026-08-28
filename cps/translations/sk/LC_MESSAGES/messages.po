@@ -6975,6 +6975,11 @@ msgid "Could not login: %(message)s"
 msgstr "Nemôžem prihlásiť: %(message)s"
 
 #: cps/web.py
+#, python-format
+msgid "Local Login as: '%(nickname)s', LDAP authentication rejected"
+msgstr ""
+
+#: cps/web.py
 msgid "Wrong Username or Password"
 msgstr "Nesprávne používateľské meno alebo heslo"
 
