@@ -9,9 +9,12 @@ from .cw_login import current_user
 from . import logger, ub
 from datetime import datetime, timezone
 from sqlalchemy.sql.expression import or_, and_, true
+from sqlalchemy.dialects.sqlite import insert as sqlite_insert
 # from sqlalchemy import exc
 
 log = logger.create()
+
+_LEDGER_UPSERT_BATCH_SIZE = 250
 
 
 # Record the current user's delivered book identity.
@@ -67,6 +70,142 @@ def add_synced_books_batch(book_identities):
             for book_id in missing_book_ids
         ])
     ub.session_commit()
+
+
+def get_device_entitlement_fingerprints(device_id, book_ids):
+    """Return the last delivered payload hash for each candidate book."""
+    if not device_id or not book_ids:
+        return {}
+    return dict(
+        ub.session.query(
+            ub.KoboDeviceBookEntitlement.book_id,
+            ub.KoboDeviceBookEntitlement.fingerprint,
+        ).filter(
+            ub.KoboDeviceBookEntitlement.device_id == int(device_id),
+            ub.KoboDeviceBookEntitlement.book_id.in_(set(book_ids)),
+        ).all()
+    )
+
+
+def stage_device_entitlement_fingerprints(device_id, fingerprints):
+    """Upsert delivered entitlement hashes into the caller's transaction.
+
+    ``add_synced_books_batch`` commits immediately after this helper in the
+    sync handler, so the per-device ledger and legacy user-level delivery
+    marker become durable together.
+    """
+    if not device_id or not fingerprints:
+        return
+    now = datetime.now(timezone.utc)
+    items = list(fingerprints.items())
+    for offset in range(0, len(items), _LEDGER_UPSERT_BATCH_SIZE):
+        rows = [
+            {
+                "device_id": int(device_id),
+                "book_id": int(book_id),
+                "fingerprint": fingerprint,
+                "updated_at": now,
+            }
+            for book_id, fingerprint in items[
+                offset:offset + _LEDGER_UPSERT_BATCH_SIZE
+            ]
+        ]
+        statement = sqlite_insert(ub.KoboDeviceBookEntitlement).values(rows)
+        statement = statement.on_conflict_do_update(
+            index_elements=["device_id", "book_id"],
+            set_={
+                "fingerprint": statement.excluded.fingerprint,
+                "updated_at": statement.excluded.updated_at,
+            },
+        )
+        ub.session.execute(statement)
+
+
+def get_device_deleted_entitlement_fingerprints(device_id, book_uuids):
+    """Return delivered hard-delete hashes for one requesting device."""
+    if not device_id or not book_uuids:
+        return {}
+    return dict(
+        ub.session.query(
+            ub.KoboDeviceDeletedEntitlement.book_uuid,
+            ub.KoboDeviceDeletedEntitlement.fingerprint,
+        ).filter(
+            ub.KoboDeviceDeletedEntitlement.device_id == int(device_id),
+            ub.KoboDeviceDeletedEntitlement.book_uuid.in_(set(book_uuids)),
+        ).all()
+    )
+
+
+def stage_device_deleted_entitlement_fingerprints(device_id, fingerprints):
+    """Upsert hard-delete entitlement hashes into the sync transaction."""
+    if not device_id or not fingerprints:
+        return
+    now = datetime.now(timezone.utc)
+    items = list(fingerprints.items())
+    for offset in range(0, len(items), _LEDGER_UPSERT_BATCH_SIZE):
+        rows = [
+            {
+                "device_id": int(device_id),
+                "book_uuid": str(book_uuid),
+                "fingerprint": fingerprint,
+                "updated_at": now,
+            }
+            for book_uuid, fingerprint in items[
+                offset:offset + _LEDGER_UPSERT_BATCH_SIZE
+            ]
+        ]
+        statement = sqlite_insert(ub.KoboDeviceDeletedEntitlement).values(rows)
+        statement = statement.on_conflict_do_update(
+            index_elements=["device_id", "book_uuid"],
+            set_={
+                "fingerprint": statement.excluded.fingerprint,
+                "updated_at": statement.excluded.updated_at,
+            },
+        )
+        ub.session.execute(statement)
+
+
+def get_unseeded_kobo_device_ids(user_id):
+    """Return this user's physical Kobo devices lacking an upgrade seed."""
+    device_ids = {
+        row.id for row in ub.session.query(ub.Device.id).filter(
+            ub.Device.user_id == int(user_id),
+            ub.Device.kind == "kobo",
+        ).all()
+    }
+    if not device_ids:
+        return []
+    seeded = {
+        row.device_id for row in
+        ub.session.query(ub.KoboDeviceEntitlementSeed.device_id).filter(
+            ub.KoboDeviceEntitlementSeed.device_id.in_(device_ids),
+        ).all()
+    }
+    return sorted(device_ids - seeded)
+
+
+def user_has_completed_entitlement_seed(user_id):
+    """Whether this user's upgrade boundary has already been crossed."""
+    return ub.session.query(ub.KoboDeviceEntitlementSeed.device_id).join(
+        ub.Device,
+        ub.Device.id == ub.KoboDeviceEntitlementSeed.device_id,
+    ).filter(
+        ub.Device.user_id == int(user_id),
+        ub.Device.kind == "kobo",
+    ).first() is not None
+
+
+def mark_device_entitlement_ledgers_seeded(device_ids):
+    """Idempotently mark complete upgrade seeding for physical devices."""
+    device_ids = sorted({int(device_id) for device_id in device_ids if device_id})
+    if not device_ids:
+        return
+    now = datetime.now(timezone.utc)
+    statement = sqlite_insert(ub.KoboDeviceEntitlementSeed).values([
+        {"device_id": device_id, "seeded_at": now}
+        for device_id in device_ids
+    ])
+    ub.session.execute(statement.on_conflict_do_nothing(index_elements=["device_id"]))
 
 
 def _record_user_book_deletions(session, user_id, book_deletions, deleted_at):
@@ -170,15 +309,23 @@ def record_book_deletion(book_id, book_uuid, session=None):
 
 # Select all entries of current book in kobo_synced_books table, which are from current user and delete them
 def remove_synced_book(book_id, all=False, session=None):
+    s = session if session is not None else ub.session
     if not all:
         user = ub.KoboSyncedBooks.user_id == current_user.id
+        device_ids = s.query(ub.Device.id).filter(
+            ub.Device.user_id == current_user.id).scalar_subquery()
+        device_filter = ub.KoboDeviceBookEntitlement.device_id.in_(device_ids)
     else:
         user = true()
-    if not session:
-        ub.session.query(ub.KoboSyncedBooks).filter(ub.KoboSyncedBooks.book_id == book_id).filter(user).delete()
+        device_filter = true()
+    s.query(ub.KoboDeviceBookEntitlement).filter(
+        ub.KoboDeviceBookEntitlement.book_id == book_id,
+    ).filter(device_filter).delete(synchronize_session=False)
+    s.query(ub.KoboSyncedBooks).filter(
+        ub.KoboSyncedBooks.book_id == book_id).filter(user).delete()
+    if session is None:
         ub.session_commit()
     else:
-        session.query(ub.KoboSyncedBooks).filter(ub.KoboSyncedBooks.book_id == book_id).filter(user).delete()
         ub.session_commit(_session=session)
 
 

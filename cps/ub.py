@@ -857,6 +857,84 @@ class KoboSyncedBooks(Base):
     )
 
 
+class KoboDeviceBookEntitlement(Base):
+    """Last stable entitlement delivered to one physical Kobo.
+
+    Kobo's opaque sync token is device-owned and can disappear after an
+    interrupted sync, firmware install, or USB interruption.  This server-side
+    ledger is deliberately per-device (not per-user): it lets a known device
+    suppress an identical entitlement replay without causing another Kobo on
+    the same account to miss its first delivery or a later real change.
+    """
+    __tablename__ = 'kobo_device_book_entitlement'
+
+    id = Column(Integer, primary_key=True, autoincrement=True)
+    device_id = Column(
+        Integer, ForeignKey('device.id', ondelete='CASCADE'), nullable=False,
+    )
+    # Cross-database identity: calibre's Books row lives in metadata.db, so
+    # this cannot be a foreign key in app.db.
+    book_id = Column(Integer, nullable=False)
+    fingerprint = Column(String(64), nullable=False)
+    updated_at = Column(
+        DateTime, nullable=False, default=lambda: datetime.now(timezone.utc),
+    )
+
+    __table_args__ = (
+        UniqueConstraint(
+            'device_id', 'book_id',
+            name='uq_kobo_device_book_entitlement_device_book',
+        ),
+        Index('ix_kobo_device_book_entitlement_book', 'book_id'),
+    )
+
+
+class KoboDeviceDeletedEntitlement(Base):
+    """Last hard-delete entitlement delivered to one physical Kobo.
+
+    Hard-deleted books no longer have a calibre ``book_id``.  Keep their UUID
+    replay state separate from the live-book ledger so a stale archive cursor
+    cannot re-offer the same ``IsRemoved`` entitlement forever, while another
+    device and a tokenless factory-reset sync can still receive it.
+    """
+    __tablename__ = 'kobo_device_deleted_entitlement'
+
+    id = Column(Integer, primary_key=True, autoincrement=True)
+    device_id = Column(
+        Integer, ForeignKey('device.id', ondelete='CASCADE'), nullable=False,
+    )
+    book_uuid = Column(String(64), nullable=False)
+    fingerprint = Column(String(64), nullable=False)
+    updated_at = Column(
+        DateTime, nullable=False, default=lambda: datetime.now(timezone.utc),
+    )
+
+    __table_args__ = (
+        UniqueConstraint(
+            'device_id', 'book_uuid',
+            name='uq_kobo_device_deleted_entitlement_device_uuid',
+        ),
+        Index('ix_kobo_device_deleted_entitlement_uuid', 'book_uuid'),
+    )
+
+
+class KoboDeviceEntitlementSeed(Base):
+    """Marks completion of the one-time pre-#1925 ledger seed per device.
+
+    A marker is necessary: inferring completeness from missing ledger rows
+    would recreate rows deliberately cleared by resend, unsync, archive, or
+    duplicate-merge operations and suppress the very delivery they request.
+    """
+    __tablename__ = 'kobo_device_entitlement_seed'
+
+    device_id = Column(
+        Integer, ForeignKey('device.id', ondelete='CASCADE'), primary_key=True,
+    )
+    seeded_at = Column(
+        DateTime, nullable=False, default=lambda: datetime.now(timezone.utc),
+    )
+
+
 class NoticeEvent(Base):
     """Device-agnostic occurrence that may need to be shown to selected users.
 
@@ -1881,7 +1959,12 @@ def add_missing_tables(engine, _session):
         ("favorite_book", FavoriteBook.__table__),
         ("user_library_book", UserLibraryBook.__table__),
     )
-    for table_name, table in tables:
+    kobo_entitlement_tables = (
+        ("kobo_device_book_entitlement", KoboDeviceBookEntitlement.__table__),
+        ("kobo_device_deleted_entitlement", KoboDeviceDeletedEntitlement.__table__),
+        ("kobo_device_entitlement_seed", KoboDeviceEntitlementSeed.__table__),
+    )
+    for table_name, table in tables + kobo_entitlement_tables:
         # Explicit transaction control means even schema inspection begins a
         # real read transaction. Close it before opening the separate DDL
         # transaction or the inspection connection can block its commit.
