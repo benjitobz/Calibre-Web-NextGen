@@ -2507,6 +2507,14 @@ msgstr ""
 msgid "A book must keep at least one format."
 msgstr ""
 
+#: cps/spa_strings.py
+msgid "Could not delete this format."
+msgstr ""
+
+#: cps/spa_strings.py
+msgid "Format deleted."
+msgstr ""
+
 #: cps/spa_strings.py cps/templates/detail.html
 msgid "Read now"
 msgstr ""
