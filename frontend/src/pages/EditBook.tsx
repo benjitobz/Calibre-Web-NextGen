@@ -12,6 +12,7 @@ import { MetadataTypeahead } from '../components/MetadataTypeahead';
 import { Spinner, SpinnerCentered } from '../components/Spinner';
 import { EmptyState } from '../components/EmptyState';
 import { StarRating } from '../components/StarRating';
+import { RichTextEditor } from '../components/RichTextEditor';
 import type { MetadataUpdate, MetaResult, EditableCustomColumn } from '../lib/api';
 import { formatAuthors } from '../lib/authors';
 import { ApiError, resourceUrl } from '../lib/api';
@@ -307,10 +308,18 @@ export function EditBook({ id }: { id: string }) {
           </Field>
         </div>
 
-        <Field label={t('Description')} error={fieldErrors.comments}>
-          <textarea className={styles.textarea} rows={8} value={form.comments}
-            onChange={(e) => set('comments', e.target.value)} />
-          <span className={styles.hint}>{t('HTML is allowed and sanitized on display.')}</span>
+        {/* #919 — the classic edit page has a formatting editor here (TinyMCE on
+            #comments); the New UI shipped a bare textarea, so descriptions read
+            as raw HTML with no preview. */}
+        {/* composite: the editor owns its own buttons, and a wrapping <label>
+            forwards clicks to its first labellable descendant — the same
+            destructive activation that made the rating widget look dead in
+            #1061. It also polluted the toolbar buttons' accessible names with
+            the whole field's text. */}
+        <Field label={t('Description')} error={fieldErrors.comments} composite>
+          <RichTextEditor value={form.comments} onChange={(html) => set('comments', html)}
+            ariaLabel={t('Description')} />
+          <span className={styles.hint}>{t('Formatting is kept where the book page supports it.')}</span>
         </Field>
 
         {/* Identifiers table (ISBN/ASIN/…) — fork #580. */}

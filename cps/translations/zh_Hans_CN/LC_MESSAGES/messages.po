@@ -11361,9 +11361,8 @@ msgid "Keep Largest File Size - Keep book with largest total file size"
 msgstr "保留最大文件大小 - 保留总文件大小最大的书籍"
 
 #: cps/templates/duplicates.html cps/templates/kobo_reconcile.html
-#, fuzzy
 msgid "Preview"
-msgstr "上一个"
+msgstr ""
 
 #: cps/templates/duplicates.html
 msgid "Execute Resolution"

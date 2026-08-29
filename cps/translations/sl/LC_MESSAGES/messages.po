@@ -11538,9 +11538,8 @@ msgstr ""
 "Ohrani največjo datoteko - Ohrani knjigo z največjo skupno velikostjo datotek"
 
 #: cps/templates/duplicates.html cps/templates/kobo_reconcile.html
-#, fuzzy
 msgid "Preview"
-msgstr "Prejšnji"
+msgstr ""
 
 #: cps/templates/duplicates.html
 msgid "Execute Resolution"
