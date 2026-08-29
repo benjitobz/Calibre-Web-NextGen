@@ -8,6 +8,7 @@ import {
 import { removeBookFromCache, applyBookEditToCache } from './scrollCache';
 import { settleById } from './bulkResults';
 import { createEntityListQueryOptions } from './entityListQueryOptions';
+import { dismissNoticeIdsInBatches } from './noticeDismissal';
 import type { MetadataProvider, MetaSearchResponse } from './api';
 import type {
   Me, Book, BooksPage, BookDetail, EntityList, Shelf, ShelfDetail,
@@ -1469,10 +1470,13 @@ export function useDismissNotices() {
   const qc = useQueryClient();
   return useMutation({
     mutationFn: (noticeIds: number[]) =>
-      apiPost<{ dismissed: number; remaining: number }>('/api/v1/notices/dismiss', {
-        notice_ids: noticeIds,
-      }),
-    onSuccess: () => void qc.invalidateQueries({ queryKey: ['notices'] }),
+      dismissNoticeIdsInBatches(noticeIds, (batch) =>
+        apiPost<{ dismissed: number; remaining: number }>('/api/v1/notices/dismiss', {
+          notice_ids: batch,
+        })),
+    // A later batch can fail after an earlier one committed. Refresh on either
+    // outcome so the banner reflects the server's actual remaining notices.
+    onSettled: () => void qc.invalidateQueries({ queryKey: ['notices'] }),
   });
 }
 
