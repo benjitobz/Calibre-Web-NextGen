@@ -30,7 +30,12 @@ on:
 # Cancel in-progress runs when new commit pushed
 concurrency:
   group: ${{ github.workflow }}-${{ github.ref }}
-  cancel-in-progress: true
+  # On a PR branch only the newest head matters, so a new push cancels the
+  # running verification. On main every landed commit must be verified:
+  # cancelling there let ~80% of main's runs die before dispatch under a high
+  # merge rate while Build & Push - Dev published those same commits
+  # (F-493b49). Runs on main queue behind each other instead.
+  cancel-in-progress: ${{ github.ref != 'refs/heads/main' }}
 
 jobs:
   # ============================================================================
