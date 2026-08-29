@@ -2984,6 +2984,42 @@ msgid "More by {name}"
 msgstr ""
 
 #: cps/spa_strings.py
+msgid "Send to device"
+msgstr ""
+
+#: cps/spa_strings.py
+msgid "Device"
+msgstr ""
+
+#: cps/spa_strings.py
+msgid "Collects on the device's next sync."
+msgstr ""
+
+#: cps/spa_strings.py
+msgid "Choose a device"
+msgstr ""
+
+#: cps/spa_strings.py
+msgid "Queueing…"
+msgstr ""
+
+#: cps/spa_strings.py
+msgid "Book queued for this device"
+msgstr ""
+
+#: cps/spa_strings.py
+msgid "This book is already queued for this device"
+msgstr ""
+
+#: cps/spa_strings.py
+msgid "This book is already on that device"
+msgstr ""
+
+#: cps/spa_strings.py
+msgid "Could not queue this book for the device."
+msgstr ""
+
+#: cps/spa_strings.py
 #, python-brace-format
 msgid ""
 "Merge {n} books into the first selected? The others are removed after their "
@@ -4877,10 +4913,6 @@ msgstr "简介"
 
 #: cps/spa_strings.py
 msgid "Description formatting"
-msgstr ""
-
-#: cps/spa_strings.py
-msgid "Device"
 msgstr ""
 
 #: cps/spa_strings.py
@@ -7008,6 +7040,28 @@ msgstr ""
 
 #: cps/spa_strings.py
 msgid "View device library"
+msgstr ""
+
+#: cps/spa_strings.py
+msgid "Delete from device"
+msgstr ""
+
+#: cps/spa_strings.py
+msgid "Deletion requested"
+msgstr ""
+
+#: cps/spa_strings.py
+msgid "Could not request deletion from this device."
+msgstr ""
+
+#: cps/spa_strings.py
+#, python-brace-format
+msgid "Delete {path} from {name} on its next sync?"
+msgstr ""
+
+#: cps/spa_strings.py
+#, python-brace-format
+msgid "{free} free of {total}"
 msgstr ""
 
 #: cps/spa_strings.py
