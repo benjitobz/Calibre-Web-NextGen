@@ -44,6 +44,9 @@ from gevent import Timeout, get_hub
 from .. import constants
 
 
+_current_thread = threading.current_thread
+
+
 log = logging.getLogger(__name__)
 
 MAX_BODY_BYTES = 16 * 1024 * 1024
@@ -69,7 +72,10 @@ _REPLAY_IDENTITY_FIELDS = (
 )
 _RETENTION_TIMERS_LOCK = threading.Lock()
 _RETENTION_TIMERS = {}
+_RETENTION_THREADS = {}
 _RETENTION_STARTED = False
+_RETENTION_GENERATION = 0
+_RETENTION_BOOTSTRAP_THREAD = None
 
 
 class _SpoolNoRoom(Exception):
@@ -872,73 +878,160 @@ def _expire_root_blocking(root, max_age_seconds):
             return min(item["mtime"] + max_age_seconds for item in survivors)
 
 
-def _retention_timer_fired(root, deadline, max_age_seconds):
+def _retention_timer_fired(
+    root, deadline, max_age_seconds, generation, lifecycle_token,
+):
     key = str(Path(root))
     with _RETENTION_TIMERS_LOCK:
         current = _RETENTION_TIMERS.get(key)
-        if current is not None and current[0] == deadline:
+        owner = _RETENTION_THREADS.get(lifecycle_token)
+        if (
+            current is not None
+            and current[0] == deadline
+            and current[1] is owner
+        ):
             _RETENTION_TIMERS.pop(key, None)
     try:
         next_deadline = _expire_root_blocking(root, max_age_seconds)
     except Exception:
         log.error("Kobo PATCH recovery age maintenance failed", exc_info=True)
         next_deadline = time.time() + 1.0
-    if next_deadline is not None:
-        _schedule_retention(root, next_deadline, max_age_seconds)
+    try:
+        if next_deadline is not None:
+            _schedule_retention(
+                root,
+                next_deadline,
+                max_age_seconds,
+                generation=generation,
+            )
+    finally:
+        with _RETENTION_TIMERS_LOCK:
+            _RETENTION_THREADS.pop(lifecycle_token, None)
 
 
-def _schedule_retention(root, deadline, max_age_seconds):
+def _schedule_retention(root, deadline, max_age_seconds, *, generation=None):
     root = Path(root)
     key = str(root)
     with _RETENTION_TIMERS_LOCK:
+        if generation is None:
+            generation = _RETENTION_GENERATION
+        elif generation != _RETENTION_GENERATION:
+            return False
         current = _RETENTION_TIMERS.get(key)
         if current is not None and current[0] <= deadline:
-            return
+            return True
         if current is not None:
             current[1].cancel()
+        lifecycle_token = object()
         timer = threading.Timer(
             max(0.001, deadline - time.time()),
             _retention_timer_fired,
-            args=(root, deadline, max_age_seconds),
+            args=(
+                root,
+                deadline,
+                max_age_seconds,
+                generation,
+                lifecycle_token,
+            ),
         )
         timer.daemon = True
         _RETENTION_TIMERS[key] = (deadline, timer)
-        timer.start()
+        _RETENTION_THREADS[lifecycle_token] = timer
+        try:
+            timer.start()
+        except BaseException:
+            _RETENTION_TIMERS.pop(key, None)
+            _RETENTION_THREADS.pop(lifecycle_token, None)
+            raise
+        return True
 
 
-def _bootstrap_retention(root, max_age_seconds):
+def _bootstrap_retention(root, max_age_seconds, generation):
     try:
         next_deadline = _expire_root_blocking(root, max_age_seconds)
     except Exception:
         log.error("Kobo PATCH recovery startup maintenance failed", exc_info=True)
         return
     if next_deadline is not None:
-        _schedule_retention(root, next_deadline, max_age_seconds)
+        _schedule_retention(
+            root,
+            next_deadline,
+            max_age_seconds,
+            generation=generation,
+        )
 
 
 def start_retention_maintenance():
     """Start startup expiry once per process without delaying app startup."""
-    global _RETENTION_STARTED
+    global _RETENTION_BOOTSTRAP_THREAD, _RETENTION_STARTED
     with _RETENTION_TIMERS_LOCK:
         if _RETENTION_STARTED:
             return True
         root = _spool_root()
         max_age_seconds = MAX_AGE_SECONDS
+        generation = _RETENTION_GENERATION
         thread = threading.Thread(
             target=_bootstrap_retention,
-            args=(root, max_age_seconds),
+            args=(root, max_age_seconds, generation),
             name="kobo-patch-spool-retention-bootstrap",
             daemon=True,
         )
+        _RETENTION_BOOTSTRAP_THREAD = thread
         try:
             thread.start()
         except Exception:
+            _RETENTION_BOOTSTRAP_THREAD = None
             log.error(
                 "Kobo PATCH recovery maintenance could not start", exc_info=True,
             )
             return False
         _RETENTION_STARTED = True
         return True
+
+
+def stop_retention_maintenance(timeout=None):
+    """Cancel and join every retention owner from the current lifecycle.
+
+    Incrementing the generation invalidates callbacks that already passed
+    ``Timer.cancel()`` and are running inside expiry. Joining both those timers
+    and the startup sweeper gives tests and process shutdown a real lifecycle
+    boundary: once this returns successfully, old work cannot reschedule itself.
+    """
+    global _RETENTION_BOOTSTRAP_THREAD
+    global _RETENTION_GENERATION, _RETENTION_STARTED
+
+    with _RETENTION_TIMERS_LOCK:
+        _RETENTION_GENERATION += 1
+        timers = list(_RETENTION_THREADS.values())
+        bootstrap = _RETENTION_BOOTSTRAP_THREAD
+        _RETENTION_TIMERS.clear()
+        _RETENTION_THREADS.clear()
+        _RETENTION_BOOTSTRAP_THREAD = None
+        _RETENTION_STARTED = False
+
+    for timer in timers:
+        timer.cancel()
+
+    threads = timers + ([bootstrap] if bootstrap is not None else [])
+    current = _current_thread()
+    deadline = None if timeout is None else time.monotonic() + timeout
+    for thread in threads:
+        if thread is current:
+            continue
+        join = getattr(thread, "join", None)
+        if join is None:
+            continue
+        remaining = None
+        if deadline is not None:
+            remaining = max(0.0, deadline - time.monotonic())
+        join(remaining)
+
+    return all(
+        thread is current
+        or not callable(getattr(thread, "is_alive", None))
+        or not thread.is_alive()
+        for thread in threads
+    )
 
 
 def iter_replay_candidates():

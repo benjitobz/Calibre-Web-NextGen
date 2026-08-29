@@ -88,16 +88,13 @@ def _isolate_request_io_capacity():
 
 
 @pytest.fixture(autouse=True)
-def _cancel_spool_retention_timers_after_test():
-    """Secondary test isolation; production dependency capture is the fix."""
+def _stop_spool_retention_threads_after_test():
+    """Finish every retention owner before monkeypatch restores global state."""
     yield
     spool = _module()
-    with spool._RETENTION_TIMERS_LOCK:
-        timers = [timer for _deadline, timer in spool._RETENTION_TIMERS.values()]
-        spool._RETENTION_TIMERS.clear()
-        spool._RETENTION_STARTED = False
-    for timer in timers:
-        timer.cancel()
+    assert spool.stop_retention_maintenance(timeout=5), (
+        "Kobo PATCH retention maintenance survived deterministic test teardown"
+    )
 
 
 def _hold_advisory_lock(lock_path, ready, release):
@@ -959,6 +956,85 @@ def test_startup_retention_expires_records_before_any_new_patch(monkeypatch, tmp
 
 
 @pytest.mark.unit
+def test_stop_retention_maintenance_joins_running_timer_and_prevents_reschedule(
+    monkeypatch, tmp_path,
+):
+    """A timer already in its callback cannot escape into the next test."""
+    spool, root = _root(monkeypatch, tmp_path)
+    callback_entered = threading.Event()
+    release_callback = threading.Event()
+    stop_result = []
+
+    def _blocked_expiry(captured_root, captured_age):
+        assert captured_root == root
+        assert captured_age == 60
+        callback_entered.set()
+        assert release_callback.wait(5), "test did not release retention callback"
+        return time.time() + 60
+
+    monkeypatch.setattr(spool, "_expire_root_blocking", _blocked_expiry)
+    spool._schedule_retention(root, time.time(), 60)
+    assert callback_entered.wait(2), "retention callback never started"
+
+    stopper = threading.Thread(
+        target=lambda: stop_result.append(
+            spool.stop_retention_maintenance(timeout=5)
+        ),
+        daemon=True,
+    )
+    stopper.start()
+    time.sleep(0.05)
+    assert stopper.is_alive(), "teardown returned without joining the live callback"
+    release_callback.set()
+    stopper.join(2)
+
+    assert not stopper.is_alive()
+    assert stop_result == [True]
+    assert spool._RETENTION_TIMERS == {}
+
+
+@pytest.mark.unit
+def test_stop_retention_maintenance_joins_running_startup_thread(
+    monkeypatch, tmp_path,
+):
+    """The startup sweeper is tracked just like scheduled timers."""
+    spool, root = _root(monkeypatch, tmp_path)
+    bootstrap_entered = threading.Event()
+    release_bootstrap = threading.Event()
+    stop_result = []
+
+    def _blocked_expiry(captured_root, captured_age):
+        assert captured_root == root
+        assert captured_age == 60
+        bootstrap_entered.set()
+        assert release_bootstrap.wait(5), "test did not release startup retention"
+        return None
+
+    monkeypatch.setattr(spool, "MAX_AGE_SECONDS", 60)
+    monkeypatch.setattr(spool, "_RETENTION_STARTED", False)
+    monkeypatch.setattr(spool, "_expire_root_blocking", _blocked_expiry)
+    assert spool.start_retention_maintenance() is True
+    assert bootstrap_entered.wait(2), "startup retention thread never started"
+
+    stopper = threading.Thread(
+        target=lambda: stop_result.append(
+            spool.stop_retention_maintenance(timeout=5)
+        ),
+        daemon=True,
+    )
+    stopper.start()
+    time.sleep(0.05)
+    assert stopper.is_alive(), "teardown returned without joining startup retention"
+    release_bootstrap.set()
+    stopper.join(2)
+
+    assert not stopper.is_alive()
+    assert stop_result == [True]
+    assert spool._RETENTION_BOOTSTRAP_THREAD is None
+    assert spool._RETENTION_STARTED is False
+
+
+@pytest.mark.unit
 def test_startup_retention_captures_root_and_age_before_thread_runs(
     monkeypatch, tmp_path,
 ):
@@ -1003,7 +1079,9 @@ def test_startup_retention_captures_root_and_age_before_thread_runs(
             self.target(*self.args)
 
     monkeypatch.setattr(spool, "threading", SimpleNamespace(Thread=_DeferredThread))
-    monkeypatch.setattr(spool, "_schedule_retention", lambda *_args: None)
+    monkeypatch.setattr(
+        spool, "_schedule_retention", lambda *_args, **_kwargs: None,
+    )
 
     assert spool.start_retention_maintenance() is True
     [bootstrap] = deferred_threads
