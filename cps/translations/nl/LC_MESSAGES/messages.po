@@ -9133,9 +9133,18 @@ msgid ""
 "If your Calibre library is corrupted and cannot be opened, you can attempt "
 "to restore it from the OPF files in your library. This will <b>erase all per-"
 "book data</b> (reading progress, bookmarks, shelf links, downloads, etc.) in "
-"the app database, but will not affect user accounts or settings. <b>Both "
-"databases will be automatically backed up in /config/backup before any "
-"destructive action.</b> A restore log will be saved alongside the backups."
+"the app database, but will not affect user accounts or settings."
+msgstr ""
+
+#: cps/templates/config_db.html
+#, python-format
+msgid ""
+"Both databases will be automatically backed up in %(path)s before any "
+"destructive action."
+msgstr ""
+
+#: cps/templates/config_db.html
+msgid "A restore log will be saved alongside the backups."
 msgstr ""
 
 #: cps/templates/config_db.html
@@ -10887,12 +10896,8 @@ msgid "Enable NextGen Import Auto-Backup"
 msgstr ""
 
 #: cps/templates/cwa_settings.html
-msgid ""
-"When active, a copy of all imported files will be stored in <i>/config/"
-"processed_books/imported</i>"
+msgid "When active, a copy of all imported files will be stored in"
 msgstr ""
-"Wanneer actief, wordt een kopie van alle geïmporteerde bestanden opgeslagen "
-"in <i>/config/processed_books/imported</i>"
 
 #: cps/templates/cwa_settings.html
 msgid "Enable NextGen Conversion Auto-Backup"
@@ -10901,10 +10906,8 @@ msgstr ""
 #: cps/templates/cwa_settings.html
 msgid ""
 "When active, the originals of ingested files that undergo conversion will be "
-"stored in /config/processed_books/converted"
+"stored in"
 msgstr ""
-"Wanneer actief, worden de originelen van opgenomen bestanden die conversie "
-"ondergaan opgeslagen in /config/processed_books/converted"
 
 #: cps/templates/cwa_settings.html
 msgid "Enable NextGen EPUB Fixer Auto-Backup"
@@ -10913,7 +10916,7 @@ msgstr ""
 #: cps/templates/cwa_settings.html
 msgid ""
 "When active, the originals of EPUBs processed by the NextGen Kindle EPUB "
-"Fixer service will be stored in /config/processed_books/fixed_originals"
+"Fixer service will be stored in"
 msgstr ""
 
 #: cps/templates/cwa_settings.html
@@ -10924,14 +10927,9 @@ msgstr ""
 msgid ""
 "When active, just before midnight each day, the cwa-auto-zipper service will "
 "make zip archives of all the backed up converted, imported and failed files "
-"from that day. This is to help keep the subdirectories of /config/"
-"processed_books organised and to minimise disk space usage."
+"from that day. This helps keep the backup subdirectories organised and "
+"minimises disk space usage."
 msgstr ""
-"Wanneer actief, zal de cwa-auto-zipper service vlak voor middernacht elke "
-"dag zip archieven maken van alle die dag geback-upte geconverteerde, "
-"geïmporteerde en mislukte bestanden. Dit helpt om de submappen van /config/"
-"processed_books georganiseerd te houden en om schijfruimtegebruik te "
-"minimaliseren."
 
 #: cps/templates/cwa_settings.html
 msgid "NextGen Auto-Conversion Target Format - EPUB by Default"
@@ -13722,6 +13720,32 @@ msgstr "Synchroniseer geselecteerde boekenplanken met Kobo"
 #, fuzzy
 msgid "Show Read/Unread Section"
 msgstr "Toon gelezen/niet gelezen selectie"
+
+#~ msgid ""
+#~ "When active, a copy of all imported files will be stored in <i>/config/"
+#~ "processed_books/imported</i>"
+#~ msgstr ""
+#~ "Wanneer actief, wordt een kopie van alle geïmporteerde bestanden "
+#~ "opgeslagen in <i>/config/processed_books/imported</i>"
+
+#~ msgid ""
+#~ "When active, the originals of ingested files that undergo conversion will "
+#~ "be stored in /config/processed_books/converted"
+#~ msgstr ""
+#~ "Wanneer actief, worden de originelen van opgenomen bestanden die "
+#~ "conversie ondergaan opgeslagen in /config/processed_books/converted"
+
+#~ msgid ""
+#~ "When active, just before midnight each day, the cwa-auto-zipper service "
+#~ "will make zip archives of all the backed up converted, imported and "
+#~ "failed files from that day. This is to help keep the subdirectories of /"
+#~ "config/processed_books organised and to minimise disk space usage."
+#~ msgstr ""
+#~ "Wanneer actief, zal de cwa-auto-zipper service vlak voor middernacht elke "
+#~ "dag zip archieven maken van alle die dag geback-upte geconverteerde, "
+#~ "geïmporteerde en mislukte bestanden. Dit helpt om de submappen van /"
+#~ "config/processed_books georganiseerd te houden en om schijfruimtegebruik "
+#~ "te minimaliseren."
 
 #~ msgid ""
 #~ "Apply to all selected (only filled fields change; replaces existing "

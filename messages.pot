@@ -8758,9 +8758,18 @@ msgid ""
 "attempt to restore it from the OPF files in your library. This will "
 "<b>erase all per-book data</b> (reading progress, bookmarks, shelf links,"
 " downloads, etc.) in the app database, but will not affect user accounts "
-"or settings. <b>Both databases will be automatically backed up in "
-"/config/backup before any destructive action.</b> A restore log will be "
-"saved alongside the backups."
+"or settings."
+msgstr ""
+
+#: cps/templates/config_db.html
+#, python-format
+msgid ""
+"Both databases will be automatically backed up in %(path)s before any "
+"destructive action."
+msgstr ""
+
+#: cps/templates/config_db.html
+msgid "A restore log will be saved alongside the backups."
 msgstr ""
 
 #: cps/templates/config_db.html
@@ -10460,9 +10469,7 @@ msgid "Enable NextGen Import Auto-Backup"
 msgstr ""
 
 #: cps/templates/cwa_settings.html
-msgid ""
-"When active, a copy of all imported files will be stored in "
-"<i>/config/processed_books/imported</i>"
+msgid "When active, a copy of all imported files will be stored in"
 msgstr ""
 
 #: cps/templates/cwa_settings.html
@@ -10472,7 +10479,7 @@ msgstr ""
 #: cps/templates/cwa_settings.html
 msgid ""
 "When active, the originals of ingested files that undergo conversion will"
-" be stored in /config/processed_books/converted"
+" be stored in"
 msgstr ""
 
 #: cps/templates/cwa_settings.html
@@ -10482,7 +10489,7 @@ msgstr ""
 #: cps/templates/cwa_settings.html
 msgid ""
 "When active, the originals of EPUBs processed by the NextGen Kindle EPUB "
-"Fixer service will be stored in /config/processed_books/fixed_originals"
+"Fixer service will be stored in"
 msgstr ""
 
 #: cps/templates/cwa_settings.html
@@ -10493,8 +10500,8 @@ msgstr ""
 msgid ""
 "When active, just before midnight each day, the cwa-auto-zipper service "
 "will make zip archives of all the backed up converted, imported and "
-"failed files from that day. This is to help keep the subdirectories of "
-"/config/processed_books organised and to minimise disk space usage."
+"failed files from that day. This helps keep the backup subdirectories "
+"organised and minimises disk space usage."
 msgstr ""
 
 #: cps/templates/cwa_settings.html

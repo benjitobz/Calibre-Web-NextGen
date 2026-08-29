@@ -8900,14 +8900,19 @@ msgid ""
 "If your Calibre library is corrupted and cannot be opened, you can attempt "
 "to restore it from the OPF files in your library. This will <b>erase all per-"
 "book data</b> (reading progress, bookmarks, shelf links, downloads, etc.) in "
-"the app database, but will not affect user accounts or settings. <b>Both "
-"databases will be automatically backed up in /config/backup before any "
-"destructive action.</b> A restore log will be saved alongside the backups."
+"the app database, but will not affect user accounts or settings."
 msgstr ""
-"如果您的 Calibre 书库损坏且无法打开，您可以尝试从书库中的 OPF 文件恢复它。这"
-"将<b>清除应用程序数据库中的所有书籍相关数据</b>（阅读进度、书签、书架链接、下"
-"载等），但不会影响用户帐户或设置。<b>在执行任何破坏性操作之前，这两个数据库都"
-"将自动备份在 /config/backup 中。</b>恢复日志将与备份一起保存。"
+
+#: cps/templates/config_db.html
+#, python-format
+msgid ""
+"Both databases will be automatically backed up in %(path)s before any "
+"destructive action."
+msgstr ""
+
+#: cps/templates/config_db.html
+msgid "A restore log will be saved alongside the backups."
+msgstr ""
 
 #: cps/templates/config_db.html
 #, fuzzy
@@ -10724,11 +10729,8 @@ msgid "Enable NextGen Import Auto-Backup"
 msgstr ""
 
 #: cps/templates/cwa_settings.html
-msgid ""
-"When active, a copy of all imported files will be stored in <i>/config/"
-"processed_books/imported</i>"
+msgid "When active, a copy of all imported files will be stored in"
 msgstr ""
-"启用后，所有导入的文件的副本将存储在 <i>/config/processed_books/imported</i>"
 
 #: cps/templates/cwa_settings.html
 msgid "Enable NextGen Conversion Auto-Backup"
@@ -10737,10 +10739,8 @@ msgstr ""
 #: cps/templates/cwa_settings.html
 msgid ""
 "When active, the originals of ingested files that undergo conversion will be "
-"stored in /config/processed_books/converted"
+"stored in"
 msgstr ""
-"启用后，进行转换的导入文件的原始文件将存储在 /config/processed_books/"
-"converted"
 
 #: cps/templates/cwa_settings.html
 msgid "Enable NextGen EPUB Fixer Auto-Backup"
@@ -10749,7 +10749,7 @@ msgstr ""
 #: cps/templates/cwa_settings.html
 msgid ""
 "When active, the originals of EPUBs processed by the NextGen Kindle EPUB "
-"Fixer service will be stored in /config/processed_books/fixed_originals"
+"Fixer service will be stored in"
 msgstr ""
 
 #: cps/templates/cwa_settings.html
@@ -10760,12 +10760,9 @@ msgstr ""
 msgid ""
 "When active, just before midnight each day, the cwa-auto-zipper service will "
 "make zip archives of all the backed up converted, imported and failed files "
-"from that day. This is to help keep the subdirectories of /config/"
-"processed_books organised and to minimise disk space usage."
+"from that day. This helps keep the backup subdirectories organised and "
+"minimises disk space usage."
 msgstr ""
-"激活后，每天午夜前，cwa-auto-zipper 服务会将当天所有备份的已转换、已导入和失"
-"败的文件打包成 zip 压缩文件。这有助于保持 /config/processed_books 的子目录井"
-"然有序，并最大限度地减少磁盘空间使用。"
 
 #: cps/templates/cwa_settings.html
 msgid "NextGen Auto-Conversion Target Format - EPUB by Default"
@@ -13583,6 +13580,44 @@ msgstr "同步所选书架到 Kobo"
 #: cps/templates/user_table.html
 msgid "Show Read/Unread Section"
 msgstr "显示已读、未读栏目"
+
+#~ msgid ""
+#~ "If your Calibre library is corrupted and cannot be opened, you can "
+#~ "attempt to restore it from the OPF files in your library. This will "
+#~ "<b>erase all per-book data</b> (reading progress, bookmarks, shelf links, "
+#~ "downloads, etc.) in the app database, but will not affect user accounts "
+#~ "or settings. <b>Both databases will be automatically backed up in /config/"
+#~ "backup before any destructive action.</b> A restore log will be saved "
+#~ "alongside the backups."
+#~ msgstr ""
+#~ "如果您的 Calibre 书库损坏且无法打开，您可以尝试从书库中的 OPF 文件恢复它。"
+#~ "这将<b>清除应用程序数据库中的所有书籍相关数据</b>（阅读进度、书签、书架链"
+#~ "接、下载等），但不会影响用户帐户或设置。<b>在执行任何破坏性操作之前，这两"
+#~ "个数据库都将自动备份在 /config/backup 中。</b>恢复日志将与备份一起保存。"
+
+#~ msgid ""
+#~ "When active, a copy of all imported files will be stored in <i>/config/"
+#~ "processed_books/imported</i>"
+#~ msgstr ""
+#~ "启用后，所有导入的文件的副本将存储在 <i>/config/processed_books/imported</"
+#~ "i>"
+
+#~ msgid ""
+#~ "When active, the originals of ingested files that undergo conversion will "
+#~ "be stored in /config/processed_books/converted"
+#~ msgstr ""
+#~ "启用后，进行转换的导入文件的原始文件将存储在 /config/processed_books/"
+#~ "converted"
+
+#~ msgid ""
+#~ "When active, just before midnight each day, the cwa-auto-zipper service "
+#~ "will make zip archives of all the backed up converted, imported and "
+#~ "failed files from that day. This is to help keep the subdirectories of /"
+#~ "config/processed_books organised and to minimise disk space usage."
+#~ msgstr ""
+#~ "激活后，每天午夜前，cwa-auto-zipper 服务会将当天所有备份的已转换、已导入和"
+#~ "失败的文件打包成 zip 压缩文件。这有助于保持 /config/processed_books 的子目"
+#~ "录井然有序，并最大限度地减少磁盘空间使用。"
 
 #~ msgid "Random Books"
 #~ msgstr "随机书籍"

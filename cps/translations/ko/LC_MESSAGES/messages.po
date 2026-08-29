@@ -8874,9 +8874,18 @@ msgid ""
 "If your Calibre library is corrupted and cannot be opened, you can attempt "
 "to restore it from the OPF files in your library. This will <b>erase all per-"
 "book data</b> (reading progress, bookmarks, shelf links, downloads, etc.) in "
-"the app database, but will not affect user accounts or settings. <b>Both "
-"databases will be automatically backed up in /config/backup before any "
-"destructive action.</b> A restore log will be saved alongside the backups."
+"the app database, but will not affect user accounts or settings."
+msgstr ""
+
+#: cps/templates/config_db.html
+#, python-format
+msgid ""
+"Both databases will be automatically backed up in %(path)s before any "
+"destructive action."
+msgstr ""
+
+#: cps/templates/config_db.html
+msgid "A restore log will be saved alongside the backups."
 msgstr ""
 
 #: cps/templates/config_db.html
@@ -10623,12 +10632,8 @@ msgid "Enable NextGen Import Auto-Backup"
 msgstr ""
 
 #: cps/templates/cwa_settings.html
-msgid ""
-"When active, a copy of all imported files will be stored in <i>/config/"
-"processed_books/imported</i>"
+msgid "When active, a copy of all imported files will be stored in"
 msgstr ""
-"활성화된 경우, 모든 불러온 파일의 복사본이 <i>/config/processed_books/"
-"imported</i>에 저장됩니다."
 
 #: cps/templates/cwa_settings.html
 msgid "Enable NextGen Conversion Auto-Backup"
@@ -10637,10 +10642,8 @@ msgstr ""
 #: cps/templates/cwa_settings.html
 msgid ""
 "When active, the originals of ingested files that undergo conversion will be "
-"stored in /config/processed_books/converted"
+"stored in"
 msgstr ""
-"활성화된 경우, 변환 대상인 원본 파일이 /config/processed_books/converted에 저"
-"장됩니다."
 
 #: cps/templates/cwa_settings.html
 msgid "Enable NextGen EPUB Fixer Auto-Backup"
@@ -10649,7 +10652,7 @@ msgstr ""
 #: cps/templates/cwa_settings.html
 msgid ""
 "When active, the originals of EPUBs processed by the NextGen Kindle EPUB "
-"Fixer service will be stored in /config/processed_books/fixed_originals"
+"Fixer service will be stored in"
 msgstr ""
 
 #: cps/templates/cwa_settings.html
@@ -10660,13 +10663,9 @@ msgstr ""
 msgid ""
 "When active, just before midnight each day, the cwa-auto-zipper service will "
 "make zip archives of all the backed up converted, imported and failed files "
-"from that day. This is to help keep the subdirectories of /config/"
-"processed_books organised and to minimise disk space usage."
+"from that day. This helps keep the backup subdirectories organised and "
+"minimises disk space usage."
 msgstr ""
-"활성화된 경우, 매일 자정 직전에 CWA-자동압축 서비스가 zip 아카이브 파일을 생"
-"성합니다. 당일 변환된 파일, 가져오기 한 파일, 변환/가져오기에 실패한 파일을 "
-"포합합니다. /config/processed_books 이하 경로를 정리하고 저장소 사용량을 최소"
-"화합니다."
 
 #: cps/templates/cwa_settings.html
 msgid "NextGen Auto-Conversion Target Format - EPUB by Default"
@@ -13436,6 +13435,31 @@ msgstr "선택한 서재 Kobo 동기화"
 #: cps/templates/user_table.html
 msgid "Show Read/Unread Section"
 msgstr "읽음/읽지 않음 표시"
+
+#~ msgid ""
+#~ "When active, a copy of all imported files will be stored in <i>/config/"
+#~ "processed_books/imported</i>"
+#~ msgstr ""
+#~ "활성화된 경우, 모든 불러온 파일의 복사본이 <i>/config/processed_books/"
+#~ "imported</i>에 저장됩니다."
+
+#~ msgid ""
+#~ "When active, the originals of ingested files that undergo conversion will "
+#~ "be stored in /config/processed_books/converted"
+#~ msgstr ""
+#~ "활성화된 경우, 변환 대상인 원본 파일이 /config/processed_books/converted"
+#~ "에 저장됩니다."
+
+#~ msgid ""
+#~ "When active, just before midnight each day, the cwa-auto-zipper service "
+#~ "will make zip archives of all the backed up converted, imported and "
+#~ "failed files from that day. This is to help keep the subdirectories of /"
+#~ "config/processed_books organised and to minimise disk space usage."
+#~ msgstr ""
+#~ "활성화된 경우, 매일 자정 직전에 CWA-자동압축 서비스가 zip 아카이브 파일을 "
+#~ "생성합니다. 당일 변환된 파일, 가져오기 한 파일, 변환/가져오기에 실패한 파"
+#~ "일을 포합합니다. /config/processed_books 이하 경로를 정리하고 저장소 사용"
+#~ "량을 최소화합니다."
 
 #~ msgid "Random Books"
 #~ msgstr "랜덤 책"
