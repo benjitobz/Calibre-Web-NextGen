@@ -8,6 +8,7 @@ from .. import constants
 from ..clean_html import clean_string
 from ..cover_version import COVER_VERSION_ARG, cover_version_token
 from ..ui_themes import theme_slug
+from ..user_preferences import serialize_named_preferences
 
 
 # Fork #585 (@Glennza1962 et al.): map the SPA sidebar's nav entries to the
@@ -100,6 +101,9 @@ def serialize_user(user):
         "sidebar": serialize_sidebar_visibility(user),
         # Fork #585 v2: the user's saved sidebar order ([] = SPA default order).
         "sidebar_order": serialize_sidebar_order(user),
+        # Generic per-user UI preferences. ``None`` means never set, which lets
+        # the SPA adopt a pre-existing local value exactly once.
+        "preferences": serialize_named_preferences(user),
         # Fork #866: marking a shelf "Kobo sync on" is inert until this account
         # setting is on. The shelf page warns about that, so /me carries the
         # flag — otherwise every shelf view would have to fetch the whole

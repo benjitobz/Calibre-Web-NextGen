@@ -92,6 +92,40 @@ export function useUpdateSidebar() {
   });
 }
 
+/** Persist allowlisted boolean UI preferences and optimistically update /me.
+ * Mutations from one hook instance are serialized so rapid toggles cannot leave
+ * the server with an older request winning the race. */
+export function useUpdateNamedPreferences() {
+  const queryClient = useQueryClient();
+  return useMutation({
+    scope: { id: 'named-user-preferences' },
+    mutationFn: (preferences: Record<string, boolean>) =>
+      apiPost<{ preferences: Record<string, boolean | null> }>(
+        '/api/v1/account/preferences', { preferences }),
+    onMutate: async (preferences) => {
+      await queryClient.cancelQueries({ queryKey: ['me'] });
+      const previous = queryClient.getQueryData<Me | null>(['me']);
+      queryClient.setQueryData<Me | null>(['me'], (current) => current ? {
+        ...current,
+        preferences: { ...(current.preferences ?? {}), ...preferences },
+      } : current);
+      return { previous };
+    },
+    onError: (_error, _preferences, context) => {
+      if (context) queryClient.setQueryData(['me'], context.previous);
+    },
+    onSuccess: (data) => {
+      queryClient.setQueryData<Me | null>(['me'], (current) => current ? {
+        ...current,
+        preferences: { ...(current.preferences ?? {}), ...data.preferences },
+      } : current);
+    },
+    onSettled: () => {
+      void queryClient.invalidateQueries({ queryKey: ['me'] });
+    },
+  });
+}
+
 /** Queries whose response body depends on *who* is asking, and so must not
  *  survive an identity change that happens without a page load. Today that is
  *  /about, which withholds component versions from non-admins (#1287).

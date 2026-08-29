@@ -95,6 +95,9 @@ export interface Me {
   /** Saved per-user sidebar order (#585 v2) — list of entry keys. Absent/empty
    *  → the SPA default order. */
   sidebar_order?: string[];
+  /** Generic per-user UI preferences. null means the account has never stored
+   * that preference, allowing one-time adoption from the local fallback. */
+  preferences?: Record<string, boolean | null>;
   /** Custom profile picture (#668) — a `data:image/…;base64,…` URI set in the
    *  classic profile-pictures panel, or null when the user has none. Absent on
    *  older servers → treat as null (falls back to the neutral glyph). */

@@ -53,8 +53,15 @@ function gridBookLinks(page: Page) {
 
 test.describe('library infinite scroll', () => {
   test.beforeEach(async ({ page }) => {
-    // Keep the optional Discover links out of the book-grid count.
-    await page.addInitScript(() => localStorage.setItem('cwng_discover_hidden_v1', '1'));
+    // Keep the optional Discover links out of the book-grid count. Authenticated
+    // preferences are server-authoritative, so make /me explicit for this page
+    // instead of seeding a local key that may correctly be ignored.
+    await page.route('**/api/v1/auth/me', async (route) => {
+      const response = await route.fetch();
+      const me = await response.json();
+      me.preferences = { ...(me.preferences ?? {}), discover_hidden: true };
+      await route.fulfill({ response, json: me });
+    });
   });
 
   test('Load more fetches the next page when IntersectionObserver never fires (#704)', async ({ page }) => {

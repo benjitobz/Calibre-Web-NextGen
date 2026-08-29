@@ -13,8 +13,8 @@ const STRIP_COUNT = 12;
 /** A boxed, visually-distinct strip of random book picks at the top of the
  *  library. Reshuffle for a fresh set, or dismiss with the × (the parent
  *  persists the hidden state and offers a "Show Discover section" toggle). */
-export function DiscoverSection({ onClose, hideActions = false }:
-  { onClose: () => void; hideActions?: boolean }) {
+export function DiscoverSection({ onClose, closeDisabled = false, hideActions = false }:
+  { onClose: () => void; closeDisabled?: boolean; hideActions?: boolean }) {
   const t = useT();
   const announce = useAnnouncer();
   const [nonce, setNonce] = useState(0);
@@ -67,6 +67,7 @@ export function DiscoverSection({ onClose, hideActions = false }:
             type="button"
             className={styles.iconBtn}
             onClick={onClose}
+            disabled={closeDisabled}
             title={t('Hide Discover section')}
             aria-label={t('Hide Discover section')}
           >

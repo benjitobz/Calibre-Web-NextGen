@@ -72,7 +72,14 @@ export const test = base.extend<MultiUserFixtures>({
 
     let context: BrowserContext | undefined;
     try {
-      context = await browser.newContext({ baseURL });
+      // Project context options include the global admin storage state. This
+      // fixture logs in its own unique account, so start with an explicitly
+      // empty jar/store: inherited admin localStorage must not be mistaken for
+      // that account's one-time preference adoption input.
+      context = await browser.newContext({
+        baseURL,
+        storageState: { cookies: [], origins: [] },
+      });
       const secondaryPage = await context.newPage();
       // BrowserContext.request shares this context's cookie jar. Calling the
       // real login endpoint here creates an independent browser session without

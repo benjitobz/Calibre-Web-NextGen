@@ -248,7 +248,9 @@ class UserBase:
             return None
         return self.view_settings[page].get(prop)
 
-    def set_view_property(self, page, prop, value):
+    def set_view_property(self, page, prop, value, commit=True):
+        if not isinstance(self.view_settings, dict):
+            self.view_settings = {}
         if not self.view_settings.get(page):
             self.view_settings[page] = dict()
         self.view_settings[page][prop] = value
@@ -256,11 +258,12 @@ class UserBase:
             flag_modified(self, "view_settings")
         except AttributeError:
             pass
-        try:
-            session.commit()
-        except (exc.OperationalError, exc.InvalidRequestError) as e:
-            session.rollback()
-            log.error_or_exception(e)
+        if commit:
+            try:
+                session.commit()
+            except (exc.OperationalError, exc.InvalidRequestError) as e:
+                session.rollback()
+                log.error_or_exception(e)
 
     def __repr__(self):
         return '<User %r>' % self.name
@@ -472,7 +475,7 @@ class Anonymous(AnonymousUserMixin, UserBase):
             return flask_session['view'][page].get(prop)
         return None
 
-    def set_view_property(self, page, prop, value):
+    def set_view_property(self, page, prop, value, commit=True):
         if not 'view' in flask_session:
             flask_session['view'] = dict()
         if not flask_session['view'].get(page):

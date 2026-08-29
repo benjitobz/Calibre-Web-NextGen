@@ -4,9 +4,13 @@
 import json
 import os
 import re
+from html import escape as html_escape
+from urllib.parse import parse_qsl, urlsplit
 from flask import Blueprint, request, Response, abort, current_app
+from werkzeug.datastructures import MIMEAccept
+from werkzeug.http import parse_accept_header
 
-from . import logger, constants
+from . import logger, constants, config
 
 log = logger.create()
 
@@ -22,10 +26,8 @@ _DISABLE_VALUES = ("", "0", "false", "no", "off")
 def _spa_enabled():
     """SPA availability — OPT-OUT (enabled by default).
 
-    Every updated instance should surface the new UI on its own so users can opt
-    in, without the operator having to set anything (rollout goal: show the
-    'Try the new UI' nudge to everyone, then eventually make it the default). Set
-    CWNG_SPA to a falsey value (empty/0/false/no/off) to turn the new UI off."""
+    The new UI is the default browser surface. Set CWNG_SPA to a falsey value
+    (empty/0/false/no/off) to keep every route on the classic UI."""
     value = os.environ.get("CWNG_SPA")
     if value is None:  # env absent → default ON
         return True
@@ -40,8 +42,8 @@ def _spa_bundle_present():
 
 def spa_available():
     """The SPA is available to THIS request: the opt-out env is on AND the built
-    bundle is on disk. The single source of truth the layout nudge, the SPA shell
-    guard, and the classic-index sticky-redirect all gate on — the context
+    bundle is on disk. The single source of truth the classic nav affordance,
+    the SPA shell guard, and the classic-index preference redirect all gate on — the context
     processor exposes the same value to templates as ``cwng_spa_enabled``."""
     return _spa_enabled() and _spa_bundle_present()
 
@@ -49,9 +51,9 @@ def spa_available():
 @spa.app_context_processor
 def _inject_spa_flag():
     """Expose to ALL Jinja templates whether the new SPA is available (so the
-    legacy layout shows the 'Switch to New UI' nudge only when /app will actually
-    load) plus the running version (so the nudge banner can reset its dismissal
-    on each update). app_context_processor = app-wide, not just this blueprint."""
+    legacy layout shows its return-to-SPA affordance only when /app will actually
+    load) plus the running version used by the feedback popup.
+    app_context_processor = app-wide, not just this blueprint."""
     return {
         "cwng_spa_enabled": spa_available(),
         "cwng_app_version": constants.INSTALLED_VERSION,
@@ -79,13 +81,13 @@ def _mount_prefix():
     return prefix
 
 
-# Sticky new-UI preference (#739). The SPA shell stamps this cookie when it
-# loads; the classic web index ('/') redirects to the shell while it's present,
-# and the SPA's "Back to classic view" nav clears it. Per-browser only (no DB,
-# no account) — a user who picked the new UI once keeps it, on every tab and
-# bookmark, until they switch back.
+# UI preference cookies (#739/#908). ``cwng_prefer_spa`` is retained for
+# compatibility with browsers and older releases that used the opt-in scheme.
+# The current scheme is an explicit Classic opt-out: no Classic cookie means
+# SPA, and entering /app clears that opt-out. Both cookies remain per-browser.
 PREFER_SPA_COOKIE = "cwng_prefer_spa"
-_PREFER_SPA_MAX_AGE = 60 * 60 * 24 * 365  # one year
+PREFER_CLASSIC_COOKIE = "cwng_prefer_classic"
+_UI_PREFERENCE_MAX_AGE = 60 * 60 * 24 * 365  # one year
 
 
 def prefer_spa_cookie_path():
@@ -104,7 +106,7 @@ def stamp_prefer_spa_cookie(resp):
     resp.set_cookie(
         PREFER_SPA_COOKIE,
         value="1",
-        max_age=_PREFER_SPA_MAX_AGE,
+        max_age=_UI_PREFERENCE_MAX_AGE,
         path=prefer_spa_cookie_path(),
         secure=bool(current_app.config.get("SESSION_COOKIE_SECURE", False)),
         samesite=current_app.config.get("SESSION_COOKIE_SAMESITE", "Lax"),
@@ -121,11 +123,33 @@ def clear_prefer_spa_cookie(resp):
     return resp
 
 
+def stamp_prefer_classic_cookie(resp):
+    """Persist an explicit choice to use Classic on the two preference-routed
+    surfaces. The cookie shares the legacy preference cookie's security and
+    reverse-proxy path rules."""
+    resp.set_cookie(
+        PREFER_CLASSIC_COOKIE,
+        value="1",
+        max_age=_UI_PREFERENCE_MAX_AGE,
+        path=prefer_spa_cookie_path(),
+        secure=bool(current_app.config.get("SESSION_COOKIE_SECURE", False)),
+        samesite=current_app.config.get("SESSION_COOKIE_SAMESITE", "Lax"),
+        httponly=False,
+    )
+    return resp
+
+
+def clear_prefer_classic_cookie(resp):
+    """Remove the Classic opt-out when the user chooses the SPA again."""
+    resp.delete_cookie(PREFER_CLASSIC_COOKIE, path=prefer_spa_cookie_path())
+    return resp
+
+
 def classic_index_redirects_to_spa():
     """Should the classic web index ('/') bounce to the SPA shell? True only when
-    the SPA is available, the browser carries the ``cwng_prefer_spa`` cookie, this
-    is NOT the SPA's own 'back to classic' marker (``cwng_feedback``), and the
-    client wants HTML (not an API/OPDS machine client). Web index only — never
+    the SPA is available, this is NOT the SPA's own 'back to classic' marker
+    (``cwng_feedback``), the browser has not opted into Classic, and the client
+    is an HTML document navigation (not an API/OPDS machine client). Web index only — never
     books_list, authors, OPDS, Kobo, API, or login (#739 design)."""
     if request.args.get("cwng_feedback"):
         return False
@@ -142,9 +166,74 @@ def preferred_spa_html_request():
     """
     if not spa_available():
         return False
-    if request.cookies.get(PREFER_SPA_COOKIE) != "1":
+    if request.cookies.get(PREFER_CLASSIC_COOKIE) == "1":
         return False
-    return bool(request.accept_mimetypes.accept_html)
+    return _browser_document_html_request()
+
+
+def spa_login_default_supported():
+    """Whether the SPA can authenticate this instance's configured login mode.
+
+    Keep this single carve-out until #1893 gives the SPA API an LDAP bind path
+    and #1931 makes the SPA participate in reverse-proxy header login. Removing
+    those two gaps then reduces the login decision to deleting this predicate
+    call; OAuth already has native SPA provider buttons and remains supported.
+    This is intentionally login-only: authenticated LDAP/proxy users can use the
+    SPA catalog normally.
+    """
+    return (
+        config.config_login_type != constants.LOGIN_LDAP
+        and not bool(getattr(
+            config, "config_allow_reverse_proxy_header_login", False))
+    )
+
+
+def classic_fallback_requested_from_next(next_url):
+    """Whether ``next`` is the exact no-JS Classic fallback emitted by us.
+
+    On login-required instances, the feedback index is intercepted by the auth
+    decorator before it can stamp the Classic cookie. Flask-Login then nests
+    that fixed feedback URL in ``/login?next=...``. Recognize only the local,
+    prefix-scoped marker so the login route can finish the no-JS handoff instead
+    of routing back to the SPA and forming a cycle. This never redirects to
+    ``next``; it only selects the Classic login response.
+    """
+    if not next_url:
+        return False
+    candidate = urlsplit(next_url)
+    if candidate.scheme or candidate.netloc or candidate.fragment:
+        return False
+    expected_path = _mount_prefix() + "/"
+    if candidate.path != expected_path:
+        return False
+    return parse_qsl(candidate.query, keep_blank_values=True) == [
+        ("cwng_feedback", "newui")]
+
+
+def _browser_document_html_request():
+    """Return True only for an explicit browser-style HTML document request.
+
+    Werkzeug's ``accept_html`` treats a wildcard as HTML. That was safe while a
+    redirect also required an opt-in cookie, but default-SPA routing would turn
+    ordinary curl/wget/Kobo ``Accept: */*`` requests into HTML redirects. Require
+    an actual ``text/html`` media range with q>0. Fetch Metadata is optional for
+    older browsers, but when present it must describe a top-level navigation.
+    """
+    raw_accept = request.headers.get("Accept", "")
+    accepted = parse_accept_header(raw_accept, MIMEAccept)
+    if not any(
+        mimetype.lower() == "text/html" and quality > 0
+        for mimetype, quality in accepted
+    ):
+        return False
+
+    fetch_dest = request.headers.get("Sec-Fetch-Dest")
+    if fetch_dest and fetch_dest.lower() != "document":
+        return False
+    fetch_mode = request.headers.get("Sec-Fetch-Mode")
+    if fetch_mode and fetch_mode.lower() != "navigate":
+        return False
+    return True
 
 
 def spa_shell_url():
@@ -159,6 +248,16 @@ def spa_shell_url():
     return f"{_mount_prefix()}/app/"
 
 
+def _inline_script_json(value):
+    """JSON for an inline script without an HTML ``</script>`` breakout."""
+    return (
+        json.dumps(value)
+        .replace("&", "\\u0026")
+        .replace("<", "\\u003c")
+        .replace(">", "\\u003e")
+    )
+
+
 def _render_shell(index_path, prefix):
     """Serve the built index.html adapted to the current mount prefix.
 
@@ -166,16 +265,23 @@ def _render_shell(index_path, prefix):
     a reverse-proxy subpath those 404 (the reporter's white page, #571). Rewrite
     them to ``<prefix>/static/app/…`` and expose the prefix to the SPA runtime via
     ``window.__CWNG_PREFIX__`` so its API calls, router base and resource URLs are
-    prefixed too. At the domain root (prefix="") the file is served unchanged."""
+    prefixed too. Browsers with JavaScript disabled, or without module-script
+    support, are returned to the prefix-aware Classic feedback route rather
+    than being stranded on the shell's empty root element."""
     with open(index_path, "r", encoding="utf-8") as fh:
         html = fh.read()
+    escaped_prefix = html_escape(prefix, quote=True)
     if prefix:
-        html = html.replace("/static/app/", prefix + "/static/app/")
+        html = html.replace(
+            "/static/app/", escaped_prefix + "/static/app/")
     # Inject, into <head>:
     #  * the favicon (#574 — the Vite shell ships none, so the new UI had a blank
     #    tab icon); reuse the app's existing /static/favicon.ico, prefix-aware.
+    #  * self-healing Classic fallbacks for JavaScript-disabled and pre-module
+    #    browsers. Modern module-capable browsers ignore both branches.
     #  * the mount prefix (even "") so the SPA reads an authoritative value rather
-    #    than guessing from the URL. json.dumps → safely-quoted JS string.
+    #    than guessing from the URL. Inline-script JSON additionally escapes HTML
+    #    delimiters because JSON string quoting alone does not neutralize </script>.
     #  * the running version, so the SPA can name its own build. The classic UI
     #    has always had this via the ``cwng_app_version`` context processor; the
     #    SPA had no way to learn it, which meant the single most useful field in
@@ -187,11 +293,23 @@ def _render_shell(index_path, prefix):
     #    build rather than the user, and is what the classic feedback popup
     #    already shows to every user regardless of role.
     static = prefix + "/static"
+    classic_fallback = prefix + "/?cwng_feedback=newui"
+    escaped_static = html_escape(static, quote=True)
+    escaped_classic_fallback = html_escape(classic_fallback, quote=True)
     inject = (
         '<link rel="icon" href="%s/favicon.ico">'
         '<link rel="apple-touch-icon" sizes="180x180" href="%s/img/apple-touch-icon.png">'
+        '<noscript><meta http-equiv="refresh" content="0;url=%s"></noscript>'
+        '<script nomodule>window.location.replace(%s);</script>'
         '<script>window.__CWNG_PREFIX__=%s;window.__CWNG_VERSION__=%s;</script>'
-    ) % (static, static, json.dumps(prefix), json.dumps(constants.INSTALLED_VERSION))
+    ) % (
+        escaped_static,
+        escaped_static,
+        escaped_classic_fallback,
+        _inline_script_json(classic_fallback),
+        _inline_script_json(prefix),
+        _inline_script_json(constants.INSTALLED_VERSION),
+    )
     html = html.replace("</head>", inject + "</head>", 1)
     resp = Response(html, mimetype="text/html")
     # The shell NAMES the content-addressed bundle files, which are served
@@ -222,7 +340,9 @@ def spa_shell(path=""):
                     "or set CWNG_SPA=0 to suppress this warning", index_path)
         abort(404)
     resp = _render_shell(index_path, _mount_prefix())
-    # #739: loading the SPA is the act of choosing it — persist the preference so
-    # a later visit to a classic URL lands back on the new UI instead of reverting.
+    # Loading the SPA is the act of choosing it. Clear the current Classic
+    # opt-out, and keep stamping the legacy SPA cookie so a downgrade retains
+    # the user's choice.
+    clear_prefer_classic_cookie(resp)
     stamp_prefer_spa_cookie(resp)
     return resp

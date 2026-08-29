@@ -21,6 +21,9 @@ from .options import locale_options, book_language_options
 from ..helper import valid_password, valid_email, check_email
 from ..kobo_sync_status import needs_shelf_reconciliation, reconcile_shelves_safely
 from ..ui_themes import ALLOWED_THEME_SLUGS, theme_slug, theme_code
+from ..user_preferences import (NAMED_BOOLEAN_PREFERENCE_PATHS,
+                                serialize_named_preferences,
+                                set_named_preferences)
 from .serializers import (SIDEBAR_VISIBILITY_BITS, ORDERABLE_SIDEBAR_KEYS,
                           serialize_sidebar_visibility, serialize_sidebar_order)
 
@@ -389,3 +392,44 @@ def update_sidebar():
         "sidebar": serialize_sidebar_visibility(current_user),
         "sidebar_order": serialize_sidebar_order(current_user),
     })
+
+
+@api_v1.route("/account/preferences", methods=["POST"])
+def update_named_preferences():
+    """Persist allowlisted boolean UI preferences for the logged-in user.
+
+    Body: ``{"preferences": {name: bool, ...}}``. All keys and values are
+    validated before any mutation; the endpoint owns one transaction across the
+    whole map and rolls it back on failure.
+    """
+    guard = _require_real_user()
+    if guard:
+        return guard
+
+    data = request.get_json(silent=True) or {}
+    updates = data.get("preferences")
+    if not isinstance(updates, dict) or not updates:
+        return _err(
+            "invalid_request", "preferences must be a non-empty object", 400)
+
+    for name, value in updates.items():
+        if name not in NAMED_BOOLEAN_PREFERENCE_PATHS:
+            return _err(
+                "invalid_request", "Unknown preference: %s" % name, 400)
+        if type(value) is not bool:
+            return _err(
+                "invalid_request", "Preference %s must be a boolean" % name, 400)
+
+    try:
+        set_named_preferences(current_user, updates)
+    except Exception as ex:
+        ub.session.rollback()
+        return _err("invalid_request", str(ex), 400)
+
+    try:
+        ub.session.commit()
+    except Exception as ex:
+        ub.session.rollback()
+        return _err("db_error", "Could not save preferences: %s" % ex, 500)
+
+    return jsonify({"preferences": serialize_named_preferences(current_user)})

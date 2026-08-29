@@ -42,6 +42,15 @@ HARNESS_PATHS = {
     "scripts/ci_path_classification.py",
 }
 
+# These backend/Classic files decide whether a browser lands in the SPA. A PR
+# can change the entire client entry path without touching frontend/, so they
+# belong to the same browser-test gate even though they are not SPA sources.
+UI_ROUTING_PATHS = {
+    "cps/spa.py",
+    "cps/web.py",
+    "cps/templates/layout.html",
+}
+
 
 def _path_to_module(path: str) -> str | None:
     candidate = PurePosixPath(path)
@@ -232,7 +241,9 @@ def classify_paths(paths: Iterable[str], repo_root: Path) -> dict[str, bool]:
     concurrency = concurrency_paths(repo_root)
 
     frontend = any(
-        path.startswith(("frontend/", "cps/static/app/")) or path in HARNESS_PATHS
+        path.startswith(("frontend/", "cps/static/app/"))
+        or path in HARNESS_PATHS
+        or path in UI_ROUTING_PATHS
         for path in changed
     )
     build = any(

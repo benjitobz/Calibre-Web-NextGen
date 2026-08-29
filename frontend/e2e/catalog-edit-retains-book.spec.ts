@@ -152,8 +152,15 @@ async function targetIndex(page: Page): Promise<number> {
 
 test.describe('#1169 an edited book stays in the library listing', () => {
   test.beforeEach(async ({ page }) => {
-    // Keep the optional Discover strip's links out of the grid counts.
-    await page.addInitScript(() => localStorage.setItem('cwng_discover_hidden_v1', '1'));
+    // Keep the optional Discover strip's links out of the grid counts. A real
+    // account's server preference wins over localStorage, so override /me for
+    // this isolated paging harness rather than relying on a local-only seed.
+    await page.route('**/api/v1/auth/me', async (route) => {
+      const response = await route.fetch();
+      const me = await response.json();
+      me.preferences = { ...(me.preferences ?? {}), discover_hidden: true };
+      await route.fulfill({ response, json: me });
+    });
     // Deterministic paging: drive page 2 through the explicit Load more button
     // instead of racing the sentinel's observer.
     await page.addInitScript(() => {

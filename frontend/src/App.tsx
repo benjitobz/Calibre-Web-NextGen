@@ -82,6 +82,21 @@ function AuthenticatedAuthLanding() {
   return <SpinnerCentered size={40} />;
 }
 
+function LibraryLanding({
+  isGuest,
+  defaultFilter,
+}: {
+  isGuest: boolean;
+  defaultFilter?: AdvancedSearchParams;
+}) {
+  const search = useSearch();
+  const hasPostAuthDestination = !!new URLSearchParams(search).get('next');
+  if (hasPostAuthDestination) {
+    return isGuest ? <Login /> : <AuthenticatedAuthLanding />;
+  }
+  return <Library defaultFilter={defaultFilter} />;
+}
+
 export function App() {
   const { data: me, isLoading } = useMe();
   const logout = useLogout();
@@ -264,7 +279,12 @@ export function App() {
           <Route path={SPA_ROUTES.magicView}>{(p) => <MagicShelfView id={p.id} />}</Route>
           <Route path={SPA_ROUTES.magic}>{() => <MagicShelf />}</Route>
 
-          <Route path={SPA_ROUTES.library}>{() => <Library defaultFilter={me.catalog?.default_filter ?? undefined} />}</Route>
+          <Route path={SPA_ROUTES.library}>{() => (
+            <LibraryLanding
+              isGuest={isGuest}
+              defaultFilter={me.catalog?.default_filter ?? undefined}
+            />
+          )}</Route>
 
           {/* Graceful 404 for any unmatched in-shell route (no blank page). */}
           <Route>{() => <NotFound />}</Route>

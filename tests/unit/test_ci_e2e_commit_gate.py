@@ -48,6 +48,22 @@ def test_unrelated_backend_module_does_not_pay_for_concurrency_e2e():
     assert result["concurrency"] is False
 
 
+@pytest.mark.parametrize("path", [
+    "cps/spa.py",
+    "cps/web.py",
+    "cps/templates/layout.html",
+])
+def test_ui_routing_surfaces_trigger_frontend_e2e(path):
+    """A backend-only landing decision must still run the browser contract."""
+    result = classify_paths([path], REPO)
+    assert result["frontend"] is True, path
+
+
+def test_unrelated_classic_template_does_not_trigger_frontend_e2e():
+    result = classify_paths(["cps/templates/book_edit.html"], REPO)
+    assert result["frontend"] is False
+
+
 def test_concurrency_set_derives_new_helpers_from_imports(tmp_path):
     cps = tmp_path / "cps"
     cps.mkdir()

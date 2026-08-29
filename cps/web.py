@@ -15,6 +15,7 @@ import zipfile
 import xml.etree.ElementTree as ET
 from datetime import datetime, timezone
 from pathlib import Path as _Path
+from urllib.parse import urlencode
 
 from flask import Blueprint, jsonify
 from flask import request, redirect, send_from_directory, send_file, make_response, flash, abort, url_for, Response, g
@@ -1561,27 +1562,29 @@ def health_check():
 @web.route('/page/<int:page>')
 @login_required_if_no_ano
 def index(page):
+    sort_param = (request.args.get('sort') or 'stored').lower()
+
+    # Decide the response surface before creating Classic-only flashes. The SPA
+    # does not consume Flask's flash queue (#1959), so flashing before this
+    # redirect would hide the warning and accumulate duplicates in the session.
+    # The helper returns False for cwng_feedback, preserving that Classic path.
+    if spa.classic_index_redirects_to_spa():
+        return redirect(spa.spa_shell_url())
+
     if current_user.is_authenticated and current_user.role_admin():
         arch_warning = helper.check_architecture()
         if arch_warning:
             flash(arch_warning, category="cwa_arch_warning")
 
-    sort_param = (request.args.get('sort') or 'stored').lower()
-
-    # Sticky new UI (#739). The SPA's "Back to classic view" nav lands here
-    # carrying cwng_feedback=newui — drop the preference cookie so leaving the
-    # SPA is sticky too. Only the web index does this; books_list, authors,
-    # OPDS, Kobo and the API never touch the cookie.
+    # The SPA's "Back to classic view" nav lands here with a one-shot feedback
+    # marker. Persist the explicit Classic opt-out and clear the legacy SPA
+    # cookie (downgrade compatibility). Only the web index does this; books_list,
+    # authors, OPDS, Kobo and the API never touch either cookie.
     if request.args.get('cwng_feedback'):
         response = make_response(render_books_list("root", sort_param, 1, page))
+        spa.stamp_prefer_classic_cookie(response)
         spa.clear_prefer_spa_cookie(response)
         return response
-
-    # And once a browser prefers the SPA, bounce a bookmarked classic-home URL
-    # to the new UI rather than silently reverting (and re-nagging). Same
-    # web-index-only scope; the helper also gates on SPA available + accepts HTML.
-    if spa.classic_index_redirects_to_spa():
-        return redirect(spa.spa_shell_url())
 
     return render_books_list("root", sort_param, 1, page)
 
@@ -2949,14 +2952,36 @@ def login():
     if config.config_login_type != constants.LOGIN_OAUTH:
         oauth_auto_redirect.clear_auto_redirect_state(flask_session)
 
-    # #908: the UI preference is intentionally per-browser, not per-user, so it
-    # remains readable after logout. Route an anonymous HTML browser into the
-    # SPA's logged-out tree before rendering the Classic login template.
-    if spa.preferred_spa_html_request():
+    # A no-JS browser reaches the fixed Classic feedback URL from the SPA
+    # shell. On login-required instances the index decorator redirects here
+    # before index() can stamp the opt-out, with that URL nested in ``next``.
+    # Finish the handoff on the Classic login surface; sending it back to the
+    # SPA would repeat shell -> feedback index -> login forever. The predicate
+    # accepts only our prefix-scoped marker and never redirects to ``next``.
+    if spa.classic_fallback_requested_from_next(request.args.get("next")):
+        response = make_response(render_login())
+        spa.stamp_prefer_classic_cookie(response)
+        spa.clear_prefer_spa_cookie(response)
+        return response
+
+    # #908: the UI preference is per-browser, not per-user, so it remains readable
+    # after logout. Route an anonymous browser into the SPA's logged-out tree by
+    # default only when that tree can authenticate the configured login mode; an
+    # explicit Classic opt-out still renders the Classic login.
+    if (spa.spa_login_default_supported()
+            and spa.preferred_spa_html_request()):
         # The destination is fixed and app-owned. spa_shell_url() preserves a
         # valid reverse-proxy subpath while rejecting hostile forwarded prefixes;
-        # never redirect to the user-controlled ``next`` query parameter.
-        return redirect(spa.spa_shell_url())
+        # ``next`` is carried only as encoded data for the SPA's strict
+        # post-auth sanitizer, never used as the redirect destination itself.
+        destination = spa.spa_shell_url()
+        next_url = request.args.get("next")
+        if next_url:
+            destination = "%s?%s" % (destination, urlencode({"next": next_url}))
+        # The SPA has no Flask flash renderer. Do not carry Classic-only login
+        # messages forward to accumulate or surface later on an unrelated page.
+        flask_session.pop("_flashes", None)
+        return redirect(destination)
 
     # Handle OAuth-only authentication mode
     if config.config_login_type == constants.LOGIN_OAUTH:

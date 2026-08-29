@@ -62,11 +62,14 @@ def test_preference_key_has_exactly_one_definition():
     )
 
 
-def test_preference_defaults_to_showing_the_row():
+def test_preference_is_server_backed_and_defaults_to_showing_the_row():
     """Off-by-default: an upgrade must not silently remove controls from users
-    who never asked for that."""
+    who never asked for that; the shared hook supplies account persistence."""
     hook = (_FE / "lib" / "useCardActionsHidden.ts").read_text()
-    assert "usePersistentBool(CARD_ACTIONS_HIDDEN_KEY, false)" in hook
+    assert "useNamedPreference(" in hook
+    assert "'card_actions_hidden'" in hook
+    assert "CARD_ACTIONS_HIDDEN_KEY" in hook
+    assert "false" in hook
 
 
 def test_bookcard_removes_the_row_rather_than_hiding_it():
@@ -98,7 +101,7 @@ def test_state_owners_read_the_shared_hook():
     missing = [
         parts[-1]
         for parts in _STATE_OWNERS
-        if "useCardActionsHidden()" not in (_FE.joinpath(*parts)).read_text()
+        if "useCardActionsHidden(" not in (_FE.joinpath(*parts)).read_text()
     ]
     assert missing == [], f"these pass hideActions but never read the hook: {missing}"
 
