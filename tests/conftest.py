@@ -645,6 +645,32 @@ def pytest_collection_modifyitems(config, items):
         if ("docker_integration" in item.keywords or "docker_e2e" in item.keywords) and not has_docker:
             item.add_marker(skip_docker_integration)
 
+    # A unit-marked test may never depend on a fixture that starts a container:
+    # requesting one turns the fast lane into a Docker lane.
+    #
+    # Enforced here rather than inside those fixtures because they are
+    # session-scoped -- their ``request.node`` is the session, which carries no
+    # markers, so a guard written there could never see the offending test.
+    #
+    # It exists because a module-level ``usefixtures("koreader_sync_enabled")``
+    # mark landed on a unit-only helper class and CI stayed GREEN: starting a
+    # container succeeds on a runner, so the fast lane simply paid for Docker in
+    # silence. Nothing failed; the lane just stopped being fast, and the only
+    # visible symptom was a container-name collision on a developer machine.
+    container_backed = {"koreader_sync_enabled", "cwa_container", "cwa_api_client"}
+    offenders = [
+        f"{item.nodeid} requests {sorted(container_backed.intersection(item.fixturenames))}"
+        for item in items
+        if item.get_closest_marker("unit") is not None
+        and container_backed.intersection(getattr(item, "fixturenames", ()))
+    ]
+    if offenders:
+        raise pytest.UsageError(
+            "unit-marked tests must not require a container-backed fixture; put "
+            "the fixture on the docker_integration classes instead of the "
+            "module:\n  " + "\n  ".join(offenders)
+        )
+
 
 # ============================================================================
 # Docker Container Fixtures (for integration/e2e tests)
@@ -925,7 +951,6 @@ def koreader_sync_enabled(container_name):
     every boolean from the submitted fields, so saving through it would silently
     switch off everything this fixture did not think to include.
     """
-    import json
     import subprocess
 
     def _set(value):

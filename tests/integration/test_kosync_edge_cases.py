@@ -10,12 +10,10 @@ import pytest
 import base64
 import json
 
-# Every endpoint in this file answers 503 while KOReader sync is disabled, which
-# it is by default. Without this the whole module measures one early-return.
-pytestmark = pytest.mark.usefixtures("koreader_sync_enabled")
 
 
 
+@pytest.mark.usefixtures("koreader_sync_enabled")
 @pytest.mark.docker_integration
 @pytest.mark.slow
 class TestKOSyncValidationEdgeCases:
@@ -294,6 +292,7 @@ class TestKOSyncValidationEdgeCases:
         assert response.status_code == 400, "Should reject document ID with colon"
 
 
+@pytest.mark.usefixtures("koreader_sync_enabled")
 @pytest.mark.docker_integration
 @pytest.mark.slow
 class TestKOSyncAuthenticationEdgeCases:
