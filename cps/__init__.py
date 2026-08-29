@@ -98,11 +98,25 @@ def protect_user_specific_catalog_responses(response):
 
 # Fix for running behind reverse proxy (e.g. nginx, apache, caddy, ...)
 # Without it, url_for will generate http:// urls even if https:// is used
-# Set TRUSTED_PROXY_COUNT to the number of proxies in your chain (default: 1)
-# For CF Tunnel + reverse proxy, use TRUSTED_PROXY_COUNT=2
+# Set TRUSTED_PROXY_COUNT to the number of proxies in your chain (default: 1).
+# PROXYFIX_X_FOR / _X_PROTO / _X_HOST override it for header-specific chains.
 num_proxies = int(os.environ.get('TRUSTED_PROXY_COUNT', '1'))
-app.wsgi_app = ProxyFix(app.wsgi_app, x_for=num_proxies, x_proto=num_proxies, x_host=num_proxies, x_prefix=num_proxies)
-log.info(f'ProxyFix configured to trust {num_proxies} proxy(ies) for X-Forwarded-* headers')
+proxyfix_hops = {
+    'x_for': int(os.environ.get('PROXYFIX_X_FOR', num_proxies)),
+    'x_proto': int(os.environ.get('PROXYFIX_X_PROTO', num_proxies)),
+    'x_host': int(os.environ.get('PROXYFIX_X_HOST', num_proxies)),
+    # Preserve the existing shared-count behavior for X-Forwarded-Prefix.
+    'x_prefix': num_proxies,
+}
+app.wsgi_app = ProxyFix(app.wsgi_app, **proxyfix_hops)
+if len(set(proxyfix_hops.values())) == 1:
+    log.info(f'ProxyFix configured to trust {num_proxies} proxy(ies) for X-Forwarded-* headers')
+else:
+    log.info(
+        'ProxyFix configured with trusted proxy hops: '
+        f'x_for={proxyfix_hops["x_for"]}, x_proto={proxyfix_hops["x_proto"]}, '
+        f'x_host={proxyfix_hops["x_host"]}, x_prefix={proxyfix_hops["x_prefix"]}'
+    )
 
 lm = MyLoginManager()
 

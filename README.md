@@ -521,7 +521,22 @@ Behind multiple proxies (e.g. Cloudflare Tunnel then nginx then CWA), set the pr
 - TRUSTED_PROXY_COUNT=2
 ```
 
-Without this, CWA may see different client IPs across requests and trigger Session Protection warnings, forcing re-login on every page load. Default is `1`.
+Without this, CWA may see different client IPs across requests and trigger Session Protection warnings, forcing re-login on every page load. It can also mistake an externally secure OIDC callback for plain HTTP. Default is `1`.
+
+`TRUSTED_PROXY_COUNT` applies one trust depth to `X-Forwarded-For`,
+`X-Forwarded-Proto`, `X-Forwarded-Host`, and `X-Forwarded-Prefix`. If your
+proxy chain appends or replaces those headers at different layers, override the
+first three independently; each falls back to `TRUSTED_PROXY_COUNT`, then `1`:
+
+```yaml
+- PROXYFIX_X_FOR=2
+- PROXYFIX_X_PROTO=1
+- PROXYFIX_X_HOST=1
+```
+
+The corresponding ProxyFix arguments are `x_for`, `x_proto`, and `x_host`.
+Count only proxies you control and that overwrite or sanitize the corresponding
+header.
 
 ### Hardcover metadata provider
 
