@@ -12119,10 +12119,6 @@ msgid "Switch to the new Calibre-Web NextGen interface"
 msgstr "Caliebre-Web 电子书路径"
 
 #: cps/templates/layout.html
-msgid "Switch to New UI"
-msgstr ""
-
-#: cps/templates/layout.html
 msgid "Logout"
 msgstr "注销"
 
@@ -12142,24 +12138,6 @@ msgstr "搜索书库"
 
 #: cps/templates/layout.html
 msgid "Support"
-msgstr ""
-
-#: cps/templates/layout.html
-#, fuzzy
-msgid "New interface available"
-msgstr "无可用发布信息"
-
-#: cps/templates/layout.html
-#, fuzzy
-msgid "A faster, redesigned Calibre-Web NextGen interface is ready."
-msgstr "Caliebre-Web 电子书路径"
-
-#: cps/templates/layout.html
-msgid "Your classic view stays the default until you switch."
-msgstr ""
-
-#: cps/templates/layout.html
-msgid "Try the new UI"
 msgstr ""
 
 #: cps/templates/layout.html
@@ -13580,6 +13558,14 @@ msgstr "同步所选书架到 Kobo"
 #: cps/templates/user_table.html
 msgid "Show Read/Unread Section"
 msgstr "显示已读、未读栏目"
+
+#, fuzzy
+#~ msgid "New interface available"
+#~ msgstr "无可用发布信息"
+
+#, fuzzy
+#~ msgid "A faster, redesigned Calibre-Web NextGen interface is ready."
+#~ msgstr "Caliebre-Web 电子书路径"
 
 #~ msgid ""
 #~ "If your Calibre library is corrupted and cannot be opened, you can "

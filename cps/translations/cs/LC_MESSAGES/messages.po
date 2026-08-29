@@ -12068,10 +12068,6 @@ msgid "Switch to the new Calibre-Web NextGen interface"
 msgstr "Calibre-Web katalog eknih"
 
 #: cps/templates/layout.html
-msgid "Switch to New UI"
-msgstr ""
-
-#: cps/templates/layout.html
 msgid "Logout"
 msgstr "Odhlásit se"
 
@@ -12091,24 +12087,6 @@ msgstr "Hledat v knihovně"
 
 #: cps/templates/layout.html
 msgid "Support"
-msgstr ""
-
-#: cps/templates/layout.html
-#, fuzzy
-msgid "New interface available"
-msgstr "Nejsou k dispozici žádné informace o verzi"
-
-#: cps/templates/layout.html
-#, fuzzy
-msgid "A faster, redesigned Calibre-Web NextGen interface is ready."
-msgstr "Calibre-Web katalog eknih"
-
-#: cps/templates/layout.html
-msgid "Your classic view stays the default until you switch."
-msgstr ""
-
-#: cps/templates/layout.html
-msgid "Try the new UI"
 msgstr ""
 
 #: cps/templates/layout.html
@@ -13544,6 +13522,14 @@ msgstr ""
 #, fuzzy
 msgid "Show Read/Unread Section"
 msgstr "Zobrazit výběr sérií"
+
+#, fuzzy
+#~ msgid "New interface available"
+#~ msgstr "Nejsou k dispozici žádné informace o verzi"
+
+#, fuzzy
+#~ msgid "A faster, redesigned Calibre-Web NextGen interface is ready."
+#~ msgstr "Calibre-Web katalog eknih"
 
 #~ msgid "Random Books"
 #~ msgstr "Náhodné knihy"

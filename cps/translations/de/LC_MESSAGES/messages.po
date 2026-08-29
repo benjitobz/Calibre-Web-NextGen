@@ -12270,10 +12270,6 @@ msgid "Switch to the new Calibre-Web NextGen interface"
 msgstr "Zur neuen Calibre-Web NextGen Benutzeroberfläche wechseln"
 
 #: cps/templates/layout.html
-msgid "Switch to New UI"
-msgstr ""
-
-#: cps/templates/layout.html
 msgid "Logout"
 msgstr "Abmelden"
 
@@ -12292,23 +12288,6 @@ msgstr "Bibliothek aktualisieren"
 #: cps/templates/layout.html
 msgid "Support"
 msgstr ""
-
-#: cps/templates/layout.html
-msgid "New interface available"
-msgstr "Neue Benutzeroberfläche verfügbar"
-
-#: cps/templates/layout.html
-msgid "A faster, redesigned Calibre-Web NextGen interface is ready."
-msgstr ""
-"Eine schnellere, neu gestaltete Calibre-Web NextGen Oberfläche ist bereit."
-
-#: cps/templates/layout.html
-msgid "Your classic view stays the default until you switch."
-msgstr ""
-
-#: cps/templates/layout.html
-msgid "Try the new UI"
-msgstr "Probiere die neue UI"
 
 #: cps/templates/layout.html
 msgid "See Changelog"
@@ -13703,6 +13682,16 @@ msgstr "Ausgewählte Regale für OPDS freigeben"
 #: cps/templates/user_table.html
 msgid "Show Read/Unread Section"
 msgstr "Zeige Gelesen/Ungelesen-Abschnitt"
+
+#~ msgid "New interface available"
+#~ msgstr "Neue Benutzeroberfläche verfügbar"
+
+#~ msgid "A faster, redesigned Calibre-Web NextGen interface is ready."
+#~ msgstr ""
+#~ "Eine schnellere, neu gestaltete Calibre-Web NextGen Oberfläche ist bereit."
+
+#~ msgid "Try the new UI"
+#~ msgstr "Probiere die neue UI"
 
 #~ msgid ""
 #~ "If your Calibre library is corrupted and cannot be opened, you can "

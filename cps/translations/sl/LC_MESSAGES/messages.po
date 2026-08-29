@@ -12303,10 +12303,6 @@ msgid "Switch to the new Calibre-Web NextGen interface"
 msgstr "Katalog e-knjig Calibre-Web"
 
 #: cps/templates/layout.html
-msgid "Switch to New UI"
-msgstr ""
-
-#: cps/templates/layout.html
 msgid "Logout"
 msgstr "Odjava"
 
@@ -12326,24 +12322,6 @@ msgstr "Iskanje po knjižnici"
 
 #: cps/templates/layout.html
 msgid "Support"
-msgstr ""
-
-#: cps/templates/layout.html
-#, fuzzy
-msgid "New interface available"
-msgstr "Informacije o izdaji niso na voljo"
-
-#: cps/templates/layout.html
-#, fuzzy
-msgid "A faster, redesigned Calibre-Web NextGen interface is ready."
-msgstr "Katalog e-knjig Calibre-Web"
-
-#: cps/templates/layout.html
-msgid "Your classic view stays the default until you switch."
-msgstr ""
-
-#: cps/templates/layout.html
-msgid "Try the new UI"
 msgstr ""
 
 #: cps/templates/layout.html
@@ -13780,6 +13758,14 @@ msgstr "Usklajevanje izbrane police s Kobo"
 #: cps/templates/user_table.html
 msgid "Show Read/Unread Section"
 msgstr "Prikaži razdelek Prebrano/neprebrano"
+
+#, fuzzy
+#~ msgid "New interface available"
+#~ msgstr "Informacije o izdaji niso na voljo"
+
+#, fuzzy
+#~ msgid "A faster, redesigned Calibre-Web NextGen interface is ready."
+#~ msgstr "Katalog e-knjig Calibre-Web"
 
 #~ msgid ""
 #~ "If your Calibre library is corrupted and cannot be opened, you can "

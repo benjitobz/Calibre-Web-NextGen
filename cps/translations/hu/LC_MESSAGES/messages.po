@@ -12247,10 +12247,6 @@ msgid "Switch to the new Calibre-Web NextGen interface"
 msgstr "Calibre-Web Automated e-könyv katalógus"
 
 #: cps/templates/layout.html
-msgid "Switch to New UI"
-msgstr ""
-
-#: cps/templates/layout.html
 msgid "Logout"
 msgstr "Kilépés"
 
@@ -12268,24 +12264,6 @@ msgstr "Könyvtár frissítése"
 
 #: cps/templates/layout.html
 msgid "Support"
-msgstr ""
-
-#: cps/templates/layout.html
-#, fuzzy
-msgid "New interface available"
-msgstr "Megjelenési információ nem érhető el"
-
-#: cps/templates/layout.html
-#, fuzzy
-msgid "A faster, redesigned Calibre-Web NextGen interface is ready."
-msgstr "Calibre-Web Automated e-könyv katalógus"
-
-#: cps/templates/layout.html
-msgid "Your classic view stays the default until you switch."
-msgstr ""
-
-#: cps/templates/layout.html
-msgid "Try the new UI"
 msgstr ""
 
 #: cps/templates/layout.html
@@ -13712,6 +13690,14 @@ msgstr "Kiválasztott polcok szinkronizációja Kobo eszközzel"
 #: cps/templates/user_table.html
 msgid "Show Read/Unread Section"
 msgstr "Olvasott/olvasatlan mutatása"
+
+#, fuzzy
+#~ msgid "New interface available"
+#~ msgstr "Megjelenési információ nem érhető el"
+
+#, fuzzy
+#~ msgid "A faster, redesigned Calibre-Web NextGen interface is ready."
+#~ msgstr "Calibre-Web Automated e-könyv katalógus"
 
 #~ msgid ""
 #~ "If your Calibre library is corrupted and cannot be opened, you can "

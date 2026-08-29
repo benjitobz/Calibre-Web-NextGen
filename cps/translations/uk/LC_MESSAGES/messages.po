@@ -12069,10 +12069,6 @@ msgid "Switch to the new Calibre-Web NextGen interface"
 msgstr "Зберегти налаштування і відправити тестове повідомлення"
 
 #: cps/templates/layout.html
-msgid "Switch to New UI"
-msgstr ""
-
-#: cps/templates/layout.html
 msgid "Logout"
 msgstr "Вийти"
 
@@ -12092,24 +12088,6 @@ msgstr "Серій в цій бібліотеці"
 
 #: cps/templates/layout.html
 msgid "Support"
-msgstr ""
-
-#: cps/templates/layout.html
-#, fuzzy
-msgid "New interface available"
-msgstr "Оновлення неуспішне:"
-
-#: cps/templates/layout.html
-#, fuzzy
-msgid "A faster, redesigned Calibre-Web NextGen interface is ready."
-msgstr "Зберегти налаштування і відправити тестове повідомлення"
-
-#: cps/templates/layout.html
-msgid "Your classic view stays the default until you switch."
-msgstr ""
-
-#: cps/templates/layout.html
-msgid "Try the new UI"
 msgstr ""
 
 #: cps/templates/layout.html
@@ -13550,6 +13528,14 @@ msgstr ""
 #, fuzzy
 msgid "Show Read/Unread Section"
 msgstr "Показувати вибір серії"
+
+#, fuzzy
+#~ msgid "New interface available"
+#~ msgstr "Оновлення неуспішне:"
+
+#, fuzzy
+#~ msgid "A faster, redesigned Calibre-Web NextGen interface is ready."
+#~ msgstr "Зберегти налаштування і відправити тестове повідомлення"
 
 #~ msgid "Random Books"
 #~ msgstr "Випадковий список книг"

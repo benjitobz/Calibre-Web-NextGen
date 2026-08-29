@@ -11928,10 +11928,6 @@ msgid "Switch to the new Calibre-Web NextGen interface"
 msgstr "切換到新 Calibre-Web NextGen 介面"
 
 #: cps/templates/layout.html
-msgid "Switch to New UI"
-msgstr "切換到新 UI"
-
-#: cps/templates/layout.html
 msgid "Logout"
 msgstr "登出"
 
@@ -11950,22 +11946,6 @@ msgstr "重整書庫"
 #: cps/templates/layout.html
 msgid "Support"
 msgstr ""
-
-#: cps/templates/layout.html
-msgid "New interface available"
-msgstr "有新介面可用"
-
-#: cps/templates/layout.html
-msgid "A faster, redesigned Calibre-Web NextGen interface is ready."
-msgstr "新的 Calibre-Web NextGen 介面已就緒"
-
-#: cps/templates/layout.html
-msgid "Your classic view stays the default until you switch."
-msgstr ""
-
-#: cps/templates/layout.html
-msgid "Try the new UI"
-msgstr "嘗試新UI"
 
 #: cps/templates/layout.html
 msgid "See Changelog"
@@ -13344,6 +13324,18 @@ msgstr "同步所選書架到 Kobo"
 #, fuzzy
 msgid "Show Read/Unread Section"
 msgstr "顯示已讀/未讀選擇"
+
+#~ msgid "Switch to New UI"
+#~ msgstr "切換到新 UI"
+
+#~ msgid "New interface available"
+#~ msgstr "有新介面可用"
+
+#~ msgid "A faster, redesigned Calibre-Web NextGen interface is ready."
+#~ msgstr "新的 Calibre-Web NextGen 介面已就緒"
+
+#~ msgid "Try the new UI"
+#~ msgstr "嘗試新UI"
 
 #~ msgid "Random Books"
 #~ msgstr "隨機書籍"

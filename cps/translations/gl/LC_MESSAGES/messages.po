@@ -12124,10 +12124,6 @@ msgid "Switch to the new Calibre-Web NextGen interface"
 msgstr "Catálogo de libros electrónicos de Calibre-Web"
 
 #: cps/templates/layout.html
-msgid "Switch to New UI"
-msgstr ""
-
-#: cps/templates/layout.html
 msgid "Logout"
 msgstr "Pechar sesión"
 
@@ -12147,24 +12143,6 @@ msgstr "Buscar na librería"
 
 #: cps/templates/layout.html
 msgid "Support"
-msgstr ""
-
-#: cps/templates/layout.html
-#, fuzzy
-msgid "New interface available"
-msgstr "Non hai información do lanzamento dispoñible"
-
-#: cps/templates/layout.html
-#, fuzzy
-msgid "A faster, redesigned Calibre-Web NextGen interface is ready."
-msgstr "Catálogo de libros electrónicos de Calibre-Web"
-
-#: cps/templates/layout.html
-msgid "Your classic view stays the default until you switch."
-msgstr ""
-
-#: cps/templates/layout.html
-msgid "Try the new UI"
 msgstr ""
 
 #: cps/templates/layout.html
@@ -13582,6 +13560,14 @@ msgstr "sincronizar andeis seleccionados con Kobo"
 #, fuzzy
 msgid "Show Read/Unread Section"
 msgstr "Mostrar selección lidos/non lidos"
+
+#, fuzzy
+#~ msgid "New interface available"
+#~ msgstr "Non hai información do lanzamento dispoñible"
+
+#, fuzzy
+#~ msgid "A faster, redesigned Calibre-Web NextGen interface is ready."
+#~ msgstr "Catálogo de libros electrónicos de Calibre-Web"
 
 #~ msgid "Random Books"
 #~ msgstr "Libros ao chou"

@@ -11779,10 +11779,6 @@ msgid "Switch to the new Calibre-Web NextGen interface"
 msgstr ""
 
 #: cps/templates/layout.html
-msgid "Switch to New UI"
-msgstr ""
-
-#: cps/templates/layout.html
 msgid "Logout"
 msgstr ""
 
@@ -11800,22 +11796,6 @@ msgstr ""
 
 #: cps/templates/layout.html
 msgid "Support"
-msgstr ""
-
-#: cps/templates/layout.html
-msgid "New interface available"
-msgstr ""
-
-#: cps/templates/layout.html
-msgid "A faster, redesigned Calibre-Web NextGen interface is ready."
-msgstr ""
-
-#: cps/templates/layout.html
-msgid "Your classic view stays the default until you switch."
-msgstr ""
-
-#: cps/templates/layout.html
-msgid "Try the new UI"
 msgstr ""
 
 #: cps/templates/layout.html

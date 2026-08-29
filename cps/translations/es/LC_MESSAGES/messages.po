@@ -12570,10 +12570,6 @@ msgid "Switch to the new Calibre-Web NextGen interface"
 msgstr "Cambiar a la nueva interfaz de Calibre-Web NextGen"
 
 #: cps/templates/layout.html
-msgid "Switch to New UI"
-msgstr "Cambiar a la nueva interfaz"
-
-#: cps/templates/layout.html
 msgid "Logout"
 msgstr "Cerrar sesión"
 
@@ -12592,23 +12588,6 @@ msgstr "Actualizar Biblioteca"
 #: cps/templates/layout.html
 msgid "Support"
 msgstr "Apoyo"
-
-#: cps/templates/layout.html
-msgid "New interface available"
-msgstr "Nueva interfaz disponible"
-
-#: cps/templates/layout.html
-msgid "A faster, redesigned Calibre-Web NextGen interface is ready."
-msgstr ""
-"Una interfaz de Calibre-Web NextGen más rápida y rediseñada ya está lista."
-
-#: cps/templates/layout.html
-msgid "Your classic view stays the default until you switch."
-msgstr "Tu vista clásica sigue siendo la predeterminada hasta que cambies."
-
-#: cps/templates/layout.html
-msgid "Try the new UI"
-msgstr "Prueba la nueva interfaz"
 
 #: cps/templates/layout.html
 msgid "See Changelog"
@@ -14037,6 +14016,22 @@ msgstr "Exponer las estanterías seleccionadas en OPDS"
 #: cps/templates/user_table.html
 msgid "Show Read/Unread Section"
 msgstr "Mostrar Selección Leidos/No Leidos"
+
+#~ msgid "Switch to New UI"
+#~ msgstr "Cambiar a la nueva interfaz"
+
+#~ msgid "New interface available"
+#~ msgstr "Nueva interfaz disponible"
+
+#~ msgid "A faster, redesigned Calibre-Web NextGen interface is ready."
+#~ msgstr ""
+#~ "Una interfaz de Calibre-Web NextGen más rápida y rediseñada ya está lista."
+
+#~ msgid "Your classic view stays the default until you switch."
+#~ msgstr "Tu vista clásica sigue siendo la predeterminada hasta que cambies."
+
+#~ msgid "Try the new UI"
+#~ msgstr "Prueba la nueva interfaz"
 
 #~ msgid ""
 #~ "If your Calibre library is corrupted and cannot be opened, you can "

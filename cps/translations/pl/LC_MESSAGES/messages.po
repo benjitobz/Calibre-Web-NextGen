@@ -12486,10 +12486,6 @@ msgid "Switch to the new Calibre-Web NextGen interface"
 msgstr "Przełącz na nowy interfejs Calibre-Web NextGen"
 
 #: cps/templates/layout.html
-msgid "Switch to New UI"
-msgstr "Przełącz na nowy interfejs"
-
-#: cps/templates/layout.html
 msgid "Logout"
 msgstr "Wyloguj się"
 
@@ -12508,22 +12504,6 @@ msgstr "Odśwież bibliotekę"
 #: cps/templates/layout.html
 msgid "Support"
 msgstr "Wsparcie"
-
-#: cps/templates/layout.html
-msgid "New interface available"
-msgstr "Dostępny nowy interfejs"
-
-#: cps/templates/layout.html
-msgid "A faster, redesigned Calibre-Web NextGen interface is ready."
-msgstr "Szybszy, przeprojektowany interfejs Calibre-Web NextGen jest gotowy."
-
-#: cps/templates/layout.html
-msgid "Your classic view stays the default until you switch."
-msgstr "Twój widok klasyczny pozostaje domyślny, dopóki go nie zmienisz."
-
-#: cps/templates/layout.html
-msgid "Try the new UI"
-msgstr "Wypróbuj nowy interfejs"
 
 #: cps/templates/layout.html
 msgid "See Changelog"
@@ -13947,6 +13927,22 @@ msgstr "Udostępniaj wybrane półki przez OPDS"
 #: cps/templates/user_table.html
 msgid "Show Read/Unread Section"
 msgstr "Pokaż sekcję przeczytane/nieprzeczytane"
+
+#~ msgid "Switch to New UI"
+#~ msgstr "Przełącz na nowy interfejs"
+
+#~ msgid "New interface available"
+#~ msgstr "Dostępny nowy interfejs"
+
+#~ msgid "A faster, redesigned Calibre-Web NextGen interface is ready."
+#~ msgstr ""
+#~ "Szybszy, przeprojektowany interfejs Calibre-Web NextGen jest gotowy."
+
+#~ msgid "Your classic view stays the default until you switch."
+#~ msgstr "Twój widok klasyczny pozostaje domyślny, dopóki go nie zmienisz."
+
+#~ msgid "Try the new UI"
+#~ msgstr "Wypróbuj nowy interfejs"
 
 #~ msgid ""
 #~ "If your Calibre library is corrupted and cannot be opened, you can "

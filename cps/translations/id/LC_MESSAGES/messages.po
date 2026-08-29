@@ -12089,10 +12089,6 @@ msgid "Switch to the new Calibre-Web NextGen interface"
 msgstr "Katalog eBook Calibre-Web"
 
 #: cps/templates/layout.html
-msgid "Switch to New UI"
-msgstr ""
-
-#: cps/templates/layout.html
 msgid "Logout"
 msgstr "Keluar"
 
@@ -12112,24 +12108,6 @@ msgstr "Cari di Pustaka"
 
 #: cps/templates/layout.html
 msgid "Support"
-msgstr ""
-
-#: cps/templates/layout.html
-#, fuzzy
-msgid "New interface available"
-msgstr "Tidak ada informasi rilis yang tersedia"
-
-#: cps/templates/layout.html
-#, fuzzy
-msgid "A faster, redesigned Calibre-Web NextGen interface is ready."
-msgstr "Katalog eBook Calibre-Web"
-
-#: cps/templates/layout.html
-msgid "Your classic view stays the default until you switch."
-msgstr ""
-
-#: cps/templates/layout.html
-msgid "Try the new UI"
 msgstr ""
 
 #: cps/templates/layout.html
@@ -13547,6 +13525,14 @@ msgstr "Sinkronkan Rak yang dipilih dengan Kob"
 #, fuzzy
 msgid "Show Read/Unread Section"
 msgstr "Tampilkan pilihan baca/belum dibaca"
+
+#, fuzzy
+#~ msgid "New interface available"
+#~ msgstr "Tidak ada informasi rilis yang tersedia"
+
+#, fuzzy
+#~ msgid "A faster, redesigned Calibre-Web NextGen interface is ready."
+#~ msgstr "Katalog eBook Calibre-Web"
 
 #~ msgid "Random Books"
 #~ msgstr "Buku Acak"

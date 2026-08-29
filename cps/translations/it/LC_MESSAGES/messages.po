@@ -12123,10 +12123,6 @@ msgid "Switch to the new Calibre-Web NextGen interface"
 msgstr "Catalogo eBook Calibre-Web"
 
 #: cps/templates/layout.html
-msgid "Switch to New UI"
-msgstr ""
-
-#: cps/templates/layout.html
 msgid "Logout"
 msgstr "Disconnetti"
 
@@ -12144,24 +12140,6 @@ msgstr "Aggiorna la libreria"
 
 #: cps/templates/layout.html
 msgid "Support"
-msgstr ""
-
-#: cps/templates/layout.html
-#, fuzzy
-msgid "New interface available"
-msgstr "Nessuna informazione disponibile sulla versione"
-
-#: cps/templates/layout.html
-#, fuzzy
-msgid "A faster, redesigned Calibre-Web NextGen interface is ready."
-msgstr "Catalogo eBook Calibre-Web"
-
-#: cps/templates/layout.html
-msgid "Your classic view stays the default until you switch."
-msgstr ""
-
-#: cps/templates/layout.html
-msgid "Try the new UI"
 msgstr ""
 
 #: cps/templates/layout.html
@@ -13565,6 +13543,14 @@ msgstr "Sincronizza gli scaffali selezionati con Kobo"
 #: cps/templates/user_table.html
 msgid "Show Read/Unread Section"
 msgstr "Mostra sezione Libri letti e Libri da leggere"
+
+#, fuzzy
+#~ msgid "New interface available"
+#~ msgstr "Nessuna informazione disponibile sulla versione"
+
+#, fuzzy
+#~ msgid "A faster, redesigned Calibre-Web NextGen interface is ready."
+#~ msgstr "Catalogo eBook Calibre-Web"
 
 #~ msgid ""
 #~ "When active, a copy of all imported files will be stored in <i>/config/"

@@ -12014,10 +12014,6 @@ msgid "Switch to the new Calibre-Web NextGen interface"
 msgstr "كتالوج الكتب الإلكترونية Calibre-Web"
 
 #: cps/templates/layout.html
-msgid "Switch to New UI"
-msgstr ""
-
-#: cps/templates/layout.html
 msgid "Logout"
 msgstr "تسجيل الخروج"
 
@@ -12036,24 +12032,6 @@ msgstr "البحث في المكتبة"
 
 #: cps/templates/layout.html
 msgid "Support"
-msgstr ""
-
-#: cps/templates/layout.html
-#, fuzzy
-msgid "New interface available"
-msgstr "لا توجد معلومات إصدار متاحة"
-
-#: cps/templates/layout.html
-#, fuzzy
-msgid "A faster, redesigned Calibre-Web NextGen interface is ready."
-msgstr "كتالوج الكتب الإلكترونية Calibre-Web"
-
-#: cps/templates/layout.html
-msgid "Your classic view stays the default until you switch."
-msgstr ""
-
-#: cps/templates/layout.html
-msgid "Try the new UI"
 msgstr ""
 
 #: cps/templates/layout.html
@@ -13452,6 +13430,14 @@ msgstr "مزامنة الرفوف المختارة مع Kobo"
 #: cps/templates/user_table.html
 msgid "Show Read/Unread Section"
 msgstr "إظهار قسم المقروء/غير المقروء"
+
+#, fuzzy
+#~ msgid "New interface available"
+#~ msgstr "لا توجد معلومات إصدار متاحة"
+
+#, fuzzy
+#~ msgid "A faster, redesigned Calibre-Web NextGen interface is ready."
+#~ msgstr "كتالوج الكتب الإلكترونية Calibre-Web"
 
 #~ msgid "Random Books"
 #~ msgstr "كتب عشوائية"
