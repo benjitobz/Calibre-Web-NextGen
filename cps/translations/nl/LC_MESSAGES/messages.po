@@ -14250,3 +14250,29 @@ msgstr "Toon gelezen/niet gelezen selectie"
 #~ msgstr ""
 #~ "Boeken moeten eerst worden gearchiveerd en het apparaat moet worden "
 #~ "gesynchroniseerd, voordat een boek veilig kan worden verwijderd."
+msgid "Could not load this device library."
+msgstr "Kan de bibliotheek van dit apparaat niet laden."
+
+msgid "Hide device library"
+msgstr "Apparaatbibliotheek verbergen"
+
+msgid "Loading device library…"
+msgstr "Apparaatbibliotheek laden…"
+
+msgid "No books were reported in the latest device inventory."
+msgstr "Er zijn geen boeken gemeld in de nieuwste apparaatinventaris."
+
+msgid "Not matched to this library"
+msgstr "Niet gekoppeld aan deze bibliotheek"
+
+msgid "On this device"
+msgstr "Op dit apparaat"
+
+msgid "Showing {shown} of {total} books from the latest device inventory."
+msgstr "{shown} van {total} boeken uit de nieuwste apparaatinventaris worden weergegeven."
+
+msgid "View device library"
+msgstr "Apparaatbibliotheek bekijken"
+
+msgid "{n} books in latest inventory"
+msgstr "{n} boeken in de nieuwste inventaris"
