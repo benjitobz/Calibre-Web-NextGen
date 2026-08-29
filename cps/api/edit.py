@@ -498,8 +498,12 @@ def delete_format(book_id, fmt):
     if not current_user.role_delete_books():
         return _err("forbidden", "You are not allowed to delete books", 403)
     # Same visibility-scoped authorization as whole-book delete above.
-    if not calibre_db.get_filtered_book(book_id, allow_show_archived=True, allow_show_hidden=True):
+    book = calibre_db.get_filtered_book(book_id, allow_show_archived=True, allow_show_hidden=True)
+    if not book:
         return _err("not_found", "Book not found", 404)
+    matching_formats = [data for data in book.data if data.format.upper() == fmt.upper()]
+    if matching_formats and len(book.data) == 1:
+        return _err("last_format", "A book must keep at least one format", 409)
     delete_book_from_table(book_id, fmt.upper(), True)
     return "", 204
 

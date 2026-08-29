@@ -255,11 +255,34 @@ def test_delete_format_uses_core_with_uppercased_format():
     from cps.api import edit as mod
     with _ctx("/api/v1/books/5/formats/epub/delete"):
         with patch.object(mod, "current_user", _editor()), \
-             patch.object(mod.calibre_db, "get_filtered_book", return_value=SimpleNamespace(id=5)), \
+             patch.object(mod.calibre_db, "get_filtered_book", return_value=SimpleNamespace(
+                 id=5, data=[SimpleNamespace(format="EPUB"), SimpleNamespace(format="PDF")])), \
              patch.object(mod, "delete_book_from_table") as core:
             resp = inspect.unwrap(mod.delete_format)(5, "epub")
     assert resp[1] == 204
     core.assert_called_once_with(5, "EPUB", True)
+
+
+@pytest.mark.unit
+def test_delete_format_rejects_removing_the_last_format():
+    from cps.api import edit as mod
+    book = SimpleNamespace(id=5, data=[SimpleNamespace(format="EPUB")])
+    with _ctx("/api/v1/books/5/formats/epub/delete"):
+        with patch.object(mod, "current_user", _editor()), \
+             patch.object(mod.calibre_db, "get_filtered_book", return_value=book), \
+             patch.object(mod, "delete_book_from_table") as core:
+            resp = inspect.unwrap(mod.delete_format)(5, "epub")
+    assert resp[1] == 409
+    assert json.loads(resp[0].get_data())["error"]["code"] == "last_format"
+    core.assert_not_called()
+
+
+@pytest.mark.unit
+def test_edit_book_explains_why_the_last_format_cannot_be_deleted():
+    component = (Path(__file__).parents[2] / "frontend" / "src" / "pages" / "EditBook.tsx").read_text()
+    assert "const isLastFormat = book!.formats.length === 1" in component
+    assert "disabled={deleteFormat.isPending || isLastFormat}" in component
+    assert "A book must keep at least one format." in component
 
 
 @pytest.mark.unit

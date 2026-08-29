@@ -792,6 +792,8 @@ function FormatsManager({ id }: { id: string }) {
   const targets = convertOptions?.targets ?? [];
   if (!book) return null;
   const canDelete = !!me?.role?.delete_books;
+  const isLastFormat = book!.formats.length === 1;
+  const lastFormatReasonId = `last-format-delete-reason-${id}`;
   // #1288: "Add a format" POSTs to /api/v1/books/<id>/formats, which requires
   // role_upload and now honours the admin's "Enable Uploads" switch. Gate the
   // control on the same pair, or the switch turns a hidden button into a 403.
@@ -843,14 +845,20 @@ function FormatsManager({ id }: { id: string }) {
                     deleteFormat.mutate(f.format);
                   }
                 }}
-                disabled={deleteFormat.isPending}
+                disabled={deleteFormat.isPending || isLastFormat}
+                aria-describedby={isLastFormat ? lastFormatReasonId : undefined}
                 aria-label={t('Delete {fmt}', { fmt: f.format })}>
-                <Trash2 size={14} />
+                <Trash2 size={14} aria-hidden="true" focusable={false} />
               </button>
             )}
           </li>
         ))}
       </ul>
+      {canDelete && isLastFormat && (
+        <p id={lastFormatReasonId} className={styles.formatDeleteReason}>
+          {t('A book must keep at least one format.')}
+        </p>
+      )}
 
       {sources.length > 0 && availableTargets.length > 0 && (
         <form className={styles.convertForm} onSubmit={onConvert}>
