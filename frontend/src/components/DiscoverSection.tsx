@@ -6,6 +6,7 @@ import { useDiscover, useMe } from '../lib/queries';
 import { useT } from '../lib/i18n';
 import { useAnnouncer } from '../lib/a11y/announcer';
 import styles from './DiscoverSection.module.css';
+import { canReadBooks } from '../lib/permissions';
 
 const STRIP_COUNT = 12;
 
@@ -78,7 +79,7 @@ export function DiscoverSection({ onClose, hideActions = false }:
         <div className={styles.strip}>
           {books.map((b) => (
             <div className={styles.item} key={b.id}>
-              <BookCard book={b} hideActions={hideActions} />
+              <BookCard book={b} hideActions={hideActions} canRead={canReadBooks(me)} />
             </div>
           ))}
         </div>

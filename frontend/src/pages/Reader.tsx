@@ -22,6 +22,7 @@ import {
 } from '../lib/reader/searchBook';
 import { chapterLabelForHref, splitSearchExcerpt } from '../lib/reader/searchUi';
 import { safeLocalStorageGet, safeLocalStorageSet } from '../lib/safeStorage';
+import { getReaderContentUrl } from '../lib/readerTarget';
 import styles from './Reader.module.css';
 
 // Highlight colors as ARIA/label keys (SC 1.4.1: a color must never be conveyed
@@ -338,6 +339,9 @@ export function Reader({ id }: { id: string }) {
   } | null>(null);
 
   const epubFormat = book?.formats.find((f) => f.format.toLowerCase() === 'epub');
+  const epubContentUrl = epubFormat
+    ? getReaderContentUrl(id, epubFormat.format, epubFormat.content_url)
+    : null;
 
   // C10: the TOC drawer and highlight popovers are overlays — trap focus while
   // open, restore on close, Escape closes (hooks run unconditionally every render).
@@ -990,7 +994,7 @@ export function Reader({ id }: { id: string }) {
 
   // Build the rendition once the epub format + its download URL are known.
   useEffect(() => {
-    if (!epubFormat || !viewerRef.current || !isBookmarkFetched || !isSettingsFetched || !settingsHydrated) return;
+    if (!epubFormat || !epubContentUrl || !viewerRef.current || !isBookmarkFetched || !isSettingsFetched || !settingsHydrated) return;
     let cancelled = false;
     setRendered(false);
     setRenderError(null);
@@ -1002,7 +1006,7 @@ export function Reader({ id }: { id: string }) {
       try {
         // Fetch the .epub ourselves (same-origin cookie auth) and hand epub.js
         // an ArrayBuffer — reliable archive open regardless of the URL extension.
-        const res = await fetch(resourceUrl(epubFormat.download_url), { credentials: 'include' });
+        const res = await fetch(resourceUrl(epubContentUrl), { credentials: 'include' });
         if (!res.ok) throw new Error(t('Could not load the book file ({status})', { status: res.status }));
         const buf = await res.arrayBuffer();
         if (cancelled) return;
@@ -1145,7 +1149,7 @@ export function Reader({ id }: { id: string }) {
     };
     // Re-render only when the source changes; theme/font are applied imperatively.
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [epubFormat?.download_url, isBookmarkFetched, isSettingsFetched, settingsHydrated]);
+  }, [epubContentUrl, isBookmarkFetched, isSettingsFetched, settingsHydrated]);
 
   // Apply theme / font changes to a live rendition without rebuilding it, and
   // remember the preference across sessions.

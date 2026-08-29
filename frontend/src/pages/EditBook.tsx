@@ -17,7 +17,7 @@ import { formatAuthors } from '../lib/authors';
 import { ApiError, resourceUrl } from '../lib/api';
 import { useT } from '../lib/i18n';
 import styles from './EditBook.module.css';
-import { canUploadBooks } from '../lib/permissions';
+import { canDownloadBooks, canUploadBooks } from '../lib/permissions';
 
 interface Ident { type: string; val: string }
 
@@ -837,7 +837,9 @@ function FormatsManager({ id }: { id: string }) {
         {book!.formats.map((f) => (
           <li key={f.format} className={styles.formatItem}>
             <span className={styles.formatName}>{f.format}</span>
-            <a className={styles.formatDownload} href={resourceUrl(f.download_url)} download target="_blank" rel="noopener">{t('Download')}</a>
+            {canDownloadBooks(me) && (
+              <a className={styles.formatDownload} href={resourceUrl(f.download_url)} download target="_blank" rel="noopener">{t('Download')}</a>
+            )}
             {canDelete && (
               <button className={styles.formatDelete}
                 onClick={() => {

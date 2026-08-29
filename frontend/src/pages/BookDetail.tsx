@@ -20,6 +20,7 @@ import type { CustomColumn, CustomColumnValue, EntityRef } from '../lib/api';
 import { ApiError, resourceUrl, resourceSrcSet } from '../lib/api';
 import { useT } from '../lib/i18n';
 import { getPrimaryReadTarget } from '../lib/readerTarget';
+import { canDownloadBooks, canReadBooks } from '../lib/permissions';
 import styles from './BookDetail.module.css';
 import { useCardActionsHidden } from '../lib/useCardActionsHidden';
 import { BookUserNotices } from '../components/UserNotices';
@@ -305,7 +306,11 @@ export function BookDetail() {
     );
   }
 
-  const primaryReadTarget = getPrimaryReadTarget(book.id, book.formats.map((f) => f.format));
+  const primaryReadTarget = getPrimaryReadTarget(
+    book.id,
+    book.formats.map((f) => f.format),
+    canReadBooks(me),
+  );
 
   // The membership endpoint returns ids only, and both it and the shelf list
   // apply the same server-side visibility filter (own shelves + public ones),
@@ -501,7 +506,7 @@ export function BookDetail() {
               {book.archived ? t('Archived') : t('Archive')}
             </button>}
 
-            {inLibrary && book.formats.map((fmt) => (
+            {inLibrary && canDownloadBooks(me) && book.formats.map((fmt) => (
               <a
                 key={fmt.format}
                 href={resourceUrl(fmt.download_url)}
@@ -817,6 +822,7 @@ export function BookDetail() {
       {book.authors.length > 0 && (
         <MoreByAuthor
           hideActions={cardActionsHidden}
+          canRead={canReadBooks(me)}
           key={book.id}
           authorId={book.authors[0].id}
           authorName={book.authors[0].name}

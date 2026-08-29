@@ -8,7 +8,7 @@ import { VisuallyHidden } from '../components/VisuallyHidden';
 import { useT } from '../lib/i18n';
 import styles from './NativeReader.module.css';
 
-const AUDIO = new Set(['mp3', 'm4a', 'm4b', 'flac', 'ogg', 'opus', 'wav', 'aac']);
+const AUDIO = new Set(['mp3', 'mp4', 'm4a', 'm4b', 'flac', 'ogg', 'opus', 'wav', 'aac']);
 const COMIC = new Set(['cbz', 'cbr', 'cbt']);
 
 /** Native in-browser reader for non-EPUB formats. PDF renders through the

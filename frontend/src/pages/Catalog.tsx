@@ -1020,6 +1020,7 @@ export function Catalog({ entityKind, entityId, view, defaultFilter }: CatalogPr
                 showSeriesIndex={isSeries}
                 style={{ animationDelay: `${Math.min(i, 24) * 35}ms` }}
                 quickEdit={canEdit && !selecting}
+                canRead={!!me?.role?.viewer}
                 hideActions={cardActionsHidden}
                 selectable={selecting}
                 selected={selected.has(book.id)}
