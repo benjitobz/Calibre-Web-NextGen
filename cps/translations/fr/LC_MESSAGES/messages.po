@@ -7333,6 +7333,46 @@ msgstr ""
 
 #: cps/spa_strings.py
 #, python-brace-format
+msgid "{n} books in latest inventory"
+msgstr "{n} livres dans le dernier inventaire"
+
+#: cps/spa_strings.py
+msgid "Could not load this device library."
+msgstr "Impossible de charger la bibliothèque de cet appareil."
+
+#: cps/spa_strings.py
+msgid "Hide device library"
+msgstr "Masquer la bibliothèque de l’appareil"
+
+#: cps/spa_strings.py
+msgid "Loading device library…"
+msgstr "Chargement de la bibliothèque de l’appareil…"
+
+#: cps/spa_strings.py
+msgid "No books were reported in the latest device inventory."
+msgstr "Aucun livre n’a été signalé dans le dernier inventaire de l’appareil."
+
+#: cps/spa_strings.py
+msgid "Not matched to this library"
+msgstr "Aucune correspondance dans cette bibliothèque"
+
+#: cps/spa_strings.py
+msgid "On this device"
+msgstr "Sur cet appareil"
+
+#: cps/spa_strings.py
+#, python-brace-format
+msgid "Showing {shown} of {total} books from the latest device inventory."
+msgstr ""
+"Affichage de {shown} livres sur {total} dans le dernier inventaire de "
+"l’appareil."
+
+#: cps/spa_strings.py
+msgid "View device library"
+msgstr "Afficher la bibliothèque de l’appareil"
+
+#: cps/spa_strings.py
+#, python-brace-format
 msgid "{ok} of {total} assigned to {name}."
 msgstr "{ok} sur {total} attribués à {name}."
 
@@ -14732,29 +14772,3 @@ msgstr "Afficher la section Lu / Non lu"
 #~ msgstr ""
 #~ "Les livres doivent d'abord être archivés et l'appareil synchronisé avant "
 #~ "qu'un livre puisse être supprimé en tout sécurité."
-msgid "Could not load this device library."
-msgstr "Impossible de charger la bibliothèque de cet appareil."
-
-msgid "Hide device library"
-msgstr "Masquer la bibliothèque de l’appareil"
-
-msgid "Loading device library…"
-msgstr "Chargement de la bibliothèque de l’appareil…"
-
-msgid "No books were reported in the latest device inventory."
-msgstr "Aucun livre n’a été signalé dans le dernier inventaire de l’appareil."
-
-msgid "Not matched to this library"
-msgstr "Aucune correspondance dans cette bibliothèque"
-
-msgid "On this device"
-msgstr "Sur cet appareil"
-
-msgid "Showing {shown} of {total} books from the latest device inventory."
-msgstr "Affichage de {shown} livres sur {total} dans le dernier inventaire de l’appareil."
-
-msgid "View device library"
-msgstr "Afficher la bibliothèque de l’appareil"
-
-msgid "{n} books in latest inventory"
-msgstr "{n} livres dans le dernier inventaire"
