@@ -168,6 +168,9 @@ if [ "$(realpath -m -- "${CWA_LEGACY_TEMP_DIR}" 2>/dev/null || echo "${CWA_LEGAC
   rm -rf "${CWA_LEGACY_TEMP_DIR}" 2>/dev/null || true
 fi
 
+# The cwa-init ingest block sentinel pair is consumed by
+# tests/unit/test_1611_path_env_overrides.py; keep the pair around this block.
+# cwa-init:ingest-directory:block-begin
 # Ensure the resolved ingest directory exists and is writable. app_paths keeps
 # the environment -> dirs.json -> default precedence identical to Python.
 CWA_APP_PATHS="${CWA_APP_PATHS:-/app/calibre-web-automated/scripts/app_paths.py}"
@@ -194,8 +197,16 @@ if [ "${NETWORK_SHARE_MODE,,}" = "true" ] || [ "${NETWORK_SHARE_MODE}" = "1" ] |
 else
   chown -R abc:abc "$INGEST_DIR" 2>/dev/null || true
 fi
+# cwa-init:ingest-directory:block-end
 
-# For Calibre Plugins
+# Calibre's normal abc-run tools use a plugin-free config directory. Keeping it
+# beside, not above, the opt-in plugin directory prevents the default path from
+# discovering operator-supplied plugins. cwa-init is a dependency of both abc
+# services before their run scripts execute, so the directory is writable at
+# the moment they first launch a Calibre child (#1764).
+install -d -o abc -g abc /config/.config/calibre-runtime
+
+# For explicitly enabled Calibre Plugins
 install -d -o abc -g abc /config/.config/calibre/plugins
 # ln -sf /config/.config/calibre/plugins /config/calibre_plugins
 

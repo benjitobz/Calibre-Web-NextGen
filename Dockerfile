@@ -444,11 +444,10 @@ RUN find /opt/calibre -maxdepth 1 -type f -perm -u+x \
   test -x /usr/bin/calibredb
 
 # Deliberately NO global CALIBRE_CONFIG_DIRECTORY here. (A misspelled
-# CALIBRE_CONFIG_DIR lived here for a while -- Calibre ignores that name,
-# and setting the real one globally would force user-plugin loading on for
-# every Calibre subprocess. Plugin loading is opt-in via
-# CWA_CALIBRE_USER_PLUGINS; cps/services/calibre_user_plugins.py sets
-# CALIBRE_CONFIG_DIRECTORY per-subprocess when the operator enables it.)
+# CALIBRE_CONFIG_DIR lived here for a while -- Calibre ignores that name.) The
+# s6 units that can launch Calibre choose a writable, plugin-free config for
+# their execution uid; cps/services/calibre_user_plugins.py overrides it with
+# /config/.config/calibre only when CWA_CALIBRE_USER_PLUGINS is enabled.
 
 # Ports and volumes
 WORKDIR /config

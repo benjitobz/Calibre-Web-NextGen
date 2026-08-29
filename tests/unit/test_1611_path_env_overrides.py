@@ -28,6 +28,12 @@ PATH_CASES = (
 )
 PATH_ENV_VARS = tuple(case[1] for case in PATH_CASES)
 ROOT_EQUIVALENT_PATHS = ("/", "/./", "//", "///./")
+CWA_INIT_INGEST_BLOCK_BEGIN = "# cwa-init:ingest-directory:block-begin"
+CWA_INIT_INGEST_BLOCK_END = "# cwa-init:ingest-directory:block-end"
+
+
+class CwaInitIngestBlockSentinelError(RuntimeError):
+    """Raised when the cwa-init ingest test-block contract is broken."""
 
 
 @pytest.fixture()
@@ -384,12 +390,47 @@ def _isolated_path_env(tmp_path):
     return env
 
 
-def _cwa_init_ingest_block(tmp_path):
-    source = (S6_DIR / "cwa-init/run").read_text(encoding="utf-8")
-    start = source.index("# Ensure the resolved ingest directory exists")
-    end = source.index("# For Calibre Plugins", start)
+def _cwa_init_ingest_block(tmp_path, source_path=None):
+    source_path = source_path or S6_DIR / "cwa-init/run"
+    source = source_path.read_text(encoding="utf-8")
+    try:
+        begin = source.index(CWA_INIT_INGEST_BLOCK_BEGIN)
+    except ValueError as error:
+        raise CwaInitIngestBlockSentinelError(
+            "cwa-init ingest block begin sentinel is missing"
+        ) from error
+
+    start = begin + len(CWA_INIT_INGEST_BLOCK_BEGIN) + 1
+    try:
+        end = source.index(CWA_INIT_INGEST_BLOCK_END, start)
+    except ValueError as error:
+        raise CwaInitIngestBlockSentinelError(
+            "cwa-init ingest block end sentinel is missing"
+        ) from error
+
     script = tmp_path / "cwa-init-ingest-block.sh"
     return _write_executable(script, "#!/bin/bash\n" + source[start:end])
+
+
+@pytest.mark.parametrize(
+    ("sentinel", "missing_anchor"),
+    (
+        (CWA_INIT_INGEST_BLOCK_BEGIN, "begin"),
+        (CWA_INIT_INGEST_BLOCK_END, "end"),
+    ),
+)
+def test_cwa_init_ingest_block_reports_missing_sentinel(
+    tmp_path, sentinel, missing_anchor
+):
+    source = (S6_DIR / "cwa-init/run").read_text(encoding="utf-8")
+    script_copy = tmp_path / "cwa-init-run"
+    script_copy.write_text(source.replace(sentinel, "", 1), encoding="utf-8")
+
+    with pytest.raises(
+        CwaInitIngestBlockSentinelError,
+        match=rf"cwa-init ingest block {missing_anchor} sentinel is missing",
+    ):
+        _cwa_init_ingest_block(tmp_path, script_copy)
 
 
 def test_cwa_init_skips_custom_ingest_chown_in_network_share_mode(tmp_path):

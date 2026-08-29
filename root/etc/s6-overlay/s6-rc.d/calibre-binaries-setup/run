@@ -1,4 +1,5 @@
 #!/usr/bin/with-contenv bash
+# shellcheck shell=bash
 
 echo "[calibre-binaries-setup] Starting Calibre binaries setup..."
 
@@ -16,6 +17,15 @@ cat <<-EOF
 EOF
 echo "[calibre-binaries-setup] Non-Ubuntu base detected, exiting..."
 exit 0
+fi
+
+# Keep root-run installation/version probes out of both /root/.config/calibre
+# and the abc runtime config. A uid-private temp config cannot leave root-owned
+# files that later abc conversions are expected to update. This belongs after
+# the Ubuntu-base guard so unsupported minimal images retain their clean exit.
+if [ -z "${CALIBRE_CONFIG_DIRECTORY:-}" ]; then
+    export CALIBRE_CONFIG_DIRECTORY="/tmp/cwa-calibre-config-$(id -u)"
+    install -d -m 0700 "$CALIBRE_CONFIG_DIRECTORY"
 fi
 
 export DEBIAN_FRONTEND="noninteractive"

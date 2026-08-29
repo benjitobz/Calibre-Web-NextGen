@@ -43,9 +43,16 @@ export CWA_INGEST_PROCESSOR_CMD="$stub"
 export PROCESSOR_LOG="$processor_log"
 export POST_BATCH_LOG="$post_batch_log"
 export PROCESSOR_EXIT_CODE=0
+unset CALIBRE_CONFIG_DIRECTORY
 
 # shellcheck disable=SC1091
 source "$REPO_ROOT/root/etc/s6-overlay/s6-rc.d/cwa-ingest-service/run" >/dev/null
+
+if [ "$CALIBRE_CONFIG_DIRECTORY" != "/config/.config/calibre-runtime" ]; then
+        printf 'Expected ingest service to export the abc-safe Calibre config; got: %s\n' \
+                "${CALIBRE_CONFIG_DIRECTORY:-unset}" >&2
+        exit 1
+fi
 
 assert_contains() {
         local haystack="$1"
