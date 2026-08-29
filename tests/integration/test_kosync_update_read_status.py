@@ -16,6 +16,11 @@ import sys
 import base64
 from pathlib import Path
 
+# Every endpoint in this file answers 503 while KOReader sync is disabled, which
+# it is by default. Without this the whole module measures one early-return.
+pytestmark = pytest.mark.usefixtures("koreader_sync_enabled")
+
+
 # Add project root to path
 project_root = Path(__file__).parent.parent.parent
 sys.path.insert(0, str(project_root))

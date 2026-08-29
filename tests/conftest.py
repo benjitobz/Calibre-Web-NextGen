@@ -17,6 +17,7 @@ Environment Variables:
 """
 
 import os
+import re
 import sys
 import pytest
 import tempfile
@@ -904,8 +905,133 @@ def container_name(cwa_container) -> str:
     return "cwa-test-container"
 
 
+@pytest.fixture(scope="session")
+def koreader_sync_enabled(container_name):
+    """Turn on KOReader sync in the container under test, and put it back after.
+
+    KOReader sync ships OFF. While it is off, ``_require_kosync_enabled`` answers
+    **503** on every /kosync endpoint before any handler runs -- so a suite that
+    does not enable it first is not testing authentication, validation or
+    progress at all. It is measuring one branch that returns 503, forty-one
+    times.
+
+    That is not a hypothetical: when the API-client fixture was repaired and
+    these tests could finally execute, all 41 of them failed on ``assert 503``,
+    which looks like a product outage and is really a missing precondition.
+
+    The setting lives in cwa.db rather than the Flask config, and it is read
+    fresh on each request, so writing it is enough -- no restart. The write goes
+    directly to the database on purpose: the /cwa-settings form POST rebuilds
+    every boolean from the submitted fields, so saving through it would silently
+    switch off everything this fixture did not think to include.
+    """
+    import json
+    import subprocess
+
+    def _set(value):
+        script = (
+            "import sqlite3;"
+            "c=sqlite3.connect('/config/cwa.db');"
+            f"c.execute('UPDATE cwa_settings SET koreader_sync_enabled=?', ({value},));"
+            "c.commit();"
+            "print(list(c.execute('SELECT koreader_sync_enabled FROM cwa_settings'))[0][0])"
+        )
+        result = subprocess.run(
+            ["docker", "exec", container_name, "python3", "-c", script],
+            capture_output=True, text=True, timeout=60, check=False,
+        )
+        if result.returncode != 0:
+            pytest.skip(
+                "could not reach cwa.db in the container to enable KOReader "
+                f"sync: {result.stderr[-400:]}"
+            )
+        return result.stdout.strip()
+
+    previous = subprocess.run(
+        ["docker", "exec", container_name, "python3", "-c",
+         "import sqlite3;print(list(sqlite3.connect('/config/cwa.db')"
+         ".execute('SELECT koreader_sync_enabled FROM cwa_settings'))[0][0])"],
+        capture_output=True, text=True, timeout=60, check=False,
+    )
+    was_enabled = previous.stdout.strip() == "1" if previous.returncode == 0 else None
+
+    assert _set(1) == "1", "KOReader sync did not stay enabled after the write"
+    try:
+        yield
+    finally:
+        # Leave the container as we found it; other tests in the same session
+        # should not silently inherit a setting this one turned on.
+        if was_enabled is False:
+            _set(0)
+
+
+class CWAApiClient:
+    """An authenticated client that is BOTH a mapping and an HTTP client.
+
+    Two call styles exist in the suite and both are load-bearing:
+
+        tests/docker/       client["session"].get(client["base_url"] + path)
+        tests/integration/  client.get("/kosync/users/auth", headers=...)
+
+    The fixture used to return a plain dict, so the second style raised
+    ``AttributeError: 'dict' object has no attribute 'put'`` -- on 47 call sites
+    across three files. Nobody saw it, because those tests were being skipped for
+    an unrelated reason (the fixture could not log in), so the suite reported
+    green while most of it could not have run at all.
+
+    Deliberately NOT a dict subclass: ``dict.get`` is a mapping method, and
+    overriding it to mean "HTTP GET" makes ``client.get("base_url")`` silently do
+    something entirely different. Mapping access is ``[]`` only, so ``.get`` can
+    mean exactly one thing.
+    """
+
+    def __init__(self, base_url, session, container):
+        self._values = {
+            "base_url": base_url,
+            "session": session,
+            "container": container,
+        }
+
+    def __getitem__(self, key):
+        return self._values[key]
+
+    def __contains__(self, key):
+        return key in self._values
+
+    @property
+    def base_url(self):
+        return self._values["base_url"]
+
+    @property
+    def session(self):
+        return self._values["session"]
+
+    def _url(self, path):
+        # Relative paths resolve against the container under test; an absolute
+        # URL passes through, so a test can reach elsewhere on purpose.
+        if path.startswith(("http://", "https://")):
+            return path
+        return f"{self._values['base_url']}{path}"
+
+    def request(self, method, path, **kwargs):
+        kwargs.setdefault("timeout", 30)
+        return self._values["session"].request(method, self._url(path), **kwargs)
+
+    def get(self, path, **kwargs):
+        return self.request("GET", path, **kwargs)
+
+    def put(self, path, **kwargs):
+        return self.request("PUT", path, **kwargs)
+
+    def post(self, path, **kwargs):
+        return self.request("POST", path, **kwargs)
+
+    def delete(self, path, **kwargs):
+        return self.request("DELETE", path, **kwargs)
+
+
 @pytest.fixture(scope="function")
-def cwa_api_client(cwa_container) -> dict:
+def cwa_api_client(cwa_container) -> "CWAApiClient":
     """
     Provide a configured API client for interacting with CWA container.
 
@@ -930,25 +1056,53 @@ def cwa_api_client(cwa_container) -> dict:
     # Create session with default credentials
     session = requests.Session()
 
-    # Login to CWA (default credentials: admin/admin123)
+    # Login to CWA (default credentials: admin/admin123).
+    #
+    # The login form is CSRF-protected, so the token has to be read off the
+    # rendered page first. Posting credentials alone returns 400 -- which reads
+    # like a malformed request rather than a missing token, and is why this went
+    # unnoticed: the fixture treated it as "no usable container" and skipped.
     try:
+        form = session.get(f"{base_url}/login", timeout=10)
+        token_match = re.search(
+            r'name="csrf_token"[^>]*value="([^"]+)"', form.text,
+        )
+        credentials = {"username": "admin", "password": "admin123"}
+        if token_match:
+            credentials["csrf_token"] = token_match.group(1)
+
         login_response = session.post(
             f"{base_url}/login",
-            data={"username": "admin", "password": "admin123"},
+            data=credentials,
             allow_redirects=False,
-            timeout=5
+            timeout=10
         )
 
+        # A reachable container that refuses our credentials is a FAILURE, not a
+        # skip. The two are different facts and only one of them is about the
+        # environment: skipping here turned a login regression into 48 silently
+        # disabled tests while the CI lane still reported success.
         if login_response.status_code not in (200, 302):
-            pytest.skip("Could not authenticate with CWA container")
+            pytest.fail(
+                f"CWA container on port {test_port} is reachable but rejected the "
+                f"test credentials (HTTP {login_response.status_code}). This is a "
+                f"regression in the login flow, not a missing test environment."
+            )
+
+        # A 302 alone does not mean success: a failed login also redirects, back
+        # to the login page. Confirm the session is actually authenticated before
+        # handing it to tests that would otherwise all fail in confusing ways.
+        whoami = session.get(f"{base_url}/api/v1/me", timeout=10)
+        if whoami.status_code != 200:
+            pytest.fail(
+                f"login to the CWA container appeared to succeed (HTTP "
+                f"{login_response.status_code}) but the session is not "
+                f"authenticated (/api/v1/me returned {whoami.status_code})."
+            )
     except requests.exceptions.RequestException as e:
         pytest.skip(f"Could not connect to CWA container: {e}")
 
-    return {
-        "base_url": base_url,
-        "session": session,
-        "container": cwa_container,
-    }
+    return CWAApiClient(base_url, session, cwa_container)
 
 
 @pytest.fixture(scope="function")

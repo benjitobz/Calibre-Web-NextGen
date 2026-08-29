@@ -10,6 +10,11 @@ import pytest
 import base64
 import json
 
+# Every endpoint in this file answers 503 while KOReader sync is disabled, which
+# it is by default. Without this the whole module measures one early-return.
+pytestmark = pytest.mark.usefixtures("koreader_sync_enabled")
+
+
 
 @pytest.mark.docker_integration
 @pytest.mark.slow

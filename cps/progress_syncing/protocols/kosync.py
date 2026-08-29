@@ -358,13 +358,20 @@ def handle_sync_error(error: KOSyncError) -> tuple:
         error: KOSyncError with error code and message
 
     Returns:
-        JSON error response with 400 status code
+        JSON error response, 401 for an authentication failure and 400 otherwise
     """
     log.error(f"KOSync Error {error.error_code}: {error.message}")
+    # Every KOSyncError used to become a 400, including this one -- so an
+    # unauthenticated request was answered "Bad Request" while its own body said
+    # {"error": 2001, "message": "Unauthorized"}. A client cannot tell "log in
+    # again" from "your request was malformed" by status, which is the one thing
+    # the status line is for, and other kosync handlers already answer 401
+    # directly for the same condition.
+    status = 401 if error.error_code == ERROR_UNAUTHORIZED_USER else 400
     return create_sync_response({
         "error": error.error_code,
         "message": error.message
-    }, 400)
+    }, status)
 
 
 def get_book_by_checksum(document_checksum: str, version: str = None):
