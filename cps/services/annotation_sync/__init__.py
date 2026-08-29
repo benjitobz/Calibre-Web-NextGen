@@ -715,12 +715,21 @@ def dispatch_annotation_sync(payload_annotations, book, user, *, origin_device_i
             )
             all_persisted = False
             continue
+        if not payload.get("id"):
+            log.warning(
+                "Skipping annotation without an id at updatedAnnotations[%d]", index,
+            )
+            all_persisted = False
+            continue
         pending_job = None
         try:
             ann = _upsert_annotation(
                 ub.session, payload, book, user, origin_device_id=origin_device_id,
             )
             if ann is None:
+                # The malformed shapes that cannot be addressed on a retry were
+                # rejected above. None here is a persisted row's legitimate
+                # stale/idempotent no-op and therefore does not fail the batch.
                 continue
             raw_record = None
             if raw_materializations is not None and index < len(raw_materializations):
