@@ -1,4 +1,4 @@
--- Behavioural coverage for CWASync:getDocumentDigest (#991).
+-- Behavioural coverage for CWNGSync:getDocumentDigest (#991).
 --
 -- sync_logic_test.lua proves the precedence POLICY. This proves the production
 -- WIRING: it slices the real getDocumentDigest source out of main.lua and loads
@@ -40,14 +40,14 @@ local function loadProductionFunction(env)
     local source = f:read("*a")
     f:close()
 
-    local header = "function CWASync:getDocumentDigest(file_path)"
+    local header = "function CWNGSync:getDocumentDigest(file_path)"
     local start = source:find(header, 1, true)
     assert(start, "getDocumentDigest not found in main.lua")
     local stop = source:find("\nend\n", start, true)
     assert(stop, "getDocumentDigest is unterminated")
 
     local body = source:sub(start, stop + 4)
-    local chunk = "local CWASync = {}\n" .. body .. "\nreturn CWASync\n"
+    local chunk = "local CWNGSync = {}\n" .. body .. "\nreturn CWNGSync\n"
 
     local loaded, err = load(chunk, "getDocumentDigest", "t", env)
     assert(loaded, "getDocumentDigest failed to parse: " .. tostring(err))
@@ -165,9 +165,9 @@ end
 
 local function digest(opts, file_path)
     local env, self_stub, calls = newEnv(opts)
-    local CWASync = loadProductionFunction(env)
-    self_stub.getDocumentDigest = CWASync.getDocumentDigest
-    return CWASync.getDocumentDigest(self_stub, file_path), calls
+    local CWNGSync = loadProductionFunction(env)
+    self_stub.getDocumentDigest = CWNGSync.getDocumentDigest
+    return CWNGSync.getDocumentDigest(self_stub, file_path), calls
 end
 
 -- The regression. The device holds bytes the server never registered because

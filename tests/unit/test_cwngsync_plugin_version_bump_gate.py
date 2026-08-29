@@ -2,7 +2,7 @@
 # SPDX-License-Identifier: GPL-3.0-or-later
 """A KOReader plugin publish owed by a release must declare that release's version.
 
-``scripts/publish-cwasync-plugin.sh`` already refuses to publish a plugin whose
+``scripts/publish-cwngsync-plugin.sh`` already refuses to publish a plugin whose
 declared version does not equal the tag it is publishing for. That check is
 correct, but it runs from ``plugin-release-publish.yml``, which fires on
 ``release: published`` — **after** the tag exists. A published tag cannot be
@@ -39,7 +39,7 @@ pre-tag bump as a phantom update because the tag necessarily still names the
 previous release.
 
 More importantly, the tag baseline can drift from the publisher's real baseline:
-``publish-cwasync-plugin.sh`` compares against the dedicated plugin repository,
+``publish-cwngsync-plugin.sh`` compares against the dedicated plugin repository,
 not against this repository's newest tag. Once that repository falls behind, a
 publish is owed even when our plugin is identical to our newest tag. The old gate
 missed that state, the post-release publish rejected the stale declaration, and
@@ -71,7 +71,7 @@ import pytest
 pytestmark = pytest.mark.unit
 
 REPO_ROOT = Path(__file__).resolve().parents[2]
-PLUGIN_RELPATH = "koreader/plugins/cwasync.koplugin"
+PLUGIN_RELPATH = "koreader/plugins/cwngsync.koplugin"
 PLUGIN = REPO_ROOT / PLUGIN_RELPATH
 CHANGELOG = REPO_ROOT / "CHANGELOG.md"
 
@@ -184,7 +184,7 @@ def test_meta_and_main_declare_the_same_version() -> None:
     main = _declared_version("main.lua")
     assert meta == main, (
         f"_meta.lua declares {meta} but main.lua declares {main}. "
-        "publish-cwasync-plugin.sh reads both and refuses a mismatch."
+        "publish-cwngsync-plugin.sh reads both and refuses a mismatch."
     )
 
 
@@ -205,7 +205,7 @@ def test_plugin_declaration_matches_version_being_cut() -> None:
             f"The plugin has changed since {newest_tag}, so the next release "
             f"owes the dedicated repository a publish -- but it still declares "
             f"{declared} while the release being cut is {release_version}. "
-            f"publish-cwasync-plugin.sh will hard-fail on a version that is not "
+            f"publish-cwngsync-plugin.sh will hard-fail on a version that is not "
             f"the tag, and it runs after the tag is published, which cannot be "
             f"undone. Set the version line in both "
             f"{PLUGIN_RELPATH}/_meta.lua and {PLUGIN_RELPATH}/main.lua to the "

@@ -18,8 +18,8 @@ set -euo pipefail
 # dedicated repository silently stuck on an older plugin).
 
 ROOT=$(cd "$(dirname "${BASH_SOURCE[0]}")/.." && pwd)
-SOURCE="$ROOT/koreader/plugins/cwasync.koplugin"
-TARGET_REPO="new-usemame/cwasync.koplugin"
+SOURCE="$ROOT/koreader/plugins/cwngsync.koplugin"
+TARGET_REPO="new-usemame/cwngsync.koplugin"
 PUBLISH=0
 AUTO=0
 TAG=""
@@ -85,10 +85,10 @@ active_account=$(gh api user --jq .login)
 reconcile_app_release_asset() {
     local present
     present=$(gh release view "$TAG" --repo new-usemame/Calibre-Web-NextGen \
-        --json assets --jq '[.assets[].name] | index("cwasync.koplugin.zip") // "no"' 2>/dev/null \
+        --json assets --jq '[.assets[].name] | index("cwngsync.koplugin.zip") // "no"' 2>/dev/null \
         || printf 'no')
     if [[ "$present" != "no" && -n "$present" ]]; then
-        printf 'Application release %s already carries cwasync.koplugin.zip; nothing to reconcile.\n' \
+        printf 'Application release %s already carries cwngsync.koplugin.zip; nothing to reconcile.\n' \
             "$TAG"
         return 0
     fi
@@ -96,23 +96,31 @@ reconcile_app_release_asset() {
         "$TAG"
     mkdir -p "$tmp/reconcile"
     gh release download "$TAG" --repo "$TARGET_REPO" \
-        --pattern cwasync.koplugin.zip --dir "$tmp/reconcile"
-    gh release upload "$TAG" "$tmp/reconcile/cwasync.koplugin.zip" \
+        --pattern cwngsync.koplugin.zip --dir "$tmp/reconcile"
+    gh release upload "$TAG" "$tmp/reconcile/cwngsync.koplugin.zip" \
         --repo new-usemame/Calibre-Web-NextGen
-    printf 'Attached cwasync.koplugin.zip to application release %s.\n' "$TAG"
+    printf 'Attached cwngsync.koplugin.zip to application release %s.\n' "$TAG"
 }
 
-tmp=$(mktemp -d "${TMPDIR:-/tmp}/cwasync-release.XXXXXX")
+tmp=$(mktemp -d "${TMPDIR:-/tmp}/cwngsync-release.XXXXXX")
 trap 'rm -rf "$tmp"' EXIT
 git clone --quiet "https://github.com/$TARGET_REPO.git" "$tmp/repo"
-mkdir -p "$tmp/repo/cwasync.koplugin"
-rsync -a --delete --exclude='.DS_Store' "$SOURCE/" "$tmp/repo/cwasync.koplugin/"
+# The first publish after GitHub renames the dedicated repository clones its
+# legacy main branch, whose tracked tree is cwasync.koplugin.  Stage that
+# deletion alongside the new identity so the repository cannot keep shipping
+# both directories after the handoff.
+if [[ -d "$tmp/repo/cwasync.koplugin" ]]; then
+    rm -rf "$tmp/repo/cwasync.koplugin"
+    git -C "$tmp/repo" add -A -- cwasync.koplugin
+fi
+mkdir -p "$tmp/repo/cwngsync.koplugin"
+rsync -a --delete --exclude='.DS_Store' "$SOURCE/" "$tmp/repo/cwngsync.koplugin/"
 
 # Is a publish owed? The dedicated repository's main branch IS the last thing we
 # shipped, so staging the synced tree answers it exactly. `git add <dir>` stages
 # additions, modifications and deletions alike, so a removed plugin file counts
 # as a change too.
-git -C "$tmp/repo" add cwasync.koplugin
+git -C "$tmp/repo" add cwngsync.koplugin
 publish_owed=1
 git -C "$tmp/repo" diff --cached --quiet && publish_owed=0
 
@@ -168,19 +176,19 @@ fi
 
 (
     cd "$tmp/repo"
-    rm -f cwasync.koplugin.zip
-    zip -qr cwasync.koplugin.zip cwasync.koplugin
+    rm -f cwngsync.koplugin.zip
+    zip -qr cwngsync.koplugin.zip cwngsync.koplugin
     # Read the listing once, then match — piping unzip into `grep -q` trips SIGPIPE
     # under `set -o pipefail` (grep exits on first match, unzip dies 141) and aborts.
-    zip_listing=$(unzip -Z1 cwasync.koplugin.zip)
-    grep -qx 'cwasync.koplugin/main.lua' <<<"$zip_listing"
-    grep -qx 'cwasync.koplugin/_meta.lua' <<<"$zip_listing"
+    zip_listing=$(unzip -Z1 cwngsync.koplugin.zip)
+    grep -qx 'cwngsync.koplugin/main.lua' <<<"$zip_listing"
+    grep -qx 'cwngsync.koplugin/_meta.lua' <<<"$zip_listing"
 )
 
 if ((PUBLISH == 0)); then
     printf 'DRY RUN: validated %s for %s\n' "$TAG" "$TARGET_REPO"
     git -C "$tmp/repo" status --short
-    unzip -l "$tmp/repo/cwasync.koplugin.zip"
+    unzip -l "$tmp/repo/cwngsync.koplugin.zip"
     exit 0
 fi
 git -C "$tmp/repo" -c user.name='new-usemame' \
@@ -190,7 +198,7 @@ git -C "$tmp/repo" -c user.name='new-usemame' \
     -c user.email='248195428+new-usemame@users.noreply.github.com' \
     tag -a "$TAG" -m "NextGen Progress Sync $TAG"
 git -C "$tmp/repo" push origin HEAD:main "$TAG"
-gh release create "$TAG" "$tmp/repo/cwasync.koplugin.zip" \
+gh release create "$TAG" "$tmp/repo/cwngsync.koplugin.zip" \
     --repo "$TARGET_REPO" \
     --title "NextGen Progress Sync $TAG" \
     --notes "Built from the published Calibre-Web NextGen $TAG source tag."
@@ -215,11 +223,11 @@ gh release create "$TAG" "$tmp/repo/cwasync.koplugin.zip" \
 # v4.1.16 upload. Replacing one is a mutation of a published release, so say so
 # rather than doing it quietly.
 if [[ -n "$(gh release view "$TAG" --repo new-usemame/Calibre-Web-NextGen \
-    --json assets --jq '.assets[] | select(.name=="cwasync.koplugin.zip") | .name' 2>/dev/null)" ]]; then
-    printf 'NOTE: replacing the existing cwasync.koplugin.zip on application release %s.\n' "$TAG"
+    --json assets --jq '.assets[] | select(.name=="cwngsync.koplugin.zip") | .name' 2>/dev/null)" ]]; then
+    printf 'NOTE: replacing the existing cwngsync.koplugin.zip on application release %s.\n' "$TAG"
 fi
-gh release upload "$TAG" "$tmp/repo/cwasync.koplugin.zip" \
+gh release upload "$TAG" "$tmp/repo/cwngsync.koplugin.zip" \
     --repo new-usemame/Calibre-Web-NextGen --clobber
 
 printf 'Published %s to https://github.com/%s/releases/tag/%s\n' "$TAG" "$TARGET_REPO" "$TAG"
-printf 'Attached cwasync.koplugin.zip to https://github.com/new-usemame/Calibre-Web-NextGen/releases/tag/%s\n' "$TAG"
+printf 'Attached cwngsync.koplugin.zip to https://github.com/new-usemame/Calibre-Web-NextGen/releases/tag/%s\n' "$TAG"

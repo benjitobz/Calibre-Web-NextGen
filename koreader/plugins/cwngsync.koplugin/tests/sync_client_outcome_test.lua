@@ -36,7 +36,7 @@ package.preload["socketutil"] = function()
     return { set_timeout = function() end, reset_timeout = function() end }
 end
 
-local CWASyncClient = require("CWASyncClient")
+local CWNGSyncClient = require("CWNGSyncClient")
 
 local function assertEqual(actual, expected, message)
     if actual ~= expected then
@@ -49,7 +49,7 @@ local function assertTruthy(value, message)
 end
 
 local function testDescribeFailureNamesEveryShape()
-    local describe = CWASyncClient.describeFailure
+    local describe = CWNGSyncClient.describeFailure
     -- lua-Spore raises a table; the transport raises a string. Both used to be
     -- flattened to nil.
     assertEqual(describe({ message = "connection refused" }), "connection refused",
@@ -72,9 +72,9 @@ end
 local function testRaisedCallReportsAReasonAndWarns()
     warnings, debugs = {}, {}
     local seen
-    CWASyncClient._reportOutcome(function(ok, body, reason)
+    CWNGSyncClient._reportOutcome(function(ok, body, reason)
         seen = { ok = ok, body = body, reason = reason }
-    end, false, "attempt to index a nil value", "CWASyncClient:push_annotations")
+    end, false, "attempt to index a nil value", "CWNGSyncClient:push_annotations")
 
     assertEqual(seen.ok, false, "a raise is not a success")
     -- The regression: this used to be nil, so the caller could only say
@@ -89,9 +89,9 @@ end
 local function testNon200ReportsItsStatus()
     warnings, debugs = {}, {}
     local seen
-    CWASyncClient._reportOutcome(function(ok, body, reason)
+    CWNGSyncClient._reportOutcome(function(ok, body, reason)
         seen = { ok = ok, body = body, reason = reason }
-    end, true, { status = 400, body = { error = "invalid_deleted" } }, "CWASyncClient:push_annotations")
+    end, true, { status = 400, body = { error = "invalid_deleted" } }, "CWNGSyncClient:push_annotations")
 
     assertEqual(seen.ok, false, "400 is not a success")
     assertEqual(seen.reason, "HTTP 400", "a rejection reports its status")
@@ -104,9 +104,9 @@ end
 local function testSuccessCarriesNoReason()
     warnings, debugs = {}, {}
     local seen
-    CWASyncClient._reportOutcome(function(ok, body, reason)
+    CWNGSyncClient._reportOutcome(function(ok, body, reason)
         seen = { ok = ok, body = body, reason = reason }
-    end, true, { status = 200, body = { created = 1 } }, "CWASyncClient:push_annotations")
+    end, true, { status = 200, body = { created = 1 } }, "CWNGSyncClient:push_annotations")
 
     assertEqual(seen.ok, true, "200 is a success")
     assertEqual(seen.reason, nil, "a success has no reason, so callers can branch on it")
@@ -120,8 +120,8 @@ end
 -- invisible again, and only on that one path, which is the hardest kind of gap
 -- to notice.
 local function testNoSyncFailureIsWrittenAtDbg()
-    local source = io.open("../CWASyncClient.lua", "r")
-    assertTruthy(source, "CWASyncClient.lua is readable from the tests directory")
+    local source = io.open("../CWNGSyncClient.lua", "r")
+    assertTruthy(source, "CWNGSyncClient.lua is readable from the tests directory")
     local text = source:read("*a")
     source:close()
 

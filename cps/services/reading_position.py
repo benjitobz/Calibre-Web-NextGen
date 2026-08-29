@@ -31,7 +31,7 @@ pulls from ``KOSyncProgress`` and never looks at the Kobo bookmark.  What we
 must **not** do is write a CFI into that table's ``progress`` column: KOReader
 consumes it as an engine-private crengine xpointer (numeric values become a
 page number, anything else is applied as an xpointer —
-``koreader/plugins/cwasync.koplugin/main.lua``), so a CFI there is an
+``koreader/plugins/cwngsync.koplugin/main.lua``), so a CFI there is an
 unresolvable position.  Instead the row is written with an explicit
 percentage-only sentinel and served as ``position_kind: "percentage"``, which
 the plugin acts on with ``GotoPercent`` — an event both of KOReader's engines

@@ -9,7 +9,7 @@ local AUTH_TIMEOUTS     = { 5, 10 }
 -- Annotations: payloads can be larger than a progress ping, so allow longer.
 local ANNOTATION_TIMEOUTS = { 5, 15 }
 
-local CWASyncClient = {
+local CWNGSyncClient = {
     service_spec = nil,
     service_url = nil,
 }
@@ -41,7 +41,7 @@ local function describeFailure(err)
     return "no response from server"
 end
 
-CWASyncClient.describeFailure = describeFailure
+CWNGSyncClient.describeFailure = describeFailure
 
 
 -- Report a completed call. `reason` is nil when it succeeded, and otherwise
@@ -68,9 +68,9 @@ end
 -- Exposed for the offline tests: every sync call funnels its outcome through
 -- here, and the contract (a reason whenever ok is false) is what stops a
 -- failure going unreported again.
-CWASyncClient._reportOutcome = finish
+CWNGSyncClient._reportOutcome = finish
 
-function CWASyncClient:new(o)
+function CWNGSyncClient:new(o)
     if o == nil then o = {} end
     setmetatable(o, self)
     self.__index = self
@@ -78,7 +78,7 @@ function CWASyncClient:new(o)
     return o
 end
 
-function CWASyncClient:init()
+function CWNGSyncClient:init()
     local Spore = require("Spore")
     self.client = Spore.new_from_spec(self.service_spec, {
         base_url = self.service_url,
@@ -87,8 +87,8 @@ function CWASyncClient:init()
     require("Spore.Middleware.GinClient").call = function(_, req)
         req.headers["accept"] = "application/vnd.koreader.v1+json"
     end
-    package.loaded["Spore.Middleware.CWASyncAuth"] = {}
-    require("Spore.Middleware.CWASyncAuth").call = function(args, req)
+    package.loaded["Spore.Middleware.CWNGSyncAuth"] = {}
+    require("Spore.Middleware.CWNGSyncAuth").call = function(args, req)
         -- Use HTTP Basic Authentication
         local credentials = args.username .. ":" .. args.password
         -- Base64 encode the credentials (compatible implementation)
@@ -161,11 +161,11 @@ function CWASyncClient:init()
     end
 end
 
-function CWASyncClient:authorize(username, password)
+function CWNGSyncClient:authorize(username, password)
     self.client:reset_middlewares()
     self.client:enable("Format.JSON")
     self.client:enable("GinClient")
-    self.client:enable("CWASyncAuth", {
+    self.client:enable("CWNGSyncAuth", {
         username = username,
         password = password,
     })
@@ -179,12 +179,12 @@ function CWASyncClient:authorize(username, password)
     else
         -- Same reasoning as `finish`, and it matters most here: this is the one
         -- call that is handed a password.
-        logger.warn("CWASyncClient:authorize failure:", describeFailure(res))
+        logger.warn("CWNGSyncClient:authorize failure:", describeFailure(res))
         return false, nil, describeFailure(res)
     end
 end
 
-function CWASyncClient:update_progress(
+function CWNGSyncClient:update_progress(
         username,
         password,
         document,
@@ -196,7 +196,7 @@ function CWASyncClient:update_progress(
     self.client:reset_middlewares()
     self.client:enable("Format.JSON")
     self.client:enable("GinClient")
-    self.client:enable("CWASyncAuth", {
+    self.client:enable("CWNGSyncAuth", {
         username = username,
         password = password,
     })
@@ -212,7 +212,7 @@ function CWASyncClient:update_progress(
                 device_id = device_id,
             })
         end)
-        finish(callback, ok, res, "CWASyncClient:update_progress")
+        finish(callback, ok, res, "CWNGSyncClient:update_progress")
     end)
     self.client:enable("AsyncHTTP", {thread = co})
     coroutine.resume(co)
@@ -220,7 +220,7 @@ function CWASyncClient:update_progress(
     socketutil:reset_timeout()
 end
 
-function CWASyncClient:get_progress(
+function CWNGSyncClient:get_progress(
         username,
         password,
         document,
@@ -228,7 +228,7 @@ function CWASyncClient:get_progress(
     self.client:reset_middlewares()
     self.client:enable("Format.JSON")
     self.client:enable("GinClient")
-    self.client:enable("CWASyncAuth", {
+    self.client:enable("CWNGSyncAuth", {
         username = username,
         password = password,
     })
@@ -245,7 +245,7 @@ function CWASyncClient:get_progress(
                 position_kinds = "locator,percentage",
             })
         end)
-        finish(callback, ok, res, "CWASyncClient:get_progress")
+        finish(callback, ok, res, "CWNGSyncClient:get_progress")
     end)
     self.client:enable("AsyncHTTP", {thread = co})
     coroutine.resume(co)
@@ -254,11 +254,11 @@ function CWASyncClient:get_progress(
 end
 
 -- Phase 2: pull annotations for a document (server -> device).
-function CWASyncClient:pull_annotations(username, password, document, callback)
+function CWNGSyncClient:pull_annotations(username, password, document, callback)
     self.client:reset_middlewares()
     self.client:enable("Format.JSON")
     self.client:enable("GinClient")
-    self.client:enable("CWASyncAuth", {
+    self.client:enable("CWNGSyncAuth", {
         username = username,
         password = password,
     })
@@ -269,7 +269,7 @@ function CWASyncClient:pull_annotations(username, password, document, callback)
                 document = document,
             })
         end)
-        finish(callback, ok, res, "CWASyncClient:pull_annotations")
+        finish(callback, ok, res, "CWNGSyncClient:pull_annotations")
     end)
     self.client:enable("AsyncHTTP", {thread = co})
     coroutine.resume(co)
@@ -297,12 +297,12 @@ end
 --     was not told to expect. #924 declared these two in `payload` alone, so
 --     every delete cycle died inside the plugin and no request went out (#920).
 -- Declaring one and not the other is not caught by review or by a server-side
--- HTTP test; tests/unit/test_cwasync_plugin_wire_contract.py pins both.
-function CWASyncClient:push_annotations(username, password, document, annotations, deleted, callback)
+-- HTTP test; tests/unit/test_cwngsync_plugin_wire_contract.py pins both.
+function CWNGSyncClient:push_annotations(username, password, document, annotations, deleted, callback)
     self.client:reset_middlewares()
     self.client:enable("Format.JSON")
     self.client:enable("GinClient")
-    self.client:enable("CWASyncAuth", {
+    self.client:enable("CWNGSyncAuth", {
         username = username,
         password = password,
     })
@@ -316,7 +316,7 @@ function CWASyncClient:push_annotations(username, password, document, annotation
                 delete_source = (deleted and #deleted > 0) and "koreader" or nil,
             })
         end)
-        finish(callback, ok, res, "CWASyncClient:push_annotations")
+        finish(callback, ok, res, "CWNGSyncClient:push_annotations")
     end)
     self.client:enable("AsyncHTTP", {thread = co})
     coroutine.resume(co)
@@ -324,4 +324,4 @@ function CWASyncClient:push_annotations(username, password, document, annotation
     socketutil:reset_timeout()
 end
 
-return CWASyncClient
+return CWNGSyncClient

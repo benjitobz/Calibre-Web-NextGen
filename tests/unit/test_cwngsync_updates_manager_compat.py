@@ -4,7 +4,7 @@
 KOReader's Updates Manager plugin (advokatb/updatesmanager.koplugin) reads the
 ``version`` field from a plugin's ``_meta.lua`` and compares it against the
 GitHub release tag of the configured repository. Two invariants make our
-cwasync plugin distributable through it:
+cwngsync plugin distributable through it:
 
 * ``_meta.lua`` MUST declare a ``version`` field. Without it Updates Manager
   shows the installed version as "unknown" and flags a (false) update on every
@@ -15,7 +15,7 @@ cwasync plugin distributable through it:
 
 The release-tag anchor itself is pinned by ``EXPECTED_PLUGIN_VERSION`` in
 ``test_kosync_plugin_no_book_handling.py``. Dedicated-repository publishing is
-handled by ``scripts/publish-cwasync-plugin.sh`` so an unchanged plugin no
+handled by ``scripts/publish-cwngsync-plugin.sh`` so an unchanged plugin no
 longer appears as a new update on every CWNG application release.
 """
 
@@ -32,10 +32,10 @@ import pytest
 pytestmark = pytest.mark.unit
 
 REPO_ROOT = Path(__file__).resolve().parents[2]
-PLUGIN_DIR = REPO_ROOT / "koreader" / "plugins" / "cwasync.koplugin"
+PLUGIN_DIR = REPO_ROOT / "koreader" / "plugins" / "cwngsync.koplugin"
 META_LUA = PLUGIN_DIR / "_meta.lua"
 MAIN_LUA = PLUGIN_DIR / "main.lua"
-PUBLISH_SCRIPT = REPO_ROOT / "scripts" / "publish-cwasync-plugin.sh"
+PUBLISH_SCRIPT = REPO_ROOT / "scripts" / "publish-cwngsync-plugin.sh"
 RELEASE_WORKFLOW = REPO_ROOT / ".github" / "workflows" / "plugin-release-publish.yml"
 
 VERSION_RE = re.compile(r'version\s*=\s*"([^"]+)"')
@@ -79,9 +79,9 @@ def test_version_is_release_tag_shaped():
 def test_dedicated_publish_script_pins_release_and_zip_contract():
     assert PUBLISH_SCRIPT.exists()
     body = PUBLISH_SCRIPT.read_text()
-    assert "new-usemame/cwasync.koplugin" in body
+    assert "new-usemame/cwngsync.koplugin" in body
     assert 'gh release view "$TAG" --repo new-usemame/Calibre-Web-NextGen' in body
-    assert "cwasync.koplugin.zip" in body
+    assert "cwngsync.koplugin.zip" in body
     assert "--publish" in body, "publishing must require an explicit opt-in"
 
 
@@ -116,14 +116,14 @@ def test_publishing_is_automated_on_release_rather_than_a_remembered_step():
     assert "release:" in body and "published" in body, (
         "the workflow must fire when a CWNG release is published"
     )
-    assert "publish-cwasync-plugin.sh" in body, (
+    assert "publish-cwngsync-plugin.sh" in body, (
         "the workflow must reuse the publish script rather than reimplementing "
         "the release recipe — one source of truth for how a plugin ships"
     )
     assert "--auto" in body, "the workflow must use the skip-when-unowed mode"
     assert "secrets.GH_PAT" in body, (
         "GITHUB_TOKEN is scoped to this repository and cannot push to "
-        "new-usemame/cwasync.koplugin; the cross-repo PAT is required"
+        "new-usemame/cwngsync.koplugin; the cross-repo PAT is required"
     )
 
 
@@ -139,7 +139,7 @@ def test_publish_is_skipped_when_the_plugin_did_not_change():
 def test_publish_path_attaches_the_zip_to_the_application_release():
     """fork #1253: the application-release download must not depend on a human.
 
-    v4.1.16 publicly restored ``cwasync.koplugin.zip`` on the application release
+    v4.1.16 publicly restored ``cwngsync.koplugin.zip`` on the application release
     after it went missing, but as a one-off manual upload. v4.1.17 through
     v4.1.25 then shipped no asset at all, so a device pointed at the application
     repository saw v4.1.16 as the newest release carrying one and answered "no new
@@ -147,7 +147,7 @@ def test_publish_path_attaches_the_zip_to_the_application_release():
     """
     body = PUBLISH_SCRIPT.read_text()
     assert (
-        'gh release upload "$TAG" "$tmp/repo/cwasync.koplugin.zip"' in body
+        'gh release upload "$TAG" "$tmp/repo/cwngsync.koplugin.zip"' in body
         and "--repo new-usemame/Calibre-Web-NextGen" in body
     ), (
         "a plugin-changing release must attach the validated zip to the "
@@ -187,7 +187,7 @@ def test_update_manager_repository_is_documented_where_users_look():
     readme = REPO_ROOT / "README.md"
     for surface in (kosync_page, readme):
         text = surface.read_text()
-        assert "new-usemame/cwasync.koplugin" in text, (
+        assert "new-usemame/cwngsync.koplugin" in text, (
             f"{surface.name} must name the plugin's own repository — an update "
             "manager pointed at the application repository only sees releases "
             "that happened to carry an asset"

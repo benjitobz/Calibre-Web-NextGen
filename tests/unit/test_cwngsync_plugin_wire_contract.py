@@ -58,8 +58,8 @@ import pytest
 
 pytestmark = pytest.mark.unit
 
-PLUGIN = Path(__file__).resolve().parents[2] / "koreader" / "plugins" / "cwasync.koplugin"
-CLIENT_LUA = PLUGIN / "CWASyncClient.lua"
+PLUGIN = Path(__file__).resolve().parents[2] / "koreader" / "plugins" / "cwngsync.koplugin"
+CLIENT_LUA = PLUGIN / "CWNGSyncClient.lua"
 API_JSON = PLUGIN / "api.json"
 
 # `self.client:<method>({`  — the opening of the call; the body is then scanned

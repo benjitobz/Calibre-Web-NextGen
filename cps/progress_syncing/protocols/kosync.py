@@ -87,7 +87,7 @@ MAX_DEVICE_ID_LENGTH = 100 # Maximum device ID length
 #
 # It has to be a sentinel rather than an empty/absent value because the column
 # is NOT NULL and, more importantly, because of what the client does with it.
-# ``CWASync:syncToProgress`` feeds this column straight to ``GotoXPointer`` for
+# ``CWNGSync:syncToProgress`` feeds this column straight to ``GotoXPointer`` for
 # any non-numeric value, and ``applyProgressToBook`` writes it to
 # ``last_xpointer``. The plugin's only guard is ``body.progress == nil``, and in
 # Lua ``"" ~= nil`` — so an empty string would sail past it and store a

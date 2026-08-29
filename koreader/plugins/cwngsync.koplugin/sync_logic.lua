@@ -2,7 +2,7 @@ local SyncLogic = {}
 
 -- Mirror of PERCENTAGE_ONLY_LOCATOR in
 -- cps/progress_syncing/protocols/kosync.py. The two must stay byte-identical;
--- tests/unit/test_cwasync_plugin_wire_contract.py pins the correspondence so
+-- tests/unit/test_cwngsync_plugin_wire_contract.py pins the correspondence so
 -- neither side can be edited alone.
 SyncLogic.PERCENTAGE_ONLY_LOCATOR = "cwng:percentage"
 

@@ -8,11 +8,13 @@ local Json = require("json")
 local Math = require("optmath")
 local MultiInputDialog = require("ui/widget/multiinputdialog")
 local NetworkMgr = require("ui/network/manager")
+local PluginLoader = require("pluginloader")
 local UIManager = require("ui/uimanager")
 local WidgetContainer = require("ui/widget/container/widgetcontainer")
 local logger = require("logger")
 local md5 = require("ffi/sha2").md5
 local random = require("random")
+local Migration = require("migration")
 local SyncLogic = require("sync_logic")
 local time = require("ui/time")
 local util = require("util")
@@ -24,10 +26,11 @@ if G_reader_settings:hasNot("device_id") then
     G_reader_settings:saveSetting("device_id", random.uuid())
 end
 
-local CWASync = WidgetContainer:extend{
-    name = "cwasync",
+local CWNGSync = WidgetContainer:extend{
+    name = "cwngsync",
+    settings_key = "cwngsync",
     title = _("Login to NextGen Server"),
-    version = "4.1.39",  -- Plugin version mirrors CWNG release tag; keep in lockstep with _meta.lua
+    version = "4.1.43",  -- Plugin version mirrors CWNG release tag; keep in lockstep with _meta.lua
 
     push_timestamp = nil,
     pull_timestamp = nil,
@@ -52,7 +55,7 @@ local API_CALL_DEBOUNCE_DELAY = time.s(25)
 
 -- NOTE: This is used in a migration script by ui/data/onetime_migration,
 --       which is why it's public.
-CWASync.default_settings = {
+CWNGSync.default_settings = {
     server = nil,
     username = nil,
     password = nil,
@@ -66,7 +69,19 @@ CWASync.default_settings = {
     sync_annotations = false,
 }
 
-function CWASync:init()
+function CWNGSync:init()
+    local can_start, migration_message = Migration.canStart(PluginLoader)
+    if not can_start then
+        logger.warn(Migration.BLOCKED_ERROR)
+        UIManager:show(InfoMessage:new{
+            text = migration_message,
+        })
+        -- PluginLoader:createPluginInstance wraps initialization in pcall.  An
+        -- error here means no instance is recorded and therefore no reader,
+        -- dispatcher, suspend, network, or annotation sync handler can run.
+        error(Migration.BLOCKED_ERROR, 0)
+    end
+
     self.push_timestamp = 0
     self.pull_timestamp = 0
     self.page_update_counter = 0
@@ -82,19 +97,21 @@ function CWASync:init()
         self:updateProgress(false, false)
     end
 
-    self.settings = G_reader_settings:readSetting("cwasync", self.default_settings)
+    local migrated_settings = Migration.migrateSettings(G_reader_settings)
+    self.settings = migrated_settings
+        or G_reader_settings:readSetting("cwngsync", self.default_settings)
     self.device_id = G_reader_settings:readSetting("device_id")
 
     -- Disable auto-sync if beforeWifiAction was reset to "prompt" behind our back...
     if self.settings.auto_sync and Device:hasSeamlessWifiToggle() and G_reader_settings:readSetting("wifi_enable_action") ~= "turn_on" then
         self.settings.auto_sync = false
-        logger.warn("CWASync: Automatic sync has been disabled because wifi_enable_action is *not* turn_on")
+        logger.warn("CWNGSync: Automatic sync has been disabled because wifi_enable_action is *not* turn_on")
     end
 
     self.ui.menu:registerToMainMenu(self)
 end
 
-function CWASync:getSyncPeriod()
+function CWNGSync:getSyncPeriod()
     if not self.settings.auto_sync then
         return _("Not available")
     end
@@ -193,12 +210,12 @@ local function validateUser(user, pass)
     end
 end
 
-function CWASync:onDispatcherRegisterActions()
-    Dispatcher:registerAction("cwasync_push_progress", { category="none", event="CWASyncPushProgress", title=_("Push progress from this device"), reader=true,})
-    Dispatcher:registerAction("cwasync_pull_progress", { category="none", event="CWASyncPullProgress", title=_("Pull progress from other devices"), reader=true, separator=true,})
+function CWNGSync:onDispatcherRegisterActions()
+    Dispatcher:registerAction("cwngsync_push_progress", { category="none", event="CWNGSyncPushProgress", title=_("Push progress from this device"), reader=true,})
+    Dispatcher:registerAction("cwngsync_pull_progress", { category="none", event="CWNGSyncPullProgress", title=_("Pull progress from other devices"), reader=true, separator=true,})
 end
 
-function CWASync:onReaderReady()
+function CWNGSync:onReaderReady()
     if self.settings.auto_sync then
         UIManager:nextTick(function()
             self:getProgress(true, false)
@@ -213,8 +230,8 @@ function CWASync:onReaderReady()
     self.last_page = self.ui:getCurrentPage()
 end
 
-function CWASync:addToMainMenu(menu_items)
-    menu_items.cwa_progress_sync = {
+function CWNGSync:addToMainMenu(menu_items)
+    menu_items.cwng_progress_sync = {
         text = _("NextGen Progress Sync"),
         sorting_hint = "tools",
         sub_item_table = {
@@ -433,34 +450,34 @@ If set to 0, updating progress based on page turns will be disabled.]]),
     }
 end
 
-function CWASync:hasActiveDocument()
+function CWNGSync:hasActiveDocument()
     return (self.ui and self.ui.document) ~= nil
 end
 
-function CWASync:statusTextIfActionUnavailable()
+function CWNGSync:statusTextIfActionUnavailable()
     local missingPasswordNotice = not(self.settings.password ~= nil) and _(" (Password Not Set)")
     local inactiveDocumentNotice = not(self:hasActiveDocument()) and _(" (No Active Document)")
     return missingPasswordNotice or inactiveDocumentNotice or ""
 end
 
-function CWASync:setPagesBeforeUpdate(pages_before_update)
+function CWNGSync:setPagesBeforeUpdate(pages_before_update)
     self.settings.pages_before_update = pages_before_update > 0 and pages_before_update or nil
 end
 
-function CWASync:setServer(server)
-    logger.dbg("CWASync: Setting server to:", server)
+function CWNGSync:setServer(server)
+    logger.dbg("CWNGSync: Setting server to:", server)
     self.settings.server = server ~= "" and server or nil
 end
 
-function CWASync:setSyncForward(strategy)
+function CWNGSync:setSyncForward(strategy)
     self.settings.sync_forward = strategy
 end
 
-function CWASync:setSyncBackward(strategy)
+function CWNGSync:setSyncBackward(strategy)
     self.settings.sync_backward = strategy
 end
 
-function CWASync:login(menu)
+function CWNGSync:login(menu)
     if NetworkMgr:willRerunWhenOnline(function() self:login(menu) end) then
         return
     end
@@ -517,12 +534,12 @@ function CWASync:login(menu)
     dialog:onShowKeyboard()
 end
 
-function CWASync:doLogin(username, password, menu)
+function CWNGSync:doLogin(username, password, menu)
     if not ensureServerConfigured(self.settings.server) then
         return
     end
-    local CWASyncClient = require("CWASyncClient")
-    local client = CWASyncClient:new{
+    local CWNGSyncClient = require("CWNGSyncClient")
+    local client = CWNGSyncClient:new{
         service_url = self.settings.server .. "/kosync",
         service_spec = self.path .. "/api.json"
     }
@@ -558,7 +575,7 @@ function CWASync:doLogin(username, password, menu)
     Device:setIgnoreInput(false)
 end
 
-function CWASync:logout(menu)
+function CWNGSync:logout(menu)
     self.settings.password = nil
     self.settings.auto_sync = true
     if menu then
@@ -566,7 +583,7 @@ function CWASync:logout(menu)
     end
 end
 
-function CWASync:getLastPercent()
+function CWNGSync:getLastPercent()
     if self.ui.document.info.has_pages then
         return Math.roundPercent(self.ui.paging:getLastPercent())
     else
@@ -574,7 +591,7 @@ function CWASync:getLastPercent()
     end
 end
 
-function CWASync:getLastProgress()
+function CWNGSync:getLastProgress()
     if self.ui.document.info.has_pages then
         return self.ui.paging:getLastProgress()
     else
@@ -582,11 +599,11 @@ function CWASync:getLastProgress()
     end
 end
 
-function CWASync:hasCurrentDocument()
+function CWNGSync:hasCurrentDocument()
     return self.ui and self.ui.document ~= nil
 end
 
-function CWASync:getCurrentDocumentFile()
+function CWNGSync:getCurrentDocumentFile()
     if self.view and self.view.document and self.view.document.file then
         return self.view.document.file
     elseif self.ui and self.ui.document and self.ui.document.file then
@@ -599,7 +616,7 @@ end
 -- Resolve the digest the server keys this book's progress on. Precedence lives
 -- in SyncLogic.resolveDocumentDigest: the bytes on disk win, KOReader's cached
 -- sidecar value is only a fallback. See the comment there for why (#991).
-function CWASync:getDocumentDigest(file_path)
+function CWNGSync:getDocumentDigest(file_path)
     -- When called without a path we are on the open document, whose settings are
     -- already loaded; with a path we have to open that document's sidecar.
     local settings_path = file_path
@@ -695,7 +712,7 @@ function CWASync:getDocumentDigest(file_path)
     return SyncLogic.resolveDocumentDigest(computeFromFile, readCachedDigest)
 end
 
-function CWASync:getLibraryBookPaths()
+function CWNGSync:getLibraryBookPaths()
     local paths = {}
     local seen = {}
     local document_registry_ok, DocumentRegistry = pcall(require, "document/documentregistry")
@@ -759,7 +776,7 @@ function CWASync:getLibraryBookPaths()
     return paths
 end
 
-function CWASync:getLibraryRootPath()
+function CWNGSync:getLibraryRootPath()
     local chooser = self.ui and self.ui.file_chooser
     if chooser and chooser.path and util.directoryExists(chooser.path) then
         return chooser.path
@@ -782,20 +799,20 @@ function CWASync:getLibraryRootPath()
     return nil
 end
 
-function CWASync:getLibraryBooksForSync()
+function CWNGSync:getLibraryBooksForSync()
     local paths = self:getLibraryBookPaths()
     if #paths > 0 then
-        logger.dbg("CWASync: [Bulk Pull] using current view paths", #paths)
+        logger.dbg("CWNGSync: [Bulk Pull] using current view paths", #paths)
         return paths, false, nil
     end
 
     local root_path = self:getLibraryRootPath()
     if not root_path then
-        logger.dbg("CWASync: [Bulk Pull] no library root available for fallback scan")
+        logger.dbg("CWNGSync: [Bulk Pull] no library root available for fallback scan")
         return {}, false, nil
     end
 
-    logger.dbg("CWASync: [Bulk Pull] scanning fallback root", root_path)
+    logger.dbg("CWNGSync: [Bulk Pull] scanning fallback root", root_path)
 
     local document_registry_ok, DocumentRegistry = pcall(require, "document/documentregistry")
     local seen = {}
@@ -814,17 +831,17 @@ function CWASync:getLibraryBooksForSync()
         end
     end, true)
 
-    logger.dbg("CWASync: [Bulk Pull] fallback scan found", #paths, "supported books under", root_path)
+    logger.dbg("CWNGSync: [Bulk Pull] fallback scan found", #paths, "supported books under", root_path)
 
     return paths, true, root_path
 end
 
-function CWASync:refreshLibraryViews(changed_files)
+function CWNGSync:refreshLibraryViews(changed_files)
     if type(changed_files) ~= "table" or #changed_files == 0 then
         return
     end
 
-    logger.dbg("CWASync: [Refresh] invalidating metadata for", #changed_files, "books")
+    logger.dbg("CWNGSync: [Refresh] invalidating metadata for", #changed_files, "books")
     for _, file_path in ipairs(changed_files) do
         BookList.resetBookInfoCache(file_path)
 
@@ -845,7 +862,7 @@ function CWASync:refreshLibraryViews(changed_files)
             return
         end
         refreshed[menu] = true
-        logger.dbg("CWASync: [Refresh] refreshing", name)
+        logger.dbg("CWNGSync: [Refresh] refreshing", name)
         menu.no_refresh_covers = nil
         menu:updateItems(1, true)
     end
@@ -859,7 +876,7 @@ function CWASync:refreshLibraryViews(changed_files)
     end
 end
 
-function CWASync:applyProgressToBook(file_path, progress, percentage)
+function CWNGSync:applyProgressToBook(file_path, progress, percentage)
     local DocSettings = require("docsettings")
     local doc_settings = DocSettings:open(file_path)
     local summary = doc_settings:readSetting("summary") or {}
@@ -875,7 +892,7 @@ function CWASync:applyProgressToBook(file_path, progress, percentage)
     -- cannot recover from on its own.
     if type(progress) ~= "string" or progress == "" then
         if tonumber(progress) == nil then
-            logger.dbg("CWASync: [Apply] refusing unusable progress for", file_path, progress)
+            logger.dbg("CWNGSync: [Apply] refusing unusable progress for", file_path, progress)
             return false
         end
     end
@@ -885,15 +902,15 @@ function CWASync:applyProgressToBook(file_path, progress, percentage)
     -- resolve, and this function writes the sidecar for a book that is not
     -- open -- so there is nothing to convert it against even in principle.
     if progress == SyncLogic.PERCENTAGE_ONLY_LOCATOR then
-        logger.dbg("CWASync: [Apply] refusing percentage-only sentinel for", file_path)
+        logger.dbg("CWNGSync: [Apply] refusing percentage-only sentinel for", file_path)
         return false
     end
 
     local new_page = tonumber(progress)
     local new_xpointer = new_page == nil and progress or nil
 
-    logger.dbg("CWASync: [Apply] start for", file_path)
-    logger.dbg("CWASync: [Apply] previous settings", {
+    logger.dbg("CWNGSync: [Apply] start for", file_path)
+    logger.dbg("CWNGSync: [Apply] previous settings", {
         percent_finished = previous_percent,
         last_page = previous_page,
         last_xpointer = previous_xpointer,
@@ -920,7 +937,7 @@ function CWASync:applyProgressToBook(file_path, progress, percentage)
     end
     doc_settings:saveSetting("summary", summary)
 
-    logger.dbg("CWASync: [Apply] new settings", {
+    logger.dbg("CWNGSync: [Apply] new settings", {
         percent_finished = percentage,
         last_page = new_page,
         last_xpointer = new_xpointer,
@@ -940,12 +957,12 @@ function CWASync:applyProgressToBook(file_path, progress, percentage)
         last_xpointer = new_xpointer,
         status = summary.status,
     })
-    logger.dbg("CWASync: [Apply] result for", file_path, changed and "changed" or "unchanged")
-    logger.dbg("CWASync: [Apply] finished for", file_path)
+    logger.dbg("CWNGSync: [Apply] result for", file_path, changed and "changed" or "unchanged")
+    logger.dbg("CWNGSync: [Apply] finished for", file_path)
     return changed
 end
 
-function CWASync:pullLibraryProgress(ensure_networking)
+function CWNGSync:pullLibraryProgress(ensure_networking)
     if not self.settings.username or not self.settings.password then
         promptLogin()
         return
@@ -960,11 +977,11 @@ function CWASync:pullLibraryProgress(ensure_networking)
         return
     end
 
-    logger.dbg("CWASync: [Bulk Pull] start")
+    logger.dbg("CWNGSync: [Bulk Pull] start")
 
     local paths, used_root_scan, root_path = self:getLibraryBooksForSync()
     if #paths == 0 then
-        logger.dbg("CWASync: [Bulk Pull] end with no books found")
+        logger.dbg("CWNGSync: [Bulk Pull] end with no books found")
         UIManager:show(InfoMessage:new{
             text = used_root_scan and T(_("No supported books were found under %1."), root_path)
                 or _("No books were found in the current library view."),
@@ -973,8 +990,8 @@ function CWASync:pullLibraryProgress(ensure_networking)
         return
     end
 
-    local CWASyncClient = require("CWASyncClient")
-    local client = CWASyncClient:new{
+    local CWNGSyncClient = require("CWNGSyncClient")
+    local client = CWNGSyncClient:new{
         service_url = self.settings.server .. "/kosync",
         service_spec = self.path .. "/api.json"
     }
@@ -989,7 +1006,7 @@ function CWASync:pullLibraryProgress(ensure_networking)
     local function finish()
         self.pull_timestamp = now
         self:refreshLibraryViews(changed_files)
-        logger.dbg("CWASync: [Bulk Pull] end", {
+        logger.dbg("CWNGSync: [Bulk Pull] end", {
             remote_found = remote_found,
             changed = changed,
             missing = missing,
@@ -1012,11 +1029,11 @@ function CWASync:pullLibraryProgress(ensure_networking)
             return
         end
 
-        logger.dbg("CWASync: [Bulk Pull] syncing path", file_path)
+        logger.dbg("CWNGSync: [Bulk Pull] syncing path", file_path)
 
         local doc_digest = self:getDocumentDigest(file_path)
         if not doc_digest then
-            logger.warn("CWASync: Unable to compute document digest for", file_path)
+            logger.warn("CWNGSync: Unable to compute document digest for", file_path)
             failed = failed + 1
             pullNextBook()
             return
@@ -1028,7 +1045,7 @@ function CWASync:pullLibraryProgress(ensure_networking)
             self.settings.password,
             doc_digest,
             function(request_ok, body)
-                logger.dbg("CWASync: [Bulk Pull] server response for", file_path, "ok=", request_ok, "body=", body)
+                logger.dbg("CWNGSync: [Bulk Pull] server response for", file_path, "ok=", request_ok, "body=", body)
                 if not request_ok or type(body) ~= "table" then
                     failed = failed + 1
                     pullNextBook()
@@ -1058,7 +1075,7 @@ function CWASync:pullLibraryProgress(ensure_networking)
                 end
 
                 if SyncLogic.isRemoteProgressFromThisDevice(body, Device.model, self.device_id) then
-                    logger.dbg("CWASync: [Bulk Pull] skipping same-device progress for", file_path)
+                    logger.dbg("CWNGSync: [Bulk Pull] skipping same-device progress for", file_path)
                     pullNextBook()
                     return
                 end
@@ -1071,15 +1088,15 @@ function CWASync:pullLibraryProgress(ensure_networking)
                         changed = changed + 1
                         changed_files[#changed_files + 1] = file_path
                     end
-                    logger.dbg("CWASync: [Bulk Pull] applied remote progress for", file_path)
+                    logger.dbg("CWNGSync: [Bulk Pull] applied remote progress for", file_path)
                 else
-                    logger.dbg("CWASync: failed applying pulled progress for", file_path, changed_or_err)
+                    logger.dbg("CWNGSync: failed applying pulled progress for", file_path, changed_or_err)
                     failed = failed + 1
                 end
                 pullNextBook()
             end)
         if not ok then
-            logger.dbg("CWASync: failed pulling library progress for", file_path, err)
+            logger.dbg("CWNGSync: failed pulling library progress for", file_path, err)
             failed = failed + 1
             pullNextBook()
         end
@@ -1097,19 +1114,19 @@ end
 -- rather than exactly there -- the sending side had no locator this engine
 -- could resolve, so approximate is the best available answer and is still much
 -- closer than not moving at all.
-function CWASync:syncToProgress(position)
+function CWNGSync:syncToProgress(position)
     if type(position) ~= "table" or position.kind == "none" then
-        logger.dbg("CWASync: [Sync] no usable remote position")
+        logger.dbg("CWNGSync: [Sync] no usable remote position")
         return
     end
 
     if position.kind == "percentage" then
-        logger.dbg("CWASync: [Sync] progress to", position.percent_whole, "%")
+        logger.dbg("CWNGSync: [Sync] progress to", position.percent_whole, "%")
         self.ui:handleEvent(Event:new("GotoPercent", position.percent_whole))
         return
     end
 
-    logger.dbg("CWASync: [Sync] progress to", position.progress)
+    logger.dbg("CWNGSync: [Sync] progress to", position.progress)
     if self.ui.document.info.has_pages then
         self.ui:handleEvent(Event:new("GotoPage", tonumber(position.progress)))
     else
@@ -1117,7 +1134,7 @@ function CWASync:syncToProgress(position)
     end
 end
 
-function CWASync:updateProgress(ensure_networking, interactive, on_suspend)
+function CWNGSync:updateProgress(ensure_networking, interactive, on_suspend)
     if not self.settings.username or not self.settings.password then
         if interactive then
             promptLogin()
@@ -1138,7 +1155,7 @@ function CWASync:updateProgress(ensure_networking, interactive, on_suspend)
 
     local now = UIManager:getElapsedTimeSinceBoot()
     if not interactive and now - self.push_timestamp <= API_CALL_DEBOUNCE_DELAY then
-        logger.dbg("CWASync: We've already pushed progress less than 25s ago!")
+        logger.dbg("CWNGSync: We've already pushed progress less than 25s ago!")
         return
     end
 
@@ -1146,16 +1163,16 @@ function CWASync:updateProgress(ensure_networking, interactive, on_suspend)
         return
     end
 
-    local CWASyncClient = require("CWASyncClient")
-    local client = CWASyncClient:new{
+    local CWNGSyncClient = require("CWNGSyncClient")
+    local client = CWNGSyncClient:new{
         service_url = self.settings.server .. "/kosync",
         service_spec = self.path .. "/api.json"
     }
     local current_file = self:getCurrentDocumentFile()
-    logger.dbg("CWASync: [Push] start for", current_file)
+    logger.dbg("CWNGSync: [Push] start for", current_file)
     local doc_digest = self:getDocumentDigest()
     if not doc_digest then
-        logger.warn("CWASync: Unable to compute document digest for", current_file)
+        logger.warn("CWNGSync: Unable to compute document digest for", current_file)
         if interactive then
             UIManager:show(InfoMessage:new{
                 text = _("Unable to compute document checksum for this book."),
@@ -1166,7 +1183,7 @@ function CWASync:updateProgress(ensure_networking, interactive, on_suspend)
     end
     local progress = self:getLastProgress()
     local percentage = self:getLastPercent()
-    logger.dbg("CWASync: [Push] payload", {
+    logger.dbg("CWNGSync: [Push] payload", {
         file = current_file,
         document = doc_digest,
         progress = progress,
@@ -1184,8 +1201,8 @@ function CWASync:updateProgress(ensure_networking, interactive, on_suspend)
         Device.model,
         self.device_id,
         function(ok, body)
-            logger.dbg("CWASync: [Push] progress to", percentage * 100, "% =>", progress, "for", self.view.document.file)
-            logger.dbg("CWASync: ok:", ok, "body:", body)
+            logger.dbg("CWNGSync: [Push] progress to", percentage * 100, "% =>", progress, "for", self.view.document.file)
+            logger.dbg("CWNGSync: ok:", ok, "body:", body)
             if interactive then
                 if ok then
                     UIManager:show(InfoMessage:new{
@@ -1200,7 +1217,7 @@ function CWASync:updateProgress(ensure_networking, interactive, on_suspend)
     if not ok then
         if interactive then showSyncError() end
         if err then logger.dbg("err:", err) end
-        logger.dbg("CWASync: [Push] request setup failed for", current_file, err)
+        logger.dbg("CWNGSync: [Push] request setup failed for", current_file, err)
     else
         -- This is solely for onSuspend's sake, to clear the ghosting left by the "Connected" InfoMessage
         if on_suspend then
@@ -1228,7 +1245,7 @@ function CWASync:updateProgress(ensure_networking, interactive, on_suspend)
     self.push_timestamp = now
 end
 
-function CWASync:getProgress(ensure_networking, interactive)
+function CWNGSync:getProgress(ensure_networking, interactive)
     if not self.settings.username or not self.settings.password then
         if interactive then
             promptLogin()
@@ -1257,7 +1274,7 @@ function CWASync:getProgress(ensure_networking, interactive)
 
     local now = UIManager:getElapsedTimeSinceBoot()
     if not interactive and now - self.pull_timestamp <= API_CALL_DEBOUNCE_DELAY then
-        logger.dbg("CWASync: We've already pulled progress less than 25s ago!")
+        logger.dbg("CWNGSync: We've already pulled progress less than 25s ago!")
         return
     end
 
@@ -1265,16 +1282,16 @@ function CWASync:getProgress(ensure_networking, interactive)
         return
     end
 
-    local CWASyncClient = require("CWASyncClient")
-    local client = CWASyncClient:new{
+    local CWNGSyncClient = require("CWNGSyncClient")
+    local client = CWNGSyncClient:new{
         service_url = self.settings.server .. "/kosync",
         service_spec = self.path .. "/api.json"
     }
     local current_file = self:getCurrentDocumentFile()
-    logger.dbg("CWASync: [Pull] start for", current_file)
+    logger.dbg("CWNGSync: [Pull] start for", current_file)
     local doc_digest = self:getDocumentDigest()
     if not doc_digest then
-        logger.warn("CWASync: Unable to compute document digest for", current_file)
+        logger.warn("CWNGSync: Unable to compute document digest for", current_file)
         if interactive then
             UIManager:show(InfoMessage:new{
                 text = _("Unable to compute document checksum for this book."),
@@ -1289,11 +1306,11 @@ function CWASync:getProgress(ensure_networking, interactive)
         self.settings.password,
         doc_digest,
         function(ok, body)
-            logger.dbg("CWASync: [Pull] progress for", self.view.document.file)
-            logger.dbg("CWASync: ok:", ok, "body:", body)
+            logger.dbg("CWNGSync: [Pull] progress for", self.view.document.file)
+            logger.dbg("CWNGSync: ok:", ok, "body:", body)
 
             if not ok or not body then
-                logger.dbg("CWASync: [Pull] end for", current_file, "with failure")
+                logger.dbg("CWNGSync: [Pull] end for", current_file, "with failure")
                 if interactive then
                     showSyncError()
                 end
@@ -1303,7 +1320,7 @@ function CWASync:getProgress(ensure_networking, interactive)
             -- Some older KOReader Spore versions can return the raw JSON string
             -- rather than a Lua table as the body.
             if type(body) == "string" and body:find("^(%s*){") ~= nil then
-                logger.dbg("CWASync: attempting to decode body payload as json string")
+                logger.dbg("CWNGSync: attempting to decode body payload as json string")
                 local decoded_ok, decoded_body = pcall(function()
                     return Json.decode(body)
                 end)
@@ -1315,7 +1332,7 @@ function CWASync:getProgress(ensure_networking, interactive)
             end
 
             if type(body) ~= "table" then
-                logger.dbg("CWASync: [Pull] end for", current_file, "with invalid body")
+                logger.dbg("CWNGSync: [Pull] end for", current_file, "with invalid body")
                 if interactive then
                     showSyncError()
                 end
@@ -1325,7 +1342,7 @@ function CWASync:getProgress(ensure_networking, interactive)
             local remote = SyncLogic.resolveRemotePosition(body)
 
             if not body.percentage then
-                logger.dbg("CWASync: [Pull] end for", current_file, "with no remote progress")
+                logger.dbg("CWNGSync: [Pull] end for", current_file, "with no remote progress")
                 if interactive then
                     UIManager:show(InfoMessage:new{
                         text = _("No progress found for this document."),
@@ -1336,7 +1353,7 @@ function CWASync:getProgress(ensure_networking, interactive)
             end
 
             if remote.kind == "none" then
-                logger.dbg("CWASync: [Pull] end for", current_file, "with unusable progress field")
+                logger.dbg("CWNGSync: [Pull] end for", current_file, "with unusable progress field")
                 if interactive then
                     showSyncError()
                 end
@@ -1344,7 +1361,7 @@ function CWASync:getProgress(ensure_networking, interactive)
             end
 
             if SyncLogic.isRemoteProgressFromThisDevice(body, Device.model, self.device_id) then
-                logger.dbg("CWASync: [Pull] end for", current_file, "latest progress already belongs to this device")
+                logger.dbg("CWNGSync: [Pull] end for", current_file, "latest progress already belongs to this device")
                 if interactive then
                     UIManager:show(InfoMessage:new{
                         text = _("Latest progress is coming from this device."),
@@ -1357,11 +1374,11 @@ function CWASync:getProgress(ensure_networking, interactive)
             body.percentage = Math.roundPercent(tonumber(body.percentage) or 0)
             local progress = self:getLastProgress()
             local percentage = self:getLastPercent()
-            logger.dbg("CWASync: Current progress:", percentage * 100, "% =>", progress)
+            logger.dbg("CWNGSync: Current progress:", percentage * 100, "% =>", progress)
 
             if percentage == body.percentage
             or body.progress == progress then
-                logger.dbg("CWASync: [Pull] end for", current_file, "progress already synchronized")
+                logger.dbg("CWNGSync: [Pull] end for", current_file, "progress already synchronized")
                 if interactive then
                     UIManager:show(InfoMessage:new{
                         text = _("The progress has already been synchronized."),
@@ -1377,7 +1394,7 @@ function CWASync:getProgress(ensure_networking, interactive)
                 -- we always update the progress without further confirmation.
                 self:syncToProgress(remote)
                 showSyncedMessage()
-                logger.dbg("CWASync: [Pull] end for", current_file, "interactive sync applied", {
+                logger.dbg("CWNGSync: [Pull] end for", current_file, "interactive sync applied", {
                     remote_progress = body.progress,
                     remote_percentage = body.percentage,
                 })
@@ -1402,9 +1419,9 @@ function CWASync:getProgress(ensure_networking, interactive)
                 if self.settings.sync_forward == SYNC_STRATEGY.SILENT then
                     self:syncToProgress(remote)
                     showSyncedMessage()
-                    logger.dbg("CWASync: [Pull] end for", current_file, "auto-applied newer remote progress")
+                    logger.dbg("CWNGSync: [Pull] end for", current_file, "auto-applied newer remote progress")
                 elseif self.settings.sync_forward == SYNC_STRATEGY.PROMPT then
-                    logger.dbg("CWASync: [Pull] awaiting prompt to apply newer remote progress for", current_file)
+                    logger.dbg("CWNGSync: [Pull] awaiting prompt to apply newer remote progress for", current_file)
                     UIManager:show(ConfirmBox:new{
                         text = T(_("Sync to latest location %1% from device '%2'?"),
                                  Math.round(body.percentage * 100),
@@ -1418,9 +1435,9 @@ function CWASync:getProgress(ensure_networking, interactive)
                 if self.settings.sync_backward == SYNC_STRATEGY.SILENT then
                     self:syncToProgress(remote)
                     showSyncedMessage()
-                    logger.dbg("CWASync: [Pull] end for", current_file, "auto-applied older remote progress")
+                    logger.dbg("CWNGSync: [Pull] end for", current_file, "auto-applied older remote progress")
                 elseif self.settings.sync_backward == SYNC_STRATEGY.PROMPT then
-                    logger.dbg("CWASync: [Pull] awaiting prompt to apply older remote progress for", current_file)
+                    logger.dbg("CWNGSync: [Pull] awaiting prompt to apply older remote progress for", current_file)
                     UIManager:show(ConfirmBox:new{
                         text = T(_("Sync to previous location %1% from device '%2'?"),
                                  Math.round(body.percentage * 100),
@@ -1435,14 +1452,14 @@ function CWASync:getProgress(ensure_networking, interactive)
     if not ok then
         if interactive then showSyncError() end
         if err then logger.dbg("err:", err) end
-        logger.dbg("CWASync: [Pull] request setup failed for", current_file, err)
+        logger.dbg("CWNGSync: [Pull] request setup failed for", current_file, err)
     end
 
     self.pull_timestamp = now
 end
 
-function CWASync:_onCloseDocument()
-    logger.dbg("CWASync: onCloseDocument")
+function CWNGSync:_onCloseDocument()
+    logger.dbg("CWNGSync: onCloseDocument")
     -- NOTE: Because everything is terrible, on Android, opening the system settings to enable WiFi means we lose focus,
     --       and we handle those system focus events via... Suspend & Resume events, so we need to neuter those handlers early.
     self.onResume = nil
@@ -1457,14 +1474,14 @@ function CWASync:_onCloseDocument()
     end)
 end
 
-function CWASync:schedulePeriodicPush()
+function CWNGSync:schedulePeriodicPush()
     UIManager:unschedule(self.periodic_push_task)
     -- Use a sizable delay to make debouncing this on skim feasible...
     UIManager:scheduleIn(10, self.periodic_push_task)
     self.periodic_push_scheduled = true
 end
 
-function CWASync:_onPageUpdate(page)
+function CWNGSync:_onPageUpdate(page)
     if page == nil then
         return
     end
@@ -1480,8 +1497,8 @@ function CWASync:_onPageUpdate(page)
     end
 end
 
-function CWASync:_onResume()
-    logger.dbg("CWASync: onResume")
+function CWNGSync:_onResume()
+    logger.dbg("CWNGSync: onResume")
     -- If we have auto_restore_wifi enabled, skip this to prevent both the "Connecting..." UI to pop-up,
     -- *and* a duplicate NetworkConnected event from firing...
     if Device:hasWifiRestore() and NetworkMgr.wifi_was_on and G_reader_settings:isTrue("auto_restore_wifi") then
@@ -1495,35 +1512,35 @@ function CWASync:_onResume()
     end)
 end
 
-function CWASync:_onSuspend()
-    logger.dbg("CWASync: onSuspend")
+function CWNGSync:_onSuspend()
+    logger.dbg("CWNGSync: onSuspend")
     -- We request an extra flashing refresh on success, to deal with potential ghosting left by the NetworkMgr UI
     self:updateProgress(true, false, true)
 end
 
-function CWASync:_onNetworkConnected()
-    logger.dbg("CWASync: onNetworkConnected")
+function CWNGSync:_onNetworkConnected()
+    logger.dbg("CWNGSync: onNetworkConnected")
     UIManager:scheduleIn(0.5, function()
         -- Network is supposed to be on already, don't wrap this in willRerunWhenOnline
         self:getProgress(false, false)
     end)
 end
 
-function CWASync:_onNetworkDisconnecting()
-    logger.dbg("CWASync: onNetworkDisconnecting")
+function CWNGSync:_onNetworkDisconnecting()
+    logger.dbg("CWNGSync: onNetworkDisconnecting")
     -- Network is supposed to be on already, don't wrap this in willRerunWhenOnline
     self:updateProgress(false, false)
 end
 
-function CWASync:onCWASyncPushProgress()
+function CWNGSync:onCWNGSyncPushProgress()
     self:updateProgress(true, true)
 end
 
-function CWASync:onCWASyncPullProgress()
+function CWNGSync:onCWNGSyncPullProgress()
     self:getProgress(true, true)
 end
 
-function CWASync:registerEvents()
+function CWNGSync:registerEvents()
     if self.settings.auto_sync then
         self.onCloseDocument = self._onCloseDocument
         self.onPageUpdate = self._onPageUpdate
@@ -1558,19 +1575,19 @@ end
 -- watermark yields no deletions, so highlights survive.
 local ANNOTATION_WATERMARK_KEY = "cwasync_pushed_annotation_ids"
 
-function CWASync:readAnnotationWatermark()
+function CWNGSync:readAnnotationWatermark()
     local doc_settings = self.ui and self.ui.doc_settings
     if not (doc_settings and doc_settings.readSetting) then return {} end
     return doc_settings:readSetting(ANNOTATION_WATERMARK_KEY) or {}
 end
 
-function CWASync:saveAnnotationWatermark(localList)
+function CWNGSync:saveAnnotationWatermark(localList)
     local doc_settings = self.ui and self.ui.doc_settings
     if not (doc_settings and doc_settings.saveSetting) then return end
     doc_settings:saveSetting(ANNOTATION_WATERMARK_KEY, SyncLogic.annotationIds(localList))
 end
 
-function CWASync:syncAnnotations(interactive)
+function CWNGSync:syncAnnotations(interactive)
     if not self.settings.sync_annotations then
         if interactive then
             UIManager:show(InfoMessage:new{ text = _("Highlight sync is off."), timeout = 2 })
@@ -1602,8 +1619,8 @@ function CWASync:syncAnnotations(interactive)
         return
     end
 
-    local CWASyncClient = require("CWASyncClient")
-    local client = CWASyncClient:new{
+    local CWNGSyncClient = require("CWNGSyncClient")
+    local client = CWNGSyncClient:new{
         service_url = self.settings.server .. "/kosync",
         service_spec = self.path .. "/api.json",
     }
@@ -1699,9 +1716,9 @@ function CWASync:syncAnnotations(interactive)
         end)
 end
 
-function CWASync:onCloseWidget()
+function CWNGSync:onCloseWidget()
     UIManager:unschedule(self.periodic_push_task)
     self.periodic_push_task = nil
 end
 
-return CWASync
+return CWNGSync
