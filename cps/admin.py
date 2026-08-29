@@ -1449,8 +1449,11 @@ def do_full_kobo_sync(userid):
 
 @admi.route("/ajax/kobo_resend/<int:userid>/<int:bookid>", methods=["POST"])
 @user_login_required
-@admin_required
 def ajax_kobo_resend(userid, bookid):
+    # Same IDOR guard as the Kobo token routes: a user may act only on their
+    # own device state, while admins retain the existing targeted action.
+    if current_user.id != userid and not current_user.role_admin():
+        abort(403)
     return do_kobo_resend(userid, bookid)
 
 
@@ -1465,7 +1468,7 @@ def do_kobo_resend(userid, bookid):
     #     up regardless of where the device's cursor sits;
     #   * clear the (user_id, book_id) row from kobo_synced_books;
     #   * clear every per-device entitlement fingerprint for this user/book,
-    #     otherwise Layer 2 can suppress the admin-requested replay as an exact
+    #     otherwise Layer 2 can suppress the requested replay as an exact
     #     match even though last_modified selected it for delivery.
     #
     # ⚠️ This comment used to say the deletion is what makes the sync emit
@@ -1487,7 +1490,7 @@ def do_kobo_resend(userid, bookid):
     # any other synced row remaining, this emits ChangedEntitlement.
     #
     # 🚨 Whether a Kobo re-downloads the file on a ChangedEntitlement is
-    # UNOBSERVED (F-3e383a). The success message below tells the admin the
+    # UNOBSERVED (F-3e383a). The success message below tells the requester the
     # device "will re-receive the book"; that claim is only established for the
     # empty-table case above. Do not strengthen it without measuring on
     # hardware.
