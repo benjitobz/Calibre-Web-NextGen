@@ -26,6 +26,7 @@ from pathlib import Path
 import pytest
 
 from tests.fixtures.kobo_reader_sqlite import (
+    build_kobo_db_without_bookmark_type,
     build_synthetic_kobo_db,
     build_empty_sqlite_no_bookmark_table,
     build_not_sqlite,
@@ -144,6 +145,38 @@ class TestParseKoboBookmarks:
         rows = {r.bookmark_id: r for r in parse_kobo_bookmarks(p)}
         assert rows["bm-004"].volume_id.startswith("file:///")
 
+    def test_canonical_fixture_carries_measured_clara_shapes(self, tmp_path):
+        """The default fixture is the current device, not a server-shaped fake."""
+        import sqlite3
+
+        p = build_synthetic_kobo_db(tmp_path / "k.sqlite")
+        connection = sqlite3.connect(p)
+        try:
+            columns = {
+                row[1] for row in connection.execute("PRAGMA table_info(Bookmark)")
+            }
+            row = connection.execute(
+                """
+                SELECT ContentID, StartContainerChildIndex,
+                       EndContainerChildIndex, DateCreated, Hidden,
+                       typeof(Hidden), Type
+                FROM Bookmark WHERE BookmarkID = 'bm-001'
+                """
+            ).fetchone()
+        finally:
+            connection.close()
+
+        assert "Type" in columns
+        assert row == (
+            "b3d1b38b-74fd-43b7-a796-996e5a6a8b04!OEBPS!chapter1.html",
+            -99,
+            -99,
+            "2026-01-01T10:00:00.000",
+            "false",
+            "text",
+            "highlight",
+        )
+
 
 @pytest.mark.unit
 class TestParserEdgeCases:
@@ -230,9 +263,7 @@ class TestBookmarkTypeIsRecovered:
         their type is None rather than a fabricated default.
         """
         from cps.services.kobo_import import parse_kobo_bookmarks
-        from tests.fixtures.kobo_reader_sqlite import build_synthetic_kobo_db
-
-        p = build_synthetic_kobo_db(tmp_path / "old.sqlite")
+        p = build_kobo_db_without_bookmark_type(tmp_path / "old.sqlite")
         rows = list(parse_kobo_bookmarks(p))
         assert len(rows) >= 6, "the older-schema import lost rows"
         assert {r.annotation_type for r in rows} == {None}
@@ -247,7 +278,7 @@ class TestBookmarkTypeIsRecovered:
 
         from tests.fixtures.kobo_reader_sqlite import (
             build_kobo_db_with_bookmark_type,
-            build_synthetic_kobo_db,
+            build_kobo_db_without_bookmark_type,
         )
 
         def columns(path):
@@ -258,4 +289,6 @@ class TestBookmarkTypeIsRecovered:
                 conn.close()
 
         assert "Type" in columns(build_kobo_db_with_bookmark_type(tmp_path / "new.sqlite"))
-        assert "Type" not in columns(build_synthetic_kobo_db(tmp_path / "old.sqlite"))
+        assert "Type" not in columns(
+            build_kobo_db_without_bookmark_type(tmp_path / "old.sqlite")
+        )

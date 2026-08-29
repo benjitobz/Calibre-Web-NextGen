@@ -150,7 +150,7 @@ def build_synthetic_kepub(dest: Path, book_uuid: str = "00000000-0000-0000-0000-
     for i, fname in enumerate(chapters.keys(), 1):
         idref = f"ch{i}"
         manifest_lines.append(
-            f'    <item id="{idref}" href="{fname}" media-type="application/xhtml+xml"/>'
+            f'    <item id="{idref}" href="OEBPS/{fname}" media-type="application/xhtml+xml"/>'
         )
         spine_lines.append(f'    <itemref idref="{idref}"/>')
 

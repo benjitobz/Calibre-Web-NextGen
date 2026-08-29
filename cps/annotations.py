@@ -605,6 +605,30 @@ def _device_edit_is_newer(device_modified_at, existing) -> bool:
     return watermark is None or device_modified_at > watermark
 
 
+def _matching_container_child_index(value):
+    """Collapse the two equivalent KoboSpan selector sentinels for equality.
+
+    Nickel persists ``-99`` in KoboReader.sqlite while its wire annotation omits
+    the child-index fields, which stores as ``NULL``.  Both the position
+    converter and the web-reader locator consume either spelling as "use the
+    selector path", so the recovery comparator must not invent a content
+    conflict from that structural transport difference.
+    """
+    from .services.kobo_position import KOBO_SELECTOR_SENTINEL
+
+    if value is None or value == KOBO_SELECTOR_SENTINEL:
+        return None
+    return value
+
+
+def _matching_annotation_values(values):
+    """Return comparator-only values with equivalent child sentinels folded."""
+    values = list(values)
+    for index in (5, 8):
+        values[index] = _matching_container_child_index(values[index])
+    return tuple(values)
+
+
 def _bookmark_values(bm, content_id):
     return (
         bm.text,
@@ -642,7 +666,11 @@ def _annotation_values(row):
 
 
 def _bookmark_matches_annotation(bm, content_id, row) -> bool:
-    return not bool(row.hidden) and _bookmark_values(bm, content_id) == _annotation_values(row)
+    return (
+        not bool(row.hidden)
+        and _matching_annotation_values(_bookmark_values(bm, content_id))
+        == _matching_annotation_values(_annotation_values(row))
+    )
 
 
 def _apply_imported_bookmark(row, bm, content_id, *, device_modified_at,

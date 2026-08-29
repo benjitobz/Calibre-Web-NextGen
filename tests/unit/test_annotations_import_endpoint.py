@@ -215,6 +215,73 @@ class TestIngestCounts:
 
 
 @pytest.mark.unit
+class TestWireAndDatabaseSentinelEquivalence:
+    def test_wire_delivered_annotation_is_already_present(
+        self, memory_db, synthetic_db, monkeypatch,
+    ):
+        """NULL on the wire and -99 in SQLite describe one KoboSpan selector."""
+        from cps import ub
+        from cps.annotations import ingest_bookmarks
+        from cps.services.annotation_sync import (
+            dispatch_annotation_sync,
+            reset_registry_for_testing,
+            set_remote_enqueue,
+        )
+
+        session, _, _ = memory_db
+
+        def commit():
+            session.commit()
+            return True
+
+        monkeypatch.setattr(ub, "session", session)
+        monkeypatch.setattr(ub, "session_commit", commit)
+        reset_registry_for_testing()
+        set_remote_enqueue(None)
+        book_uuid = "b3d1b38b-74fd-43b7-a796-996e5a6a8b04"
+        book = SimpleNamespace(id=348, uuid=book_uuid, title="Animal Farm")
+        user = SimpleNamespace(id=7)
+        payload = {
+            "id": "bm-001",
+            "highlightedText": "All animals are equal.",
+            "noteText": None,
+            "highlightColor": "#F6F3B3",
+            "type": "highlight",
+            "clientLastModifiedUtc": "2026-01-01T10:00:00Z",
+            "location": {"span": {
+                "chapterFilename": "OEBPS/chapter1.html",
+                "startPath": "span#kobo\\.1\\.1",
+                "startChar": 0,
+                "endPath": "span#kobo\\.1\\.1",
+                "endChar": 15,
+                "contextString": "... All animals are equal. But ...",
+                "chapterProgress": 0.01,
+            }},
+        }
+
+        assert dispatch_annotation_sync([payload], book, user) is True
+        wire_row = session.query(ub.Annotation).filter_by(
+            annotation_id="bm-001",
+        ).one()
+        assert wire_row.start_container_child_index is None
+        assert wire_row.end_container_child_index is None
+
+        result = ingest_bookmarks(
+            synthetic_db,
+            user_id=7,
+            session=session,
+            book_lookup=_make_book_lookup({book_uuid: 348}),
+            commit=commit,
+        )
+
+        assert result["skipped_existing"] == 1, result
+        assert result["skipped_newer_server"] == 0, result
+        assert session.query(ub.Annotation).filter_by(
+            user_id=7, book_id=348, annotation_id="bm-001",
+        ).count() == 1
+
+
+@pytest.mark.unit
 class TestKoboDeviceContentId:
     BOOK_UUID = "b3d1b38b-74fd-43b7-a796-996e5a6a8b04"
 
