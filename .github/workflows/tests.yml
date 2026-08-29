@@ -840,7 +840,7 @@ jobs:
         working-directory: frontend
         run: |
           npm ci
-          npx playwright install --with-deps chromium
+          npx playwright install --with-deps chromium webkit
 
       # Frontend-only PRs intentionally reuse a digest-pinned :dev backend to
       # avoid a full multi-arch build for a static-bundle change. Overlay their
