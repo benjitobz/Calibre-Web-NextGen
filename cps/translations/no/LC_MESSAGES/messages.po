@@ -4272,6 +4272,10 @@ msgid "Add identifier"
 msgstr ""
 
 #: cps/spa_strings.py
+msgid "Add link"
+msgstr ""
+
+#: cps/spa_strings.py
 msgid "Add note"
 msgstr ""
 
@@ -4333,6 +4337,10 @@ msgstr ""
 
 #: cps/spa_strings.py
 msgid "Apply metadata"
+msgstr ""
+
+#: cps/spa_strings.py cps/templates/book_edit.html
+msgid "Apply"
 msgstr ""
 
 #: cps/spa_strings.py
@@ -4402,6 +4410,10 @@ msgid "Auto-create users on first login"
 msgstr ""
 
 #: cps/spa_strings.py
+msgid "Back to formatting"
+msgstr ""
+
+#: cps/spa_strings.py
 msgid "Back to library"
 msgstr ""
 
@@ -4423,6 +4435,10 @@ msgstr ""
 
 #: cps/spa_strings.py cps/templates/read.html
 msgid "Black"
+msgstr ""
+
+#: cps/spa_strings.py
+msgid "Bold"
 msgstr ""
 
 #: cps/spa_strings.py
@@ -4463,6 +4479,10 @@ msgstr ""
 
 #: cps/spa_strings.py
 msgid "Built-in providers (leave blank to disable):"
+msgstr ""
+
+#: cps/spa_strings.py
+msgid "Bulleted list"
 msgstr ""
 
 #: cps/spa_strings.py
@@ -4545,6 +4565,10 @@ msgid "Clear default"
 msgstr ""
 
 #: cps/spa_strings.py
+msgid "Clear formatting"
+msgstr ""
+
+#: cps/spa_strings.py
 msgid "Clear selection"
 msgstr ""
 
@@ -4562,6 +4586,10 @@ msgstr ""
 
 #: cps/spa_strings.py
 msgid "Close reader"
+msgstr ""
+
+#: cps/spa_strings.py
+msgid "Code"
 msgstr ""
 
 #: cps/spa_strings.py
@@ -4900,6 +4928,10 @@ msgid "Description"
 msgstr "Beskrivelse"
 
 #: cps/spa_strings.py
+msgid "Description formatting"
+msgstr ""
+
+#: cps/spa_strings.py
 msgid "Device"
 msgstr ""
 
@@ -5007,6 +5039,10 @@ msgstr ""
 #: cps/templates/user_table.html
 msgid "Edit"
 msgstr "Redigere"
+
+#: cps/spa_strings.py
+msgid "Edit HTML"
+msgstr ""
 
 #: cps/spa_strings.py
 msgid "Edit note"
@@ -5172,6 +5208,10 @@ msgid "Formats — include"
 msgstr ""
 
 #: cps/spa_strings.py
+msgid "Formatting is kept where the book page supports it."
+msgstr ""
+
+#: cps/spa_strings.py
 msgid "From address"
 msgstr ""
 
@@ -5238,6 +5278,10 @@ msgstr ""
 
 #: cps/spa_strings.py
 msgid "Header name"
+msgstr ""
+
+#: cps/spa_strings.py
+msgid "Heading"
 msgstr ""
 
 #: cps/spa_strings.py
@@ -5352,6 +5396,10 @@ msgid "It may have moved, or it might still live in the classic interface."
 msgstr ""
 
 #: cps/spa_strings.py
+msgid "Italic"
+msgstr ""
+
+#: cps/spa_strings.py
 msgid "KOReader"
 msgstr ""
 
@@ -5424,6 +5472,10 @@ msgstr ""
 
 #: cps/spa_strings.py cps/templates/read.html
 msgid "Line height"
+msgstr ""
+
+#: cps/spa_strings.py
+msgid "Link address"
 msgstr ""
 
 #: cps/spa_strings.py
@@ -5762,6 +5814,14 @@ msgid ""
 msgstr ""
 
 #: cps/spa_strings.py
+msgid "Nothing to preview yet."
+msgstr ""
+
+#: cps/spa_strings.py
+msgid "Numbered list"
+msgstr ""
+
+#: cps/spa_strings.py
 msgid "Oldest"
 msgstr ""
 
@@ -5900,6 +5960,11 @@ msgstr "Havn"
 msgid "Preparing your magic link…"
 msgstr ""
 
+#: cps/spa_strings.py cps/templates/duplicates.html
+#: cps/templates/kobo_reconcile.html
+msgid "Preview"
+msgstr ""
+
 #: cps/spa_strings.py
 msgid "Previous page"
 msgstr ""
@@ -5918,6 +5983,10 @@ msgstr ""
 
 #: cps/spa_strings.py
 msgid "Published before"
+msgstr ""
+
+#: cps/spa_strings.py
+msgid "Quote"
 msgstr ""
 
 #: cps/spa_strings.py
@@ -6007,6 +6076,10 @@ msgstr ""
 
 #: cps/spa_strings.py
 msgid "Remove identifier"
+msgstr ""
+
+#: cps/spa_strings.py
+msgid "Remove link"
 msgstr ""
 
 #: cps/spa_strings.py
@@ -6448,6 +6521,10 @@ msgstr ""
 #: cps/spa_strings.py cps/templates/config_edit.html
 #: cps/templates/cover_picker.html
 msgid "Stretch to fill — no border, slight distortion"
+msgstr ""
+
+#: cps/spa_strings.py
+msgid "Subheading"
 msgstr ""
 
 #: cps/spa_strings.py
@@ -8377,10 +8454,6 @@ msgstr ""
 
 #: cps/templates/book_edit.html
 msgid "Cover size — smallest first"
-msgstr ""
-
-#: cps/templates/book_edit.html
-msgid "Apply"
 msgstr ""
 
 #: cps/templates/book_edit.html
@@ -11334,10 +11407,6 @@ msgstr ""
 
 #: cps/templates/duplicates.html
 msgid "Keep Largest File Size - Keep book with largest total file size"
-msgstr ""
-
-#: cps/templates/duplicates.html cps/templates/kobo_reconcile.html
-msgid "Preview"
 msgstr ""
 
 #: cps/templates/duplicates.html

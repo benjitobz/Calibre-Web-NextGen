@@ -4359,6 +4359,10 @@ msgid "Add identifier"
 msgstr "Добавить идентификатор"
 
 #: cps/spa_strings.py
+msgid "Add link"
+msgstr ""
+
+#: cps/spa_strings.py
 msgid "Add note"
 msgstr "Добавить заметку"
 
@@ -4421,6 +4425,10 @@ msgstr "Любые теги"
 #: cps/spa_strings.py
 msgid "Apply metadata"
 msgstr ""
+
+#: cps/spa_strings.py cps/templates/book_edit.html
+msgid "Apply"
+msgstr "Применить"
 
 #: cps/spa_strings.py
 msgid "Apply selected"
@@ -4489,6 +4497,10 @@ msgid "Auto-create users on first login"
 msgstr "Автоматически создавать пользователей при первом входе"
 
 #: cps/spa_strings.py
+msgid "Back to formatting"
+msgstr ""
+
+#: cps/spa_strings.py
 msgid "Back to library"
 msgstr "Вернуться в библиотеку"
 
@@ -4511,6 +4523,10 @@ msgstr "Бета"
 #: cps/spa_strings.py cps/templates/read.html
 msgid "Black"
 msgstr "Чёрный"
+
+#: cps/spa_strings.py
+msgid "Bold"
+msgstr ""
 
 #: cps/spa_strings.py
 msgid "Book default"
@@ -4554,6 +4570,10 @@ msgstr ""
 #: cps/spa_strings.py
 msgid "Built-in providers (leave blank to disable):"
 msgstr "Встроенные провайдеры (оставьте пустым, чтобы отключить):"
+
+#: cps/spa_strings.py
+msgid "Bulleted list"
+msgstr ""
 
 #: cps/spa_strings.py
 msgid "CA certificate path"
@@ -4635,6 +4655,10 @@ msgid "Clear default"
 msgstr "Сбросить значение по умолчанию"
 
 #: cps/spa_strings.py
+msgid "Clear formatting"
+msgstr ""
+
+#: cps/spa_strings.py
 msgid "Clear selection"
 msgstr "Снять выделение"
 
@@ -4653,6 +4677,10 @@ msgstr "Секретный ключ клиента (оставьте пусты�
 #: cps/spa_strings.py
 msgid "Close reader"
 msgstr "Закрыть читалку"
+
+#: cps/spa_strings.py
+msgid "Code"
+msgstr ""
 
 #: cps/spa_strings.py
 msgid "Columns"
@@ -4994,6 +5022,10 @@ msgid "Description"
 msgstr "Описание"
 
 #: cps/spa_strings.py
+msgid "Description formatting"
+msgstr ""
+
+#: cps/spa_strings.py
 msgid "Device"
 msgstr "Устройство"
 
@@ -5105,6 +5137,10 @@ msgstr "Зеркальные края - расширение обложки (р�
 #: cps/templates/user_table.html
 msgid "Edit"
 msgstr "Редактировать"
+
+#: cps/spa_strings.py
+msgid "Edit HTML"
+msgstr ""
 
 #: cps/spa_strings.py
 msgid "Edit note"
@@ -5273,6 +5309,10 @@ msgid "Formats — include"
 msgstr "Форматы — включить"
 
 #: cps/spa_strings.py
+msgid "Formatting is kept where the book page supports it."
+msgstr ""
+
+#: cps/spa_strings.py
 msgid "From address"
 msgstr "Адрес отправителя"
 
@@ -5340,6 +5380,10 @@ msgstr "Есть рукописные или графические заметк
 #: cps/spa_strings.py
 msgid "Header name"
 msgstr "Имя заголовка"
+
+#: cps/spa_strings.py
+msgid "Heading"
+msgstr ""
 
 #: cps/spa_strings.py
 msgid "Help & support"
@@ -5457,6 +5501,10 @@ msgstr ""
 "интерфейсе."
 
 #: cps/spa_strings.py
+msgid "Italic"
+msgstr ""
+
+#: cps/spa_strings.py
 msgid "KOReader"
 msgstr "KOReader"
 
@@ -5530,6 +5578,10 @@ msgstr "Настройки библиотеки"
 #: cps/spa_strings.py cps/templates/read.html
 msgid "Line height"
 msgstr "Межстрочный интервал"
+
+#: cps/spa_strings.py
+msgid "Link address"
+msgstr ""
 
 #: cps/spa_strings.py
 msgid "Load more"
@@ -5877,6 +5929,14 @@ msgstr ""
 "то, что получает ваш Kobo."
 
 #: cps/spa_strings.py
+msgid "Nothing to preview yet."
+msgstr ""
+
+#: cps/spa_strings.py
+msgid "Numbered list"
+msgstr ""
+
+#: cps/spa_strings.py
 msgid "Oldest"
 msgstr "Сначала старые"
 
@@ -6030,6 +6090,11 @@ msgstr "Порт"
 msgid "Preparing your magic link…"
 msgstr "Подготавливаем волшебную ссылку…"
 
+#: cps/spa_strings.py cps/templates/duplicates.html
+#: cps/templates/kobo_reconcile.html
+msgid "Preview"
+msgstr "Предварительный просмотр"
+
 #: cps/spa_strings.py
 msgid "Previous page"
 msgstr "Предыдущая страница"
@@ -6049,6 +6114,10 @@ msgstr "Опубликовано после"
 #: cps/spa_strings.py
 msgid "Published before"
 msgstr "Опубликовано до"
+
+#: cps/spa_strings.py
+msgid "Quote"
+msgstr ""
 
 #: cps/spa_strings.py
 msgid "Random books shown"
@@ -6141,6 +6210,10 @@ msgstr "Удалить выделение"
 #: cps/spa_strings.py
 msgid "Remove identifier"
 msgstr "Удалить идентификатор"
+
+#: cps/spa_strings.py
+msgid "Remove link"
+msgstr ""
 
 #: cps/spa_strings.py
 msgid "Remove note"
@@ -6594,6 +6667,10 @@ msgstr "Статус"
 #: cps/templates/cover_picker.html
 msgid "Stretch to fill — no border, slight distortion"
 msgstr "Растянуть для заполнения — без рамок, небольшое искажение"
+
+#: cps/spa_strings.py
+msgid "Subheading"
+msgstr ""
 
 #: cps/spa_strings.py
 msgid "Support on Ko-fi →"
@@ -8523,10 +8600,6 @@ msgstr "Размер обложки - сначала большие"
 #: cps/templates/book_edit.html
 msgid "Cover size — smallest first"
 msgstr "Размер обложки - сначала маленькие"
-
-#: cps/templates/book_edit.html
-msgid "Apply"
-msgstr "Применить"
 
 #: cps/templates/book_edit.html
 msgid "Search error!"
@@ -11816,10 +11889,6 @@ msgid "Keep Largest File Size - Keep book with largest total file size"
 msgstr ""
 "Оставить наибольший размер файла - оставить книгу с наибольшим общим "
 "размером файла"
-
-#: cps/templates/duplicates.html cps/templates/kobo_reconcile.html
-msgid "Preview"
-msgstr "Предварительный просмотр"
 
 #: cps/templates/duplicates.html
 msgid "Execute Resolution"
