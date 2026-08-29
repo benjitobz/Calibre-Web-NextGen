@@ -33,6 +33,17 @@ EDITABLE_FIELDS = [
     "tags", "publishers", "languages", "comments", "rating", "pubdate",
 ]
 
+# ``list_mode`` is request-level and deliberately not part of EDITABLE_FIELDS:
+# it changes how relationship fields are prepared, never what fields are
+# writable. Omission remains the historical replace behaviour for every
+# existing API client.
+LIST_FIELD_SEPARATORS = {
+    "authors": "&",
+    "tags": ",",
+    "publishers": ",",
+    "languages": ",",
+}
+
 # Custom columns (#pages, #status, …) are addressed by their calibre table name,
 # the same key the classic editor's form fields and inline table editor use.
 CUSTOM_COLUMN_PREFIX = "custom_column_"
@@ -66,6 +77,48 @@ def _parse_edit_result(result):
     if isinstance(result, tuple):  # (message, status) — an error
         return False, str(result[0])
     return True, ""  # "" / None — success with no body
+
+
+def _book_list_values(book, field):
+    """Return one relationship field in the spelling/order shown to editors."""
+    if field == "authors":
+        # Calibre stores commas in author names as ``|``. edit_book_param's
+        # author parser reverses this display form before it writes.
+        return [author.name.replace("|", ",") for author in (book.authors or [])]
+    if field == "languages":
+        return [
+            isoLanguages.get_language_name(get_locale(), language.lang_code)
+            for language in (getattr(book, "languages", None) or [])
+        ]
+    return [
+        item.name
+        for item in (getattr(book, field, None) or [])
+    ]
+
+
+def _add_list_values(book, field, raw):
+    """Merge a list-field input, returning the editor value or ``None``.
+
+    Existing values are emitted first and unchanged. Incoming values are
+    stripped, compared with Unicode-aware case folding, and appended in input
+    order only once. ``None`` means the request adds no relationship and the
+    caller must skip the write entirely.
+    """
+    separator = LIST_FIELD_SEPARATORS[field]
+    existing = _book_list_values(book, field)
+    seen = {value.strip().casefold() for value in existing}
+    additions = []
+    for part in ("" if raw is None else str(raw)).split(separator):
+        value = part.strip()
+        folded = value.casefold()
+        if not value or folded in seen:
+            continue
+        seen.add(folded)
+        additions.append(value)
+    if not additions:
+        return None
+    joiner = " & " if field == "authors" else ", "
+    return joiner.join(existing + additions)
 
 
 def _custom_column_defs():
@@ -335,12 +388,21 @@ def update_metadata(book_id):
         return _err("not_found", "Book not found", 404)
 
     data = request.get_json(silent=True) or {}
+    list_mode = data.get("list_mode", "replace")
+    if list_mode not in ("add", "replace"):
+        return _err("invalid_request", "list_mode must be 'add' or 'replace'", 400)
+
     errors = {}
     for field in EDITABLE_FIELDS:
         if field not in data:
             continue
         raw = data[field]
-        value = "" if raw is None else str(raw)
+        if list_mode == "add" and field in LIST_FIELD_SEPARATORS:
+            value = _add_list_values(book, field, raw)
+            if value is None:
+                continue  # A no-op add must not touch modified time or metadata.
+        else:
+            value = "" if raw is None else str(raw)
         # edit_book_param reads vals['pk'] + vals['value']; checkA auto-syncs the
         # author sort key from the authors string (the inline-editor default).
         vals = {"pk": str(book_id), "value": value, "checkA": "true"}

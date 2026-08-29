@@ -4143,6 +4143,10 @@ msgstr ""
 msgid "Add note"
 msgstr ""
 
+#: cps/spa_strings.py
+msgid "Add to existing"
+msgstr ""
+
 #: cps/spa_strings.py cps/templates/detail.html
 msgid "Add to favorites"
 msgstr ""
@@ -4196,13 +4200,11 @@ msgid "Any tags"
 msgstr ""
 
 #: cps/spa_strings.py
-msgid "Apply selected"
+msgid "Apply metadata"
 msgstr ""
 
 #: cps/spa_strings.py
-msgid ""
-"Apply to all selected (only filled fields change; replaces existing "
-"values):"
+msgid "Apply selected"
 msgstr ""
 
 #: cps/spa_strings.py cps/templates/cover_picker.html
@@ -4935,6 +4937,10 @@ msgid ""
 msgstr ""
 
 #: cps/spa_strings.py
+msgid "Every filled field will replace each book's existing values."
+msgstr ""
+
+#: cps/spa_strings.py
 msgid "Excluded"
 msgstr ""
 
@@ -5154,6 +5160,10 @@ msgstr ""
 
 #: cps/spa_strings.py
 msgid "Hot — Most Downloaded"
+msgstr ""
+
+#: cps/spa_strings.py
+msgid "How should multi-value fields be applied?"
 msgstr ""
 
 #: cps/spa_strings.py
@@ -5455,6 +5465,12 @@ msgstr ""
 
 #: cps/spa_strings.py cps/templates/cover_picker.html
 msgid "New"
+msgstr ""
+
+#: cps/spa_strings.py
+msgid ""
+"New authors, tags, publishers, and languages will be added after each "
+"book's existing values. Filled single-value fields will be replaced."
 msgstr ""
 
 #: cps/spa_strings.py
@@ -5895,6 +5911,17 @@ msgstr ""
 
 #: cps/spa_strings.py
 msgid "Replace cover?"
+msgstr ""
+
+#: cps/spa_strings.py
+msgid "Replace existing"
+msgstr ""
+
+#: cps/spa_strings.py
+#, python-brace-format
+msgid ""
+"Replace metadata for {n} selected book(s)? Those books will lose their "
+"existing values in every filled field."
 msgstr ""
 
 #: cps/spa_strings.py

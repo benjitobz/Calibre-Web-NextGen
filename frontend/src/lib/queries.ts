@@ -834,8 +834,8 @@ export function useBulkActions() {
       refresh();
     },
   });
-  // Bulk metadata: apply the same partial field set to every selected book via
-  // the per-book metadata endpoint (replace semantics for the filled fields).
+  // Bulk metadata: apply the same partial field set and explicit relationship
+  // mode to every selected book via the per-book metadata endpoint.
   const setMetadata = useMutation({
     mutationFn: (v: { ids: number[]; fields: MetadataUpdate }) =>
       settleById(v.ids, (id) => apiPost(`/api/v1/books/${id}/metadata`, v.fields)),

@@ -434,7 +434,12 @@ export interface EditableCustomColumn {
 
 /** Custom columns are sent flat, keyed as the server expects (`custom_column_7`),
  *  not as the definition list the GET returns. */
+export type MetadataListMode = 'add' | 'replace';
+
 export type MetadataUpdate = Partial<Omit<BookMetadata, 'id' | 'errors' | 'custom_columns'>> & {
+  /** Request-level behavior for authors/tags/publishers/languages. Omission is
+   *  the API's backwards-compatible replace behavior. */
+  list_mode?: MetadataListMode;
   [key: `custom_column_${number}`]: string;
 };
 

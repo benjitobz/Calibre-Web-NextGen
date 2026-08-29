@@ -462,8 +462,8 @@ msgid ""
 "LDAP CACertificate, Certificate or Key Location is not Valid, Please Enter "
 "Correct Path"
 msgstr ""
-"Der angegebene Speicherort für LDAP-CA-Zertifikat, -Zertifikat oder -"
-"Schlüsseldatei ist falsch,Bitte den korrekten Pfad eingeben."
+"Der angegebene Speicherort für LDAP-CA-Zertifikat, -Zertifikat oder "
+"-Schlüsseldatei ist falsch,Bitte den korrekten Pfad eingeben."
 
 #: cps/admin.py cps/templates/admin.html
 msgid "Add New User"
@@ -4354,6 +4354,10 @@ msgstr ""
 msgid "Add note"
 msgstr "Notiz hinzufügen"
 
+#: cps/spa_strings.py
+msgid "Add to existing"
+msgstr ""
+
 #: cps/spa_strings.py cps/templates/detail.html
 msgid "Add to favorites"
 msgstr "Zu Favoriten hinzufügen"
@@ -4407,15 +4411,12 @@ msgid "Any tags"
 msgstr "Beliebige Tags/Schlagwörter"
 
 #: cps/spa_strings.py
-msgid "Apply selected"
-msgstr "Ausgewählte hinzufügen"
+msgid "Apply metadata"
+msgstr ""
 
 #: cps/spa_strings.py
-msgid ""
-"Apply to all selected (only filled fields change; replaces existing values):"
-msgstr ""
-"Zu allen Markierten hinzufügen (nur gefüllte Felder werden geändert, "
-"bestehende Werte werden überschrieben):"
+msgid "Apply selected"
+msgstr "Ausgewählte hinzufügen"
 
 #: cps/spa_strings.py cps/templates/cover_picker.html
 msgid "Applying…"
@@ -5148,6 +5149,10 @@ msgid ""
 msgstr ""
 
 #: cps/spa_strings.py
+msgid "Every filled field will replace each book's existing values."
+msgstr ""
+
+#: cps/spa_strings.py
 msgid "Excluded"
 msgstr ""
 
@@ -5367,6 +5372,10 @@ msgstr "Beliebt"
 #: cps/spa_strings.py
 msgid "Hot — Most Downloaded"
 msgstr "Beliebt — Am häufigsten heruntergeladen"
+
+#: cps/spa_strings.py
+msgid "How should multi-value fields be applied?"
+msgstr ""
 
 #: cps/spa_strings.py
 msgid "Icon"
@@ -5667,6 +5676,12 @@ msgstr "Möchtest du ein Problem melden? Probiere das neue"
 
 #: cps/spa_strings.py cps/templates/cover_picker.html
 msgid "New"
+msgstr ""
+
+#: cps/spa_strings.py
+msgid ""
+"New authors, tags, publishers, and languages will be added after each book's "
+"existing values. Filled single-value fields will be replaced."
 msgstr ""
 
 #: cps/spa_strings.py
@@ -6107,6 +6122,17 @@ msgstr ""
 
 #: cps/spa_strings.py
 msgid "Replace cover?"
+msgstr ""
+
+#: cps/spa_strings.py
+msgid "Replace existing"
+msgstr ""
+
+#: cps/spa_strings.py
+#, python-brace-format
+msgid ""
+"Replace metadata for {n} selected book(s)? Those books will lose their "
+"existing values in every filled field."
 msgstr ""
 
 #: cps/spa_strings.py
@@ -13483,6 +13509,13 @@ msgstr "Ausgewählte Regale für OPDS freigeben"
 msgid "Show Read/Unread Section"
 msgstr "Zeige Gelesen/Ungelesen-Abschnitt"
 
+#~ msgid ""
+#~ "Apply to all selected (only filled fields change; replaces existing "
+#~ "values):"
+#~ msgstr ""
+#~ "Zu allen Markierten hinzufügen (nur gefüllte Felder werden geändert, "
+#~ "bestehende Werte werden überschrieben):"
+
 #~ msgid "Could not load highlights."
 #~ msgstr "Highlights konnten nicht geladen werden."
 
@@ -13681,9 +13714,9 @@ msgstr "Zeige Gelesen/Ungelesen-Abschnitt"
 #~ "        <a href=\"https://github.com/crocodilestick/Calibre-Web-Automated/"
 #~ "wiki/Configuration#database-configuration\">see here</a>!"
 #~ msgstr ""
-#~ "CWA ist so konfiguriert, dass es deine Calibre-Datenbank (<code>metadata."
-#~ "db</code>-Datei) irgendwo in dem Pfad <code>/calibre-library</code> "
-#~ "sucht.\n"
+#~ "CWA ist so konfiguriert, dass es deine Calibre-Datenbank "
+#~ "(<code>metadata.db</code>-Datei) irgendwo in dem Pfad <code>/calibre-"
+#~ "library</code> sucht.\n"
 #~ "        CWA durchsucht automatisch das Verzeichnis, das du auf <code>/"
 #~ "calibre-library</code> in der docker-compose-Datei verbunden hast, um "
 #~ "eine existierende Calibre-\n"
