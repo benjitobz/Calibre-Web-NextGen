@@ -931,9 +931,18 @@ def container_name(cwa_container) -> str:
     return "cwa-test-container"
 
 
-@pytest.fixture(scope="session")
+# Function-scoped ON PURPOSE. A session-scoped version enabled sync once and was
+# then silently undone: tests/integration/test_ingest_checksums.py RESTARTS the
+# container mid-session, which discards the setting, and every kosync test after
+# that point failed `assert 503`. Those failures look like a protocol outage and
+# are a lost precondition, so the setting is re-asserted per test. One `docker
+# exec` per test is far cheaper than the hour that shape costs to diagnose.
+@pytest.fixture
 def koreader_sync_enabled(container_name):
     """Turn on KOReader sync in the container under test, and put it back after.
+
+    Re-asserted for every test that asks for it, because a container restart
+    elsewhere in the suite silently reverts it.
 
     KOReader sync ships OFF. While it is off, ``_require_kosync_enabled`` answers
     **503** on every /kosync endpoint before any handler runs -- so a suite that

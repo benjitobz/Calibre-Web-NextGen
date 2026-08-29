@@ -119,6 +119,9 @@ def test_the_parser_actually_finds_the_calls():
     calls = _client_calls()
     assert set(calls) == {
         "update_progress", "get_progress", "report_inventory",
+        "claim_delivery", "complete_delivery", "refuse_delivery",
+        "claim_deletion", "complete_deletion",
+        "get_collections", "complete_collections",
         "pull_annotations", "push_annotations",
     }
     assert "annotations" in calls["push_annotations"]
@@ -167,11 +170,37 @@ def test_push_annotations_declares_the_delete_fields():
 
 def test_inventory_declares_every_body_field_in_both_spore_contracts():
     spec = _spec()["report_inventory"]
-    expected = {"device", "device_id", "inventory"}
+    expected = {"device", "device_id", "inventory", "free_space", "total_space"}
 
     assert set(spec["payload"]) == expected
     assert expected <= _expected_params(spec)
     assert _client_calls()["report_inventory"] == expected
+
+
+def test_delivery_calls_declare_every_body_field_in_both_spore_contracts():
+    expected = {
+        "claim_delivery": {"device", "device_id", "free_space", "total_space"},
+        "complete_delivery": {
+            "device", "device_id", "delivery_id", "claim_token",
+            "lpath", "checksum", "size", "mtime",
+        },
+        "refuse_delivery": {
+            "device", "device_id", "delivery_id", "claim_token", "reason",
+            "free_space", "total_space",
+        },
+        "claim_deletion": {"device", "device_id"},
+        "complete_deletion": {
+            "device", "device_id", "deletion_id", "claim_token", "deleted",
+            "failure_reason",
+        },
+        "get_collections": {"device", "device_id"},
+        "complete_collections": {"device", "device_id", "revision"},
+    }
+    for method, fields in expected.items():
+        spec = _spec()[method]
+        assert set(spec["payload"]) == fields
+        assert fields <= _expected_params(spec)
+        assert _client_calls()[method] == fields
 
 
 @pytest.mark.parametrize("method", sorted(_spec()))

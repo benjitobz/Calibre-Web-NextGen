@@ -59,6 +59,7 @@ from .services.annotation_colors import (
     to_display_name,
     to_storage_color,
 )
+from .services import device_capabilities
 from .services.kobo_import import (
     KoboUploadError,
     MAX_KOBO_DATABASE_UPLOAD_BYTES,
@@ -140,7 +141,7 @@ def _owned_device(public_id, user_id, session):
     ).first()
 
 
-def _device_json(device, annotation_count=0, inventory_report=None):
+def _device_json(device, annotation_count=0, inventory_report=None, storage_snapshot=None):
     return {
         "public_id": device.public_id,
         "label": device.display_name,
@@ -156,6 +157,13 @@ def _device_json(device, annotation_count=0, inventory_report=None):
             inventory_report.observed_at.isoformat()
             if inventory_report and inventory_report.observed_at else None
         ),
+        "storage_free": storage_snapshot.free_bytes if storage_snapshot else None,
+        "storage_total": storage_snapshot.total_bytes if storage_snapshot else None,
+        "storage_observed": (
+            storage_snapshot.observed_at.isoformat()
+            if storage_snapshot and storage_snapshot.observed_at else None
+        ),
+        "can_receive_books": device.kind in ("kobo", "koreader"),
         "active": bool(device.active),
     }
 
@@ -175,6 +183,7 @@ def list_annotation_devices(*, user_id, session, active_only=False):
     rows = query.group_by(ub.Device.id).order_by(ub.Device.display_name, ub.Device.id).all()
     device_ids = [device.id for device, _count in rows]
     reports = {}
+    storage = {}
     if device_ids:
         latest_ids = (
             session.query(func.max(ub.DeviceInventoryReport.id))
@@ -187,8 +196,19 @@ def list_annotation_devices(*, user_id, session, active_only=False):
                 ub.DeviceInventoryReport.id.in_(latest_ids)
             ).all()
         }
+        latest_storage_ids = (
+            session.query(func.max(ub.DeviceStorageSnapshot.id))
+            .filter(ub.DeviceStorageSnapshot.device_id.in_(device_ids))
+            .group_by(ub.DeviceStorageSnapshot.device_id)
+        )
+        storage = {
+            snapshot.device_id: snapshot
+            for snapshot in session.query(ub.DeviceStorageSnapshot).filter(
+                ub.DeviceStorageSnapshot.id.in_(latest_storage_ids)
+            ).all()
+        }
     return [
-        _device_json(device, count, reports.get(device.id))
+        _device_json(device, count, reports.get(device.id), storage.get(device.id))
         for device, count in rows
     ]
 
@@ -302,9 +322,18 @@ def annotation_device_inventory(public_id):
             .order_by(ub.DeviceInventoryReport.id.desc())
             .first()
         )
+        storage = (
+            ub.session.query(ub.DeviceStorageSnapshot)
+            .filter_by(device_id=device.id)
+            .order_by(ub.DeviceStorageSnapshot.id.desc())
+            .first()
+        )
         if report is None:
             return jsonify({
-                "device": _device_json(device),
+                # Both halves are load-bearing: the storage snapshot (Phase 3)
+                # and the pagination envelope (F3). A caller paging this endpoint
+                # gets the same shape whether or not a report exists.
+                "device": _device_json(device, storage_snapshot=storage),
                 "observed_at": None,
                 "books": [],
                 "limit": limit,
@@ -326,9 +355,12 @@ def annotation_device_inventory(public_id):
                 .all()
             )
         return jsonify({
-            "device": _device_json(device, inventory_report=report),
+            "device": _device_json(
+                device, inventory_report=report, storage_snapshot=storage,
+            ),
             "observed_at": report.observed_at.isoformat() if report.observed_at else None,
             "books": [{
+                "inventory_item_id": item.id,
                 "book_id": item.book_id,
                 "lpath": item.lpath,
                 "checksum": item.checksum,
@@ -341,6 +373,31 @@ def annotation_device_inventory(public_id):
         })
     except SQLAlchemyError:
         return _database_error_response("device inventory")
+
+
+@annotations_bp.route(
+    "/api/annotations/devices/<public_id>/inventory/<int:item_id>/delete",
+    methods=["POST"],
+)
+@user_login_required
+def annotation_device_inventory_delete(public_id, item_id):
+    """Queue deletion of one exact observed path; omissions cannot reach here."""
+    try:
+        deletion = device_capabilities.queue_named_deletion(
+            session=ub.session, user_id=current_user.id,
+            device_public_id=public_id, inventory_item_id=item_id,
+        )
+        _commit_required(ub.session_commit)
+        return jsonify({
+            "deletion_id": deletion.id,
+            "lpath": deletion.lpath,
+            "state": deletion.state,
+        }), 202
+    except device_capabilities.CapabilityValidationError:
+        ub.session.rollback()
+        return jsonify({"error": "inventory_item_not_found"}), 404
+    except (RuntimeError, SQLAlchemyError):
+        return _database_error_response("device inventory deletion request")
 
 
 @annotations_bp.route("/api/annotations/devices/<public_id>", methods=["PATCH"])

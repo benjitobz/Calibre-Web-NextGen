@@ -1,11 +1,12 @@
 import { useState, useEffect, useRef, Fragment } from 'react';
 import { Link, useParams, useLocation } from 'wouter';
-import { Download, Pencil, Star, Archive, EyeOff, Eye, Send, Highlighter, Image as ImageIcon, Plus, X, BookOpen, BookCheck, BookPlus, Trash2, RefreshCw } from 'lucide-react';
+import { Download, Pencil, Star, Archive, EyeOff, Eye, Send, Highlighter, Image as ImageIcon, Plus, X, BookOpen, BookCheck, BookPlus, Trash2, RefreshCw, TabletSmartphone } from 'lucide-react';
 import {
   useBook, useToggleRead, useToggleFavorite, useToggleArchived, useToggleHidden,
   useSendToEreader, useMe, useAccount, useUpdateMetadata, useDeleteBook, useReloadMetadata,
   useBookShelves, useShelves, useKoboTwoWayAnnotations, selectKoboTwoWayBook,
   useAddToMyLibrary, useMyLibraryRemovalImpact, useRemoveFromMyLibrary,
+  useActiveDeliveryDevices, useQueueDeviceDelivery,
 } from '../lib/queries';
 import { authorityLabel, opaqueLabel } from '../lib/koboTwoWay';
 import { MetadataTypeahead } from '../components/MetadataTypeahead';
@@ -16,7 +17,7 @@ import { MoreByAuthor } from '../components/MoreByAuthor';
 import { AUTHOR_SEPARATOR } from '../lib/authors';
 import { SpinnerCentered, Spinner } from '../components/Spinner';
 import { EmptyState } from '../components/EmptyState';
-import type { CustomColumn, CustomColumnValue, EntityRef } from '../lib/api';
+import type { CustomColumn, CustomColumnValue, EntityRef, DeliveryDevice } from '../lib/api';
 import { ApiError, resourceUrl, resourceSrcSet } from '../lib/api';
 import { useT } from '../lib/i18n';
 import { getPrimaryReadTarget } from '../lib/readerTarget';
@@ -138,6 +139,49 @@ function SendPanel({ formats, pending, banner, defaultEmail, onSend }: SendPanel
         </button>
       </div>
       <p className={banner ? (banner.ok ? styles.sendOk : styles.sendErr) : undefined} role="status">{banner?.text}</p>
+    </div>
+  );
+}
+
+interface DeviceSendPanelProps {
+  devices: DeliveryDevice[];
+  pending: boolean;
+  banner: { ok: boolean; text: string } | null;
+  onSend: (device: string) => void;
+}
+
+/** Pull delivery is intentionally separate from e-mail sending: the selected
+ * reader collects this queue on its own next sync, even through a reverse proxy. */
+function DeviceSendPanel({ devices, pending, banner, onSend }: DeviceSendPanelProps) {
+  const t = useT();
+  const [device, setDevice] = useState(devices[0]?.public_id ?? '');
+  const hintId = 'device-delivery-hint';
+  useEffect(() => {
+    if (!devices.some((item) => item.public_id === device)) {
+      setDevice(devices[0]?.public_id ?? '');
+    }
+  }, [devices, device]);
+  return (
+    <div id="device-send-panel" className={styles.sendPanel} data-testid="device-send-panel">
+      <label className={styles.sendField}>
+        <span>{t('Device')}</span>
+        <select value={device} aria-describedby={hintId}
+          onChange={(event) => setDevice(event.target.value)}>
+          <option value="" disabled>{t('Choose a device')}</option>
+          {devices.map((item) => (
+            <option key={item.public_id} value={item.public_id}>{item.label}</option>
+          ))}
+        </select>
+      </label>
+      <p id={hintId} className={styles.sendHint}>{t("Collects on the device's next sync.")}</p>
+      <div className={styles.sendActions}>
+        <button type="button" className={`${styles.actionPrimary} ${styles.deviceSendButton}`}
+          disabled={pending || !device} onClick={() => onSend(device)}>
+          {pending ? t('Queueing…') : t('Send to device')}
+        </button>
+      </div>
+      <p className={banner ? (banner.ok ? styles.sendOk : styles.sendErr) : undefined}
+        role="status" aria-live="polite">{banner?.text}</p>
     </div>
   );
 }
@@ -267,6 +311,7 @@ export function BookDetail() {
   const toggleArchived = useToggleArchived(id);
   const toggleHidden = useToggleHidden(id);
   const sendToEreader = useSendToEreader(id);
+  const queueDeviceDelivery = useQueueDeviceDelivery(id);
   const deleteBook = useDeleteBook(id);
   const reloadMetadata = useReloadMetadata(id);
   const addToLibrary = useAddToMyLibrary();
@@ -274,6 +319,9 @@ export function BookDetail() {
   const removeFromLibrary = useRemoveFromMyLibrary();
   const [location, navigate] = useLocation();
   const me = useMe().data;
+  const deliveryDevices = useActiveDeliveryDevices(
+    !!me && !me.role?.anonymous && !!me.role?.download,
+  );
   /* Stage 0 two-way sync state chip (read-only; manage it on Account). */
   const twoWay = useKoboTwoWayAnnotations({
     enabled: !!me && !me.role?.anonymous && !!me.features?.kobo_two_way_annotations,
@@ -286,6 +334,8 @@ export function BookDetail() {
   const savedEreader = useAccount({ enabled: canSend }).data?.kindle_mail ?? '';
   const [sendOpen, setSendOpen] = useState(false);
   const [sendBanner, setSendBanner] = useState<{ ok: boolean; text: string } | null>(null);
+  const [deviceSendOpen, setDeviceSendOpen] = useState(false);
+  const [deviceSendBanner, setDeviceSendBanner] = useState<{ ok: boolean; text: string } | null>(null);
   const [deleteError, setDeleteError] = useState<string | null>(null);
   const [reloadMessage, setReloadMessage] = useState('');
   // Shelf membership for the metadata list (#1254). Both queries are already
@@ -546,6 +596,15 @@ export function BookDetail() {
               </button>
             )}
 
+            {inLibrary && me?.role?.download && (deliveryDevices.data?.devices.length ?? 0) > 0 && (
+              <button type="button" className={styles.downloadBtn}
+                aria-expanded={deviceSendOpen} aria-controls="device-send-panel"
+                onClick={() => { setDeviceSendOpen((value) => !value); setDeviceSendBanner(null); }}>
+                <TabletSmartphone size={14} aria-hidden="true" focusable={false} />
+                {t('Send to device')}
+              </button>
+            )}
+
             {me?.role?.edit && (
               <>
                 <Link href={`/book/${book.id}/edit`} className={styles.downloadBtn}>
@@ -675,6 +734,26 @@ export function BookDetail() {
                       setSendBanner({ ok: false, text: err instanceof ApiError ? err.message : t('Send failed.') }),
                   },
                 );
+              }}
+            />
+          )}
+
+
+          {deviceSendOpen && (
+            <DeviceSendPanel
+              devices={deliveryDevices.data?.devices ?? []}
+              pending={queueDeviceDelivery.isPending}
+              banner={deviceSendBanner}
+              onSend={(device) => {
+                setDeviceSendBanner(null);
+                queueDeviceDelivery.mutate(device, {
+                  onSuccess: (result) => setDeviceSendBanner({ ok: true, text: result.message }),
+                  onError: (err) => setDeviceSendBanner({
+                    ok: false,
+                    text: err instanceof ApiError
+                      ? err.message : t('Could not queue this book for the device.'),
+                  }),
+                });
               }}
             />
           )}

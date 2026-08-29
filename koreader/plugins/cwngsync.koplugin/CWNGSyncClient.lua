@@ -256,7 +256,8 @@ function CWNGSyncClient:get_progress(
     socketutil:reset_timeout()
 end
 
-function CWNGSyncClient:report_inventory(username, password, device, device_id, inventory, callback)
+function CWNGSyncClient:report_inventory(
+        username, password, device, device_id, inventory, free_space, total_space, callback)
     self.client:reset_middlewares()
     self.client:enable("Format.JSON")
     self.client:enable("GinClient")
@@ -271,6 +272,8 @@ function CWNGSyncClient:report_inventory(username, password, device, device_id, 
                 device = device,
                 device_id = device_id,
                 inventory = inventory,
+                free_space = free_space,
+                total_space = total_space,
             })
         end)
         finish(callback, ok, res, "CWNGSyncClient:report_inventory")
@@ -279,6 +282,207 @@ function CWNGSyncClient:report_inventory(username, password, device, device_id, 
     coroutine.resume(co)
     if UIManager.looper then UIManager:setInputTimeout() end
     socketutil:reset_timeout()
+end
+
+function CWNGSyncClient:claim_delivery(
+        username, password, device, device_id, free_space, total_space, callback)
+    self.client:reset_middlewares()
+    self.client:enable("Format.JSON")
+    self.client:enable("GinClient")
+    self.client:enable("CWNGSyncAuth", {
+        username = username,
+        password = password,
+    })
+    socketutil:set_timeout(INVENTORY_TIMEOUTS[1], INVENTORY_TIMEOUTS[2])
+    local co = coroutine.create(function()
+        local ok, res = pcall(function()
+            return self.client:claim_delivery({
+                device = device,
+                device_id = device_id,
+                free_space = free_space,
+                total_space = total_space,
+            })
+        end)
+        finish(callback, ok, res, "CWNGSyncClient:claim_delivery")
+    end)
+    self.client:enable("AsyncHTTP", {thread = co})
+    coroutine.resume(co)
+    if UIManager.looper then UIManager:setInputTimeout() end
+    socketutil:reset_timeout()
+end
+
+local function jsonRequest(self, operation, username, password, callback, label)
+    self.client:reset_middlewares()
+    self.client:enable("Format.JSON")
+    self.client:enable("GinClient")
+    self.client:enable("CWNGSyncAuth", { username = username, password = password })
+    socketutil:set_timeout(INVENTORY_TIMEOUTS[1], INVENTORY_TIMEOUTS[2])
+    local co = coroutine.create(function()
+        local ok, res = pcall(operation)
+        finish(callback, ok, res, label)
+    end)
+    self.client:enable("AsyncHTTP", { thread = co })
+    coroutine.resume(co)
+    if UIManager.looper then UIManager:setInputTimeout() end
+    socketutil:reset_timeout()
+end
+
+function CWNGSyncClient:refuse_delivery(
+        username, password, device, device_id, delivery_id, claim_token, reason,
+        free_space, total_space, callback)
+    jsonRequest(self, function()
+        return self.client:refuse_delivery({
+            device = device,
+            device_id = device_id,
+            delivery_id = delivery_id,
+            claim_token = claim_token,
+            reason = reason,
+            free_space = free_space,
+            total_space = total_space,
+        })
+    end, username, password, callback, "CWNGSyncClient:refuse_delivery")
+end
+
+function CWNGSyncClient:claim_deletion(username, password, device, device_id, callback)
+    jsonRequest(self, function()
+        return self.client:claim_deletion({
+            device = device,
+            device_id = device_id,
+        })
+    end, username, password, callback, "CWNGSyncClient:claim_deletion")
+end
+
+function CWNGSyncClient:complete_deletion(
+        username, password, device, device_id, deletion_id, claim_token,
+        deleted, failure_reason, callback)
+    jsonRequest(self, function()
+        return self.client:complete_deletion({
+            device = device,
+            device_id = device_id,
+            deletion_id = deletion_id,
+            claim_token = claim_token,
+            deleted = deleted,
+            failure_reason = failure_reason,
+        })
+    end, username, password, callback, "CWNGSyncClient:complete_deletion")
+end
+
+function CWNGSyncClient:get_collections(username, password, device, device_id, callback)
+    jsonRequest(self, function()
+        return self.client:get_collections({
+            device = device,
+            device_id = device_id,
+        })
+    end, username, password, callback, "CWNGSyncClient:get_collections")
+end
+
+function CWNGSyncClient:complete_collections(
+        username, password, device, device_id, revision, callback)
+    jsonRequest(self, function()
+        return self.client:complete_collections({
+            device = device,
+            device_id = device_id,
+            revision = revision,
+        })
+    end, username, password, callback, "CWNGSyncClient:complete_collections")
+end
+
+function CWNGSyncClient:complete_delivery(
+        username, password, device, device_id, delivery_id, claim_token,
+        lpath, checksum, size, mtime, callback)
+    self.client:reset_middlewares()
+    self.client:enable("Format.JSON")
+    self.client:enable("GinClient")
+    self.client:enable("CWNGSyncAuth", {
+        username = username,
+        password = password,
+    })
+    socketutil:set_timeout(INVENTORY_TIMEOUTS[1], INVENTORY_TIMEOUTS[2])
+    local co = coroutine.create(function()
+        local ok, res = pcall(function()
+            return self.client:complete_delivery({
+                device = device,
+                device_id = device_id,
+                delivery_id = delivery_id,
+                claim_token = claim_token,
+                lpath = lpath,
+                checksum = checksum,
+                size = size,
+                mtime = mtime,
+            })
+        end)
+        finish(callback, ok, res, "CWNGSyncClient:complete_delivery")
+    end)
+    self.client:enable("AsyncHTTP", {thread = co})
+    coroutine.resume(co)
+    if UIManager.looper then UIManager:setInputTimeout() end
+    socketutil:reset_timeout()
+end
+
+local function responseHeader(headers, wanted)
+    if type(headers) ~= "table" then return nil end
+    wanted = wanted:lower()
+    for name, value in pairs(headers) do
+        if type(name) == "string" and name:lower() == wanted then
+            return value
+        end
+    end
+end
+
+-- Book bytes intentionally use LuaSocket's file sink instead of Spore's JSON
+-- middleware: the latter buffers the complete body in memory. Claim and
+-- completion still travel through Spore and its double-declared wire contract.
+function CWNGSyncClient:download_delivery(
+        username, password, device, device_id, delivery, local_path)
+    -- Load the byte-stream stack only on the delivery path. KOReader ships
+    -- these modules; the plugin's pure host-Lua contract tests deliberately
+    -- stub only the JSON/Spore path and must remain runnable without LuaSocket.
+    local http = require("socket.http")
+    local ltn12 = require("ltn12")
+    local mime = require("mime")
+    local socket = require("socket")
+    if type(delivery) ~= "table" or type(delivery.download_path) ~= "string"
+            or type(delivery.claim_token) ~= "string" then
+        return false, nil, nil, "invalid delivery response"
+    end
+    local handle, open_error = io.open(local_path, "wb")
+    if not handle then
+        return false, nil, nil, open_error or "could not open temporary file"
+    end
+
+    socketutil:set_timeout(socketutil.FILE_BLOCK_TIMEOUT, socketutil.FILE_TOTAL_TIMEOUT)
+    local credentials = mime.b64(username .. ":" .. password):gsub("%s", "")
+    local ok, code, headers, status = pcall(function()
+        return socket.skip(1, http.request {
+            url = self.service_url .. delivery.download_path,
+            method = "GET",
+            headers = {
+                ["Accept-Encoding"] = "identity",
+                ["Authorization"] = "Basic " .. credentials,
+                ["X-CWNG-Device-ID"] = device_id,
+                ["X-CWNG-Device-Name"] = device,
+                ["X-CWNG-Claim-Token"] = delivery.claim_token,
+            },
+            sink = ltn12.sink.file(handle),
+        })
+    end)
+    -- LuaSocket normally closes this through the sink's end-of-stream call.
+    -- A transport exception can bypass that callback, so close defensively.
+    pcall(handle.close, handle)
+    socketutil:reset_timeout()
+
+    if not ok then
+        os.remove(local_path)
+        return false, nil, nil, describeFailure(code)
+    end
+    if code ~= 200 then
+        os.remove(local_path)
+        return false, nil, nil, status or ("HTTP " .. tostring(code))
+    end
+    return true,
+        tonumber(responseHeader(headers, "content-length")),
+        responseHeader(headers, "x-cwng-checksum"),
+        nil
 end
 
 -- Phase 2: pull annotations for a document (server -> device).

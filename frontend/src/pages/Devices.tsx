@@ -20,11 +20,14 @@ interface Device {
   annotation_count: number;
   inventory_count: number;
   inventory_observed: string | null;
+  storage_free: number | null;
+  storage_total: number | null;
+  storage_observed: string | null;
   active: boolean;
 }
 
 interface Counts { origin_count: number; assigned_count: number }
-interface InventoryBook { book_id: number | null; lpath: string; checksum: string; size: number; mtime: number }
+interface InventoryBook { inventory_item_id: number; book_id: number | null; lpath: string; checksum: string; size: number; mtime: number }
 interface InventoryPayload {
   observed_at: string | null;
   books: InventoryBook[];
@@ -37,12 +40,31 @@ const DEVICE_INVENTORY_WINDOW = 200;
 
 function DeviceInventory({ device }: { device: Device }) {
   const t = useT();
+  const announce = useAnnouncer();
+  const [requested, setRequested] = useState<Set<number>>(() => new Set());
   const { data, isLoading, error } = useQuery<InventoryPayload>({
     queryKey: ['device-inventory', device.public_id],
     queryFn: () => apiGet(
       `/api/annotations/devices/${device.public_id}/inventory?limit=${DEVICE_INVENTORY_WINDOW}&offset=0`,
     ),
   });
+  const deletion = useMutation({
+    mutationFn: (book: InventoryBook) => apiPost(
+      `/api/annotations/devices/${device.public_id}/inventory/${book.inventory_item_id}/delete`,
+    ),
+    onSuccess: (_result, book) => {
+      setRequested((current) => new Set(current).add(book.inventory_item_id));
+      announce(t('Deletion requested'));
+    },
+    onError: () => announce(t('Could not request deletion from this device.'), { assertive: true }),
+  });
+  const requestDeletion = (book: InventoryBook) => {
+    if (window.confirm(t('Delete {path} from {name} on its next sync?', {
+      path: book.lpath, name: device.label,
+    }))) deletion.mutate(book);
+  };
+  // Bounded independently of the server's own cap, so a mixed-version deployment
+  // or a future contract regression still cannot flood this list.
   const books = (data?.books ?? []).slice(0, DEVICE_INVENTORY_WINDOW);
   const status = isLoading
     ? t('Loading device library…')
@@ -61,9 +83,19 @@ function DeviceInventory({ device }: { device: Device }) {
         <ul className={styles.inventoryList} role="list">
           {books.map((book) => (
             <li key={`${book.lpath}:${book.checksum}`}>
-              {book.book_id ? <Link href={`/book/${book.book_id}`}>{book.lpath}</Link> : <span>{book.lpath}</span>}
-              <span className={styles.onDevice}>{t('On this device')}</span>
-              {!book.book_id && <span className={styles.unmatched}>{t('Not matched to this library')}</span>}
+              <div className={styles.inventoryRow}>
+                <div>
+                  {book.book_id ? <Link href={`/book/${book.book_id}`}>{book.lpath}</Link> : <span>{book.lpath}</span>}
+                  <span className={styles.onDevice}>{t('On this device')}</span>
+                  {!book.book_id && <span className={styles.unmatched}>{t('Not matched to this library')}</span>}
+                </div>
+                <button type="button" className={styles.inventoryDelete}
+                  disabled={requested.has(book.inventory_item_id)
+                    || (deletion.isPending && deletion.variables?.inventory_item_id === book.inventory_item_id)}
+                  onClick={() => requestDeletion(book)}>
+                  {requested.has(book.inventory_item_id) ? t('Deletion requested') : t('Delete from device')}
+                </button>
+              </div>
             </li>
           ))}
         </ul>
@@ -79,6 +111,12 @@ function relativeWhen(value: string | null): string {
   const hours = Math.round(elapsed / 3_600_000);
   if (Math.abs(hours) < 48) return formatter.format(hours, 'hour');
   return formatter.format(Math.round(hours / 24), 'day');
+}
+
+function formatStorage(bytes: number): string {
+  const gibibytes = bytes / (1024 ** 3);
+  if (gibibytes >= 1) return `${gibibytes.toFixed(1)} GB`;
+  return `${(bytes / (1024 ** 2)).toFixed(1)} MB`;
 }
 
 function RemoveDialog({ device, counts, onCancel, onRemove }: {
@@ -163,8 +201,8 @@ export function Devices() {
   const devices = data?.devices ?? [];
   return (
     <main className={styles.container}>
-      <Link href="/account" className={styles.back}><ChevronLeft size={16} aria-hidden="true" /> {t('Account')}</Link>
-      <div className={styles.heading}><Smartphone aria-hidden="true" /><h1>{t('E-readers')}</h1></div>
+      <Link href="/account" className={styles.back}><ChevronLeft size={16} aria-hidden="true" focusable={false} /> {t('Account')}</Link>
+      <div className={styles.heading}><Smartphone aria-hidden="true" focusable={false} /><h1>{t('E-readers')}</h1></div>
       {error ? <EmptyState message={t('Could not load e-readers.')} /> : devices.length === 0 ? (
         <section className={styles.empty}>
           <h2>{t('No e-readers yet.')}</h2>
@@ -189,6 +227,11 @@ export function Devices() {
                 <p>{t('{n} highlights and notes', { n: device.annotation_count })} · {t('Last seen {when}', { when: relativeWhen(device.last_seen) })}
                   {device.last_seen && Date.now() - new Date(device.last_seen).getTime() > 30 * 86400000 && <> · {t('Not seen lately')}</>}</p>
                 <p>{t('{n} books in latest inventory', { n: device.inventory_count })}</p>
+                {device.storage_free !== null && device.storage_total !== null && (
+                  <p>{t('{free} free of {total}', {
+                    free: formatStorage(device.storage_free), total: formatStorage(device.storage_total),
+                  })}</p>
+                )}
                 <button type="button" className={styles.inventoryToggle}
                   aria-expanded={expandedInventory === device.public_id}
                   aria-controls={`device-inventory-${device.public_id}`}
@@ -204,10 +247,10 @@ export function Devices() {
               </div>
               <div className={styles.cardActions}>
                 <button type="button" aria-label={t('Rename {name}', { name: device.label })}
-                  onClick={() => { setEditing(device.public_id); setLabel(device.label); }}><Pencil size={17} aria-hidden="true" /></button>
+                  onClick={() => { setEditing(device.public_id); setLabel(device.label); }}><Pencil size={17} aria-hidden="true" focusable={false} /></button>
                 <button type="button" aria-label={t('More actions for {name}', { name: device.label })}
                   aria-expanded={menu === device.public_id} onClick={() => setMenu(menu === device.public_id ? null : device.public_id)}>
-                  <MoreHorizontal aria-hidden="true" />
+                  <MoreHorizontal aria-hidden="true" focusable={false} />
                 </button>
                 {menu === device.public_id && <div className={styles.menu}>
                   <button type="button" onClick={(event) => void openRemove(device, event.currentTarget)}>{t('Remove device')}</button>

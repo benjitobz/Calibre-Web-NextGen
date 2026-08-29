@@ -1,34 +1,39 @@
-# Mission: SPA web-reader phase 1
+# Mission: cwngsync storage, deletion, and device collections
+
+Updated: 2026-08-28   Phase: delivery   Status: 9/9 outcomes verified
 
 ## Definition of done
 
-- [x] Project authority, briefing, designs, and BOSS-NOTES consumed.
-- [x] Current classic reader, SPA reader, progress, preferences, and annotation read flow audited.
-- [x] `notes/org/SPA-audit.md` delivered before implementation.
-- [x] Design drift and any phase-1 scope change recorded in `notes/org/SPA-REPORT.md`.
-- [x] Settings slice implemented and regression tested.
-- [x] Unsafe position save/restore removed; coordinated Phase 2 design delivered.
-- [x] Independent TOC accessibility slice tested; uncertain navigation enhancement removed.
-- [x] SPA strings anchored; no new dependencies; symptom-first CHANGELOG entry added.
-- [x] Reader WCAG 2.2 AA automated gates green, including six-theme reader chrome sweep.
-- [x] Dedicated `cwn-spA` stack on port 8101 live-verified with a real EPUB.
-- [x] Luna verified appearance persistence at 375px + desktop and Light + Dark; position restore intentionally excluded.
-- [x] Terra re-verified the cleaned shipped slice PASS.
-- [x] PR #889 pushed and opened with evidence; no merge performed.
-- [x] Phase-2 remainder honestly recorded; report evidence classified OBSERVED or ASSUMED.
+- [x] Phase 2 accepted head is clean, pushed, and is the implementation base.
+- [x] Phase 3 stores fresh per-device free/total space without changing `Device`.
+- [x] Phase 3 refuses an oversized delivery at claim time and reports the refusal cleanly.
+- [x] Phase 3 names server-requested deletions, lets the device confirm them, and never derives deletion from inventory omission.
+- [x] Phase 3 has behavioral red-before-green evidence and a user-facing changelog fragment.
+- [x] Phase 4 publishes shelf snapshots scoped by both user and device and applies them as KOReader collections.
+- [x] Phase 4 has behavioral red-before-green evidence and a user-facing changelog fragment.
+- [x] Full unit lane `python -m pytest -q -p no:randomly -m unit` has zero failures.
+- [x] All scoped changes are committed as `new-usemame` and pushed to `feat/cwngsync-send-to-device`.
 
-## Current state
+## Now / next action
 
-- Phase: PR handoff
-- Branch: `org/spA`
-- Next action: Opus boss review/merge of PR #889.
+Commit the verified implementation with the required public identity and push the branch.
 
-## Decisions
+## How to verify
 
-- 2026-07-13: use ALEX-DEV-capabilities, CWNG-consume-briefing, ALEX-DEV-OPUS-run-to-done, ALEX-ORCHESTRATE-model-routing, CWNG_a11y, and ALEX-UI-PILOT-browser.
-- 2026-07-13: preserve SPB fence; annotation authoring and kosync/annotation backend edits excluded unless coordinated through BOSS-NOTES.
+- Focused Phase 3 and Phase 4 pytest modules, with their pre-implementation failures retained in the session report.
+- Existing CWNGSync unit group: `python -m pytest -q -p no:randomly tests/unit/test_cwngsync_*.py`.
+- Full unit lane: `python -m pytest -q -p no:randomly -m unit`.
+- `git diff --check`, scoped staged-diff audit, clean local/remote commit equality.
 
-## Evidence
+## Decisions and rationale
 
-- OBSERVED: operator supplied scope, lifecycle, branch, runtime isolation, delegation, and merge fence.
-- OBSERVED: focused tests, production build, cwn-spA E2E/a11y, Luna real-EPUB flow, and Terra PASS are recorded in notes/org/SPA-REPORT.md.
+- 2026-08-28: use CWNG briefing/git-manager, capabilities/routing, and run-to-done guidance; implement locally in the current Sol session with no parallel agents.
+- 2026-08-28: replace the completed SPA mission ledger inherited from another branch with this branch's active two-phase mission.
+- 2026-08-28: preserve the immutable Phase 1 rule that an inventory omission is only absence of evidence and can never create a delete request.
+- 2026-08-28: use latest storage at queue time as an early refusal, freshly reported storage at claim time as server admission, and KOReader's immediate pre-download `df` result as the authoritative racing check. A losing final check reports refusal and requeues without creating a partial file.
+- 2026-08-28: namespace KOReader-managed collection names with an opaque per-user/per-device scope; rebuild only that scope's collections so membership removals and shelf renames converge without touching another account's or unmanaged collections.
+- 2026-08-28: expose exact inventory observation IDs and storage values in the existing Devices API/UI; deletion requests are always explicit user actions against one named observation.
+
+## Open questions
+
+- None.

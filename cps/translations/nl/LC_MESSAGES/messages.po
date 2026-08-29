@@ -24,6 +24,36 @@ msgstr ""
 "X-Generator: Poedit 3.9\n"
 
 #: cps/about.py cps/spa_strings.py
+msgid "Book queued for this device"
+msgstr "Boek in de wachtrij geplaatst voor dit apparaat"
+
+msgid "Choose a device"
+msgstr "Kies een apparaat"
+
+msgid "Collects on the device's next sync."
+msgstr "Het apparaat haalt dit op bij de volgende synchronisatie."
+
+msgid "Could not queue this book for the device."
+msgstr "Kan dit boek niet in de wachtrij voor het apparaat plaatsen."
+
+msgid "Could not request deletion from this device."
+msgstr "Verwijdering van dit apparaat kon niet worden aangevraagd."
+
+msgid "Delete from device"
+msgstr "Van apparaat verwijderen"
+
+msgid "Delete {path} from {name} on its next sync?"
+msgstr "{path} van {name} verwijderen bij de volgende synchronisatie?"
+
+msgid "Deletion requested"
+msgstr "Verwijdering aangevraagd"
+
+msgid "Queueing…"
+msgstr "In wachtrij plaatsen…"
+
+msgid "Send to device"
+msgstr "Naar apparaat verzenden"
+
 msgid "Statistics"
 msgstr "Statistieken"
 
@@ -46,6 +76,12 @@ msgid "Success! Database Reconnected"
 msgstr "Gelukt! Database opnieuw verbonden"
 
 #: cps/admin.py
+msgid "This book is already on that device"
+msgstr "Dit boek staat al op dat apparaat"
+
+msgid "This book is already queued for this device"
+msgstr "Dit boek staat al in de wachtrij voor dit apparaat"
+
 msgid "Unknown command"
 msgstr "Onbekende opdracht"
 
@@ -164,6 +200,9 @@ msgstr "Gebruiker niet gevonden"
 
 #: cps/admin.py
 #, python-brace-format
+msgid "{free} free of {total}"
+msgstr "{free} vrij van {total}"
+
 msgid "{} users deleted successfully"
 msgstr "{} gebruikers succesvol verwijderd"
 

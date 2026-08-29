@@ -16,6 +16,7 @@ from ..cw_login import current_user
 from ..usermanagement import login_required_if_no_ano
 from ..helper import send_mail, valid_email
 from ..kobo_sync_status import change_archived_books, remove_synced_book
+from ..services import device_delivery
 
 
 def _err(code, message, status):
@@ -197,3 +198,66 @@ def send_book_to_ereader(book_id):
         ub.update_download(book_id, int(current_user.id))
         return jsonify({"ok": True, "message": "Book queued for sending to %s" % recipients})
     return _err("send_failed", "There was an error sending the book: %s" % result, 502)
+
+
+@api_v1.route("/books/<int:book_id>/device-deliveries", methods=["POST"])
+@login_required_if_no_ano
+def queue_book_for_device(book_id):
+    """Queue a pull delivery for one registered device owned by this user."""
+    guard = _require_real_user()
+    if guard:
+        return guard
+    if not current_user.role_download():
+        return _err("forbidden", "You don't have download permission", 403)
+
+    data = request.get_json(silent=True)
+    public_id = data.get("device") if isinstance(data, dict) else None
+    if not isinstance(public_id, str) or not public_id or len(public_id) > 36:
+        return _err("invalid_request", "A device is required", 400)
+
+    book = calibre_db.get_filtered_book(
+        book_id, allow_show_archived=True, allow_show_hidden=True,
+    )
+    if book is None:
+        return _err("not_found", "Book not found", 404)
+
+    try:
+        result = device_delivery.queue_book_for_device(
+            session=ub.session,
+            user_id=int(current_user.id),
+            device_public_id=public_id,
+            book=book,
+        )
+        ub.session.commit()
+    except device_delivery.DeliveryValidationError as error:
+        ub.session.rollback()
+        return _err("device_not_found", str(error), 404)
+    except Exception:
+        ub.session.rollback()
+        raise
+
+    if result.reason == "already_on_device":
+        return jsonify({
+            "queued": False,
+            "state": "already_on_device",
+            "message": "This book is already on that device",
+        })
+    if result.reason == "insufficient_storage":
+        return _err(
+            "insufficient_storage",
+            "This device does not have enough reported free space for this book",
+            409,
+        )
+    if result.delivery.state == device_delivery.FAILED:
+        return _err("no_readable_format", result.reason, 422)
+
+    return jsonify({
+        "delivery_id": result.delivery.id,
+        "format": result.delivery.format,
+        "queued": bool(result.created),
+        "state": result.delivery.state,
+        "message": (
+            "Book queued for this device"
+            if result.created else "This book is already queued for this device"
+        ),
+    })

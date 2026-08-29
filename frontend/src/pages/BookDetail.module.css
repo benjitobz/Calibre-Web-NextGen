@@ -615,6 +615,15 @@
 .sendField select:focus,
 .sendField input:focus { outline: 2px solid var(--accent); outline-offset: 0; }
 
+.sendPanel select,
+.deviceSendButton {
+  min-height: 44px;
+}
+
+.deviceSendButton {
+  height: auto;
+}
+
 .sendActions {
   display: flex;
   align-items: center;

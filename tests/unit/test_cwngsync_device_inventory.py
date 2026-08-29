@@ -63,12 +63,49 @@ def _entry(path, checksum, *, size=1234, mtime=1_777_777_777, book_id=None):
     return entry
 
 
-def _report(client, entries, *, device_id="runtime-device-id", device="KOReader"):
-    return client.put("/kosync/syncs/inventory", json={
+def _report(client, entries, *, device_id="runtime-device-id", device="KOReader",
+            free_space=None, total_space=None):
+    payload = {
         "device": device,
         "device_id": device_id,
         "inventory": entries,
-    })
+    }
+    if free_space is not None:
+        payload["free_space"] = free_space
+    if total_space is not None:
+        payload["total_space"] = total_space
+    return client.put("/kosync/syncs/inventory", json=payload)
+
+
+@pytest.mark.unit
+def test_inventory_report_persists_a_point_in_time_storage_measurement(
+        inventory_protocol):
+    client, session, _user = inventory_protocol
+
+    response = _report(
+        client, [], free_space=4_000_000, total_space=8_000_000,
+    )
+
+    assert response.status_code == 200
+    snapshot = session.query(ub.DeviceStorageSnapshot).one()
+    assert snapshot.free_bytes == 4_000_000
+    assert snapshot.total_bytes == 8_000_000
+
+
+@pytest.mark.unit
+@pytest.mark.parametrize(("free_space", "total_space"), [
+    (1, None), (None, 1), (-1, 1), (2, 1), (True, 1),
+])
+def test_inventory_rejects_incomplete_or_impossible_storage(
+        inventory_protocol, free_space, total_space):
+    client, session, _user = inventory_protocol
+
+    response = _report(
+        client, [], free_space=free_space, total_space=total_space,
+    )
+
+    assert response.status_code == 400
+    assert session.query(ub.DeviceStorageSnapshot).count() == 0
 
 
 @pytest.mark.unit

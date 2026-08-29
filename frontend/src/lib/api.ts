@@ -171,6 +171,24 @@ export interface BookFormat {
   content_url?: string;
 }
 
+/** An active physical reader registered through Kobo or KOReader sync. */
+export interface DeliveryDevice {
+  public_id: string;
+  label: string;
+  type: string;
+  model: string | null;
+  active: boolean;
+  can_receive_books: boolean;
+}
+
+export interface DeviceDeliveryResult {
+  delivery_id?: number;
+  format?: string;
+  queued: boolean;
+  state: string;
+  message: string;
+}
+
 /** A linked entity (author, series, tag, publisher, language). id is numeric
  *  for most entities and a string lang_code for languages. */
 export interface EntityRef {

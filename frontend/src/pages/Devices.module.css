@@ -10,6 +10,10 @@
 .inventory { margin-top: var(--sp-2); }
 .inventoryList { display: grid; gap: var(--sp-2); margin: 0; padding-left: var(--sp-5); }
 .inventoryList li { overflow-wrap: anywhere; }
+.inventoryRow { display: flex; align-items: flex-start; justify-content: space-between; gap: var(--sp-3); }
+.inventoryRow > div { min-width: 0; }
+.inventoryDelete { min-height: 44px; flex: 0 0 auto; padding: 0 var(--sp-3); border: 1px solid var(--danger); border-radius: var(--r-md); color: var(--danger); }
+.inventoryDelete:disabled { opacity: .65; cursor: default; }
 .onDevice { display: block; color: var(--text-muted); font-size: .875rem; }
 .unmatched { display: block; color: var(--text-muted); font-size: .875rem; }
 .cardActions { display: flex; align-items: flex-start; position: relative; }
@@ -33,6 +37,7 @@
   .container { padding: var(--sp-4); }
   .card { padding: var(--sp-3); }
   .cardActions { flex-direction: column; }
+  .inventoryRow { flex-direction: column; }
   .dialogActions { flex-direction: column-reverse; }
   .dialogActions button { width: 100%; }
 }

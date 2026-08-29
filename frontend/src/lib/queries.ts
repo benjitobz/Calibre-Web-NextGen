@@ -15,7 +15,8 @@ import type {
   SearchOptions, AdvancedSearchParams, AdvSearchResult, Account, ProfileUpdate,
   BookMetadata, MetadataUpdate, UploadResult, AdminUser, AboutInfo, TaskItem, AuthConfig,
   NoticeInbox, KoboTwoWaySettings, KoboTwoWayBookState, KoboTwoWayUpdate,
-  GlobalLibraryPage, LibraryModePayload, LibraryRemovalImpact,
+  GlobalLibraryPage, LibraryModePayload, LibraryRemovalImpact, DeliveryDevice,
+  DeviceDeliveryResult,
 } from './api';
 
 /** Entity kinds the catalog can be filtered by. Singular here; the browse-list
@@ -508,6 +509,28 @@ export function useSendToEreader(id: string | number) {
   return useMutation({
     mutationFn: (v: { format: string; convert?: boolean; emails?: string }) =>
       apiPost<{ ok: boolean; message: string }>(`/api/v1/books/${id}/send`, v),
+  });
+}
+
+/** Active Kobo/KOReader devices that can pull queued books on their next sync. */
+export function useActiveDeliveryDevices(enabled = true) {
+  return useQuery<{ devices: DeliveryDevice[] }>({
+    queryKey: ['annotation-devices', 'active'],
+    queryFn: () => apiGet<{ devices: DeliveryDevice[] }>(
+      '/api/annotations/devices?active=true'),
+    enabled,
+    staleTime: 30000,
+    select: (payload) => ({
+      devices: payload.devices.filter((device) => device.can_receive_books),
+    }),
+  });
+}
+
+/** Queue one idempotent pull delivery for a reader owned by this user. */
+export function useQueueDeviceDelivery(id: string | number) {
+  return useMutation({
+    mutationFn: (device: string) =>
+      apiPost<DeviceDeliveryResult>(`/api/v1/books/${id}/device-deliveries`, { device }),
   });
 }
 

@@ -102,7 +102,7 @@ PER_USER_BOOK_MODELS = (
 # Keep the device-scoped registry extension separate from the flat-model tuple
 # so independently added flat per-user models merge without competing for the
 # tuple's final insertion point.
-PER_USER_BOOK_MODELS += ("KoboDeviceBookEntitlement",)
+PER_USER_BOOK_MODELS += ("KoboDeviceBookEntitlement", "DeviceBookDelivery")
 
 
 def migrate_user_book_data(from_book_id, to_book_id, session=None):
@@ -236,6 +236,28 @@ def migrate_user_book_data(from_book_id, to_book_id, session=None):
         ub.KoboDeviceBookEntitlement.book_id == from_book_id,
     ).delete(synchronize_session=False)
 
+    # Wanted-book rows are per physical device. Preserve an outstanding claim
+    # when its source book is merged into the kept copy; if that device already
+    # has a destination row, its direct request wins and the duplicate is
+    # discarded. Inventory remains an observation, but its resolved library
+    # match must follow the merge so a recycled numeric id cannot suppress a
+    # future unrelated delivery.
+    for delivery in session.query(ub.DeviceBookDelivery).filter(
+            ub.DeviceBookDelivery.book_id == from_book_id).all():
+        clash = session.query(ub.DeviceBookDelivery).filter(
+            ub.DeviceBookDelivery.device_id == delivery.device_id,
+            ub.DeviceBookDelivery.book_id == to_book_id,
+        ).first()
+        if clash is not None:
+            session.delete(delivery)
+        else:
+            delivery.book_id = to_book_id
+    session.query(ub.DeviceInventoryItem).filter(
+        ub.DeviceInventoryItem.book_id == from_book_id,
+    ).update(
+        {ub.DeviceInventoryItem.book_id: to_book_id}, synchronize_session=False,
+    )
+
     session.flush()
     log.info("[user-book-data] migrated per-user data from book %s to book %s",
              from_book_id, to_book_id)
@@ -343,6 +365,31 @@ def purge_user_book_data(book_id=None, user_id=None, session=None,
         entitlement_state = entitlement_state.filter(
             ub.KoboDeviceBookEntitlement.device_id.in_(device_ids))
     entitlement_state.delete(synchronize_session=False)
+
+    # Pull-delivery rows are scoped through Device, just like the Kobo
+    # entitlement ledger. A removed metadata book can never satisfy a queued
+    # download. Inventory rows themselves are historical observations, so a
+    # book/database purge clears only their cross-database match instead of
+    # deleting evidence that the bytes remain on the reader.
+    delivery_state = session.query(ub.DeviceBookDelivery)
+    if book_id is not None:
+        delivery_state = delivery_state.filter(
+            ub.DeviceBookDelivery.book_id == book_id)
+    if user_id is not None:
+        device_ids = session.query(ub.Device.id).filter(
+            ub.Device.user_id == user_id).scalar_subquery()
+        delivery_state = delivery_state.filter(
+            ub.DeviceBookDelivery.device_id.in_(device_ids))
+    delivery_state.delete(synchronize_session=False)
+
+    if user_id is None:
+        inventory_matches = session.query(ub.DeviceInventoryItem)
+        if book_id is not None:
+            inventory_matches = inventory_matches.filter(
+                ub.DeviceInventoryItem.book_id == book_id)
+        inventory_matches.update(
+            {ub.DeviceInventoryItem.book_id: None}, synchronize_session=False,
+        )
 
     # Hard-delete replay state and the one-time upgrade marker are scoped to a
     # device rather than a current book id. A user/privacy purge or a complete

@@ -201,6 +201,68 @@ def test_device_inventory_pagination_does_not_widen_device_ownership(session, mo
             annotations.annotation_device_inventory.__wrapped__(other_users_device.public_id)
 
 
+def test_device_list_exposes_the_latest_storage_snapshot(session):
+    from datetime import datetime, timedelta, timezone
+    from cps import ub
+    from cps.annotations import list_annotation_devices
+    device = _device(session)
+    earlier = ub.DeviceStorageSnapshot(
+        device_id=device.id, free_bytes=100, total_bytes=1000,
+        observed_at=datetime.now(timezone.utc) - timedelta(hours=1),
+    )
+    latest = ub.DeviceStorageSnapshot(
+        device_id=device.id, free_bytes=800, total_bytes=2000,
+        observed_at=datetime.now(timezone.utc),
+    )
+    session.add_all([earlier, latest])
+    session.flush()
+
+    listed = list_annotation_devices(user_id=7, session=session)[0]
+
+    assert listed["storage_free"] == 800
+    assert listed["storage_total"] == 2000
+    assert listed["storage_observed"] == latest.observed_at.isoformat()
+
+
+def test_user_can_request_deletion_only_for_a_named_item_on_their_device(
+        session, monkeypatch):
+    from cps import annotations, ub
+    device = _device(session)
+    other = _device(session, user_id=8, label="Other reader")
+    report = ub.DeviceInventoryReport(device_id=device.id, item_count=1, matched_count=1)
+    other_report = ub.DeviceInventoryReport(device_id=other.id, item_count=1, matched_count=1)
+    session.add_all([report, other_report])
+    session.flush()
+    own_item = ub.DeviceInventoryItem(
+        device_id=device.id, book_id=1, lpath="Books/Own.epub", checksum="1" * 32,
+        size=10, mtime=10, last_report_id=report.id,
+    )
+    other_item = ub.DeviceInventoryItem(
+        device_id=other.id, book_id=2, lpath="Books/Other.epub", checksum="2" * 32,
+        size=20, mtime=20, last_report_id=other_report.id,
+    )
+    session.add_all([own_item, other_item])
+    session.commit()
+    app = Flask(__name__)
+    monkeypatch.setattr(annotations, "current_user", SimpleNamespace(id=7))
+    monkeypatch.setattr(ub, "session", session)
+    monkeypatch.setattr(ub, "session_commit", session.commit)
+
+    with app.test_request_context(method="POST"):
+        own_response, own_status = annotations.annotation_device_inventory_delete.__wrapped__(
+            device.public_id, own_item.id,
+        )
+    with app.test_request_context(method="POST"):
+        crossed = annotations.annotation_device_inventory_delete.__wrapped__(
+            device.public_id, other_item.id,
+        )
+
+    assert own_status == 202
+    assert own_response.get_json()["lpath"] == "Books/Own.epub"
+    assert crossed[1] == 404
+    assert session.query(ub.DeviceBookDeletion).count() == 1
+
+
 @pytest.mark.parametrize("label", ["", "x" * 61, " leading", "trailing ", "bad\nlabel"])
 def test_device_rename_rejects_out_of_range_or_unsafe_labels(session, label):
     from cps.annotations import rename_annotation_device
