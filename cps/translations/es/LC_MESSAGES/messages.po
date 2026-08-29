@@ -6222,9 +6222,10 @@ msgstr "STARTTLS"
 
 #: cps/spa_strings.py cps/templates/book_edit.html cps/templates/config_db.html
 #: cps/templates/config_edit.html cps/templates/config_view_edit.html
-#: cps/templates/email_edit.html cps/templates/read.html
-#: cps/templates/schedule_edit.html cps/templates/shelf_edit.html
-#: cps/templates/shelf_reorder.html cps/templates/user_edit.html
+#: cps/templates/cwa_settings.html cps/templates/email_edit.html
+#: cps/templates/read.html cps/templates/schedule_edit.html
+#: cps/templates/shelf_edit.html cps/templates/shelf_reorder.html
+#: cps/templates/user_edit.html
 msgid "Save"
 msgstr "Guardar"
 
@@ -11360,6 +11361,16 @@ msgstr ""
 "detectan nuevos duplicados. Los grupos de duplicados descartados nunca se "
 "resuelven automáticamente."
 
+#: cps/templates/cwa_settings.html
+msgid ""
+"Reset every CWA setting to its default? All of your current CWA settings "
+"will be permanently lost."
+msgstr ""
+
+#: cps/templates/cwa_settings.html
+msgid "Reset All CWA Settings"
+msgstr ""
+
 #: cps/templates/cwa_stats.html cps/templates/cwa_stats_system.html
 #, python-format
 msgid "Review %(count)s Pending Match(es)"
@@ -11875,6 +11886,10 @@ msgid "Setup Gmail Account"
 msgstr "Configurar cuenta de Gmail"
 
 #: cps/templates/email_edit.html
+msgid "Revoke Gmail access? You will need to authorize Gmail again to use it."
+msgstr ""
+
+#: cps/templates/email_edit.html
 msgid "Revoke Gmail Access"
 msgstr "Revocar acceso a Gmail"
 
@@ -12243,6 +12258,10 @@ msgstr ""
 #: cps/templates/kobo_reconcile.html
 #, python-format
 msgid "%(count)d bytes"
+msgstr ""
+
+#: cps/templates/kobo_reconcile.html
+msgid "Archive the selected books on the next Kobo sync?"
 msgstr ""
 
 #: cps/templates/kobo_reconcile.html
