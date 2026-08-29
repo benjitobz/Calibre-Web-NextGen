@@ -855,7 +855,9 @@ export function Catalog({ entityKind, entityId, view, defaultFilter }: CatalogPr
           title={t('Refresh library')}
           aria-label={t('Refresh library')}
         >
-          <RefreshCw size={15} className={libraryRefresh.isRefreshing ? styles.refreshIconSpin : undefined} />
+          <span className={libraryRefresh.isRefreshing ? styles.refreshIconSpin : undefined}>
+            <RefreshCw size={15} />
+          </span>
         </button>
 
         {/* View settings (library landing only) — currently houses the Discover

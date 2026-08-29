@@ -59,7 +59,9 @@ export function DiscoverSection({ onClose, hideActions = false }:
             title={t('Shuffle picks')}
             aria-label={t('Shuffle picks')}
           >
-            <Shuffle size={16} className={isFetching ? styles.spin : undefined} aria-hidden="true" focusable={false} />
+            <span className={isFetching ? styles.spin : undefined}>
+              <Shuffle size={16} aria-hidden="true" focusable={false} />
+            </span>
           </button>
           <button
             type="button"

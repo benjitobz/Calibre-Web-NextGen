@@ -1204,7 +1204,7 @@ export function Reader({ id }: { id: string }) {
   if (isLoading) {
     return (
       <div className={styles.fullCenter}>
-        <Loader2 className={styles.spin} size={36} />
+        <span className={styles.spin}><Loader2 size={36} /></span>
       </div>
     );
   }
@@ -1324,7 +1324,7 @@ export function Reader({ id }: { id: string }) {
             </label>
             <p className={styles.searchStatus} role="status">
               {searching ? (
-                <><Loader2 className={styles.spin} size={16} aria-hidden="true" focusable={false} />
+                <><span className={styles.spin}><Loader2 size={16} aria-hidden="true" focusable={false} /></span>
                   {t('Searching this book…')}</>
               ) : searchError ? searchError
                 : searchComplete && searchTruncated
@@ -1547,7 +1547,7 @@ export function Reader({ id }: { id: string }) {
 
         {!rendered && !renderError && (
           <div className={styles.viewerOverlay}>
-            <Loader2 className={styles.spin} size={32} />
+            <span className={styles.spin}><Loader2 size={32} /></span>
           </div>
         )}
         {renderError && (
