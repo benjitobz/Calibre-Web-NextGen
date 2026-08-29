@@ -6759,6 +6759,10 @@ msgstr ""
 "попытку."
 
 #: cps/spa_strings.py
+msgid "This magic link can’t be checked. Generate a new one to try again."
+msgstr ""
+
+#: cps/spa_strings.py
 msgid "This page doesn't exist here."
 msgstr "Такой страницы не существует."
 
@@ -6793,6 +6797,12 @@ msgstr "URL токена"
 #: cps/spa_strings.py
 msgid "Top Rated"
 msgstr "Лучшие по рейтингу"
+
+#: cps/spa_strings.py
+msgid ""
+"Too many magic-link checks were made from this network. Generate a new link "
+"or try again later."
+msgstr ""
 
 #: cps/spa_strings.py
 msgid "Trust authentication header"

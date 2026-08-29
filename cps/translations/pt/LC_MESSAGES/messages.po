@@ -6634,6 +6634,10 @@ msgid "This magic link expired. Generate a new one to try again."
 msgstr ""
 
 #: cps/spa_strings.py
+msgid "This magic link can’t be checked. Generate a new one to try again."
+msgstr ""
+
+#: cps/spa_strings.py
 msgid "This page doesn't exist here."
 msgstr ""
 
@@ -6665,6 +6669,12 @@ msgstr ""
 
 #: cps/spa_strings.py
 msgid "Top Rated"
+msgstr ""
+
+#: cps/spa_strings.py
+msgid ""
+"Too many magic-link checks were made from this network. Generate a new link "
+"or try again later."
 msgstr ""
 
 #: cps/spa_strings.py

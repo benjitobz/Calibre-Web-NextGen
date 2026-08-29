@@ -6756,6 +6756,10 @@ msgstr ""
 "Este enlace mágico ha caducado. Genera uno nuevo para volver a intentarlo."
 
 #: cps/spa_strings.py
+msgid "This magic link can’t be checked. Generate a new one to try again."
+msgstr ""
+
+#: cps/spa_strings.py
 msgid "This page doesn't exist here."
 msgstr "Esta página no existe aquí."
 
@@ -6791,6 +6795,12 @@ msgstr "URL del token"
 #: cps/spa_strings.py
 msgid "Top Rated"
 msgstr "Mejor valorados"
+
+#: cps/spa_strings.py
+msgid ""
+"Too many magic-link checks were made from this network. Generate a new link "
+"or try again later."
+msgstr ""
 
 #: cps/spa_strings.py
 msgid "Trust authentication header"
