@@ -27,6 +27,7 @@ import { useCardActionsHidden } from '../lib/useCardActionsHidden';
 import { BookUserNotices } from '../components/UserNotices';
 import { backTarget } from '../lib/backLink';
 import { useAnnouncer } from '../lib/a11y/announcer';
+import { useMediaQuery } from '../lib/useMediaQuery';
 
 /* `fetchpriority` is a plain DOM attribute. react-dom 18.3 has no knowledge of
    it, so the camelCase `fetchPriority` that @types/react declares would trip its
@@ -338,6 +339,13 @@ export function BookDetail() {
   const [deviceSendBanner, setDeviceSendBanner] = useState<{ ok: boolean; text: string } | null>(null);
   const [deleteError, setDeleteError] = useState<string | null>(null);
   const [reloadMessage, setReloadMessage] = useState('');
+  /* #1828's destructive-control swap is a CONDITIONAL RENDER, not a hidden
+     element: the icon button and the bordered region never exist in the DOM
+     together, because a display:none control still shows up in DOM sweeps with
+     an empty accessible name (it has none — it is not rendered) and failed
+     hidden-books.spec's every-control-is-named sweep on desktop. Keep this
+     query in sync with the 700px mobile cutover in BookDetail.module.css. */
+  const narrowLayout = useMediaQuery('(max-width: 700px)');
   // Shelf membership for the metadata list (#1254). Both queries are already
   // in flight for the always-rendered AddToShelf popover below and share its
   // cache keys, so reading them here costs no extra request.
@@ -711,14 +719,14 @@ export function BookDetail() {
               </button>
             )}
 
-            {/* Mobile-only destructive control (#1828): on narrow viewports the
-                whole-book delete is demoted from the bordered region below to an
-                icon-level button at the END of this row — a red trash can, the
-                confirm dialog doing the actual guarding. CSS hides it on desktop,
-                where the separated region remains; the two never render visibly
-                at once, and both share requestDeleteBook. Placed last so the
-                primary actions keep their positions. */}
-            {me?.role?.delete_books && me?.role?.edit && (
+            {/* Narrow-viewport destructive control (#1828): the whole-book
+                delete is an icon-level button at the END of this row — a red
+                trash can, the confirm dialog doing the actual guarding. It is
+                rendered only in the narrow layout; at desktop widths the
+                separated region below renders instead (both share
+                requestDeleteBook, so behaviour is identical). Placed last so
+                the primary actions keep their positions. */}
+            {narrowLayout && me?.role?.delete_books && me?.role?.edit && (
               <button
                 type="button"
                 data-testid="book-delete-icon"
@@ -736,11 +744,12 @@ export function BookDetail() {
           <p className={reloadMessage ? styles.actionStatus : undefined} role="status">{reloadMessage}</p>
 
           {/* Whole-book deletion is intentionally separated from the wrapping row
-              of ordinary action chips (#1046) on desktop; on mobile the region is
-              hidden and the icon-level control inside the action row above takes
-              over (#1828). This uses the same delete-and-edit policy as the server;
+              of ordinary action chips (#1046) in the wide layout; in the narrow
+              layout the icon-level control inside the action row above renders
+              INSTEAD of this region (#1828) — neither is ever hidden in the DOM.
+              This uses the same delete-and-edit policy as the server;
               this gate and grouping are the discoverability/UX layer. */}
-          {me?.role?.delete_books && me?.role?.edit && (
+          {!narrowLayout && me?.role?.delete_books && me?.role?.edit && (
             <section className={styles.dangerZone} data-testid="book-destructive-actions"
               aria-label={t('Delete from the global library')}>
               <button

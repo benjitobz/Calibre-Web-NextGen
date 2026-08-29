@@ -484,13 +484,26 @@
   margin: 0;
 }
 
-/* Mobile-only icon-level delete (#1828) — display:none on desktop, where the
-   separated dangerZone region above carries whole-book deletion. The media
-   query below turns this on and the region off; both controls share the same
-   handler, aria-label and confirm dialog. */
+/* Narrow-layout icon-level delete (#1828). The component renders this button
+   only at ≤700px (useMediaQuery — the bordered dangerZone region renders at
+   wider widths instead), so this rule styles an element that only exists in
+   the narrow layout; no display toggling lives here on purpose: a hidden
+   interactive element in the DOM is an a11y/sweep hazard, not a solution. */
 .deleteIconButton {
-  display: none;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  min-width: 34px;
+  height: 34px;
+  border-radius: var(--r-md);
+  border: 1px solid var(--danger);
+  background: transparent;
+  color: var(--danger);
+  cursor: pointer;
+  transition: background var(--dur-fast) var(--ease);
 }
+.deleteIconButton:hover:not(:disabled) { background: var(--danger-soft); }
+.deleteIconButton:disabled { opacity: 0.6; cursor: default; }
 
 /* Tags row */
 .tags {
@@ -572,24 +585,10 @@
   .description { order: 0; }
 
   /* #1828: whole-book deletion trades its bordered region for an icon-level
-     button at the end of the action row. The confirm dialog is the guard; the
-     region's box was the loudest element between the reader and the book. */
-  .dangerZone { display: none; }
-  .deleteIconButton {
-    display: inline-flex;
-    align-items: center;
-    justify-content: center;
-    min-width: 34px;
-    height: 34px;
-    border-radius: var(--r-md);
-    border: 1px solid var(--danger);
-    background: transparent;
-    color: var(--danger);
-    cursor: pointer;
-    transition: background var(--dur-fast) var(--ease);
-  }
-  .deleteIconButton:hover:not(:disabled) { background: var(--danger-soft); }
-  .deleteIconButton:disabled { opacity: 0.6; cursor: default; }
+     button at the end of the action row (both are conditionally rendered in
+     the component — the region never exists in the narrow DOM). The confirm
+     dialog is the guard; the region's box was the loudest element between the
+     reader and the book. */
 
   /* #1828 chip compression: the action row was a wall of 38px chips with wide
      gaps, pushing the description off the first two screens. 34px keeps the

@@ -172,9 +172,9 @@ test('book-detail deletion is a quiet region in light and dark themes (#1862)', 
  * #1828 — mobile counterpart to the region assertions above. On narrow
  * viewports whole-book deletion is an icon-level control at the end of the
  * ordinary action row: a red trash icon, the same accessible name, the same
- * confirm dialog doing the guarding. The bordered desktop region stays in the
- * DOM but is not displayed, so nothing red dominates the scroll path to the
- * description.
+ * confirm dialog doing the guarding. The bordered desktop region is not
+ * rendered at all at this width (conditional render, never a hidden control),
+ * so nothing red dominates the scroll path to the description.
  */
 test('mobile demotes deletion to a hit-testable icon control in the action row (#1828)', async ({ page, isMobile }) => {
   test.skip(isMobile !== true, 'mobile-only layout');
@@ -190,13 +190,13 @@ test('mobile demotes deletion to a hit-testable icon control in the action row (
   });
   await page.goto(`/app/book/${book!.id}`, { waitUntil: 'domcontentloaded' });
 
-  // The heavy region yields on mobile…
-  await expect(page.getByTestId('book-destructive-actions')).not.toBeVisible();
+  // The heavy region is not in the narrow DOM at all…
+  await expect(page.getByTestId('book-destructive-actions')).toHaveCount(0);
 
   // …and the icon control replaces it inside the ordinary action row, keeping
   // the #1939 disambiguating name and gaining the tooltip the reporter asked
-  // for. Exactly one visible control carries the name — strict mode enforces
-  // that the hidden region button does not double it.
+  // for. Exactly one control carries the name — with the region unrendered,
+  // strict mode enforces that nothing doubles it.
   const icon = page.getByTestId('book-actions')
     .getByRole('button', { name: 'Delete from the global library' });
   await expect(icon).toBeVisible();

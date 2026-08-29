@@ -139,12 +139,12 @@ test('mobile groups deletion as an icon-level control inside the action row (#18
 
   // The mobile trade: the destructive control joins the ordinary action row as
   // an icon (the confirm dialog is the guard), and the separated desktop
-  // region is not displayed. The reporter's ask, verbatim, was that "a red
-  // trash can is more than enough for book delete".
+  // region is not rendered at this width at all. The reporter's ask, verbatim,
+  // was that "a red trash can is more than enough for book delete".
   const ordinaryActions = page.getByTestId('book-actions');
   await expect(ordinaryActions).toBeVisible();
   await expect(
     ordinaryActions.getByRole('button', { name: 'Delete from the global library' }),
   ).toHaveCount(1);
-  await expect(page.getByTestId('book-destructive-actions')).not.toBeVisible();
+  await expect(page.getByTestId('book-destructive-actions')).toHaveCount(0);
 });
