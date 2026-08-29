@@ -876,6 +876,15 @@ class KoboDeviceBookEntitlement(Base):
     # this cannot be a foreign key in app.db.
     book_id = Column(Integer, nullable=False)
     fingerprint = Column(String(64), nullable=False)
+    payload_schema_version = Column(
+        Integer, nullable=False, default=1, server_default="1",
+    )
+    # Canonical, constituent-preserving book/archive clock encoding that
+    # justified the delivered entitlement. A declared renderer-schema
+    # transition may replace the fingerprint only while this entire non-null
+    # tuple is byte-identical. NULL is retained for #1925 rows and deliberately
+    # fails open on a changed payload.
+    change_basis = Column(Text, nullable=True)
     updated_at = Column(
         DateTime, nullable=False, default=lambda: datetime.now(timezone.utc),
     )
@@ -905,6 +914,10 @@ class KoboDeviceDeletedEntitlement(Base):
     )
     book_uuid = Column(String(64), nullable=False)
     fingerprint = Column(String(64), nullable=False)
+    payload_schema_version = Column(
+        Integer, nullable=False, default=1, server_default="1",
+    )
+    change_basis = Column(Text, nullable=True)
     updated_at = Column(
         DateTime, nullable=False, default=lambda: datetime.now(timezone.utc),
     )
@@ -1972,6 +1985,33 @@ def add_missing_tables(engine, _session):
             table_exists = engine.dialect.has_table(connection, table_name)
         if not table_exists:
             table.create(bind=engine, checkfirst=True)
+
+
+def migrate_kobo_entitlement_ledger_columns(engine, _session):
+    """Add #1953 replay-ledger provenance before any mapped-row load.
+
+    ``add_missing_tables`` creates the complete current tables on fresh app.db
+    files.  Existing #1925 tables need additive columns, and SQLAlchemy selects
+    every mapped column when a ledger entity is loaded.  Keep this migration
+    immediately after table creation in ``migrate_Database`` so no ORM query
+    can observe the old physical shape (the same ordering invariant as #1950).
+    """
+    for table_name in (
+        "kobo_device_book_entitlement",
+        "kobo_device_deleted_entitlement",
+    ):
+        _add_column_if_missing(
+            engine,
+            table_name,
+            "payload_schema_version",
+            "payload_schema_version INTEGER NOT NULL DEFAULT 1",
+        )
+        _add_column_if_missing(
+            engine,
+            table_name,
+            "change_basis",
+            "change_basis TEXT",
+        )
 
 
 # migrate all settings missing in registration table
@@ -4253,6 +4293,7 @@ def migrate_thumbnail_lookup_index(engine, _session):
 def migrate_Database(_session):
     engine = _session.bind
     add_missing_tables(engine, _session)
+    migrate_kobo_entitlement_ledger_columns(engine, _session)
     migrate_thumbnail_lookup_index(engine, _session)
     migrate_registration_table(engine, _session)
     migrate_user_session_table(engine, _session)

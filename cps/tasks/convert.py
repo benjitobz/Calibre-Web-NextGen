@@ -172,6 +172,12 @@ class TaskConvert(CalibreTask):
                                      book=book_id, uncompressed_size=os.path.getsize(file_path + format_new_ext))
                 try:
                     local_db.session.merge(new_format)
+                    if self.settings['new_book_format'].upper() in [
+                            'KEPUB', 'EPUB', 'EPUB3']:
+                        # Recovery adopted a Kobo-visible file that existed on
+                        # disk without a Data row; mirror the ordinary
+                        # conversion path's cursor provenance update below.
+                        helper.mark_book_modified(cur_book, set_dirty=False)
                     local_db.session.commit()
                 except SQLAlchemyError as e:
                     local_db.session.rollback()

@@ -41,11 +41,11 @@ def _book_identity(identity):
     return int(identity), None
 
 
-def add_synced_books_batch(book_identities):
-    """Record a delivered page, retaining each UUID when the caller has it."""
+def add_synced_books_batch(book_identities, *, commit=True):
+    """Stage a delivered page, optionally committing the shared transaction."""
     page_books = dict(_book_identity(identity) for identity in book_identities)
     if not page_books:
-        return
+        return True
 
     user_id = current_user.id
     present = {
@@ -69,33 +69,38 @@ def add_synced_books_batch(book_identities):
             )
             for book_id in missing_book_ids
         ])
-    ub.session_commit()
+    return ub.session_commit() if commit else True
 
 
 def get_device_entitlement_fingerprints(device_id, book_ids):
-    """Return the last delivered payload hash for each candidate book."""
+    """Return the last delivered ledger record for each candidate book."""
     if not device_id or not book_ids:
         return {}
-    return dict(
-        ub.session.query(
+    rows = ub.session.query(
             ub.KoboDeviceBookEntitlement.book_id,
             ub.KoboDeviceBookEntitlement.fingerprint,
+            ub.KoboDeviceBookEntitlement.payload_schema_version,
+            ub.KoboDeviceBookEntitlement.change_basis,
+            ub.KoboDeviceBookEntitlement.updated_at,
         ).filter(
             ub.KoboDeviceBookEntitlement.device_id == int(device_id),
             ub.KoboDeviceBookEntitlement.book_id.in_(set(book_ids)),
         ).all()
-    )
+    return {row.book_id: row for row in rows}
 
 
-def stage_device_entitlement_fingerprints(device_id, fingerprints):
+def stage_device_entitlement_fingerprints(
+    device_id, fingerprints, change_bases=None, payload_schema_version=1,
+):
     """Upsert delivered entitlement hashes into the caller's transaction.
 
-    ``add_synced_books_batch`` commits immediately after this helper in the
-    sync handler, so the per-device ledger and legacy user-level delivery
-    marker become durable together.
+    The sync handler stages this alongside ``add_synced_books_batch``
+    (``commit=False``) and makes both durable in one checked request-level
+    commit before the response token is constructed.
     """
     if not device_id or not fingerprints:
         return
+    change_bases = change_bases or {}
     now = datetime.now(timezone.utc)
     items = list(fingerprints.items())
     for offset in range(0, len(items), _LEDGER_UPSERT_BATCH_SIZE):
@@ -104,6 +109,8 @@ def stage_device_entitlement_fingerprints(device_id, fingerprints):
                 "device_id": int(device_id),
                 "book_id": int(book_id),
                 "fingerprint": fingerprint,
+                "payload_schema_version": int(payload_schema_version),
+                "change_basis": change_bases.get(book_id),
                 "updated_at": now,
             }
             for book_id, fingerprint in items[
@@ -115,6 +122,8 @@ def stage_device_entitlement_fingerprints(device_id, fingerprints):
             index_elements=["device_id", "book_id"],
             set_={
                 "fingerprint": statement.excluded.fingerprint,
+                "payload_schema_version": statement.excluded.payload_schema_version,
+                "change_basis": statement.excluded.change_basis,
                 "updated_at": statement.excluded.updated_at,
             },
         )
@@ -122,24 +131,29 @@ def stage_device_entitlement_fingerprints(device_id, fingerprints):
 
 
 def get_device_deleted_entitlement_fingerprints(device_id, book_uuids):
-    """Return delivered hard-delete hashes for one requesting device."""
+    """Return delivered hard-delete ledger records for one device."""
     if not device_id or not book_uuids:
         return {}
-    return dict(
-        ub.session.query(
+    rows = ub.session.query(
             ub.KoboDeviceDeletedEntitlement.book_uuid,
             ub.KoboDeviceDeletedEntitlement.fingerprint,
+            ub.KoboDeviceDeletedEntitlement.payload_schema_version,
+            ub.KoboDeviceDeletedEntitlement.change_basis,
+            ub.KoboDeviceDeletedEntitlement.updated_at,
         ).filter(
             ub.KoboDeviceDeletedEntitlement.device_id == int(device_id),
             ub.KoboDeviceDeletedEntitlement.book_uuid.in_(set(book_uuids)),
         ).all()
-    )
+    return {row.book_uuid: row for row in rows}
 
 
-def stage_device_deleted_entitlement_fingerprints(device_id, fingerprints):
+def stage_device_deleted_entitlement_fingerprints(
+    device_id, fingerprints, change_bases=None, payload_schema_version=1,
+):
     """Upsert hard-delete entitlement hashes into the sync transaction."""
     if not device_id or not fingerprints:
         return
+    change_bases = change_bases or {}
     now = datetime.now(timezone.utc)
     items = list(fingerprints.items())
     for offset in range(0, len(items), _LEDGER_UPSERT_BATCH_SIZE):
@@ -148,6 +162,8 @@ def stage_device_deleted_entitlement_fingerprints(device_id, fingerprints):
                 "device_id": int(device_id),
                 "book_uuid": str(book_uuid),
                 "fingerprint": fingerprint,
+                "payload_schema_version": int(payload_schema_version),
+                "change_basis": change_bases.get(book_uuid),
                 "updated_at": now,
             }
             for book_uuid, fingerprint in items[
@@ -159,6 +175,8 @@ def stage_device_deleted_entitlement_fingerprints(device_id, fingerprints):
             index_elements=["device_id", "book_uuid"],
             set_={
                 "fingerprint": statement.excluded.fingerprint,
+                "payload_schema_version": statement.excluded.payload_schema_version,
+                "change_basis": statement.excluded.change_basis,
                 "updated_at": statement.excluded.updated_at,
             },
         )

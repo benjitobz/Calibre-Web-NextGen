@@ -2,6 +2,7 @@
 
 from datetime import datetime, timezone
 from types import SimpleNamespace
+import zipfile
 
 import pytest
 from flask import Flask, has_app_context, has_request_context
@@ -257,6 +258,73 @@ def test_conversion_advances_modified_without_touching_synced_rows(monkeypatch):
     assert book.last_modified > old_modified
     assert synced_rows == [(1, 1), (2, 1)]
     assert len(merged) == 1
+
+
+def test_conversion_recovery_adoption_advances_modified(monkeypatch, tmp_path):
+    """Adopting a valid orphan KEPUB crosses the same Kobo cursor boundary."""
+    from cps.tasks import convert
+
+    old_modified = datetime(2020, 1, 1, tzinfo=timezone.utc)
+    book = SimpleNamespace(
+        id=1,
+        title="Book",
+        path="Author/Book",
+        last_modified=old_modified,
+        data=[SimpleNamespace(name="book")],
+    )
+    merged = []
+    commits = []
+
+    class Query:
+        def filter(self, *_args):
+            return self
+
+        def one_or_none(self):
+            return None
+
+    class Session:
+        def query(self, *_args):
+            return Query()
+
+        def merge(self, row):
+            merged.append(row)
+
+        def commit(self):
+            commits.append(True)
+
+        def rollback(self):
+            pass
+
+        def close(self):
+            pass
+
+    class LocalDB:
+        def __init__(self, **_kwargs):
+            self.session = Session()
+
+        def get_book(self, _book_id):
+            return book
+
+        def get_book_format(self, *_args):
+            return None
+
+    file_path = tmp_path / "book"
+    with zipfile.ZipFile(str(file_path) + ".kepub", "w") as archive:
+        archive.writestr("mimetype", "application/epub+zip")
+
+    monkeypatch.setattr(convert.db, "CalibreDB", LocalDB)
+    task = convert.TaskConvert(
+        str(file_path),
+        1,
+        "convert",
+        {"old_book_format": "EPUB", "new_book_format": "KEPUB"},
+        None,
+    )
+
+    assert task._convert_ebook_format() == "book.kepub"
+    assert book.last_modified > old_modified
+    assert len(merged) == 1
+    assert commits == [True]
 
 
 def test_truncated_kepub_is_not_adopted_as_database_format(monkeypatch, tmp_path):

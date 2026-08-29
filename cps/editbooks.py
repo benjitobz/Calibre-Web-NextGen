@@ -853,6 +853,7 @@ def merge_list_book():
         to_book = calibre_db.get_book(vals[0])
         vals.pop(0)
         if to_book:
+            target_formats_changed = False
             for file in to_book.data:
                 to_file.append(file.format)
             to_name = helper.get_valid_filename(to_book.title,
@@ -875,14 +876,21 @@ def merge_list_book():
                                                         element.uncompressed_size,
                                                         to_name))
                             to_file.append(element.format)
+                            target_formats_changed = True
                         elif element.format in overwrite_formats:
                             # Replace keeper's existing format file and update its size
                             copyfile(filepath_old, filepath_new)
                             for data_entry in to_book.data:
                                 if data_entry.format == element.format:
                                     data_entry.uncompressed_size = element.uncompressed_size
+                                    target_formats_changed = True
                                     break
                     delete_book_from_table(from_book.id, "", True, skip_cache_invalidation=True)
+            if target_formats_changed:
+                # Format availability and Size are rendered into Kobo
+                # entitlements, so every add/overwrite must advance the same
+                # cursor provenance as ordinary metadata edits.
+                helper.mark_book_modified(to_book)
             calibre_db.session.commit()
             _queue_duplicate_scan_after_change([to_book.id] + vals)
             return json.dumps({'success': True})

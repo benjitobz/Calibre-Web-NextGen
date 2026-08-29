@@ -39,14 +39,21 @@ def _changed_reading_states(response):
     ]
 
 
-def _add_kobo_shelf(sync_harness, *, include_book=True, date_added=None):
+def _add_kobo_shelf(
+    sync_harness,
+    *,
+    include_book=True,
+    date_added=None,
+    name="Regression Kobo Shelf",
+    shelf_uuid="issue-1925-regression-shelf",
+):
     from cps import ub
 
     shelf = ub.Shelf(
-        name="Regression Kobo Shelf",
+        name=name,
         user_id=sync_harness.user.id,
         kobo_sync=True,
-        uuid="issue-1925-regression-shelf",
+        uuid=shelf_uuid,
         is_public=0,
     )
     sync_harness.session.add(shelf)
@@ -249,6 +256,456 @@ def test_interrupted_sync_token_loss_does_not_redeliver_unchanged_entitlement(
     assert "cursors in=" in summaries[-1] and " out=" in summaries[-1]
 
 
+def test_same_version_payload_mismatch_delivers_and_restamps(
+    sync_harness, caplog, monkeypatch,
+):
+    """An undeclared renderer change fails open for non-bumping writers."""
+    from cps import kobo, ub
+
+    monkeypatch.setattr(
+        kobo.config, "config_kobo_suppress_replayed_entitlements", True,
+    )
+    caplog.set_level(logging.DEBUG, logger="cps.kobo")
+    assert len(_entitlements(sync_harness.sync())) == 1
+    before = sync_harness.session.query(
+        ub.KoboDeviceBookEntitlement,
+    ).one()
+    old_fingerprint = before.fingerprint
+
+    original_get_metadata = kobo.get_metadata
+
+    def shape_b(book):
+        payload = original_get_metadata(book)
+        payload["Issue1953ShapeProbe"] = "shape-b"
+        return payload
+
+    monkeypatch.setattr(kobo, "get_metadata", shape_b)
+    stale_token = kobo.SyncToken.SyncToken().build_sync_token()
+    replay = sync_harness.sync(stale_token)
+
+    assert len(_entitlements(replay)) == 1
+    sync_harness.session.expire_all()
+    after = sync_harness.session.query(
+        ub.KoboDeviceBookEntitlement,
+    ).one()
+    assert after.fingerprint != old_fingerprint
+    assert (
+        after.payload_schema_version
+        == kobo.ENTITLEMENT_PAYLOAD_SCHEMA_VERSION
+    )
+    assert _entitlements(sync_harness.sync(stale_token)) == []
+    summaries = [
+        record.getMessage() for record in caplog.records
+        if record.getMessage().startswith("Kobo Sync summary:")
+    ]
+    assert "reseeded_shape_change=0" in summaries[-1]
+
+
+def test_declared_payload_schema_transition_reseeds_without_delivery(
+    sync_harness, caplog, monkeypatch,
+):
+    """A declared renderer transition rewrites an unchanged book in place."""
+    from cps import kobo, ub
+
+    monkeypatch.setattr(
+        kobo.config, "config_kobo_suppress_replayed_entitlements", True,
+    )
+    caplog.set_level(logging.DEBUG, logger="cps.kobo")
+    assert len(_entitlements(sync_harness.sync())) == 1
+    before = sync_harness.session.query(
+        ub.KoboDeviceBookEntitlement,
+    ).one()
+    old_fingerprint = before.fingerprint
+    old_basis = before.change_basis
+    next_schema = kobo.ENTITLEMENT_PAYLOAD_SCHEMA_VERSION + 1
+
+    original_get_metadata = kobo.get_metadata
+
+    def shape_b(book):
+        payload = original_get_metadata(book)
+        payload["Issue1953ShapeProbe"] = "shape-b"
+        return payload
+
+    monkeypatch.setattr(kobo, "get_metadata", shape_b)
+    monkeypatch.setattr(
+        kobo, "ENTITLEMENT_PAYLOAD_SCHEMA_VERSION", next_schema,
+    )
+    stale_token = kobo.SyncToken.SyncToken().build_sync_token()
+    replay = sync_harness.sync(stale_token)
+
+    assert _entitlements(replay) == []
+    sync_harness.session.expire_all()
+    after = sync_harness.session.query(
+        ub.KoboDeviceBookEntitlement,
+    ).one()
+    assert after.fingerprint != old_fingerprint
+    assert after.change_basis == old_basis
+    assert after.payload_schema_version == next_schema
+    summaries = [
+        record.getMessage() for record in caplog.records
+        if record.getMessage().startswith("Kobo Sync summary:")
+    ]
+    assert "reseeded_shape_change=1" in summaries[-1]
+
+
+def test_failed_live_reseed_commit_aborts_before_summary(
+    sync_harness, caplog, monkeypatch,
+):
+    """A rolled-back live ledger update is neither returned nor reported."""
+    from cps import kobo, ub
+    from werkzeug.exceptions import ServiceUnavailable
+
+    monkeypatch.setattr(
+        kobo.config, "config_kobo_suppress_replayed_entitlements", True,
+    )
+    caplog.set_level(logging.DEBUG, logger="cps.kobo")
+    assert len(_entitlements(sync_harness.sync())) == 1
+    before = sync_harness.session.query(
+        ub.KoboDeviceBookEntitlement,
+    ).one()
+    old_fingerprint = before.fingerprint
+    old_version = before.payload_schema_version
+    caplog.clear()
+
+    original_get_metadata = kobo.get_metadata
+
+    def shape_b(book):
+        payload = original_get_metadata(book)
+        payload["Issue1953ShapeProbe"] = "shape-b"
+        return payload
+
+    def fail_commit(*_args, **_kwargs):
+        sync_harness.session.rollback()
+        return False
+
+    monkeypatch.setattr(kobo, "get_metadata", shape_b)
+    monkeypatch.setattr(
+        kobo,
+        "ENTITLEMENT_PAYLOAD_SCHEMA_VERSION",
+        kobo.ENTITLEMENT_PAYLOAD_SCHEMA_VERSION + 1,
+    )
+    monkeypatch.setattr(ub, "session_commit", fail_commit)
+    stale_token = kobo.SyncToken.SyncToken().build_sync_token()
+
+    with pytest.raises(ServiceUnavailable) as raised:
+        sync_harness.sync(stale_token)
+
+    assert raised.value.code == 503
+    sync_harness.session.expire_all()
+    after = sync_harness.session.query(
+        ub.KoboDeviceBookEntitlement,
+    ).one()
+    assert after.fingerprint == old_fingerprint
+    assert after.payload_schema_version == old_version
+    assert not any(
+        record.getMessage().startswith("Kobo Sync summary:")
+        for record in caplog.records
+    )
+
+
+def test_entitlement_payload_shape_matches_declared_schema_version(
+    sync_harness, monkeypatch,
+):
+    """Pin the complete renderer output beside its declared schema version."""
+    from cps import db, kobo
+
+    book = sync_harness.book
+    book.title = "Pinned Entitlement Title"
+    book.sort = "Entitlement Title, Pinned"
+    book.author_sort = "Author, Pinned"
+    book.pubdate = datetime(2020, 2, 3, 4, 5, 6)
+    book.series_index = 2.5
+    book.has_cover = 1
+    book.authors = [db.Authors("Pinned Author", "Author, Pinned")]
+    book.publishers = [
+        db.Publishers("Pinned Publisher", "Pinned Publisher"),
+    ]
+    book.series = [db.Series("Pinned Series", "Pinned Series")]
+    book.languages = [db.Languages("eng")]
+    book.comments = [db.Comments("Pinned description.", book.id)]
+    sync_harness.session.commit()
+    monkeypatch.setattr(
+        kobo.config, "config_kobo_cover_padding_enabled", False,
+        raising=False,
+    )
+
+    headers = {
+        "x-kobo-deviceid": "a" * 64,
+        "x-kobo-devicemodel": sync_harness.device.model,
+    }
+    with sync_harness.app.test_request_context(
+        "/v1/library/sync", headers=headers,
+    ):
+        g.annotation_origin_device_id = sync_harness.device.id
+        rendered = {
+            "BookEntitlement": kobo.create_book_entitlement(
+                book, archived=False,
+            ),
+            "BookMetadata": kobo.get_metadata(book),
+        }
+        archived_rendered = {
+            "BookEntitlement": kobo.create_book_entitlement(
+                book, archived=True,
+            ),
+            "BookMetadata": kobo.get_metadata(book),
+        }
+        deleted_uuid = "00000000-0000-0000-0000-deleted1953"
+        deleted_at = datetime(2026, 8, 28, 13, 30, 0)
+        deleted_rendered = {
+            "BookEntitlement": kobo.create_deleted_book_entitlement(
+                deleted_uuid, deleted_at,
+            ),
+            "BookMetadata": kobo.create_deleted_book_metadata(deleted_uuid),
+        }
+
+    pinned_schema_and_hashes = {
+        "live": (
+            1,
+            "28ba9f171cd833b2779b549c9bff86347447d40c011439a06408babe656da0c2",
+        ),
+        "archived_live": (
+            1,
+            "ad2030d15995f1083b42c90f751af6e24b6a74c02cddfe0e6e5af38674cb7e02",
+        ),
+        "hard_delete": (
+            1,
+            "8d72ce590309549d65cf110a0d44b61d2145bb2401ca4d6bf204ad41f5244011",
+        ),
+    }
+    rendered_variants = {
+        "live": rendered,
+        "archived_live": archived_rendered,
+        "hard_delete": deleted_rendered,
+    }
+    for variant, payload in rendered_variants.items():
+        assert (
+            kobo.ENTITLEMENT_PAYLOAD_SCHEMA_VERSION,
+            kobo._entitlement_fingerprint(payload),
+        ) == pinned_schema_and_hashes[variant], (
+            "entitlement payload shape changed: bump "
+            "ENTITLEMENT_PAYLOAD_SCHEMA_VERSION and update the pinned hash together"
+        )
+
+
+def test_identical_payload_suppresses_and_refreshes_moved_basis(
+    sync_harness, caplog, monkeypatch,
+):
+    """Byte-identical payloads never re-deliver, even when the basis moves."""
+    from cps import kobo, ub
+
+    monkeypatch.setattr(
+        kobo.config, "config_kobo_suppress_replayed_entitlements", True,
+    )
+    caplog.set_level(logging.DEBUG, logger="cps.kobo")
+    archived = ub.ArchivedBook(
+        user_id=sync_harness.user.id,
+        book_id=sync_harness.book.id,
+        is_archived=False,
+        last_modified=sync_harness.book.last_modified,
+    )
+    sync_harness.session.add(archived)
+    sync_harness.session.commit()
+    assert len(_entitlements(sync_harness.sync())) == 1
+    before = sync_harness.session.query(
+        ub.KoboDeviceBookEntitlement,
+    ).one()
+    original_fingerprint = before.fingerprint
+
+    moved_basis = sync_harness.book.last_modified + timedelta(minutes=5)
+    archived.last_modified = moved_basis
+    sync_harness.session.commit()
+    stale_token = kobo.SyncToken.SyncToken().build_sync_token()
+    replay = sync_harness.sync(stale_token)
+
+    assert _entitlements(replay) == []
+    sync_harness.session.expire_all()
+    after = sync_harness.session.query(
+        ub.KoboDeviceBookEntitlement,
+    ).one()
+    assert after.fingerprint == original_fingerprint
+    assert after.change_basis == kobo._book_entitlement_change_basis(
+        sync_harness.book.last_modified,
+        moved_basis,
+    )
+    summaries = [
+        record.getMessage() for record in caplog.records
+        if record.getMessage().startswith("Kobo Sync summary:")
+    ]
+    assert "reseeded_shape_change=0" in summaries[-1]
+
+
+def test_constituent_basis_detects_book_move_below_archive_max(
+    sync_harness, monkeypatch,
+):
+    """A changed lower book clock cannot collide with the archive component."""
+    from cps import kobo, ub
+
+    monkeypatch.setattr(
+        kobo.config, "config_kobo_suppress_replayed_entitlements", True,
+    )
+    archive_clock = datetime(2026, 8, 28, 12, 10, 0)
+    archived = ub.ArchivedBook(
+        user_id=sync_harness.user.id,
+        book_id=sync_harness.book.id,
+        is_archived=False,
+        last_modified=archive_clock,
+    )
+    sync_harness.session.add(archived)
+    sync_harness.session.commit()
+    assert len(_entitlements(sync_harness.sync())) == 1
+    before = sync_harness.session.query(
+        ub.KoboDeviceBookEntitlement,
+    ).one()
+    assert before.change_basis == (
+        "v1|book=2026-08-28T12:00:00.000000Z|"
+        "archive=2026-08-28T12:10:00.000000Z"
+    )
+
+    sync_harness.book.last_modified = datetime(2026, 8, 28, 12, 5, 0)
+    sync_harness.session.commit()
+    original_get_metadata = kobo.get_metadata
+
+    def shape_b(book):
+        payload = original_get_metadata(book)
+        payload["Issue1953ShapeProbe"] = "shape-b"
+        return payload
+
+    monkeypatch.setattr(kobo, "get_metadata", shape_b)
+    monkeypatch.setattr(
+        kobo,
+        "ENTITLEMENT_PAYLOAD_SCHEMA_VERSION",
+        kobo.ENTITLEMENT_PAYLOAD_SCHEMA_VERSION + 1,
+    )
+    stale_token = kobo.SyncToken.SyncToken().build_sync_token()
+    replay = sync_harness.sync(stale_token)
+
+    assert len(_entitlements(replay)) == 1
+    sync_harness.session.expire_all()
+    after = sync_harness.session.query(
+        ub.KoboDeviceBookEntitlement,
+    ).one()
+    assert after.change_basis == (
+        "v1|book=2026-08-28T12:05:00.000000Z|"
+        "archive=2026-08-28T12:10:00.000000Z"
+    )
+
+
+def test_constituent_basis_normalizes_aware_clocks_to_utc():
+    """Equivalent instants produce one canonical byte-comparable encoding."""
+    from cps import kobo
+
+    utc_clock = datetime(2026, 8, 28, 12, 0, tzinfo=timezone.utc)
+    offset_clock = datetime(
+        2026, 8, 28, 14, 0,
+        tzinfo=timezone(timedelta(hours=2)),
+    )
+
+    assert kobo._book_entitlement_change_basis(
+        offset_clock, None,
+    ) == kobo._book_entitlement_change_basis(utc_clock, None)
+    assert kobo._book_entitlement_change_basis(utc_clock, None) == (
+        "v1|book=2026-08-28T12:00:00.000000Z|archive=none"
+    )
+
+
+def test_legacy_null_basis_version_transition_delivers_then_suppresses(
+    sync_harness, caplog, monkeypatch,
+):
+    """A legacy NULL basis is ambiguous, so its first mismatch fails open."""
+    from cps import kobo, ub
+
+    monkeypatch.setattr(
+        kobo.config, "config_kobo_suppress_replayed_entitlements", True,
+    )
+    caplog.set_level(logging.DEBUG, logger="cps.kobo")
+    assert len(_entitlements(sync_harness.sync())) == 1
+    row = sync_harness.session.query(ub.KoboDeviceBookEntitlement).one()
+    row.change_basis = None
+    row.updated_at = sync_harness.book.last_modified + timedelta(seconds=1)
+    sync_harness.session.commit()
+
+    original_get_metadata = kobo.get_metadata
+
+    def shape_b(book):
+        payload = original_get_metadata(book)
+        payload["Issue1953ShapeProbe"] = "shape-b"
+        return payload
+
+    monkeypatch.setattr(kobo, "get_metadata", shape_b)
+    next_schema = kobo.ENTITLEMENT_PAYLOAD_SCHEMA_VERSION + 1
+    monkeypatch.setattr(
+        kobo, "ENTITLEMENT_PAYLOAD_SCHEMA_VERSION", next_schema,
+    )
+    stale_token = kobo.SyncToken.SyncToken().build_sync_token()
+    delivered = sync_harness.sync(stale_token)
+
+    assert len(_entitlements(delivered)) == 1
+    sync_harness.session.expire_all()
+    migrated = sync_harness.session.query(
+        ub.KoboDeviceBookEntitlement,
+    ).one()
+    assert migrated.change_basis == kobo._book_entitlement_change_basis(
+        sync_harness.book.last_modified,
+        None,
+    )
+    assert migrated.payload_schema_version == next_schema
+    assert _entitlements(sync_harness.sync(stale_token)) == []
+    summaries = [
+        record.getMessage() for record in caplog.records
+        if record.getMessage().startswith("Kobo Sync summary:")
+    ]
+    assert "reseeded_shape_change=0" in summaries[-1]
+
+
+def test_real_last_modified_bump_under_new_payload_shape_delivers_once(
+    sync_harness, monkeypatch,
+):
+    """A shape reseed cannot hide a later movement of the book cursor basis."""
+    from cps import kobo, ub
+
+    monkeypatch.setattr(
+        kobo.config, "config_kobo_suppress_replayed_entitlements", True,
+    )
+    assert len(_entitlements(sync_harness.sync())) == 1
+    original_get_metadata = kobo.get_metadata
+
+    def shape_b(book):
+        payload = original_get_metadata(book)
+        payload["Issue1953ShapeProbe"] = "shape-b"
+        return payload
+
+    monkeypatch.setattr(kobo, "get_metadata", shape_b)
+    monkeypatch.setattr(
+        kobo,
+        "ENTITLEMENT_PAYLOAD_SCHEMA_VERSION",
+        kobo.ENTITLEMENT_PAYLOAD_SCHEMA_VERSION + 1,
+    )
+    stale_token = kobo.SyncToken.SyncToken().build_sync_token()
+    reseeded = sync_harness.sync(stale_token)
+    assert _entitlements(reseeded) == []
+
+    sync_harness.book.last_modified += timedelta(minutes=1)
+    sync_harness.session.commit()
+    changed = sync_harness.sync(
+        reseeded.headers[sync_harness.token_header],
+    )
+    stable = sync_harness.sync(changed.headers[sync_harness.token_header])
+
+    envelopes = _entitlements(changed)
+    assert len(envelopes) == 1
+    assert "ChangedEntitlement" in envelopes[0]
+    assert (
+        envelopes[0]["ChangedEntitlement"]["BookEntitlement"]["LastModified"]
+        == "2026-08-28T12:01:00Z"
+    )
+    assert _entitlements(stable) == []
+    row = sync_harness.session.query(ub.KoboDeviceBookEntitlement).one()
+    assert row.change_basis == kobo._book_entitlement_change_basis(
+        sync_harness.book.last_modified,
+        None,
+    )
+
+
 def test_upgrade_seed_suppresses_first_218_book_replay_for_all_existing_devices(
     sync_harness, caplog, monkeypatch,
 ):
@@ -356,6 +813,105 @@ def test_upgrade_seed_suppresses_first_218_book_replay_for_all_existing_devices(
     assert len(_entitlements(factory_reset)) == 100
 
 
+def test_upgrade_seed_skips_null_archived_last_modified(
+    sync_harness, monkeypatch,
+):
+    """Legacy NULL archive clocks do not break canonical-basis seeding."""
+    from cps import kobo, ub
+
+    monkeypatch.setattr(
+        kobo.config, "config_kobo_suppress_replayed_entitlements", True,
+    )
+    archived = ub.ArchivedBook(
+        user_id=sync_harness.user.id,
+        book_id=sync_harness.book.id,
+        is_archived=False,
+    )
+    sync_harness.session.add_all([
+        archived,
+        ub.KoboSyncedBooks(
+            user_id=sync_harness.user.id,
+            book_id=sync_harness.book.id,
+            book_uuid=str(sync_harness.book.uuid),
+        ),
+    ])
+    sync_harness.session.flush()
+    archived.last_modified = None
+    sync_harness.session.commit()
+
+    stale_token = kobo.SyncToken.SyncToken().build_sync_token()
+    replay = sync_harness.sync(stale_token)
+
+    assert replay.status_code == 200
+    assert _entitlements(replay) == []
+    row = sync_harness.session.query(
+        ub.KoboDeviceBookEntitlement,
+    ).one()
+    assert row.change_basis == kobo._book_entitlement_change_basis(
+        sync_harness.book.last_modified,
+        None,
+    )
+
+
+def test_two_shelf_rows_reseed_one_book_once_on_declared_transition(
+    sync_harness, caplog, monkeypatch,
+):
+    """A per-book ledger and counter are independent of shelf-row clocks."""
+    from cps import kobo, ub
+
+    monkeypatch.setattr(
+        kobo.config, "config_kobo_suppress_replayed_entitlements", True,
+    )
+    caplog.set_level(logging.DEBUG, logger="cps.kobo")
+    sync_harness.user.kobo_only_shelves_sync = True
+    _add_kobo_shelf(
+        sync_harness,
+        date_added=datetime(2026, 8, 28, 12, 5, 0),
+    )
+    _add_kobo_shelf(
+        sync_harness,
+        date_added=datetime(2026, 8, 28, 12, 10, 0),
+        name="Second Regression Kobo Shelf",
+        shelf_uuid="issue-1953-second-regression-shelf",
+    )
+    assert _entitlements(sync_harness.sync())
+    assert sync_harness.session.query(
+        ub.KoboDeviceBookEntitlement,
+    ).count() == 1
+
+    original_get_metadata = kobo.get_metadata
+
+    def shape_b(book):
+        payload = original_get_metadata(book)
+        payload["Issue1953ShapeProbe"] = "shape-b"
+        return payload
+
+    monkeypatch.setattr(kobo, "get_metadata", shape_b)
+    next_schema = kobo.ENTITLEMENT_PAYLOAD_SCHEMA_VERSION + 1
+    monkeypatch.setattr(
+        kobo, "ENTITLEMENT_PAYLOAD_SCHEMA_VERSION", next_schema,
+    )
+    stale_token = kobo.SyncToken.SyncToken().build_sync_token()
+    replay = sync_harness.sync(stale_token)
+
+    assert _entitlements(replay) == []
+    rows = sync_harness.session.query(
+        ub.KoboDeviceBookEntitlement,
+    ).all()
+    assert len(rows) == 1
+    assert rows[0].payload_schema_version == next_schema
+    assert rows[0].change_basis == kobo._book_entitlement_change_basis(
+        sync_harness.book.last_modified,
+        None,
+    )
+    summaries = [
+        record.getMessage() for record in caplog.records
+        if record.getMessage().startswith("Kobo Sync summary:")
+    ]
+    assert "suppressed_unchanged=1" in summaries[-1]
+    assert "reseeded_shape_change=1" in summaries[-1]
+
+
 def test_hard_delete_entitlements_emit_once_then_suppress_exact_stale_replay(
     sync_harness, caplog, monkeypatch,
 ):
@@ -410,6 +966,70 @@ def test_hard_delete_entitlements_emit_once_then_suppress_exact_stale_replay(
     ]
     assert "entitlements new=0 changed=0" in summaries[-1]
     assert "suppressed_unchanged=3 suppressed_removed=2" in summaries[-1]
+
+
+def test_hard_delete_payload_shape_change_reseeds_without_delivery(
+    sync_harness, caplog, monkeypatch,
+):
+    """IsRemoved tombstones use the same declared-transition reseed path."""
+    from cps import kobo, ub
+
+    monkeypatch.setattr(
+        kobo.config, "config_kobo_suppress_replayed_entitlements", True,
+    )
+    caplog.set_level(logging.DEBUG, logger="cps.kobo")
+    assert len(_entitlements(sync_harness.sync())) == 1
+    deleted_at = datetime(2026, 8, 28, 13, 30, 0)
+    book_uuid = "00000000-0000-0000-0000-deleted1953"
+    sync_harness.session.add(ub.KoboDeletedBook(
+        user_id=sync_harness.user.id,
+        book_uuid=book_uuid,
+        deleted_at=deleted_at,
+    ))
+    sync_harness.session.commit()
+    stale_token = kobo.SyncToken.SyncToken().build_sync_token()
+    first_offer = sync_harness.sync(stale_token)
+    assert any(
+        item.get("ChangedEntitlement", {}).get(
+            "BookEntitlement", {},
+        ).get("IsRemoved") is True
+        for item in _entitlements(first_offer)
+    )
+    before = sync_harness.session.query(
+        ub.KoboDeviceDeletedEntitlement,
+    ).filter_by(book_uuid=book_uuid).one()
+    old_fingerprint = before.fingerprint
+
+    original_deleted_metadata = kobo.create_deleted_book_metadata
+
+    def shape_b(deleted_uuid):
+        payload = original_deleted_metadata(deleted_uuid)
+        payload["Issue1953ShapeProbe"] = "shape-b"
+        return payload
+
+    monkeypatch.setattr(kobo, "create_deleted_book_metadata", shape_b)
+    next_schema = kobo.ENTITLEMENT_PAYLOAD_SCHEMA_VERSION + 1
+    monkeypatch.setattr(
+        kobo, "ENTITLEMENT_PAYLOAD_SCHEMA_VERSION", next_schema,
+    )
+    replay = sync_harness.sync(stale_token)
+
+    assert _entitlements(replay) == []
+    sync_harness.session.expire_all()
+    after = sync_harness.session.query(
+        ub.KoboDeviceDeletedEntitlement,
+    ).filter_by(book_uuid=book_uuid).one()
+    assert after.fingerprint != old_fingerprint
+    assert after.change_basis == kobo._deleted_entitlement_change_basis(
+        deleted_at,
+    )
+    assert after.payload_schema_version == next_schema
+    summaries = [
+        record.getMessage() for record in caplog.records
+        if record.getMessage().startswith("Kobo Sync summary:")
+    ]
+    assert "reseeded_shape_change=1" in summaries[-1]
+    assert "suppressed_removed=1" in summaries[-1]
 
 
 def test_suppressed_entitlement_emits_newer_reading_state_once_and_advances_cursor(
@@ -616,6 +1236,128 @@ def test_shelf_only_removal_command_and_ledger_cleanup_are_unchanged(
     assert envelopes[0]["ChangedEntitlement"]["BookEntitlement"]["IsRemoved"] is True
     assert sync_harness.session.query(ub.KoboSyncedBooks).count() == 0
     assert sync_harness.session.query(ub.KoboDeviceBookEntitlement).count() == 0
+
+
+@pytest.mark.parametrize("removed_book_was_sole_marker", [False, True])
+def test_failed_request_retains_shelf_removal_for_retry(
+    sync_harness, monkeypatch, removed_book_was_sole_marker,
+):
+    """A 503 cannot consume an IsRemoved command that was never returned."""
+    from cps import db, kobo, ub
+    from werkzeug.exceptions import ServiceUnavailable
+
+    sync_harness.user.kobo_only_shelves_sync = True
+    monkeypatch.setattr(
+        kobo.config, "config_kobo_suppress_replayed_entitlements", True,
+    )
+    shelf, removed_link = _add_kobo_shelf(
+        sync_harness,
+        date_added=datetime(2026, 8, 28, 12, 5, 0),
+    )
+
+    def add_shelf_book(number, title, modified):
+        book = db.Books(
+            title,
+            title,
+            "Author",
+            modified,
+            db.Books.DEFAULT_PUBDATE,
+            "1.0",
+            modified,
+            f"issue-1953-{number}",
+            0,
+            [],
+            [],
+        )
+        sync_harness.session.add(book)
+        sync_harness.session.flush()
+        book.uuid = f"00000000-0000-0000-1953-{number:012d}"
+        link = ub.BookShelf(
+            book_id=book.id,
+            shelf=shelf.id,
+            order=number,
+            date_added=modified,
+        )
+        link.ub_shelf = shelf
+        sync_harness.session.add_all([
+            db.Data(book.id, "EPUB", 1_000_000 + number, book.path),
+            link,
+        ])
+        sync_harness.session.commit()
+        return book
+
+    if not removed_book_was_sole_marker:
+        add_shelf_book(
+            1,
+            "Retained Shelf Book",
+            datetime(2026, 8, 28, 12, 1, 0),
+        )
+    first = sync_harness.sync()
+    expected_initial = 1 if removed_book_was_sole_marker else 2
+    assert len(_entitlements(first)) == expected_initial
+
+    sync_harness.session.delete(removed_link)
+    later_book = add_shelf_book(
+        2,
+        "Later Live Book",
+        datetime(2026, 8, 28, 12, 20, 0),
+    )
+    sync_harness.session.commit()
+
+    def fail_request_commit(*_args, **_kwargs):
+        sync_harness.session.rollback()
+        return False
+
+    monkeypatch.setattr(ub, "session_commit", fail_request_commit)
+    with pytest.raises(ServiceUnavailable) as raised:
+        sync_harness.sync(first.headers[sync_harness.token_header])
+    assert raised.value.code == 503
+
+    # The removal command was discarded with the 503, so both sources needed
+    # to reconstruct it must still be durable. In the sole-marker case this
+    # also prevents the next request's zero-marker token-reset branch.
+    assert sync_harness.session.query(ub.KoboSyncedBooks).filter_by(
+        user_id=sync_harness.user.id,
+        book_id=sync_harness.book.id,
+    ).count() == 1
+    assert sync_harness.session.query(
+        ub.KoboDeviceBookEntitlement,
+    ).filter_by(book_id=sync_harness.book.id).count() == 1
+    assert sync_harness.session.query(ub.KoboSyncedBooks).filter_by(
+        user_id=sync_harness.user.id,
+        book_id=later_book.id,
+    ).count() == 0
+
+    monkeypatch.setattr(
+        ub,
+        "session_commit",
+        lambda *_args, **_kwargs: sync_harness.session.commit(),
+    )
+    retry = sync_harness.sync(first.headers[sync_harness.token_header])
+    removals = [
+        item["ChangedEntitlement"]["BookEntitlement"]
+        for item in _entitlements(retry)
+        if item.get("ChangedEntitlement", {}).get(
+            "BookEntitlement", {},
+        ).get("IsRemoved") is True
+    ]
+
+    assert [item["Id"] for item in removals] == [
+        str(sync_harness.book.uuid),
+    ]
+    assert any(
+        envelope.get("NewEntitlement", {}).get(
+            "BookEntitlement", {},
+        ).get("Id") == str(later_book.uuid)
+        or envelope.get("ChangedEntitlement", {}).get(
+            "BookEntitlement", {},
+        ).get("Id") == str(later_book.uuid)
+        for envelope in _entitlements(retry)
+    )
+    assert sync_harness.session.query(ub.KoboSyncedBooks).filter_by(
+        user_id=sync_harness.user.id,
+        book_id=sync_harness.book.id,
+    ).count() == 0
 
 
 def test_shelf_only_magic_membership_failure_preserves_book_and_ledger(
@@ -1331,6 +2073,89 @@ def test_device_entitlement_tables_are_created_by_app_db_migration_path():
         assert expected.isdisjoint(sa_inspect(engine).get_table_names())
         ub.add_missing_tables(engine, session)
         assert expected.issubset(sa_inspect(engine).get_table_names())
+    finally:
+        session.close()
+        engine.dispose()
+
+
+def test_existing_entitlement_ledgers_receive_additive_provenance_columns(
+    monkeypatch,
+):
+    """A migrated #1925 app.db accepts both provenance-aware upserts."""
+    from cps import kobo_sync_status, ub
+    from sqlalchemy import inspect as sa_inspect, text
+
+    engine = create_engine("sqlite:///:memory:")
+    with engine.begin() as connection:
+        connection.execute(text(
+            "CREATE TABLE kobo_device_book_entitlement ("
+            "id INTEGER PRIMARY KEY, device_id INTEGER NOT NULL, "
+            "book_id INTEGER NOT NULL, fingerprint VARCHAR(64) NOT NULL, "
+            "updated_at DATETIME NOT NULL, "
+            "UNIQUE (device_id, book_id))"
+        ))
+        connection.execute(text(
+            "CREATE TABLE kobo_device_deleted_entitlement ("
+            "id INTEGER PRIMARY KEY, device_id INTEGER NOT NULL, "
+            "book_uuid VARCHAR(64) NOT NULL, fingerprint VARCHAR(64) NOT NULL, "
+            "updated_at DATETIME NOT NULL, "
+            "UNIQUE (device_id, book_uuid))"
+        ))
+        connection.execute(text(
+            "INSERT INTO kobo_device_book_entitlement "
+            "(device_id, book_id, fingerprint, updated_at) "
+            "VALUES (7, 19, :fingerprint, :updated_at)"
+        ), {"fingerprint": "a" * 64, "updated_at": "2026-08-28 12:00:01"})
+    session = sessionmaker(bind=engine)()
+    try:
+        monkeypatch.setattr(ub, "session", session)
+        ub.migrate_kobo_entitlement_ledger_columns(engine, session)
+        ub.migrate_kobo_entitlement_ledger_columns(engine, session)
+        for table_name in (
+            "kobo_device_book_entitlement",
+            "kobo_device_deleted_entitlement",
+        ):
+            columns = {
+                column["name"]: column
+                for column in sa_inspect(engine).get_columns(table_name)
+            }
+            assert {"payload_schema_version", "change_basis"} <= set(columns)
+            assert str(columns["change_basis"]["type"]) == "TEXT"
+
+        row = session.query(ub.KoboDeviceBookEntitlement).one()
+        assert row.payload_schema_version == 1
+        assert row.change_basis is None
+
+        book_basis = (
+            "v1|book=2026-08-28T12:05:00.000000Z|archive=none"
+        )
+        deleted_basis = "v1|deleted=2026-08-28T12:05:00.000000Z"
+        kobo_sync_status.stage_device_entitlement_fingerprints(
+            7, {19: "b" * 64}, {19: book_basis}, 2,
+        )
+        kobo_sync_status.stage_device_deleted_entitlement_fingerprints(
+            7,
+            {"deleted-1953": "c" * 64},
+            {"deleted-1953": deleted_basis},
+            2,
+        )
+        kobo_sync_status.stage_device_deleted_entitlement_fingerprints(
+            7,
+            {"deleted-1953": "d" * 64},
+            {"deleted-1953": deleted_basis},
+            2,
+        )
+        session.commit()
+        session.expire_all()
+
+        row = session.query(ub.KoboDeviceBookEntitlement).one()
+        assert row.fingerprint == "b" * 64
+        assert row.payload_schema_version == 2
+        assert row.change_basis == book_basis
+        deleted = session.query(ub.KoboDeviceDeletedEntitlement).one()
+        assert deleted.fingerprint == "d" * 64
+        assert deleted.payload_schema_version == 2
+        assert deleted.change_basis == deleted_basis
     finally:
         session.close()
         engine.dispose()

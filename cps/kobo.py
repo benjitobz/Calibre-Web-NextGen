@@ -59,6 +59,12 @@ KOBO_IMAGEHOST_URL = "https://cdn.kobo.com/book-images"
 
 SYNC_ITEM_LIMIT = 100
 
+# Stored alongside the payload hash, never sent to Kobo.  Increment this when
+# the server intentionally changes the entitlement renderer's declared shape;
+# unchanged book/tombstone bases will then be lazily re-fingerprinted instead
+# of being re-delivered to Nickel.
+ENTITLEMENT_PAYLOAD_SCHEMA_VERSION = 1
+
 kobo = Blueprint("kobo", __name__, url_prefix="/kobo/<auth_token>")
 kobo_auth.disable_failed_auth_redirect_for_blueprint(kobo)
 kobo_auth.register_url_value_preprocessor(kobo)
@@ -75,6 +81,75 @@ def _entitlement_fingerprint(entitlement):
         ensure_ascii=False,
     ).encode("utf-8")
     return hashlib.sha256(payload).hexdigest()
+
+
+def _ledger_timestamp_component(value):
+    """Return one fixed-width UTC component for byte-comparable provenance."""
+    if value is None:
+        return "none"
+    if getattr(value, "tzinfo", None) is not None:
+        value = value.astimezone(timezone.utc).replace(tzinfo=None)
+    return value.isoformat(timespec="microseconds") + "Z"
+
+
+def _book_entitlement_change_basis(
+    book_last_modified, archived_last_modified=None,
+):
+    """Canonical per-book proof used by both seed and live delivery paths.
+
+    Membership clocks deliberately do not participate: they select a book but
+    do not describe its entitlement bytes, and a book may have several shelf
+    rows while its ledger has only one row.  Fingerprint equality handles
+    byte-identical membership churn before this basis is consulted.
+    """
+    if book_last_modified is None and archived_last_modified is None:
+        return None
+    return "v1|book={}|archive={}".format(
+        _ledger_timestamp_component(book_last_modified),
+        _ledger_timestamp_component(archived_last_modified),
+    )
+
+
+def _deleted_entitlement_change_basis(deleted_at):
+    """Canonical provenance for a hard-delete entitlement."""
+    if deleted_at is None:
+        return None
+    return "v1|deleted={}".format(_ledger_timestamp_component(deleted_at))
+
+
+def _entitlement_replay_decision(record, fingerprint, change_basis):
+    """Return ``(suppress, shape_reseed, refresh_record)`` for one candidate.
+
+    Exact bytes are always safe to suppress. A differing fingerprint is safe
+    to reseed only across an explicitly declared renderer-schema transition
+    whose non-null canonical book basis is unchanged. Every ambiguous case,
+    including a legacy #1925 row with no basis, fails open by delivering.
+    Out-of-tree metadata writers must advance ``Books.last_modified`` for each
+    payload-affecting edit; direct writes that do not are indistinguishable
+    from the declared renderer change at this server-side boundary.
+    """
+    if record is None:
+        return False, False, False
+
+    stored_basis = record.change_basis
+    if record.fingerprint == fingerprint:
+        refresh_record = bool(
+            record.payload_schema_version
+            != ENTITLEMENT_PAYLOAD_SCHEMA_VERSION
+            or stored_basis != change_basis
+        )
+        return True, False, refresh_record
+
+    declared_shape_transition = (
+        record.payload_schema_version != ENTITLEMENT_PAYLOAD_SCHEMA_VERSION
+        and stored_basis is not None
+        and change_basis is not None
+        and stored_basis == change_basis
+    )
+    if declared_shape_transition:
+        return True, True, True
+
+    return False, False, False
 
 
 def _seed_existing_device_entitlement_ledgers(user_id):
@@ -125,7 +200,7 @@ def _seed_existing_device_entitlement_ledgers(user_id):
             ).all()
         })
         archived = {
-            row.book_id: bool(row.is_archived)
+            row.book_id: row
             for row in ub.session.query(ub.ArchivedBook).filter(
                 ub.ArchivedBook.user_id == int(user_id),
             ).all()
@@ -167,12 +242,24 @@ def _seed_existing_device_entitlement_ledgers(user_id):
             # per household Kobo. CoverImageId is the sole per-device field.
             common_payloads = {}
             for book in seed_books:
+                archived_row = archived.get(book.id)
                 common_payloads[book.id] = (
                     create_book_entitlement(
-                        book, archived=archived.get(book.id, False),
+                        book,
+                        archived=bool(
+                            archived_row and archived_row.is_archived
+                        ),
                     ),
                     get_metadata(book),
                 )
+            book_change_bases = {
+                book.id: _book_entitlement_change_basis(
+                    book.last_modified,
+                    archived[book.id].last_modified
+                    if book.id in archived else None,
+                )
+                for book in seed_books
+            }
             for device_id in device_ids:
                 g.annotation_origin_device_id = device_id
                 # The live request header describes only the speaking device;
@@ -206,6 +293,7 @@ def _seed_existing_device_entitlement_ledgers(user_id):
                 g.pop(_REQUESTING_DEVICE_ASPECT_G_KEY, None)
 
         deleted_fingerprints = {}
+        deleted_change_bases = {}
         for tombstone in ub.session.query(ub.KoboDeletedBook).filter(
             ub.KoboDeletedBook.user_id == int(user_id),
         ).all():
@@ -217,13 +305,21 @@ def _seed_existing_device_entitlement_ledgers(user_id):
             }
             deleted_fingerprints[str(tombstone.book_uuid)] = \
                 _entitlement_fingerprint(payload)
+            deleted_change_bases[str(tombstone.book_uuid)] = \
+                _deleted_entitlement_change_basis(tombstone.deleted_at)
 
         for device_id in device_ids:
             kobo_sync_status.stage_device_entitlement_fingerprints(
-                device_id, book_fingerprints_by_device[device_id],
+                device_id,
+                book_fingerprints_by_device[device_id],
+                book_change_bases,
+                ENTITLEMENT_PAYLOAD_SCHEMA_VERSION,
             )
             kobo_sync_status.stage_device_deleted_entitlement_fingerprints(
-                device_id, deleted_fingerprints,
+                device_id,
+                deleted_fingerprints,
+                deleted_change_bases,
+                ENTITLEMENT_PAYLOAD_SCHEMA_VERSION,
             )
         kobo_sync_status.mark_device_entitlement_ledgers_seeded(device_ids)
         # Legacy tests and a few downstream integrations replace this helper
@@ -610,6 +706,7 @@ def HandleSyncRequest():
 
     new_archived_last_modified = datetime.min
     sync_results = []
+    books_to_delete_ids = set()
 
     calibre_db.reconnect_db(config, ub.app_DB_path)
 
@@ -647,6 +744,7 @@ def HandleSyncRequest():
         == constants.LIBRARY_MODE_PERSONAL
     )
     if current_user.kobo_only_shelves_sync or membership_enabled:
+        removal_result_start = len(sync_results)
         try:
             # Check all books that are on Kobo according to the database
             synced_books_query = ub.session.query(ub.KoboSyncedBooks.book_id).filter(ub.KoboSyncedBooks.user_id == current_user.id)
@@ -703,24 +801,11 @@ def HandleSyncRequest():
                         }
                         sync_results.append({"ChangedEntitlement": entitlement})
 
-                # Remove all books from the tracking table in one go
-                if books_to_delete_ids:
-                    user_device_ids = ub.session.query(ub.Device.id).filter(
-                        ub.Device.user_id == current_user.id,
-                    ).scalar_subquery()
-                    ub.session.query(ub.KoboDeviceBookEntitlement).filter(
-                        ub.KoboDeviceBookEntitlement.device_id.in_(user_device_ids),
-                        ub.KoboDeviceBookEntitlement.book_id.in_(books_to_delete_ids),
-                    ).delete(synchronize_session=False)
-                    ub.session.query(ub.KoboSyncedBooks).filter(
-                        ub.KoboSyncedBooks.user_id == current_user.id,
-                        ub.KoboSyncedBooks.book_id.in_(books_to_delete_ids)
-                    ).delete(synchronize_session=False)
-                    ub.session_commit()
-
         except Exception as e:
             log.error(f"Kobo Sync: Error during deletion logic: {e}")
             ub.session.rollback()
+            books_to_delete_ids = set()
+            del sync_results[removal_result_start:]
 
     only_kobo_shelves = current_user.kobo_only_shelves_sync
 
@@ -951,8 +1036,11 @@ def HandleSyncRequest():
         if replay_suppression_eligible else {}
     )
     entitlement_fingerprint_updates = {}
-    suppressed_unchanged_entitlements = 0
-    suppressed_deleted_entitlements = 0
+    entitlement_change_basis_updates = {}
+    suppressed_unchanged_book_ids = set()
+    suppressed_deleted_entitlement_uuids = set()
+    reseeded_shape_change_book_ids = set()
+    reseeded_shape_change_deleted_uuids = set()
     delivered_book_identities = []
     for book in books_list:
         kobo_reading_state = book.KoboReadingState  # None when no record exists yet
@@ -970,11 +1058,24 @@ def HandleSyncRequest():
             _entitlement_fingerprint(entitlement)
             if replay_suppression_enabled and requesting_device_id else None
         )
-        entitlement_is_unchanged = bool(
-            replay_suppression_eligible
-            and prior_entitlement_fingerprints.get(book.Books.id)
-            == entitlement_fingerprint
+        entitlement_change_basis = _book_entitlement_change_basis(
+            book.Books.last_modified,
+            book.last_modified,
         )
+        if replay_suppression_eligible:
+            (
+                entitlement_is_unchanged,
+                shape_reseed,
+                refresh_fingerprint_record,
+            ) = _entitlement_replay_decision(
+                prior_entitlement_fingerprints.get(book.Books.id),
+                entitlement_fingerprint,
+                entitlement_change_basis,
+            )
+        else:
+            entitlement_is_unchanged = False
+            shape_reseed = False
+            refresh_fingerprint_record = False
 
         if (kobo_reading_state is not None
                 and kobo_reading_state.last_modified > sync_token.reading_state_last_modified):
@@ -1000,7 +1101,14 @@ def HandleSyncRequest():
         ts_created = get_kobo_created_ts(book)
 
         if entitlement_is_unchanged:
-            suppressed_unchanged_entitlements += 1
+            suppressed_unchanged_book_ids.add(book.Books.id)
+            if shape_reseed:
+                reseeded_shape_change_book_ids.add(book.Books.id)
+            if refresh_fingerprint_record:
+                entitlement_fingerprint_updates[book.Books.id] = \
+                    entitlement_fingerprint
+                entitlement_change_basis_updates[book.Books.id] = \
+                    entitlement_change_basis
         else:
             if ts_created > sync_token.books_last_created:
                 sync_results.append({"NewEntitlement": entitlement})
@@ -1008,6 +1116,8 @@ def HandleSyncRequest():
                 sync_results.append({"ChangedEntitlement": entitlement})
             if replay_suppression_enabled and requesting_device_id:
                 entitlement_fingerprint_updates[book.Books.id] = entitlement_fingerprint
+                entitlement_change_basis_updates[book.Books.id] = \
+                    entitlement_change_basis
 
         new_books_last_modified = max(
             books_cursor_datetime(book.Books.last_modified), new_books_last_modified
@@ -1045,12 +1155,19 @@ def HandleSyncRequest():
         new_books_last_created = max(ts_created, new_books_last_created)
         delivered_book_identities.append((book.Books.id, str(book.Books.uuid)))
 
-    # Persist the whole emitted page before response/token construction.  In
-    # particular, the next request must not observe zero synced rows and reset
-    # its token.  The batch helper also avoids one SQLite fsync per book.
+    # Stage the whole emitted page for the checked request-level commit below.
+    # In particular, the next request must not observe zero synced rows and
+    # reset its token. The batch helper also avoids one SQLite fsync per book.
     kobo_sync_status.stage_device_entitlement_fingerprints(
-        requesting_device_id, entitlement_fingerprint_updates)
-    kobo_sync_status.add_synced_books_batch(delivered_book_identities)
+        requesting_device_id,
+        entitlement_fingerprint_updates,
+        entitlement_change_basis_updates,
+        ENTITLEMENT_PAYLOAD_SCHEMA_VERSION,
+    )
+    kobo_sync_status.add_synced_books_batch(
+        delivered_book_identities,
+        commit=False,
+    )
 
     # Magic-shelf sub-cursor: advance to the highest magic-shelf book id
     # emitted this round. magic_shelf_book_ids may be empty when the arm
@@ -1284,6 +1401,7 @@ def HandleSyncRequest():
         if replay_suppression_eligible else {}
     )
     deleted_fingerprint_updates = {}
+    deleted_change_basis_updates = {}
     for tombstone in pending_deletions:
         book_uuid = str(tombstone.book_uuid)
         entitlement = {
@@ -1295,29 +1413,68 @@ def HandleSyncRequest():
             _entitlement_fingerprint(entitlement)
             if replay_suppression_enabled and requesting_device_id else None
         )
-        entitlement_is_unchanged = bool(
-            replay_suppression_eligible
-            and prior_deleted_fingerprints.get(book_uuid) == fingerprint
+        deleted_change_basis = _deleted_entitlement_change_basis(
+            tombstone.deleted_at,
         )
+        if replay_suppression_eligible:
+            (
+                entitlement_is_unchanged,
+                shape_reseed,
+                refresh_fingerprint_record,
+            ) = _entitlement_replay_decision(
+                prior_deleted_fingerprints.get(book_uuid),
+                fingerprint,
+                deleted_change_basis,
+            )
+        else:
+            entitlement_is_unchanged = False
+            shape_reseed = False
+            refresh_fingerprint_record = False
         if entitlement_is_unchanged:
-            suppressed_unchanged_entitlements += 1
-            suppressed_deleted_entitlements += 1
+            suppressed_deleted_entitlement_uuids.add(book_uuid)
+            if shape_reseed:
+                reseeded_shape_change_deleted_uuids.add(book_uuid)
+            if refresh_fingerprint_record:
+                deleted_fingerprint_updates[book_uuid] = fingerprint
+                deleted_change_basis_updates[book_uuid] = deleted_change_basis
         else:
             sync_results.append({"ChangedEntitlement": entitlement})
             if replay_suppression_enabled and requesting_device_id:
                 deleted_fingerprint_updates[book_uuid] = fingerprint
+                deleted_change_basis_updates[book_uuid] = deleted_change_basis
         ta = tombstone.deleted_at
         if hasattr(ta, "replace") and getattr(ta, "tzinfo", None) is not None:
             ta = ta.replace(tzinfo=None)
         new_archived_last_modified = max(ta, new_archived_last_modified)
     kobo_sync_status.stage_device_deleted_entitlement_fingerprints(
-        requesting_device_id, deleted_fingerprint_updates,
+        requesting_device_id,
+        deleted_fingerprint_updates,
+        deleted_change_basis_updates,
+        ENTITLEMENT_PAYLOAD_SCHEMA_VERSION,
     )
-    if (deleted_fingerprint_updates
-            and ub.session_commit() is False):
-        # Do not claim a deletion was delivered when its replay guard rolled
-        # back; returning the payload anyway recreates the every-sync loop on
-        # the next stale archive cursor.
+
+    # Two-way removals are response commands, so their tracking rows must stay
+    # intact until every other app-db effect for this request is ready. If the
+    # one checked commit below rolls back, the next request can reconstruct the
+    # removal envelope from KoboSyncedBooks instead of losing it permanently.
+    if books_to_delete_ids:
+        user_device_ids = ub.session.query(ub.Device.id).filter(
+            ub.Device.user_id == current_user.id,
+        ).scalar_subquery()
+        ub.session.query(ub.KoboDeviceBookEntitlement).filter(
+            ub.KoboDeviceBookEntitlement.device_id.in_(user_device_ids),
+            ub.KoboDeviceBookEntitlement.book_id.in_(books_to_delete_ids),
+        ).delete(synchronize_session=False)
+        ub.session.query(ub.KoboSyncedBooks).filter(
+            ub.KoboSyncedBooks.user_id == current_user.id,
+            ub.KoboSyncedBooks.book_id.in_(books_to_delete_ids),
+        ).delete(synchronize_session=False)
+
+    # Commit the live ledger, synced-book markers, hard-delete ledger, and
+    # two-way-removal cleanup atomically before token construction. In
+    # particular, the next request must not observe zero synced rows and reset
+    # its token after a response that never reached the device (#1925/#1953).
+    if ub.session_commit() is False:
         return abort(503)
 
     # Likewise, never set local continuation for deletion pages.  The returned
@@ -1345,13 +1502,17 @@ def HandleSyncRequest():
     log.debug(
         "Kobo Sync summary: device=%s entitlements new=%d changed=%d "
         "suppressed_unchanged=%d suppressed_removed=%d "
+        "reseeded_shape_change=%d "
         "replay_suppression enabled=%s eligible=%s "
         "cursors in=%s out=%s",
         requesting_device_id,
         new_entitlement_count,
         changed_entitlement_count,
-        suppressed_unchanged_entitlements,
-        suppressed_deleted_entitlements,
+        len(suppressed_unchanged_book_ids)
+        + len(suppressed_deleted_entitlement_uuids),
+        len(suppressed_deleted_entitlement_uuids),
+        len(reseeded_shape_change_book_ids)
+        + len(reseeded_shape_change_deleted_uuids),
         replay_suppression_enabled,
         replay_suppression_eligible,
         sync_cursor_in,

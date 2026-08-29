@@ -2146,6 +2146,12 @@ def merge_duplicate_group(book_to_keep, books_to_merge):
                                         element.format,
                                         element.uncompressed_size,
                                         to_name))
+        if any(
+                element.format.upper() in {'KEPUB', 'EPUB'}
+                for _filepath_old, _filepath_new, element in staged):
+            # Added formats change Kobo DownloadUrls/Size selection, so the
+            # keeper must cross the same cursor boundary as other book edits.
+            helper.mark_book_modified(to_book, set_dirty=False)
         calibre_db.session.commit()
     except Exception:
         calibre_db.session.rollback()
