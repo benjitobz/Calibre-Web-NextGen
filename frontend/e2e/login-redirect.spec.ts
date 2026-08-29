@@ -90,4 +90,56 @@ test.describe('SPA post-auth destination', () => {
     await expect(page.locator('main h1')).toBeVisible();
     await verifierContext.close();
   });
+
+  test('magic-link polling retries a 5xx, then stops visibly on a 429', async ({ page }, testInfo) => {
+    test.skip(testInfo.project.name !== 'desktop', 'poll scheduling is viewport-independent');
+    await page.context().clearCookies();
+    let polls = 0;
+
+    await page.route('**/api/v1/auth/magic-link/start', async (route) => {
+      await route.fulfill({
+        status: 200,
+        contentType: 'application/json',
+        body: JSON.stringify({
+          token: 'poll-error-token',
+          verify_url: 'http://example.test/verify/poll-error-token',
+          qrcode: '',
+          expires_in_minutes: 10,
+        }),
+      });
+    });
+    await page.route('**/api/v1/auth/magic-link/poll', async (route) => {
+      polls += 1;
+      if (polls === 1) {
+        await route.fulfill({
+          status: 503,
+          contentType: 'application/json',
+          body: JSON.stringify({ error: { code: 'unavailable', message: 'Try again' } }),
+        });
+        return;
+      }
+      await route.fulfill({
+        status: 429,
+        contentType: 'application/json',
+        body: JSON.stringify({
+          error: {
+            code: 'rate_limit_exceeded',
+            message: 'Too many requests',
+          },
+        }),
+      });
+    });
+
+    const fatalMessage = 'Too many magic-link checks were made from this network. Generate a new link or try again later.';
+    await page.goto('/app/magic-link');
+    const visibleMessage = page.locator('p', { hasText: fatalMessage });
+    await expect(visibleMessage).toHaveText(fatalMessage, { timeout: 12_000 });
+    await expect(visibleMessage).toBeVisible();
+    await expect(page.locator('[role="alert"][aria-live="assertive"][aria-atomic="true"]'))
+      .toHaveText(fatalMessage);
+    expect(polls).toBe(2);
+
+    await page.waitForTimeout(4_000);
+    expect(polls, 'a fatal 429 must end the poll loop').toBe(2);
+  });
 });
