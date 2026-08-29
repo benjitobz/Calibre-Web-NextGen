@@ -101,7 +101,11 @@ test('edit-page deletion confirms before mutation and a declined confirm does no
   await expect(page).not.toHaveURL(new RegExp(`/book/${book.id}(?:/edit)?\\b`));
 });
 
-test('book-detail deletion is grouped outside the ordinary action chips (#1046)', async ({ page }) => {
+test('book-detail deletion is grouped outside the ordinary action chips (#1046)', async ({ page, isMobile }) => {
+  // Desktop grouping. #1828 deliberately reverses this on mobile, where the
+  // heavy region yielded to an icon-level control inside the row — asserted by
+  // the mobile counterpart directly below.
+  test.skip(isMobile === true, 'desktop grouping — mobile intentionally differs (#1828)');
   await page.goto('/app');
   const book = await firstBook(page);
   test.skip(book == null, 'seed has no books');
@@ -122,4 +126,25 @@ test('book-detail deletion is grouped outside the ordinary action chips (#1046)'
   await expect(deleteButton).toBeVisible();
   await expect(deleteButton).toHaveText('Delete from the global library');
   await expect(ordinaryActions.getByRole('button', { name: 'Delete from the global library' })).toHaveCount(0);
+});
+
+test('mobile groups deletion as an icon-level control inside the action row (#1828)', async ({ page, isMobile }) => {
+  test.skip(isMobile !== true, 'mobile-only grouping');
+  await page.goto('/app');
+  const book = await firstBook(page);
+  test.skip(book == null, 'seed has no books');
+
+  await setDeletePermission(page, true);
+  await page.goto(`/app/book/${book!.id}`, { waitUntil: 'domcontentloaded' });
+
+  // The mobile trade: the destructive control joins the ordinary action row as
+  // an icon (the confirm dialog is the guard), and the separated desktop
+  // region is not displayed. The reporter's ask, verbatim, was that "a red
+  // trash can is more than enough for book delete".
+  const ordinaryActions = page.getByTestId('book-actions');
+  await expect(ordinaryActions).toBeVisible();
+  await expect(
+    ordinaryActions.getByRole('button', { name: 'Delete from the global library' }),
+  ).toHaveCount(1);
+  await expect(page.getByTestId('book-destructive-actions')).not.toBeVisible();
 });

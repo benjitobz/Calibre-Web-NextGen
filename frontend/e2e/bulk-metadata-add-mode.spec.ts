@@ -92,6 +92,93 @@ test('mobile metadata keeps global navigation reachable and stays above the wrap
   ).toBeLessThanOrEqual(bulkBarBox!.y);
 });
 
+/*
+ * #1756 — the reporter's two faults on a narrow viewport: the floating bulk
+ * bar covered the last cover row with nothing able to scroll it clear, and it
+ * painted over the Edit Metadata fields. The fix pads the scroll container by
+ * the bar's own measured height (--bulk-bar-h) while a selection is active,
+ * and the panel/fields always paint above the control.
+ */
+const MANY_BOOKS: Book[] = Array.from({ length: 12 }, (_, i) => ({
+  id: 175600 + i,
+  title: `Reachable row book ${String(i + 1).padStart(2, '0')}`,
+  authors: ['Row Author'],
+  series: null,
+  series_index: null,
+  cover_url: null,
+  formats: ['EPUB'],
+  tags: ['Row tag'],
+  read: false,
+  archived: false,
+}));
+
+test('the last cover row scrolls clear of the floating bulk bar, and metadata fields stay hit-testable (#1756)', async ({ page }) => {
+  await page.setViewportSize({ width: 375, height: 667 });
+  // Re-route with enough rows to overflow the viewport (last registered wins),
+  // otherwise a two-book grid never reaches under the bar and the test proves
+  // nothing.
+  await page.route('**/api/v1/books?**', async (route: Route) => {
+    const url = new URL(route.request().url());
+    if (url.pathname !== '/api/v1/books') return route.continue();
+    const body: BooksPage = {
+      items: MANY_BOOKS,
+      page: 1,
+      per_page: Number(url.searchParams.get('per_page') || 12),
+      total: MANY_BOOKS.length,
+    };
+    await route.fulfill({ status: 200, contentType: 'application/json', body: JSON.stringify(body) });
+  });
+
+  await page.goto('/app');
+  const main = page.getByTestId('catalog-page');
+  const basePadding = await main.evaluate((el) => parseFloat(getComputedStyle(el).paddingBottom));
+
+  await page.getByRole('button', { name: 'Select', exact: true }).click();
+  await page.getByRole('button', { name: `Select ${MANY_BOOKS[0].title}` })
+    .click({ position: { x: 12, y: 12 } });
+  const bulkBar = page.getByRole('region', { name: '1 selected' });
+  await expect(bulkBar).toBeVisible();
+
+  // While the bar floats, the container's bottom clearance exceeds the bar's
+  // own wrapped height — sized from --bulk-bar-h, not a guess.
+  const barBox = await bulkBar.boundingBox();
+  expect(barBox).not.toBeNull();
+  const padded = await main.evaluate((el) => parseFloat(getComputedStyle(el).paddingBottom));
+  expect(padded, 'scroll container has no bottom clearance for the floating bar')
+    .toBeGreaterThan(barBox!.height);
+
+  // At the very bottom of the scroll, the last card owns its own centre hit
+  // point. Pre-fix the fixed bar painted over it and swallowed the tap.
+  const lastCard = page.getByRole('button', { name: `Select ${MANY_BOOKS[MANY_BOOKS.length - 1].title}` });
+  await page.evaluate(() => window.scrollTo(0, document.documentElement.scrollHeight));
+  await expect(lastCard).toBeInViewport();
+  const lastCardOwnsCenter = await lastCard.evaluate((el) => {
+    const box = el.getBoundingClientRect();
+    const hit = document.elementFromPoint(box.left + box.width / 2, box.top + box.height / 2);
+    return hit !== null && (hit === el || el.contains(hit));
+  });
+  expect(lastCardOwnsCenter, 'the floating bulk bar still covers the last cover row').toBe(true);
+
+  // Second fault: with the metadata panel open, its deepest field must own its
+  // hit target — the control must never paint over the form it opened.
+  await page.getByRole('button', { name: 'Edit metadata' }).click();
+  const languagesField = page.getByRole('textbox', { name: 'Languages (comma separated)' });
+  await languagesField.scrollIntoViewIfNeeded();
+  await expect(languagesField).toBeVisible();
+  const fieldOwnsCenter = await languagesField.evaluate((el) => {
+    const box = el.getBoundingClientRect();
+    const hit = document.elementFromPoint(box.left + box.width / 2, box.top + box.height / 2);
+    return hit !== null && (hit === el || el.contains(hit));
+  });
+  expect(fieldOwnsCenter, 'the bulk bar overlays the metadata form fields').toBe(true);
+
+  // Clearing the selection retires the clearance with the bar.
+  await page.getByRole('button', { name: 'Clear selection' }).click();
+  await expect(bulkBar).toHaveCount(0);
+  const paddingAfterClear = await main.evaluate((el) => parseFloat(getComputedStyle(el).paddingBottom));
+  expect(paddingAfterClear, 'bottom clearance outlived the selection').toBeCloseTo(basePadding, 0);
+});
+
 for (const viewport of [
   { label: 'narrow and short', width: 375, height: 300 },
   { label: 'landscape phone', width: 667, height: 375 },

@@ -29,7 +29,10 @@ async function setDeletePermission(page: Page, allowed: boolean) {
   });
 }
 
-test('book-detail deletion remains visible and accessible with delete permission (#1862)', async ({ page }) => {
+test('book-detail deletion remains visible and accessible with delete permission (#1862)', async ({ page, isMobile }) => {
+  // #1828 demotes mobile deletion to an icon-level control in the action row;
+  // the bordered region is desktop-only now. The mobile half is asserted below.
+  test.skip(isMobile === true, 'desktop region — mobile uses the icon-level control (#1828)');
   await page.goto('/app');
   const book = await firstBook(page);
   test.skip(book == null, 'seed has no books');
@@ -65,7 +68,8 @@ test('book-detail deletion remains absent without delete permission (#1862)', as
   await expect(page.getByRole('button', { name: 'Delete from the global library' })).toHaveCount(0);
 });
 
-test('dismissing book-detail deletion confirmation never calls the endpoint (#1862)', async ({ page }) => {
+test('dismissing book-detail deletion confirmation never calls the endpoint (#1862)', async ({ page, isMobile }) => {
+  test.skip(isMobile === true, 'desktop region — the mobile confirm path is covered by the icon-control test below');
   await page.goto('/app');
   const book = await firstBook(page);
   test.skip(book == null, 'seed has no books');
@@ -96,7 +100,8 @@ test('dismissing book-detail deletion confirmation never calls the endpoint (#18
   await expect(page).toHaveURL(new RegExp(`/book/${book.id}\\b`));
 });
 
-test('book-detail deletion is a quiet region in light and dark themes (#1862)', async ({ page }) => {
+test('book-detail deletion is a quiet region in light and dark themes (#1862)', async ({ page, isMobile }) => {
+  test.skip(isMobile === true, 'desktop region — hidden on mobile by #1828, so there is nothing to theme');
   await page.goto('/app');
   const book = await firstBook(page);
   test.skip(book == null, 'seed has no books');
@@ -161,4 +166,60 @@ test('book-detail deletion is a quiet region in light and dark themes (#1862)', 
       boxShadow: 'none',
     });
   }
+});
+
+/*
+ * #1828 — mobile counterpart to the region assertions above. On narrow
+ * viewports whole-book deletion is an icon-level control at the end of the
+ * ordinary action row: a red trash icon, the same accessible name, the same
+ * confirm dialog doing the guarding. The bordered desktop region stays in the
+ * DOM but is not displayed, so nothing red dominates the scroll path to the
+ * description.
+ */
+test('mobile demotes deletion to a hit-testable icon control in the action row (#1828)', async ({ page, isMobile }) => {
+  test.skip(isMobile !== true, 'mobile-only layout');
+  await page.goto('/app');
+  const book = await firstBook(page);
+  test.skip(book == null, 'seed has no books');
+
+  await setDeletePermission(page, true);
+  let deleteCalls = 0;
+  await page.route(`**/api/v1/books/${book!.id}/delete`, async (route) => {
+    deleteCalls += 1;
+    await route.fulfill({ status: 204, contentType: 'application/json', body: '' });
+  });
+  await page.goto(`/app/book/${book!.id}`, { waitUntil: 'domcontentloaded' });
+
+  // The heavy region yields on mobile…
+  await expect(page.getByTestId('book-destructive-actions')).not.toBeVisible();
+
+  // …and the icon control replaces it inside the ordinary action row, keeping
+  // the #1939 disambiguating name and gaining the tooltip the reporter asked
+  // for. Exactly one visible control carries the name — strict mode enforces
+  // that the hidden region button does not double it.
+  const icon = page.getByTestId('book-actions')
+    .getByRole('button', { name: 'Delete from the global library' });
+  await expect(icon).toBeVisible();
+  await expect(icon).toHaveAttribute('title', 'Delete from the global library');
+
+  // The icon owns its own hit target — nothing overlays it.
+  const ownsCenter = await icon.evaluate((el) => {
+    const box = el.getBoundingClientRect();
+    const hit = document.elementFromPoint(box.left + box.width / 2, box.top + box.height / 2);
+    return hit !== null && (hit === el || el.contains(hit));
+  });
+  expect(ownsCenter, 'the delete icon is covered by another element').toBe(true);
+
+  // A declined confirm from the icon never reaches the endpoint.
+  let declinedPrompt = '';
+  page.once('dialog', (dialog) => {
+    declinedPrompt = dialog.message();
+    void dialog.dismiss();
+  });
+  await icon.click();
+  await page.waitForTimeout(500);
+  expect(declinedPrompt).toContain(`"${book!.title}"`);
+  expect(declinedPrompt).toContain('cannot be undone');
+  expect(deleteCalls, 'declining confirmation must not call the delete endpoint').toBe(0);
+  await expect(page).toHaveURL(new RegExp(`/book/${book!.id}\\b`));
 });

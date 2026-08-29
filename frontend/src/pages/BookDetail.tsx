@@ -370,6 +370,22 @@ export function BookDetail() {
   const selectionMode = me?.library_mode === 'personal_library';
   const inLibrary = !selectionMode || book.in_my_library !== false;
 
+  const requestDeleteBook = () => {
+    if (deleteBook.isPending) return;
+    if (!window.confirm(
+      t('Delete "{title}" from the global library? The book and all its files are permanently erased for every member. This cannot be undone.', { title: book.title })
+    )) return;
+    setDeleteError(null);
+    deleteBook.mutate(undefined, {
+      onSuccess: (result) => {
+        if (result?.warning) window.alert(result.warning.message);
+        navigate('/');
+      },
+      onError: (err) =>
+        setDeleteError(err instanceof ApiError ? err.message : t('Could not delete this book.')),
+    });
+  };
+
   const removeMembership = () => {
     removalImpact.mutate(book.id, {
       onSuccess: (impact) => {
@@ -492,6 +508,24 @@ export function BookDetail() {
               </div>
             )}
           </div>
+
+          {/* Description — in the DOM directly under the title/author header,
+              because on a phone that is where it belongs (#1828): the thing the
+              page is about comes before the controls and the attribute list.
+              Desktop keeps its long-standing visual order (actions first,
+              description last) via `order` in the stylesheet, so this reorder
+              changes nothing there. */}
+          {book.description_html && (
+            <div
+              className={styles.description}
+              dir="auto"
+              // description_html is sanitized server-side in serialize_book_detail
+              // (cps/clean_html.clean_string — bleach/nh3 allowlist, same as the
+              // legacy templates), so it is safe to render here.
+              // eslint-disable-next-line react/no-danger
+              dangerouslySetInnerHTML={{ __html: book.description_html }}
+            />
+          )}
 
           {/* Actions */}
           <div className={styles.actions} data-testid="book-actions">
@@ -677,11 +711,34 @@ export function BookDetail() {
               </button>
             )}
 
+            {/* Mobile-only destructive control (#1828): on narrow viewports the
+                whole-book delete is demoted from the bordered region below to an
+                icon-level button at the END of this row — a red trash can, the
+                confirm dialog doing the actual guarding. CSS hides it on desktop,
+                where the separated region remains; the two never render visibly
+                at once, and both share requestDeleteBook. Placed last so the
+                primary actions keep their positions. */}
+            {me?.role?.delete_books && me?.role?.edit && (
+              <button
+                type="button"
+                data-testid="book-delete-icon"
+                className={styles.deleteIconButton}
+                disabled={deleteBook.isPending}
+                aria-label={t('Delete from the global library')}
+                title={t('Delete from the global library')}
+                onClick={requestDeleteBook}
+              >
+                <Trash2 size={16} aria-hidden="true" focusable={false} />
+              </button>
+            )}
+
           </div>
           <p className={reloadMessage ? styles.actionStatus : undefined} role="status">{reloadMessage}</p>
 
           {/* Whole-book deletion is intentionally separated from the wrapping row
-              of ordinary action chips (#1046). This uses the same delete-and-edit policy as the server;
+              of ordinary action chips (#1046) on desktop; on mobile the region is
+              hidden and the icon-level control inside the action row above takes
+              over (#1828). This uses the same delete-and-edit policy as the server;
               this gate and grouping are the discoverability/UX layer. */}
           {me?.role?.delete_books && me?.role?.edit && (
             <section className={styles.dangerZone} data-testid="book-destructive-actions"
@@ -691,28 +748,16 @@ export function BookDetail() {
                 className={styles.actionDanger}
                 disabled={deleteBook.isPending}
                 aria-label={t('Delete from the global library')}
-                onClick={() => {
-                  if (deleteBook.isPending) return;
-                  if (!window.confirm(
-                    t('Delete "{title}" from the global library? The book and all its files are permanently erased for every member. This cannot be undone.', { title: book.title })
-                  )) return;
-                  setDeleteError(null);
-                  deleteBook.mutate(undefined, {
-                    onSuccess: (result) => {
-                      if (result?.warning) window.alert(result.warning.message);
-                      navigate('/');
-                    },
-                    onError: (err) =>
-                      setDeleteError(err instanceof ApiError ? err.message : t('Could not delete this book.')),
-                  });
-                }}
+                onClick={requestDeleteBook}
               >
                 <Trash2 size={14} aria-hidden="true" focusable={false} />
                 {deleteBook.isPending ? t('Deleting…') : t('Delete from the global library')}
               </button>
-              {deleteError && <p className={styles.deleteErr} role="alert">{deleteError}</p>}
             </section>
           )}
+          {/* Rendered outside the region so the error still surfaces on mobile,
+              where the region itself is hidden (#1828). */}
+          {deleteError && <p className={styles.deleteErr} role="alert">{deleteError}</p>}
 
           {/* Send-to-e-reader panel */}
           {sendOpen && (
@@ -875,19 +920,6 @@ export function BookDetail() {
               </Fragment>
             ))}
           </dl>
-
-          {/* Description */}
-          {book.description_html && (
-            <div
-              className={styles.description}
-              dir="auto"
-              // description_html is sanitized server-side in serialize_book_detail
-              // (cps/clean_html.clean_string — bleach/nh3 allowlist, same as the
-              // legacy templates), so it is safe to render here.
-              // eslint-disable-next-line react/no-danger
-              dangerouslySetInnerHTML={{ __html: book.description_html }}
-            />
-          )}
         </div>
       </div>
 

@@ -484,6 +484,14 @@
   margin: 0;
 }
 
+/* Mobile-only icon-level delete (#1828) — display:none on desktop, where the
+   separated dangerZone region above carries whole-book deletion. The media
+   query below turns this on and the region off; both controls share the same
+   handler, aria-label and confirm dialog. */
+.deleteIconButton {
+  display: none;
+}
+
 /* Tags row */
 .tags {
   display: flex;
@@ -525,8 +533,14 @@
   margin: 0;
 }
 
-/* Description prose */
+/* Description prose. Since #1828 this sits directly under the title/author
+   header IN THE DOM — the correct reading order, and the mobile visual order.
+   Desktop keeps its historical arrangement (actions and metadata first,
+   description last) by ordering it after the other info-column items; the
+   mobile media query below resets that to 0 so the grid's auto-placement
+   follows the DOM. */
 .description {
+  order: 10;
   color: var(--text);
   line-height: var(--lh-base);
   max-width: 70ch;
@@ -551,6 +565,50 @@
   .title {
     font-size: var(--fs-xl);
   }
+
+  /* #1828 reading order: the description's desktop `order: 10` must not carry
+     into the grid, where every item keeps order 0 and auto-placement follows
+     the DOM — header beside the cover, then description, then everything else. */
+  .description { order: 0; }
+
+  /* #1828: whole-book deletion trades its bordered region for an icon-level
+     button at the end of the action row. The confirm dialog is the guard; the
+     region's box was the loudest element between the reader and the book. */
+  .dangerZone { display: none; }
+  .deleteIconButton {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    min-width: 34px;
+    height: 34px;
+    border-radius: var(--r-md);
+    border: 1px solid var(--danger);
+    background: transparent;
+    color: var(--danger);
+    cursor: pointer;
+    transition: background var(--dur-fast) var(--ease);
+  }
+  .deleteIconButton:hover:not(:disabled) { background: var(--danger-soft); }
+  .deleteIconButton:disabled { opacity: 0.6; cursor: default; }
+
+  /* #1828 chip compression: the action row was a wall of 38px chips with wide
+     gaps, pushing the description off the first two screens. 34px keeps the
+     SC 2.5.8 24px floor with margin; labels shrink one step. */
+  .actions { gap: var(--sp-2); }
+  .actionPrimary,
+  .readToggleActive,
+  .readToggleGhost {
+    height: 34px;
+    padding: var(--sp-2) var(--sp-3);
+    font-size: var(--fs-sm);
+  }
+  .downloadBtn {
+    height: 34px;
+    padding: var(--sp-2) var(--sp-3);
+    font-size: var(--fs-xs);
+  }
+  .twoWayChip { min-height: 34px; padding: var(--sp-1) var(--sp-3); }
+  .tags { gap: var(--sp-1); }
 
   .coverCol {
     position: static;

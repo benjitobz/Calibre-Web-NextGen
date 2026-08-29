@@ -672,7 +672,7 @@ export function Catalog({ entityKind, entityId, view, defaultFilter }: CatalogPr
   };
 
   return (
-    <main className={styles.container} data-testid="catalog-page">
+    <main className={`${styles.container} ${selecting && selected.size > 0 ? styles.containerBulkActive : ''}`} data-testid="catalog-page">
       {filtered && (
         <Link href={`/${ENTITY_PLURAL[entityKind!]}`} className={styles.back}>
           <ChevronLeft size={16} />

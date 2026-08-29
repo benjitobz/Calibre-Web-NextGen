@@ -19,8 +19,36 @@ export function BulkSelectionBar({ count, onClear, children, sticky = false }: {
   count: number; onClear: () => void; children: React.ReactNode; sticky?: boolean;
 }) {
   const t = useT();
+  const barRef = useRef<HTMLDivElement>(null);
+
+  /* #1756 — the floating variant is a fixed overlay, so the page's last row
+     can never scroll out from under it unless the document gains bottom room.
+     The bar publishes its own rendered height as --bulk-bar-h on <html>; the
+     catalog's scroll padding keys off that variable, so the clearance tracks
+     the bar's ACTUAL wrapped height (two rows of icon buttons on a narrow
+     phone, one on desktop) instead of a guessed constant. Only the floating
+     variant measures — the sticky one is in flow and overlays nothing. The
+     metadata panel is deliberately NOT measured: it is a transient overlay
+     with its own scroll, and padding the page out behind it would be absurd. */
+  useEffect(() => {
+    if (sticky) return;
+    const el = barRef.current;
+    if (!el) return;
+    const root = document.documentElement;
+    const publish = () => {
+      root.style.setProperty('--bulk-bar-h', `${Math.ceil(el.getBoundingClientRect().height)}px`);
+    };
+    publish();
+    const observer = new ResizeObserver(publish);
+    observer.observe(el);
+    return () => {
+      observer.disconnect();
+      root.style.removeProperty('--bulk-bar-h');
+    };
+  }, [sticky]);
+
   return (
-    <div className={`${styles.bar} ${sticky ? styles.sticky : ''}`} role="region"
+    <div ref={barRef} className={`${styles.bar} ${sticky ? styles.sticky : ''}`} role="region"
       aria-label={t('{n} selected', { n: count })}>
       <span className={styles.count}>{t('{n} selected', { n: count })}</span>
       <div className={styles.actions}>{children}</div>

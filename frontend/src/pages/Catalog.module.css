@@ -15,6 +15,17 @@
   padding: var(--sp-6) var(--sp-5);
 }
 
+/* #1756 — while a multi-selection is active the bulk bar floats fixed over the
+   bottom of the viewport. Without extra bottom room the last cover row can
+   never scroll out from under it (and neither can the sentinel behind it).
+   --bulk-bar-h is published by the floating bar itself via ResizeObserver, so
+   the clearance is the bar's real wrapped height plus its bottom offset
+   (var(--sp-5)) plus a small gap — never a guessed constant. The 56px fallback
+   covers a single-row bar if the variable is somehow absent. */
+.containerBulkActive {
+  padding-bottom: calc(var(--bulk-bar-h, 56px) + var(--sp-5) + var(--sp-2));
+}
+
 .back {
   display: inline-flex;
   align-items: center;

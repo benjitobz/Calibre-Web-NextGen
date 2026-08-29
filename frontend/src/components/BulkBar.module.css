@@ -143,6 +143,12 @@
 }
 
 .metaPanel {
+  /* #1756 — the panel and the bar share one bottom-anchored flow container, so
+     structurally they cannot overlap; the z-index is the guard for any future
+     regression of that invariant: if the two ever DO overlap again, the form
+     fields must paint above the control, never under it. */
+  position: relative;
+  z-index: 1;
   background: var(--surface-1); border: 1px solid var(--border); border-radius: var(--r-lg);
   padding: var(--sp-4); box-shadow: var(--shadow-lg, 0 12px 40px rgba(0,0,0,.4));
   width: min(680px, 92vw); max-width: 100%; min-height: 0; overflow-y: auto;
