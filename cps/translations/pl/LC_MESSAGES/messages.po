@@ -2607,6 +2607,10 @@ msgstr ""
 msgid "Metadata applied to {succeeded}; {failed} failed."
 msgstr ""
 
+#: cps/spa_strings.py
+msgid "A book must keep at least one format."
+msgstr ""
+
 #: cps/spa_strings.py cps/templates/detail.html
 msgid "Read now"
 msgstr "Czytaj teraz"
@@ -10768,8 +10772,8 @@ msgid ""
 "Add these two services to your docker-compose file and run \"docker compose "
 "up -d\". After that you stay up to date automatically — no button to press."
 msgstr ""
-"Dodaj te dwie usługi do pliku docker-compose i uruchom \"docker compose up "
-"-d\". Od tej pory aktualizacje odbywają się automatycznie — bez klikania "
+"Dodaj te dwie usługi do pliku docker-compose i uruchom \"docker compose up -"
+"d\". Od tej pory aktualizacje odbywają się automatycznie — bez klikania "
 "żadnego przycisku."
 
 #: cps/templates/cwa_settings.html cps/templates/update_now_modal.html

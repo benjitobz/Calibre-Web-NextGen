@@ -2569,6 +2569,10 @@ msgstr ""
 msgid "Metadata applied to {succeeded}; {failed} failed."
 msgstr ""
 
+#: cps/spa_strings.py
+msgid "A book must keep at least one format."
+msgstr ""
+
 #: cps/spa_strings.py cps/templates/detail.html
 msgid "Read now"
 msgstr ""
@@ -13711,9 +13715,9 @@ msgstr "Olvasott/olvasatlan mutatása"
 #~ "        <a href=\"https://github.com/crocodilestick/Calibre-Web-Automated/"
 #~ "wiki/Configuration#database-configuration\">see here</a>!"
 #~ msgstr ""
-#~ "A CWA úgy van konfigurálva, hogy a Calibre adatbázisa (a "
-#~ "<code>metadata.db</code> fájl) mindig a <code>/calibre-library</code> "
-#~ "könyvtáron belül helyezkedjen el. \n"
+#~ "A CWA úgy van konfigurálva, hogy a Calibre adatbázisa (a <code>metadata."
+#~ "db</code> fájl) mindig a <code>/calibre-library</code> könyvtáron belül "
+#~ "helyezkedjen el. \n"
 #~ "Induláskor a CWA automatikusan átvizsgálja azt a könyvtárat, amelyet a "
 #~ "docker-compose fájlban a <code>/calibre-library</code> útvonalhoz "
 #~ "rendelt, és meglévő Calibre \n"

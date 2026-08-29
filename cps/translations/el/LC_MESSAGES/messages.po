@@ -2422,8 +2422,8 @@ msgstr "Δημιούργησε ένα Ράφι"
 #, fuzzy
 msgid "Sorry you are not allowed to edit this shelf"
 msgstr ""
-"Συγγνώμη αλλά δεν σου επιτρέπεται η αφαίρεση ενός βιβλίου από αυτό το ράφι: %"
-"(sname)s"
+"Συγγνώμη αλλά δεν σου επιτρέπεται η αφαίρεση ενός βιβλίου από αυτό το ράφι: "
+"%(sname)s"
 
 #: cps/shelf.py
 msgid "Edit a shelf"
@@ -2553,6 +2553,10 @@ msgstr ""
 #: cps/spa_strings.py
 #, python-brace-format
 msgid "Metadata applied to {succeeded}; {failed} failed."
+msgstr ""
+
+#: cps/spa_strings.py
+msgid "A book must keep at least one format."
 msgstr ""
 
 #: cps/spa_strings.py cps/templates/detail.html
