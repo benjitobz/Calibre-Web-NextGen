@@ -3031,15 +3031,15 @@ msgid ""
 "Set up My Library for every non-anonymous user? Each account switches to its "
 "own selection after it is filled with everything that account can currently "
 "see. Anonymous accounts such as Guest are left unchanged; use their per-user "
-"controls to set up a curated public library. Accounts set up before are never "
-"reseeded."
+"controls to set up a curated public library. Accounts set up before are "
+"never reseeded."
 msgstr ""
 "Configurer Ma bibliothèque pour chaque utilisateur non anonyme ? Chaque "
-"compte passe à sa propre sélection après que celle-ci a été remplie avec tout "
-"ce que le compte peut voir actuellement. Les comptes anonymes tels que Guest "
-"restent inchangés ; utilisez leurs paramètres individuels pour configurer une "
-"bibliothèque publique personnalisée. Les comptes déjà configurés ne sont "
-"jamais réinitialisés."
+"compte passe à sa propre sélection après que celle-ci a été remplie avec "
+"tout ce que le compte peut voir actuellement. Les comptes anonymes tels que "
+"Guest restent inchangés ; utilisez leurs paramètres individuels pour "
+"configurer une bibliothèque publique personnalisée. Les comptes déjà "
+"configurés ne sont jamais réinitialisés."
 
 #: cps/spa_strings.py
 #, python-brace-format
@@ -3049,8 +3049,8 @@ msgstr "{accounts} comptes configurés avec {books} livres. {errors} erreurs."
 #: cps/spa_strings.py
 #, python-brace-format
 msgid ""
-"Left anonymous accounts unchanged: {accounts}. Use their per-user controls to "
-"set up a curated public library."
+"Left anonymous accounts unchanged: {accounts}. Use their per-user controls "
+"to set up a curated public library."
 msgstr ""
 "Comptes anonymes laissés inchangés : {accounts}. Utilisez leurs paramètres "
 "individuels pour configurer une bibliothèque publique personnalisée."
@@ -3132,14 +3132,14 @@ msgstr "Il disparaît de votre bibliothèque et de votre flux OPDS."
 
 #: cps/spa_strings.py cps/templates/detail.html
 msgid ""
-"If you use Kobo's built-in sync, it also leaves your Kobo at its next "
-"sync. Other e-readers keep downloaded copies, and KOReader progress sync "
-"keeps working."
+"If you use Kobo's built-in sync, it also leaves your Kobo at its next sync. "
+"Other e-readers keep downloaded copies, and KOReader progress sync keeps "
+"working."
 msgstr ""
 "Si vous utilisez la synchronisation intégrée de Kobo, il disparaît également "
 "de votre Kobo lors de la prochaine synchronisation. Les autres liseuses "
-"conservent les exemplaires téléchargés et la synchronisation de la progression "
-"KOReader continue de fonctionner."
+"conservent les exemplaires téléchargés et la synchronisation de la "
+"progression KOReader continue de fonctionner."
 
 #: cps/spa_strings.py cps/templates/index.html
 msgid "The whole archive. Add books to your library from here."
@@ -8191,8 +8191,10 @@ msgstr "EPUB Fixer"
 
 #: cps/tasks/thumbnail.py
 #, python-format
-msgid "Generated %(count)s cover thumbnails"
-msgstr "%(count)s vignettes de couverture générées"
+msgid ""
+"%(processed)d/%(total)d processed: %(generated)d generated, %(skipped)d "
+"skipped, %(failed)d failed"
+msgstr ""
 
 #: cps/tasks/thumbnail.py
 msgid "Cover Thumbnails"
@@ -14056,6 +14058,10 @@ msgstr "Synchroniser les étagères sélectionnées avec Kobo"
 #: cps/templates/user_table.html
 msgid "Show Read/Unread Section"
 msgstr "Afficher la section Lu / Non lu"
+
+#, python-format
+#~ msgid "Generated %(count)s cover thumbnails"
+#~ msgstr "%(count)s vignettes de couverture générées"
 
 #, fuzzy
 #~ msgid "New interface available"

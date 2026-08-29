@@ -7869,8 +7869,10 @@ msgstr ""
 
 #: cps/tasks/thumbnail.py
 #, python-format
-msgid "Generated %(count)s cover thumbnails"
-msgstr "Genererte %(count)s forsideminiatyrbilder"
+msgid ""
+"%(processed)d/%(total)d processed: %(generated)d generated, %(skipped)d "
+"skipped, %(failed)d failed"
+msgstr ""
 
 #: cps/tasks/thumbnail.py
 msgid "Cover Thumbnails"
@@ -13589,6 +13591,10 @@ msgstr ""
 #, fuzzy
 msgid "Show Read/Unread Section"
 msgstr "Vis serieutvalg"
+
+#, python-format
+#~ msgid "Generated %(count)s cover thumbnails"
+#~ msgstr "Genererte %(count)s forsideminiatyrbilder"
 
 #, fuzzy
 #~ msgid "New interface available"

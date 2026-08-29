@@ -8031,8 +8031,10 @@ msgstr "EPUB Fixer"
 
 #: cps/tasks/thumbnail.py
 #, python-format
-msgid "Generated %(count)s cover thumbnails"
-msgstr "Сгенерировано миниатюр обложек: %(count)s"
+msgid ""
+"%(processed)d/%(total)d processed: %(generated)d generated, %(skipped)d "
+"skipped, %(failed)d failed"
+msgstr ""
 
 #: cps/tasks/thumbnail.py
 msgid "Cover Thumbnails"
@@ -14057,6 +14059,10 @@ msgstr "Показывать выбранные полки в OPDS"
 #: cps/templates/user_table.html
 msgid "Show Read/Unread Section"
 msgstr "Показать раздел прочитанного/непрочитанного"
+
+#, python-format
+#~ msgid "Generated %(count)s cover thumbnails"
+#~ msgstr "Сгенерировано миниатюр обложек: %(count)s"
 
 #~ msgid "Switch to New UI"
 #~ msgstr "Перейти на новый интерфейс"

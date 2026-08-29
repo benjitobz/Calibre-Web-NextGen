@@ -7804,7 +7804,9 @@ msgstr ""
 
 #: cps/tasks/thumbnail.py
 #, python-format
-msgid "Generated %(count)s cover thumbnails"
+msgid ""
+"%(processed)d/%(total)d processed: %(generated)d generated, %(skipped)d "
+"skipped, %(failed)d failed"
 msgstr ""
 
 #: cps/tasks/thumbnail.py

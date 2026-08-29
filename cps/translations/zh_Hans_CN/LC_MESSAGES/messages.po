@@ -7801,8 +7801,10 @@ msgstr "EPUB 修复程序"
 
 #: cps/tasks/thumbnail.py
 #, python-format
-msgid "Generated %(count)s cover thumbnails"
-msgstr "生成了 %(count)s 个封面缩略图"
+msgid ""
+"%(processed)d/%(total)d processed: %(generated)d generated, %(skipped)d "
+"skipped, %(failed)d failed"
+msgstr ""
 
 #: cps/tasks/thumbnail.py
 msgid "Cover Thumbnails"
@@ -13574,6 +13576,10 @@ msgstr "同步所选书架到 Kobo"
 #: cps/templates/user_table.html
 msgid "Show Read/Unread Section"
 msgstr "显示已读、未读栏目"
+
+#, python-format
+#~ msgid "Generated %(count)s cover thumbnails"
+#~ msgstr "生成了 %(count)s 个封面缩略图"
 
 #, fuzzy
 #~ msgid "New interface available"

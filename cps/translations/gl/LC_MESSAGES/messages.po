@@ -7882,8 +7882,10 @@ msgstr ""
 
 #: cps/tasks/thumbnail.py
 #, python-format
-msgid "Generated %(count)s cover thumbnails"
-msgstr "Xeradas %(count)s miniaturas de cubertas"
+msgid ""
+"%(processed)d/%(total)d processed: %(generated)d generated, %(skipped)d "
+"skipped, %(failed)d failed"
+msgstr ""
 
 #: cps/tasks/thumbnail.py
 msgid "Cover Thumbnails"
@@ -13576,6 +13578,10 @@ msgstr "sincronizar andeis seleccionados con Kobo"
 #, fuzzy
 msgid "Show Read/Unread Section"
 msgstr "Mostrar selección lidos/non lidos"
+
+#, python-format
+#~ msgid "Generated %(count)s cover thumbnails"
+#~ msgstr "Xeradas %(count)s miniaturas de cubertas"
 
 #, fuzzy
 #~ msgid "New interface available"

@@ -7862,8 +7862,10 @@ msgstr ""
 
 #: cps/tasks/thumbnail.py
 #, python-format
-msgid "Generated %(count)s cover thumbnails"
-msgstr "%(count)s thumbnail sampul dibuat"
+msgid ""
+"%(processed)d/%(total)d processed: %(generated)d generated, %(skipped)d "
+"skipped, %(failed)d failed"
+msgstr ""
 
 #: cps/tasks/thumbnail.py
 msgid "Cover Thumbnails"
@@ -13541,6 +13543,10 @@ msgstr "Sinkronkan Rak yang dipilih dengan Kob"
 #, fuzzy
 msgid "Show Read/Unread Section"
 msgstr "Tampilkan pilihan baca/belum dibaca"
+
+#, python-format
+#~ msgid "Generated %(count)s cover thumbnails"
+#~ msgstr "%(count)s thumbnail sampul dibuat"
 
 #, fuzzy
 #~ msgid "New interface available"

@@ -7945,8 +7945,10 @@ msgstr "EPUB-Fixer"
 
 #: cps/tasks/thumbnail.py
 #, python-format
-msgid "Generated %(count)s cover thumbnails"
-msgstr "%(count)s Cover Miniaturansichten erzeugt"
+msgid ""
+"%(processed)d/%(total)d processed: %(generated)d generated, %(skipped)d "
+"skipped, %(failed)d failed"
+msgstr ""
 
 #: cps/tasks/thumbnail.py
 msgid "Cover Thumbnails"
@@ -13698,6 +13700,10 @@ msgstr "Ausgewählte Regale für OPDS freigeben"
 #: cps/templates/user_table.html
 msgid "Show Read/Unread Section"
 msgstr "Zeige Gelesen/Ungelesen-Abschnitt"
+
+#, python-format
+#~ msgid "Generated %(count)s cover thumbnails"
+#~ msgstr "%(count)s Cover Miniaturansichten erzeugt"
 
 #~ msgid "New interface available"
 #~ msgstr "Neue Benutzeroberfläche verfügbar"

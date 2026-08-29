@@ -7791,8 +7791,10 @@ msgstr ""
 
 #: cps/tasks/thumbnail.py
 #, python-format
-msgid "Generated %(count)s cover thumbnails"
-msgstr "%(count)s개의 표지 섬네일을 생성했습니다."
+msgid ""
+"%(processed)d/%(total)d processed: %(generated)d generated, %(skipped)d "
+"skipped, %(failed)d failed"
+msgstr ""
 
 #: cps/tasks/thumbnail.py
 msgid "Cover Thumbnails"
@@ -13429,6 +13431,10 @@ msgstr "선택한 서재 Kobo 동기화"
 #: cps/templates/user_table.html
 msgid "Show Read/Unread Section"
 msgstr "읽음/읽지 않음 표시"
+
+#, python-format
+#~ msgid "Generated %(count)s cover thumbnails"
+#~ msgstr "%(count)s개의 표지 섬네일을 생성했습니다."
 
 #, fuzzy
 #~ msgid "New interface available"
