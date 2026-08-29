@@ -1506,7 +1506,10 @@ def edit_annotation(annotation_id, *, user_id, book_id, session, commit,
         row.note_text = note
     if editor_device_id is not None:
         row.last_editor_device_id = editor_device_id
-    row.last_synced = datetime.now(timezone.utc)
+    now = datetime.now(timezone.utc)
+    row.content_revision = (row.content_revision or 1) + 1
+    row.server_modified_at = now
+    row.last_synced = now
     if commit is not None:
         _commit_required(commit)
     return row
@@ -1623,10 +1626,15 @@ def delete_annotation(annotation_id, *, user_id, book_id, session, commit,
     row = _find_owned_annotation(annotation_id, user_id, book_id, session)
     if row is None:
         return None
+    was_hidden = bool(row.hidden)
     row.hidden = True
     if editor_device_id is not None:
         row.last_editor_device_id = editor_device_id
-    row.last_synced = datetime.now(timezone.utc)
+    now = datetime.now(timezone.utc)
+    if not was_hidden:
+        row.content_revision = (row.content_revision or 1) + 1
+        row.server_modified_at = now
+    row.last_synced = now
     _commit_required(commit)
     return row
 

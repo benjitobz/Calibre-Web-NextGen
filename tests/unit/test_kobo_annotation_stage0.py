@@ -37,9 +37,43 @@ OLD_ANNOTATION_COLUMNS = (
 def _stage0_route_tests_assume_completed_seed(monkeypatch):
     """Stage-0 route tests predate and are orthogonal to the authority gate."""
     import cps.readingservices as readingservices
+    from cps.services import kobo_annotation_authority
+    monkeypatch.setattr(
+        readingservices, "current_user",
+        SimpleNamespace(id=7, name="stage0-reader", is_authenticated=True),
+    )
     monkeypatch.setattr(
         readingservices, "_owned_patch_is_local_authority",
         lambda *_args, **_kwargs: True,
+    )
+    monkeypatch.setattr(
+        kobo_annotation_authority, "advance_authoritative_patch_revision",
+        lambda *_args, **_kwargs: True,
+    )
+
+    def _dispatch_without_app_db(
+        annotation_sync, *, updated, deleted, deterministic_update_rejection,
+        book, entitlement_id, dispatch_kwargs,
+    ):
+        # Stage-0 route tests mock persistence and intentionally have no app DB.
+        # The request transaction itself is covered in test_1942_seed_pipeline.
+        if deterministic_update_rejection:
+            readingservices._dispatch_kobo_annotation_deletes(
+                annotation_sync, deleted, entitlement_id, book,
+            )
+        if updated and annotation_sync.dispatch_annotation_sync(
+            updated, book, readingservices.current_user, **dispatch_kwargs,
+        ) is False:
+            return False
+        if not deterministic_update_rejection:
+            if readingservices._dispatch_kobo_annotation_deletes(
+                annotation_sync, deleted, entitlement_id, book,
+            ) is False:
+                return False
+        return True
+
+    monkeypatch.setattr(
+        readingservices, "_persist_owned_patch_atomically", _dispatch_without_app_db,
     )
 
 
@@ -468,6 +502,13 @@ def test_stage0_orm_parent_deletes_remove_all_owned_children():
             seed_capture_id=capture.id, page_number=0,
             response_body_gzip=b"page", response_sha256="1" * 64,
         ),
+        ub.KoboAnnotationSeedRowBaseline(
+            seed_capture_id=capture.id,
+            annotation_key="ann",
+            annotation_row_id=annotation.id,
+            content_revision=1,
+            content_sha256="2" * 64,
+        ),
         ub.KoboAnnotationPageCursor(
             token="cursor", snapshot_id=snapshot.snapshot_id, page_offset=0,
         ),
@@ -483,6 +524,7 @@ def test_stage0_orm_parent_deletes_remove_all_owned_children():
         ub.KoboDeviceBookAnnotationState,
         ub.KoboAnnotationSeedCapture,
         ub.KoboAnnotationSeedCapturePage,
+        ub.KoboAnnotationSeedRowBaseline,
         ub.KoboAnnotationPageSnapshot,
         ub.KoboAnnotationPageCursor,
     ):

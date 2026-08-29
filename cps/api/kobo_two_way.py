@@ -242,3 +242,52 @@ def update_kobo_two_way_book():
 
     titles = _book_titles([row.book_id])
     return jsonify({"book": _serialize_book(row, titles)})
+
+
+@api_v1.route(
+    "/account/kobo-two-way-annotations/books/retry", methods=["POST"],
+)
+def retry_quarantined_kobo_two_way_book():
+    """Authenticated, user-scoped recovery for seed/proof failures.
+
+    Initial-seed quarantine returns to ``unseeded``. Historical rows that had
+    already become authoritative remain local because Kobo's cloud has since
+    been starved. Surfaced live-proof rebuilds and local-wins reconciliation
+    conflicts can be acknowledged/cleared without hand-SQL.
+    """
+    guard = _require_real_user()
+    if guard:
+        return guard
+    data = request.get_json(silent=True) or {}
+    book_id = data.get("book_id")
+    if not isinstance(book_id, int) or isinstance(book_id, bool) or book_id < 1:
+        return _err("invalid_request", "book_id must be a positive integer", 400)
+
+    row = (
+        ub.session.query(ub.KoboAnnotationBookState)
+        .filter(
+            ub.KoboAnnotationBookState.user_id == current_user.id,
+            ub.KoboAnnotationBookState.book_id == book_id,
+        )
+        .first()
+    )
+    if row is None:
+        return _err("not_found", "This book has no Kobo two-way state yet", 404)
+    try:
+        from ..services.kobo_annotation_seeding import recover_quarantined_book
+        outcome, row = recover_quarantined_book(
+            user_id=current_user.id, book_id=book_id,
+        )
+    except Exception:
+        ub.session.rollback()
+        log.exception("Could not retry quarantined Kobo two-way book")
+        return _err("db_error", "Could not retry book seeding", 500)
+    if outcome == "not_found":
+        return _err("not_found", "This book has no Kobo two-way state yet", 404)
+    if outcome == "conflict":
+        return _err("conflict", "This book has no recoverable seed issue", 409)
+    if outcome != "ok":
+        return _err("db_error", "Could not retry book seeding", 500)
+
+    titles = _book_titles([row.book_id])
+    return jsonify({"book": _serialize_book(row, titles)})

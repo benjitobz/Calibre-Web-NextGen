@@ -19,11 +19,11 @@ from __future__ import annotations
 
 import logging
 from datetime import datetime, timezone
-from typing import Dict, List, Optional
+from typing import Dict, List
 
 from sqlalchemy.exc import IntegrityError
 
-from ..annotation_colors import to_display_name, to_storage_color
+from ..annotation_colors import to_storage_color
 from ..annotation_types import to_storage_type
 from .base import AnnotationSyncTargetHandler, SyncResult
 
@@ -163,6 +163,7 @@ def _kobo_payload_matches_row(annotation, payload, span, normalized_content_id):
     current = (
         annotation.highlighted_text, annotation.note_text,
         to_storage_color(annotation.highlight_color),
+        to_storage_type(getattr(annotation, "annotation_type", None)),
         annotation.chapter_progress, annotation.content_id,
         annotation.start_container_path, annotation.end_container_path,
         annotation.start_offset, annotation.end_offset,
@@ -176,6 +177,9 @@ def _kobo_payload_matches_row(annotation, payload, span, normalized_content_id):
         # changes nothing must not be counted as a change just because the
         # stored spelling is older than the wire one.
         to_storage_color(supplied(payload, "highlightColor", annotation.highlight_color)),
+        to_storage_type(supplied(
+            payload, "type", getattr(annotation, "annotation_type", None),
+        )),
         chapter_progress if chapter_progress is not None else annotation.chapter_progress,
         normalized_content_id or annotation.content_id,
         supplied(span, "startPath", annotation.start_container_path),
@@ -187,7 +191,39 @@ def _kobo_payload_matches_row(annotation, payload, span, normalized_content_id):
     return incoming == current
 
 
-def _upsert_annotation(session, payload, book, user, *, origin_device_id=None):
+def kobo_payload_matches_annotation(annotation, payload, book):
+    """Compare a captured Kobo object with the generic row it would produce.
+
+    This is the reconciliation proof used before a raw cloud sidecar is made
+    replayable. Invalid or incomplete locator data deliberately compares as
+    the same conservative no-op that ``_upsert_annotation`` would apply.
+    """
+    if not isinstance(payload, dict):
+        return False
+    location = payload.get("location")
+    span = location.get("span") if isinstance(location, dict) else {}
+    if not isinstance(span, dict):
+        span = {}
+    normalized_content_id = None
+    chapter_filename = span.get("chapterFilename")
+    if chapter_filename and _book_uuid(book):
+        from cps.services.annotation_content_id import normalize_content_id, ContentIdError
+        try:
+            normalized_content_id = normalize_content_id(
+                f"{_book_uuid(book)}!!{chapter_filename}",
+                book_uuid=_book_uuid(book),
+            )
+        except ContentIdError:
+            normalized_content_id = None
+    return _kobo_payload_matches_row(
+        annotation, payload, span, normalized_content_id,
+    )
+
+
+def _upsert_annotation(
+    session, payload, book, user, *, origin_device_id=None,
+    mark_last_editor=True,
+):
     """Find-or-create Annotation row keyed on (user_id, book_id, annotation_id).
 
     Populates content fields AND position fields from the Kobo PATCH payload
@@ -302,10 +338,16 @@ def _upsert_annotation(session, payload, book, user, *, origin_device_id=None):
             annotation_type=to_storage_type(payload.get("type")),
         )
         session.add(ann)
-    elif getattr(ann, "content_revision", None) is None:
-        ann.content_revision = 1
     else:
-        ann.content_revision += 1
+        if ann.origin_device_id is None and origin_device_id is not None:
+            # A complete upstream seed is the first durable evidence available
+            # for most legacy rows. Attribute only rows whose original device
+            # is still unknown; never overwrite another writer's origin.
+            ann.origin_device_id = origin_device_id
+        if getattr(ann, "content_revision", None) is None:
+            ann.content_revision = 1
+        else:
+            ann.content_revision += 1
     # If a previously soft-deleted (hidden) annotation comes back, un-hide it.
     ann.hidden = False
     # Content fields
@@ -345,13 +387,17 @@ def _upsert_annotation(session, payload, book, user, *, origin_device_id=None):
     if client_time is not _CLIENT_TIME_MISSING:
         ann.client_modified_at = client_time
     ann.server_modified_at = _now()
-    ann.last_editor_device_id = origin_device_id
+    if mark_last_editor:
+        ann.last_editor_device_id = origin_device_id
     ann.last_synced = _now()
     session.flush()
     return ann
 
 
-def _store_raw_materialization(session, annotation, raw_record, *, trace_id=None):
+def _store_raw_materialization(
+    session, annotation, raw_record, *, trace_id=None,
+    provenance="kobo_patch", serveable=False, match_content_revision=False,
+):
     """Best-effort sidecar upsert isolated behind a SQLite savepoint."""
     from cps import ub
     from cps.services import kobo_annotation_stage0
@@ -369,24 +415,32 @@ def _store_raw_materialization(session, annotation, raw_record, *, trace_id=None
             if row is None:
                 row = ub.KoboAnnotationMaterialization(
                     annotation_id=annotation.id,
-                    materialization_revision=1,
-                    provenance="kobo_patch",
-                    serveable=False,
+                    materialization_revision=(
+                        annotation.content_revision
+                        if match_content_revision else 1
+                    ),
+                    provenance=provenance,
+                    serveable=serveable,
                     created_at=now,
                     updated_at=now,
                 )
                 session.add(row)
             else:
-                row.materialization_revision += 1
+                row.materialization_revision = (
+                    annotation.content_revision
+                    if match_content_revision
+                    else row.materialization_revision + 1
+                )
                 row.updated_at = now
             row.raw_annotation_json = raw_record.raw_annotation_json
             row.raw_location_json = raw_record.raw_location_json
             row.raw_client_modified_utc = raw_record.raw_client_modified_utc
             row.payload_sha256 = raw_record.payload_sha256
             row.attachments_state = raw_record.attachments_state
-            row.provenance = "kobo_patch"
-            # PATCH is a delta and never establishes serveability in Stage 0.
-            row.serveable = False
+            row.provenance = provenance
+            # PATCH callers retain the conservative defaults; a complete cloud
+            # seed may explicitly mark its exact object replayable.
+            row.serveable = serveable
             row.quarantine_reason = None
             session.flush()
         return True
@@ -610,13 +664,34 @@ def _mark_pending(session, annotation, user):
     return queued
 
 
+def new_deferred_dispatch_effects():
+    """Return the after-commit effects collector used by atomic request paths."""
+    return {"jobs": [], "raw_capture_events": []}
+
+
+def finalize_deferred_dispatch_effects(user, effects, *, book=None) -> None:
+    """Publish effects only after their owning database transaction commits."""
+    from cps.services import kobo_annotation_stage0
+
+    for event in effects.get("raw_capture_events", []):
+        kobo_annotation_stage0.record_event("raw_capture", "stored", **event)
+    _enqueue(user, effects.get("jobs", []), book=book)
+
+
 def dispatch_annotation_sync(payload_annotations, book, user, *, origin_device_id=None,
-                             raw_materializations=None, trace_id=None) -> bool:
+                             raw_materializations=None, trace_id=None, commit=True,
+                             deferred_effects=None) -> bool:
     """Persist each valid annotation independently, then fan it out.
 
-    Device batches are a transport convenience, not a transaction boundary: one
-    malformed member or failed write must not roll back already-preserved user
-    data or prevent later members from being attempted.
+    By default, device batches are a transport convenience, not a transaction
+    boundary: one malformed member or failed write must not roll back
+    already-preserved user data or prevent later members from being attempted.
+
+    ``commit=False`` is reserved for a caller-owned request transaction. It
+    stages every member without crossing a transaction boundary and defers
+    enqueue/telemetry until that caller reports a successful checked commit.
+    A database exception is re-raised so the caller's containing SAVEPOINT can
+    roll the entire request back.
 
     Return ``True`` only when every addressable member was persisted (or was an
     idempotent/stale no-op).  ``False`` is transport-significant: the Reading
@@ -624,6 +699,8 @@ def dispatch_annotation_sync(payload_annotations, book, user, *, origin_device_i
     deltas and may never offer an acknowledged member again.
     """
     from cps import ub
+    if not commit and deferred_effects is None:
+        raise ValueError("commit=False requires deferred_effects")
     if not isinstance(payload_annotations, list):
         log.warning("Skipping annotation batch because updatedAnnotations is not a list")
         return False
@@ -657,23 +734,37 @@ def dispatch_annotation_sync(payload_annotations, book, user, *, origin_device_i
                                    "book": book.id, "payload": payload}
             else:
                 push_annotation_to_handlers(ub.session, ann, book, user, payload=payload)
-            committed = ub.session_commit()
-            if committed is False:
-                all_persisted = False
-                log.error(
-                    "Annotation %s could not be committed; continuing with the batch",
-                    payload.get("id"),
-                )
-                continue
+            if commit:
+                committed = ub.session_commit()
+                if committed is False:
+                    all_persisted = False
+                    log.error(
+                        "Annotation %s could not be committed; continuing with the batch",
+                        payload.get("id"),
+                    )
+                    continue
             if raw_capture_staged:
-                from cps.services import kobo_annotation_stage0
-                kobo_annotation_stage0.record_event(
-                    "raw_capture", "stored", trace_id=trace_id,
-                    user_id=ann.user_id, book_id=ann.book_id,
-                    annotation_count=1,
-                )
+                event = {
+                    "trace_id": trace_id,
+                    "user_id": ann.user_id,
+                    "book_id": ann.book_id,
+                    "annotation_count": 1,
+                }
+                if commit:
+                    from cps.services import kobo_annotation_stage0
+                    kobo_annotation_stage0.record_event(
+                        "raw_capture", "stored", **event,
+                    )
+                else:
+                    deferred_effects["raw_capture_events"].append(event)
         except Exception:
             all_persisted = False
+            if not commit:
+                log.exception(
+                    "Annotation member updatedAnnotations[%d] failed inside "
+                    "the caller-owned request transaction", index,
+                )
+                raise
             # A failed SQLAlchemy transaction poisons the scoped session until an
             # explicit rollback. Do that here, then continue: prior annotations
             # were committed independently and later annotations still deserve a
@@ -686,7 +777,10 @@ def dispatch_annotation_sync(payload_annotations, book, user, *, origin_device_i
             continue
         if pending_job is not None:
             jobs.append(pending_job)
-    _enqueue(user, jobs, book=book)
+    if commit:
+        _enqueue(user, jobs, book=book)
+    else:
+        deferred_effects["jobs"].extend(jobs)
     return all_persisted
 
 
@@ -723,7 +817,8 @@ def dispatch_existing_annotation_sync(annotation, book, user) -> bool:
 
 
 def dispatch_annotation_deletes(
-    deleted_ids, user, book_id=None, *, deletable_sources,
+    deleted_ids, user, book_id=None, *, deletable_sources, commit=True,
+    deferred_effects=None,
 ) -> bool:
     """For each annotation_id, transition non-tombstone sync_targets via
     handler.delete AND soft-delete the local Annotation row by setting
@@ -742,6 +837,8 @@ def dispatch_annotation_deletes(
     Returns ``False`` when the local commit fails and ``True`` otherwise.
     """
     from cps import ub
+    if not commit and deferred_effects is None:
+        raise ValueError("commit=False requires deferred_effects")
     if not deleted_ids:
         return True
     jobs = []
@@ -797,14 +894,17 @@ def dispatch_annotation_deletes(
             "annotation_sync: soft-delete annotation_id=%s (hidden=True)",
             annotation_id,
         )
-    if ub.session_commit() is False:
-        log.error(
-            "Annotation delete commit failed: user=%s annotation_ids=%s job_count=%d; "
-            "remote enqueue skipped",
-            user.id, affected_ids, len(jobs),
-        )
-        return False
-    _enqueue(user, jobs)
+    if commit:
+        if ub.session_commit() is False:
+            log.error(
+                "Annotation delete commit failed: user=%s annotation_ids=%s job_count=%d; "
+                "remote enqueue skipped",
+                user.id, affected_ids, len(jobs),
+            )
+            return False
+        _enqueue(user, jobs)
+    else:
+        deferred_effects["jobs"].extend(jobs)
     return True
 
 

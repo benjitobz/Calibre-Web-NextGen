@@ -19,17 +19,15 @@ import os
 import secrets
 import zipfile
 import re
-from datetime import datetime, timezone
 from functools import wraps
 from typing import TypedDict, NotRequired
-from flask import Blueprint, request, make_response, jsonify, abort, g, after_this_request
+from flask import Blueprint, request, make_response, jsonify, g, after_this_request
 from werkzeug.datastructures import Headers
 import requests
 from lxml import etree
 
 from . import logger, calibre_db, db, config, ub, csrf
-from .cw_login import current_user, login_required
-from .services import hardcover
+from .cw_login import current_user
 
 log = logger.create()
 
@@ -452,7 +450,34 @@ def _owned_annotation_patch_ack(capture_session, ownership, entitlement_id):
 def _owned_patch_is_local_authority(ownership, entitlement_id):
     """Use the exact same complete-set proof as the owned GET."""
     try:
-        from cps.services.kobo_annotation_authority import local_get_is_eligible
+        from cps.services.kobo_annotation_authority import (
+            AUTHORITY_EVER,
+            AUTHORITY_LOOKUP_FAILED,
+            authority_evidence_for_route,
+            ever_authoritative,
+            local_get_is_eligible,
+        )
+        # Once CWNG has ever become authoritative, Kobo's cloud copy is known
+        # to have drifted because owned PATCHes stopped feeding it. A later
+        # instance/user/device gate failure must therefore never resume
+        # forwarding against that stale copy.
+        history = ever_authoritative(current_user.id, ownership.id)
+        if history == AUTHORITY_LOOKUP_FAILED:
+            history = authority_evidence_for_route(
+                current_user.id, ownership.id,
+            )
+        if history == AUTHORITY_EVER:
+            return True
+    except Exception:
+        history = "lookup_failed"
+        log.exception("Sticky Kobo PATCH authority lookup failed")
+
+    try:
+        if history == AUTHORITY_LOOKUP_FAILED:
+            # No evidence says this is a starved cloud. Preserve the
+            # pre-authority status-quo path; critically, lookup failure was not
+            # collapsed into a false historical value.
+            return False
         return local_get_is_eligible(
             settings=config,
             user=current_user,
@@ -489,17 +514,121 @@ def _owned_annotation_page_limit():
         return None
 
 
-def _owned_annotation_get_response(capture_session, ownership, entitlement_id):
-    """Return one complete eligible local page, otherwise proxy unchanged."""
+def _proxy_owned_annotation_get(capture_session, ownership, entitlement_id):
+    """Proxy one owned GET and best-effort feed its response to M2 seeding."""
+    seed_capture_id = None
+    device_id = getattr(g, "annotation_origin_device_id", None)
+    request_offset_token = request.args.get("pageOffsetToken")
     try:
-        from cps.services.kobo_annotation_authority import (
-            local_get_is_eligible,
-            render_owned_annotations,
+        from cps.services import kobo_annotation_seeding
+        seed_capture_id = kobo_annotation_seeding.begin_or_resume_capture(
+            settings=config,
+            user=current_user,
+            book=ownership,
+            device_id=device_id,
+            request_offset_token=request_offset_token,
+            device_etag=request.headers.get("If-None-Match"),
+            log=log,
+        )
+    except Exception:
+        log.warning(
+            "Kobo annotation seed capture could not attach user_id=%s book_id=%s",
+            getattr(current_user, "id", None), getattr(ownership, "id", None),
+            exc_info=True,
         )
 
-        page_limit = _owned_annotation_page_limit()
+    response = _proxy_annotation_request(
+        capture_session, ownership, entitlement_id,
+    )
+    if seed_capture_id is not None:
+        try:
+            from cps.services import kobo_annotation_seeding
+            kobo_annotation_seeding.record_proxy_response(
+                seed_capture_id,
+                response=response,
+                book=ownership,
+                user=current_user,
+                device_id=device_id,
+                request_offset_token=request_offset_token,
+                log=log,
+            )
+        except Exception:
+            # The proxied response remains the GET's wire authority. Seeding is
+            # durable best-effort and can retry on a later request.
+            log.warning(
+                "Kobo annotation seed response could not persist capture_id=%s",
+                seed_capture_id,
+                exc_info=True,
+            )
+    return response
+
+
+def _owned_annotation_get_response(capture_session, ownership, entitlement_id):
+    """Return one complete eligible local page, otherwise proxy unchanged."""
+    sticky = False
+    page_limit = _owned_annotation_page_limit()
+    try:
+        from cps.services.kobo_annotation_authority import (
+            AUTHORITY_EVER,
+            AUTHORITY_LOOKUP_FAILED,
+            STICKY_GET_LOCAL,
+            authority_evidence_for_route,
+            ever_authoritative,
+            load_last_served_complete_set,
+            local_get_is_eligible,
+            prepare_authoritative_device_get,
+            render_authoritative_complete_set,
+            render_owned_annotations,
+            sticky_render_page_limit,
+        )
+
+        history = ever_authoritative(current_user.id, ownership.id)
+        if history == AUTHORITY_LOOKUP_FAILED:
+            history = authority_evidence_for_route(
+                current_user.id, ownership.id,
+            )
+        if history == AUTHORITY_LOOKUP_FAILED:
+            return _proxy_owned_annotation_get(
+                capture_session, ownership, entitlement_id,
+            )
+        sticky = history == AUTHORITY_EVER
         has_cursor = request.args.get("pageOffsetToken") is not None
-        if has_cursor or not local_get_is_eligible(
+        if sticky:
+            pre_serve = prepare_authoritative_device_get(
+                user_id=current_user.id,
+                book_id=ownership.id,
+                device_id=getattr(g, "annotation_origin_device_id", None),
+                log=log,
+            )
+            if pre_serve != STICKY_GET_LOCAL:
+                rendered = load_last_served_complete_set(
+                    user_id=current_user.id,
+                    book_id=ownership.id,
+                    log=log,
+                )
+                if rendered is None:
+                    log.critical(
+                        "Kobo authoritative GET has neither live proof nor "
+                        "last-served snapshot user_id=%s book_id=%s",
+                        current_user.id, ownership.id,
+                    )
+                    return make_response(jsonify({
+                        "error": "Authoritative annotation set temporarily unavailable",
+                    }), 503)
+                body, etag = rendered
+                _record_annotation_decision(
+                    capture_session, ownership, "answered_from_snapshot",
+                    entitlement_id,
+                )
+                response = make_response(body, 200)
+                response.headers["Content-Type"] = "application/json"
+                response.headers["Content-Length"] = str(len(body))
+                response.headers["ETag"] = etag
+                return response
+            page_limit = sticky_render_page_limit(
+                current_user.id, ownership.id, page_limit,
+            )
+        if not sticky and (has_cursor or not local_get_is_eligible(
             settings=config,
             user=current_user,
             book_id=ownership.id,
@@ -507,8 +636,8 @@ def _owned_annotation_get_response(capture_session, ownership, entitlement_id):
             page_limit=page_limit,
             device_id=getattr(g, "annotation_origin_device_id", None),
             log=log,
-        ):
-            return _proxy_annotation_request(
+        )):
+            return _proxy_owned_annotation_get(
                 capture_session, ownership, entitlement_id,
             )
 
@@ -521,9 +650,28 @@ def _owned_annotation_get_response(capture_session, ownership, entitlement_id):
             log=log,
         )
         if rendered is None:
-            return _proxy_annotation_request(
-                capture_session, ownership, entitlement_id,
+            if not sticky:
+                return _proxy_owned_annotation_get(
+                    capture_session, ownership, entitlement_id,
+                )
+            rendered = render_authoritative_complete_set(
+                user_id=current_user.id,
+                book_id=ownership.id,
+                entitlement_id=entitlement_id,
+                page_limit=max(page_limit or 100, 2 ** 31 - 1),
+                device_id=getattr(g, "annotation_origin_device_id", None),
+                log=log,
+                reason="authoritative_render_proof_rebuilt_live",
             )
+            if rendered is None:
+                log.critical(
+                    "Kobo authoritative GET could not read live rows or a "
+                    "last-served snapshot user_id=%s book_id=%s",
+                    current_user.id, ownership.id,
+                )
+                return make_response(jsonify({
+                    "error": "Authoritative annotation set temporarily unavailable",
+                }), 503)
         body, etag = rendered
         _record_annotation_decision(
             capture_session, ownership, "answered_locally", entitlement_id,
@@ -535,10 +683,48 @@ def _owned_annotation_get_response(capture_session, ownership, entitlement_id):
         return response
     except Exception:
         log.exception(
-            "Owned Kobo annotation GET local authority failed; proxying "
-            "entitlement=%s", entitlement_id,
+            "Owned Kobo annotation GET local authority failed entitlement=%s",
+            entitlement_id,
         )
-        return _proxy_annotation_request(
+        if sticky:
+            from cps.services.kobo_annotation_authority import (
+                load_last_served_complete_set,
+                render_authoritative_complete_set,
+                sticky_render_page_limit,
+            )
+            rendered = load_last_served_complete_set(
+                user_id=current_user.id,
+                book_id=ownership.id,
+                log=log,
+            )
+            emergency_limit = sticky_render_page_limit(
+                current_user.id, ownership.id, page_limit,
+            )
+            if rendered is None:
+                rendered = render_authoritative_complete_set(
+                    user_id=current_user.id,
+                    book_id=ownership.id,
+                    entitlement_id=entitlement_id,
+                    page_limit=max(emergency_limit, 2 ** 31 - 1),
+                    device_id=getattr(g, "annotation_origin_device_id", None),
+                    log=log,
+                    reason="authoritative_route_exception_rebuilt_live",
+                )
+            if rendered is None:
+                log.critical(
+                    "Kobo authoritative GET terminal fallback exhausted "
+                    "user_id=%s book_id=%s", current_user.id, ownership.id,
+                )
+                return make_response(jsonify({
+                    "error": "Authoritative annotation set temporarily unavailable",
+                }), 503)
+            body, etag = rendered
+            response = make_response(body, 200)
+            response.headers["Content-Type"] = "application/json"
+            response.headers["Content-Length"] = str(len(body))
+            response.headers["ETag"] = etag
+            return response
+        return _proxy_owned_annotation_get(
             capture_session, ownership, entitlement_id,
         )
 
@@ -757,7 +943,10 @@ class KoboAnnotation(TypedDict):
     type: str  # "note" or "highlight"
 
 
-def _dispatch_kobo_annotation_deletes(annotation_sync, deleted, entitlement_id, book):
+def _dispatch_kobo_annotation_deletes(
+    annotation_sync, deleted, entitlement_id, book, *, commit=True,
+    deferred_effects=None,
+):
     if deleted is not None and not isinstance(deleted, list):
         log.warning(
             "Ignoring deletedAnnotationIds for entitlement %s: expected a list",
@@ -768,10 +957,80 @@ def _dispatch_kobo_annotation_deletes(annotation_sync, deleted, entitlement_id, 
         # Nickel can only name annotations Kobo created: CWNG has no annotation
         # writeback to Kobo. If F-3b565b implements writeback, this provenance
         # authority must be revisited.
+        kwargs = {
+            "book_id": book.id,
+            "deletable_sources": {"kobo"},
+        }
+        if not commit or deferred_effects is not None:
+            kwargs.update(commit=commit, deferred_effects=deferred_effects)
         return annotation_sync.dispatch_annotation_deletes(
-            deleted, current_user, book_id=book.id,
-            deletable_sources={"kobo"},
+            deleted, current_user, **kwargs,
         )
+    return True
+
+
+class _AtomicOwnedPatchRefused(RuntimeError):
+    """Abort an owned PATCH without allowing its SAVEPOINT to release."""
+
+
+def _persist_owned_patch_atomically(
+    annotation_sync, *, updated, deleted, deterministic_update_rejection,
+    book, entitlement_id, dispatch_kwargs,
+):
+    """Commit the complete owned PATCH and authority watermark exactly once."""
+    from cps.services.kobo_annotation_authority import (
+        advance_authoritative_patch_revision,
+        mark_authoritative_oversize,
+    )
+
+    effects = annotation_sync.new_deferred_dispatch_effects()
+    try:
+        # #1925 request-level discipline: begin_contained_nested() first forces
+        # a real SQLite outer transaction, so releasing this SAVEPOINT cannot
+        # make annotation rows durable ahead of the checked outer commit.
+        with ub.begin_contained_nested(ub.session):
+            if deterministic_update_rejection:
+                if not _dispatch_kobo_annotation_deletes(
+                    annotation_sync, deleted, entitlement_id, book,
+                    commit=False, deferred_effects=effects,
+                ):
+                    raise _AtomicOwnedPatchRefused("delete dispatch refused")
+            if updated:
+                persisted = annotation_sync.dispatch_annotation_sync(
+                    updated, book, current_user,
+                    commit=False, deferred_effects=effects, **dispatch_kwargs,
+                )
+                if persisted is False:
+                    raise _AtomicOwnedPatchRefused("update dispatch refused")
+            if not deterministic_update_rejection:
+                if not _dispatch_kobo_annotation_deletes(
+                    annotation_sync, deleted, entitlement_id, book,
+                    commit=False, deferred_effects=effects,
+                ):
+                    raise _AtomicOwnedPatchRefused("delete dispatch refused")
+            if not mark_authoritative_oversize(
+                current_user.id, book.id, log=log, commit=False,
+            ):
+                raise _AtomicOwnedPatchRefused("oversize classification refused")
+            if not advance_authoritative_patch_revision(
+                current_user.id, book.id, log=log, commit=False,
+            ):
+                raise _AtomicOwnedPatchRefused("authority watermark refused")
+            ub.session.flush()
+        if ub.session_commit() is False:
+            raise _AtomicOwnedPatchRefused("combined request commit failed")
+    except Exception:
+        if ub.session is not None:
+            ub.session.rollback()
+        log.exception(
+            "Kobo owned PATCH transaction rolled back user_id=%s book_id=%s",
+            getattr(current_user, "id", None), book.id,
+        )
+        return False
+
+    annotation_sync.finalize_deferred_dispatch_effects(
+        current_user, effects, book=book,
+    )
     return True
 
 
@@ -886,18 +1145,17 @@ def handle_annotations(entitlement_id):
                 deterministic_update_rejection = (
                     bool(updated) and not isinstance(updated, list)
                 )
+                local_authority = _owned_patch_is_local_authority(
+                    book, entitlement_id,
+                )
                 # Falsy non-list spellings cannot contain an annotation. Treat
                 # them as an empty update set so a delete-carrying batch is not
                 # trapped in a permanent retry. A truthy non-list value may be
                 # a malformed annotation and still goes through the defensive
                 # dispatcher, whose False result is refused below.
-                if deterministic_update_rejection:
-                    _dispatch_kobo_annotation_deletes(
-                        annotation_sync, deleted, entitlement_id, book,
-                    )
+                raw_materializations = None
+                trace_id = None
                 if updated:
-                    raw_materializations = None
-                    trace_id = None
                     if isinstance(updated, list) and updated:
                         trace_id = secrets.token_hex(8)
                         try:
@@ -923,25 +1181,28 @@ def handle_annotations(entitlement_id):
                                 user_id=getattr(current_user, "id", None), book_id=book.id,
                                 annotation_count=len(updated),
                             )
-                    dispatch_kwargs = {
-                        "origin_device_id": getattr(g, "annotation_origin_device_id", None),
-                    }
-                    if raw_materializations is not None:
-                        dispatch_kwargs.update(
-                            raw_materializations=raw_materializations,
-                            trace_id=trace_id,
-                        )
-                    persisted = annotation_sync.dispatch_annotation_sync(
-                        updated, book, current_user, **dispatch_kwargs,
+                dispatch_kwargs = {
+                    "origin_device_id": getattr(g, "annotation_origin_device_id", None),
+                }
+                if raw_materializations is not None:
+                    dispatch_kwargs.update(
+                        raw_materializations=raw_materializations,
+                        trace_id=trace_id,
                     )
-                    if persisted is False:
-                        # False means complete batch persistence is unproven,
-                        # not that zero rows reached SQLite. On this engine a
-                        # released SAVEPOINT can survive a later rollback, so
-                        # keep the raw body for replay/reconciliation either way.
+
+                if local_authority:
+                    if not _persist_owned_patch_atomically(
+                        annotation_sync,
+                        updated=updated,
+                        deleted=deleted,
+                        deterministic_update_rejection=deterministic_update_rejection,
+                        book=book,
+                        entitlement_id=entitlement_id,
+                        dispatch_kwargs=dispatch_kwargs,
+                    ):
                         log.error(
-                            "Kobo annotation PATCH was not fully persisted for "
-                            "user_id=%s book_id=%s; refusing to acknowledge it upstream",
+                            "Kobo annotation PATCH was not fully persisted with "
+                            "its authority watermark for user_id=%s book_id=%s",
                             getattr(current_user, "id", None), book.id,
                         )
                         patch_spool_outcome = "dispatch_refused"
@@ -949,22 +1210,50 @@ def handle_annotations(entitlement_id):
                             jsonify({"error": "Annotation capture temporarily unavailable"}),
                             503,
                         )
-                if not deterministic_update_rejection:
-                    deletes_persisted = _dispatch_kobo_annotation_deletes(
-                        annotation_sync, deleted, entitlement_id, book,
-                    )
-                    if deletes_persisted is False:
-                        log.error(
-                            "Kobo annotation deletes were not fully persisted for "
-                            "user_id=%s book_id=%s; refusing to acknowledge them",
-                            getattr(current_user, "id", None), book.id,
+                else:
+                    if deterministic_update_rejection:
+                        _dispatch_kobo_annotation_deletes(
+                            annotation_sync, deleted, entitlement_id, book,
                         )
-                        patch_spool_outcome = "dispatch_refused"
-                        return make_response(
-                            jsonify({"error": "Annotation capture temporarily unavailable"}),
-                            503,
+                    if updated:
+                        persisted = annotation_sync.dispatch_annotation_sync(
+                            updated, book, current_user, **dispatch_kwargs,
                         )
+                        if persisted is False:
+                            # False means complete batch persistence is unproven,
+                            # not that zero rows reached SQLite. On this engine a
+                            # released SAVEPOINT can survive a later rollback, so
+                            # keep the raw body for replay/reconciliation either way.
+                            log.error(
+                                "Kobo annotation PATCH was not fully persisted for "
+                                "user_id=%s book_id=%s; refusing to acknowledge it upstream",
+                                getattr(current_user, "id", None), book.id,
+                            )
+                            patch_spool_outcome = "dispatch_refused"
+                            return make_response(
+                                jsonify({"error": "Annotation capture temporarily unavailable"}),
+                                503,
+                            )
+                    if not deterministic_update_rejection:
+                        deletes_persisted = _dispatch_kobo_annotation_deletes(
+                            annotation_sync, deleted, entitlement_id, book,
+                        )
+                        if deletes_persisted is False:
+                            log.error(
+                                "Kobo annotation deletes were not fully persisted for "
+                                "user_id=%s book_id=%s; refusing to acknowledge them",
+                                getattr(current_user, "id", None), book.id,
+                            )
+                            patch_spool_outcome = "dispatch_refused"
+                            return make_response(
+                                jsonify({"error": "Annotation capture temporarily unavailable"}),
+                                503,
+                            )
             patch_spool_outcome = "dispatch_completed"
+            if book is not None and local_authority:
+                return _owned_annotation_patch_ack(
+                    capture_session, book, entitlement_id,
+                )
         except Exception:
             log.exception("Error processing PATCH annotations")
             return make_response(
@@ -972,8 +1261,6 @@ def handle_annotations(entitlement_id):
             )
         finally:
             _mark_patch_spool_outcome(patch_spool_ticket, patch_spool_outcome)
-    if book is not None and _owned_patch_is_local_authority(book, entitlement_id):
-        return _owned_annotation_patch_ack(capture_session, book, entitlement_id)
     return _proxy_annotation_request(capture_session, book, entitlement_id)
 
 

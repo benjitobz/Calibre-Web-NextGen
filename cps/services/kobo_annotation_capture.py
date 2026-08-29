@@ -205,8 +205,10 @@ def _attachments_state(parsed: dict) -> str:
     return "empty" if not attachments else "nonempty"
 
 
-def extract_updated_annotation_materializations(raw_request: bytes) -> list[RawKoboAnnotation]:
-    """Extract exact annotation/location slices from one Kobo PATCH body."""
+def extract_annotation_materializations(
+    raw_request: bytes, *, member_name: str,
+) -> list[RawKoboAnnotation]:
+    """Extract exact annotation/location slices from a named response member."""
     if not isinstance(raw_request, bytes):
         raise LexicalCaptureError("request body must be bytes")
     # Validate duplicate keys recursively before selecting any lexical span.
@@ -218,7 +220,7 @@ def extract_updated_annotation_materializations(raw_request: bytes) -> list[RawK
         raise
     except (ValueError, UnicodeDecodeError) as error:
         raise LexicalCaptureError("request body is invalid UTF-8 JSON") from error
-    raw_array = extract_object_member_value(raw_request, "updatedAnnotations")
+    raw_array = extract_object_member_value(raw_request, member_name)
     records = []
     for raw_object in _array_values(raw_array):
         if len(raw_object) > MAX_RAW_ANNOTATION_BYTES:
@@ -251,6 +253,13 @@ def extract_updated_annotation_materializations(raw_request: bytes) -> list[RawK
             attachments_state=_attachments_state(parsed),
         ))
     return records
+
+
+def extract_updated_annotation_materializations(raw_request: bytes) -> list[RawKoboAnnotation]:
+    """Extract exact annotation/location slices from one Kobo PATCH body."""
+    return extract_annotation_materializations(
+        raw_request, member_name="updatedAnnotations",
+    )
 
 
 def project_exact_materialization(raw_annotation_json: bytes, raw_location_json: bytes) -> bytes:

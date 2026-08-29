@@ -309,6 +309,10 @@ def purge_user_book_data(book_id=None, user_id=None, session=None,
         ub.KoboAnnotationSeedCapture.book_state_id.in_(
             book_state_ids.scalar_subquery())
     )
+    session.query(ub.KoboAnnotationSeedRowBaseline).filter(
+        ub.KoboAnnotationSeedRowBaseline.seed_capture_id.in_(
+            capture_ids.scalar_subquery())
+    ).delete(synchronize_session=False)
     session.query(ub.KoboAnnotationSeedCapturePage).filter(
         ub.KoboAnnotationSeedCapturePage.seed_capture_id.in_(
             capture_ids.scalar_subquery())

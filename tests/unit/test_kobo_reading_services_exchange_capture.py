@@ -7,7 +7,6 @@ from __future__ import annotations
 import gzip
 import importlib
 import json
-import os
 import stat
 import threading
 from types import SimpleNamespace
@@ -535,10 +534,25 @@ def test_owned_annotations_capture_records_local_answer_without_upstream_leg(
     monkeypatch.setattr(rs, "resolve_entitlement_ownership", lambda _content_id: book)
     monkeypatch.setattr(rs, "_capture_authority_status", lambda _ownership: "authoritative")
     monkeypatch.setattr(rs, "_stage_patch_for_recovery", lambda *_args: None)
+    monkeypatch.setattr(
+        rs, "_persist_owned_patch_atomically", lambda *_args, **_kwargs: True,
+    )
     monkeypatch.setattr(rs, "log_annotation_data", lambda *_args, **_kwargs: None)
     monkeypatch.setattr(
         "cps.services.kobo_annotation_authority.local_get_is_eligible",
         lambda **_kwargs: True,
+    )
+    monkeypatch.setattr(
+        "cps.services.kobo_annotation_authority.ever_authoritative",
+        lambda *_args, **_kwargs: "never_authoritative",
+    )
+    monkeypatch.setattr(
+        "cps.services.kobo_annotation_authority.mark_authoritative_oversize",
+        lambda *_args, **_kwargs: True,
+    )
+    monkeypatch.setattr(
+        "cps.services.kobo_annotation_authority.advance_authoritative_patch_revision",
+        lambda *_args, **_kwargs: True,
     )
     monkeypatch.setattr(
         rs, "proxy_to_kobo_reading_services",

@@ -25,8 +25,40 @@ def app():
 @pytest.fixture(autouse=True)
 def _pre_1923_patch_tests_use_seeded_authority(monkeypatch):
     """Keep this module focused on capture/refusal, not the Stage-0 gate."""
+    from cps.services import kobo_annotation_authority
     monkeypatch.setattr(
         rs, "_owned_patch_is_local_authority", lambda *_args, **_kwargs: True,
+    )
+    monkeypatch.setattr(
+        kobo_annotation_authority, "advance_authoritative_patch_revision",
+        lambda *_args, **_kwargs: True,
+    )
+
+    def _dispatch_without_app_db(
+        annotation_sync, *, updated, deleted, deterministic_update_rejection,
+        book, entitlement_id, dispatch_kwargs,
+    ):
+        # This module tests wire routing with mocked dispatchers and deliberately
+        # has no app-db session. The real atomic transaction is exercised by
+        # test_1942_seed_pipeline.py; preserve this module's dispatcher seam.
+        if deterministic_update_rejection:
+            rs._dispatch_kobo_annotation_deletes(
+                annotation_sync, deleted, entitlement_id, book,
+            )
+        if updated:
+            if annotation_sync.dispatch_annotation_sync(
+                updated, book, rs.current_user, **dispatch_kwargs,
+            ) is False:
+                return False
+        if not deterministic_update_rejection:
+            if rs._dispatch_kobo_annotation_deletes(
+                annotation_sync, deleted, entitlement_id, book,
+            ) is False:
+                return False
+        return True
+
+    monkeypatch.setattr(
+        rs, "_persist_owned_patch_atomically", _dispatch_without_app_db,
     )
 
 

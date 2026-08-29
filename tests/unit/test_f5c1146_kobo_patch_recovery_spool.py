@@ -153,8 +153,22 @@ def _app(monkeypatch, *, dispatch):
         rs, "_owned_patch_is_local_authority", lambda *_args, **_kwargs: True,
     )
     monkeypatch.setattr(
+        "cps.services.kobo_annotation_authority.advance_authoritative_patch_revision",
+        lambda *_args, **_kwargs: True,
+    )
+    monkeypatch.setattr(
         "cps.services.annotation_sync.dispatch_annotation_sync", dispatch,
     )
+
+    def _atomic_dispatch(annotation_sync, *, updated, book, dispatch_kwargs, **_kwargs):
+        # These spool tests deliberately have no app-db session. Keep their
+        # seam at the dispatcher boundary while production exercises the real
+        # request transaction in test_1942_seed_pipeline.py.
+        return annotation_sync.dispatch_annotation_sync(
+            updated, book, user, **dispatch_kwargs,
+        ) is not False
+
+    monkeypatch.setattr(rs, "_persist_owned_patch_atomically", _atomic_dispatch)
     monkeypatch.setattr(
         rs, "proxy_to_kobo_reading_services",
         lambda **_kwargs: pytest.fail("owned PATCH must not contact Kobo"),

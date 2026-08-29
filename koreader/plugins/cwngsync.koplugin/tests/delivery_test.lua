@@ -124,4 +124,3 @@ local tests = {
 
 for _, test in ipairs(tests) do test() end
 print(string.format("delivery_test.lua: %d tests passed", #tests))
-

@@ -554,6 +554,13 @@ class TestPurge:
                 seed_capture_id=capture.id, page_number=0,
                 response_body_gzip=b"page", response_sha256="1" * 64,
             ),
+            ub.KoboAnnotationSeedRowBaseline(
+                seed_capture_id=capture.id,
+                annotation_key="secret-ann",
+                annotation_row_id=old_annotation_id,
+                content_revision=1,
+                content_sha256="2" * 64,
+            ),
             ub.KoboAnnotationPageCursor(
                 token="purge-cursor", snapshot_id=snapshot.snapshot_id,
                 page_offset=0,
@@ -572,6 +579,7 @@ class TestPurge:
             ub.KoboDeviceBookAnnotationState,
             ub.KoboAnnotationSeedCapture,
             ub.KoboAnnotationSeedCapturePage,
+            ub.KoboAnnotationSeedRowBaseline,
             ub.KoboAnnotationPageSnapshot,
             ub.KoboAnnotationPageCursor,
         ):

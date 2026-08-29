@@ -74,6 +74,17 @@ def test_live_patch_stores_the_highlight_without_the_rejected_clock(
         readingservices, "_owned_patch_is_local_authority",
         lambda *_args, **_kwargs: True,
     )
+    session.add(ub.KoboAnnotationBookState(
+        user_id=user.id,
+        book_id=book.id,
+        content_id=BOOK_UUID,
+        authority_status="authoritative",
+        authority_revision=0,
+        ever_authoritative=True,
+        generation_id="00000000-0000-0000-0000-000000000001",
+        opaque_content_status="unknown",
+    ))
+    session.commit()
     monkeypatch.setattr(
         readingservices,
         "proxy_to_kobo_reading_services",

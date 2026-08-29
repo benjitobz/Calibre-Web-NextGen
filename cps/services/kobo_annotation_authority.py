@@ -15,11 +15,12 @@ promote into an independently authoritative/cloud-seeded set; it does not make
 the authenticated user's own, byte-exact upload unsafe to replay to that same
 user.  Refusing it here would replace a device row with less faithful columns.
 
-An owned annotations GET must also never become an error response.  Nickel has
-been observed treating an error as an empty replacement set, so a degraded 200
-containing every row's identity and text is safer than a 5xx that is perfectly
-honest about a rendering or state-persistence failure.  Book-state persistence
-is consequently advisory, and row rendering has a last-resort wire mapping.
+An owned annotations GET must not manufacture an empty replacement set from a
+read failure. Nickel has been observed treating errors destructively too, so a
+validated snapshot of CWNG's last exact complete response is replayed when the
+live set cannot be read. With no snapshot at all, a loud 503 is the terminal
+ever-authoritative fallback; it is still safer than claiming unknown means
+empty or proxying Kobo's known-stale copy.
 
 This renderer is used only after Stage 0 proves that the authenticated device's
 complete set was accepted and the book state is ``authoritative`` (the stored
@@ -27,14 +28,17 @@ spelling of "fully seeded").  GET and PATCH use the same proof gate: until that
 proof exists, both continue through Kobo so a partial local set cannot replace
 the device set and new uploads continue feeding Kobo's more-complete copy.
 
-The complete current set must also fit in the requested page.  The route proxies
-larger sets to Kobo until CWNG implements the immutable snapshot + cursor
-contract; a local response can therefore honestly terminate with
-``nextPageOffsetToken`` set to null.
+Before authority, the complete current set must fit in the requested page.
+After authority, local PATCH acknowledgements make Kobo's copy stale, so a set
+that grows beyond 100 is returned complete in one final page and surfaced as
+``oversize_single_page``. This Nickel behavior is ASSUMED pending the Clara
+hardware A/B; it is the only current policy that neither truncates local data
+nor proxies a stale replacement set.
 """
 
 from __future__ import annotations
 
+import gzip
 import hashlib
 import json
 import math
@@ -56,6 +60,11 @@ _BOOK_STATE_CONTENT_ID_LIMIT = 64
 _LOCAL_PAGE_CAPACITY = 100
 _SKIP_LOGGED_BOOKS = set()
 _SKIP_LOG_LOCK = threading.Lock()
+AUTHORITY_EVER = "ever_authoritative"
+AUTHORITY_NEVER = "never_authoritative"
+AUTHORITY_LOOKUP_FAILED = "lookup_failed"
+STICKY_GET_LOCAL = "local"
+STICKY_GET_SNAPSHOT = "snapshot"
 
 
 def _blob(value):
@@ -130,6 +139,14 @@ def _span(annotation, entitlement_id, *, dogear=False):
 
 def _exact_raw(annotation, materialization):
     if materialization is None:
+        return None
+    # A cloud-seed sidecar is authoritative only when reconciliation proved
+    # that its captured content was applied or already content-equivalent.
+    # PATCH sidecars retain their existing authenticated-user replay policy.
+    if (
+        materialization.provenance == "kobo_cloud_seed"
+        and not materialization.serveable
+    ):
         return None
     # A generic-column edit advances content_revision without rewriting the
     # Kobo sidecar.  Replaying that stale object would resurrect the old edit.
@@ -403,36 +420,307 @@ def _visible_annotation_count(user_id, book_id):
     )
 
 
+def ever_authoritative(user_id, book_id):
+    """Return tri-state authority history; lookup failure is never false."""
+    try:
+        state = _state_for_book(user_id, book_id)
+        if state is not None and state.ever_authoritative:
+            return AUTHORITY_EVER
+        return AUTHORITY_NEVER
+    except Exception:
+        _safe_rollback()
+        return AUTHORITY_LOOKUP_FAILED
+
+
+def authority_evidence_for_route(user_id, book_id):
+    """Independent state read used only after an ambiguous boundary lookup."""
+    try:
+        state = _state_for_book(user_id, book_id)
+        if state is not None and state.ever_authoritative:
+            return AUTHORITY_EVER
+        return AUTHORITY_NEVER
+    except Exception:
+        _safe_rollback()
+        return AUTHORITY_LOOKUP_FAILED
+
+
+def sticky_render_page_limit(user_id, book_id, requested_limit):
+    """Return a complete local bound after Kobo's cloud becomes stale.
+
+    ASSUMED pending Clara hardware verification: Nickel accepts a complete
+    oversized final page. Truncation, 5xx, and stale proxying are all known to
+    violate the replacement-set invariant, so post-authority rows remain
+    losslessly available even when the request says ``limit=100``.
+    """
+    try:
+        visible_count = _visible_annotation_count(user_id, book_id)
+    except Exception:
+        _safe_rollback()
+        visible_count = _LOCAL_PAGE_CAPACITY
+    base = requested_limit if isinstance(requested_limit, int) else _LOCAL_PAGE_CAPACITY
+    return max(1, base, visible_count)
+
+
+def mark_authoritative_oversize(user_id, book_id, *, log, commit=True):
+    """Surface lossless post-authority growth without rejecting the PATCH.
+
+    ``commit=False`` stages the classification in the caller's transaction.
+    """
+    try:
+        state = _state_for_book(user_id, book_id)
+        if state is None or not (
+            state.ever_authoritative
+            or state.authority_status == "authoritative"
+        ):
+            return False
+        visible_count = _visible_annotation_count(user_id, book_id)
+        if visible_count > _LOCAL_PAGE_CAPACITY:
+            state.quarantine_reason = "oversize_single_page"
+        elif state.quarantine_reason == "oversize_single_page":
+            state.quarantine_reason = None
+        if not commit:
+            ub.session.flush()
+            return True
+        return ub.session_commit()
+    except Exception:
+        if not commit:
+            raise
+        _safe_rollback()
+        log.exception(
+            "Kobo authoritative oversize state update failed "
+            "user_id=%s book_id=%s", user_id, book_id,
+        )
+        return False
+
+
+def advance_authoritative_patch_revision(user_id, book_id, *, log, commit=True):
+    """Invalidate prior rendered bytes before acknowledging a local PATCH.
+
+    ``commit=False`` stages this mutation beside the annotation mutations in a
+    caller-owned request transaction. ``set_digest`` and the current ETag are
+    cleared because no complete post-PATCH body has yet been rendered; the next
+    successful GET will bind them to exact response bytes.
+    """
+    try:
+        state = _state_for_book(user_id, book_id)
+        if state is None or not (
+            state.ever_authoritative
+            or state.authority_status == "authoritative"
+        ):
+            return False
+        state.authority_revision = (state.authority_revision or 0) + 1
+        state.set_digest = None
+        state.current_etag = None
+        state.etag_kind = None
+        state.last_mutation_at = datetime.now(timezone.utc)
+        if not commit:
+            ub.session.flush()
+            return True
+        committed = ub.session_commit()
+        if committed is False:
+            log.error(
+                "Kobo authoritative PATCH revision did not commit "
+                "user_id=%s book_id=%s", user_id, book_id,
+            )
+        return committed
+    except Exception:
+        if not commit:
+            raise
+        _safe_rollback()
+        log.exception(
+            "Kobo authoritative PATCH revision failed "
+            "user_id=%s book_id=%s", user_id, book_id,
+        )
+        return False
+
+
+def _captured_membership_is_safe(
+    *, state, user_id, book_id, device_id, visible_ids,
+):
+    """Prove captured identities are visible or have newer local tombstones."""
+    from cps.services.kobo_annotation_seeding import accepted_identity_requirements
+
+    requirements = accepted_identity_requirements(
+        state.id,
+        # Before first authority, this exact device's capture is the proof.
+        # Afterwards all upstream captures are shared baseline evidence.
+        device_id=None if state.ever_authoritative else device_id,
+    )
+    if requirements is None:
+        return False
+    return _requirements_membership_is_safe(
+        requirements=requirements,
+        user_id=user_id,
+        book_id=book_id,
+        visible_ids=visible_ids,
+    )
+
+
+def _requirements_membership_is_safe(
+    *, requirements, user_id, book_id, visible_ids,
+):
+    """Prove one already-loaded identity requirement map against live rows."""
+    missing = set(requirements) - set(visible_ids)
+    if not missing:
+        return True
+    rows = (
+        ub.session.query(ub.Annotation)
+        .filter(
+            ub.Annotation.user_id == user_id,
+            ub.Annotation.book_id == book_id,
+            ub.Annotation.annotation_id.in_(missing),
+        )
+        .all()
+    )
+    by_id = {row.annotation_id: row for row in rows}
+    for annotation_id in missing:
+        row = by_id.get(annotation_id)
+        captured_at = requirements[annotation_id]
+        modified_at = row.server_modified_at if row is not None else None
+        if modified_at is not None and modified_at.tzinfo is None:
+            modified_at = modified_at.replace(tzinfo=timezone.utc)
+        elif modified_at is not None:
+            modified_at = modified_at.astimezone(timezone.utc)
+        if (
+            row is None
+            or not bool(row.hidden)
+            or captured_at is None
+            or modified_at is None
+            or modified_at <= captured_at
+        ):
+            return False
+    return True
+
+
+def prepare_authoritative_device_get(
+    *, user_id, book_id, device_id, log,
+):
+    """Commit device evidence before an ever-authoritative local response.
+
+    Hardware-observed lifecycle boundary: KOBO-HIGHLIGHTS-STATE.md §6p shows
+    this GET is issued by download/re-download after Nickel's per-book rows
+    have been emptied. A fresh/reset device is therefore safe to hydrate from
+    CWNG's monotonic live set. An earlier PATCH is already in that set. The
+    residual offline-edit-without-upload case is byte-identical to Kobo cloud
+    status quo. A prior CWNG ETag proves possession of OUR prior replacement
+    set, so it strengthens the local path: Kobo's now-stale copy must never be
+    proxied back over it. Any inability to establish fresh live proof requests
+    the last complete CWNG snapshot, never the upstream route.
+    """
+    try:
+        state = _state_for_book(user_id, book_id)
+        if state is None or not state.ever_authoritative:
+            return STICKY_GET_SNAPSHOT
+        device = (
+            ub.session.query(ub.Device.id)
+            .filter(
+                ub.Device.id == device_id,
+                ub.Device.user_id == user_id,
+                ub.Device.kind == "kobo",
+            )
+            .first()
+        )
+        if device is None:
+            return STICKY_GET_SNAPSHOT
+
+        accepted = (
+            ub.session.query(ub.KoboAnnotationSeedCapture)
+            .filter(
+                ub.KoboAnnotationSeedCapture.book_state_id == state.id,
+                ub.KoboAnnotationSeedCapture.device_id == device_id,
+                ub.KoboAnnotationSeedCapture.result == "accepted",
+                ub.KoboAnnotationSeedCapture.completed_at.isnot(None),
+            )
+            .all()
+        )
+        if not accepted:
+            from cps.services.kobo_annotation_seeding import accept_routing_only_seed
+            return (
+                STICKY_GET_LOCAL
+                if accept_routing_only_seed(
+                    user_id=user_id, book_id=book_id,
+                    device_id=device_id, log=log,
+                )
+                else STICKY_GET_SNAPSHOT
+            )
+
+        upstream = [row for row in accepted if row.seed_kind == "upstream_capture"]
+        if not upstream:
+            return STICKY_GET_LOCAL
+        from cps.services.kobo_annotation_seeding import (
+            accepted_identity_requirements,
+            rebuild_authoritative_device_evidence,
+        )
+        requirements = accepted_identity_requirements(state.id, device_id=device_id)
+        if requirements is None:
+            return (
+                STICKY_GET_LOCAL
+                if rebuild_authoritative_device_evidence(
+                    user_id=user_id, book_id=book_id,
+                    device_id=device_id, log=log,
+                )
+                else STICKY_GET_SNAPSHOT
+            )
+        visible_ids = {
+            row[0] for row in (
+                ub.session.query(ub.Annotation.annotation_id)
+                .filter(
+                    ub.Annotation.user_id == user_id,
+                    ub.Annotation.book_id == book_id,
+                    (
+                        ub.Annotation.hidden.is_(None)
+                        | (ub.Annotation.hidden == False)  # noqa: E712
+                    ),
+                )
+                .all()
+            )
+        }
+        return STICKY_GET_LOCAL if _requirements_membership_is_safe(
+            requirements=requirements,
+            user_id=user_id,
+            book_id=book_id,
+            visible_ids=visible_ids,
+        ) else STICKY_GET_SNAPSHOT
+    except Exception:
+        _safe_rollback()
+        log.exception(
+            "Kobo authoritative device pre-serve proof failed "
+            "user_id=%s book_id=%s", user_id, book_id,
+        )
+        return STICKY_GET_SNAPSHOT
+
+
 def local_get_is_eligible(*, settings, user, book_id, entitlement_id,
                           page_limit, device_id, log):
-    """Gate both GET and PATCH on one proven, locally serveable seed.
+    """Gate GET/PATCH as a pair and prove captured identity membership.
 
-    ``authority_status='authoritative'`` is Stage 0's stored spelling for a
-    fully seeded book.  It is not sufficient by itself: an accepted complete
-    seed count must exist for this exact device/book, the local visible set may
-    not be smaller than that declaration, and the entire set must fit in the
-    one-page implementation.  PATCH uses the same function with a limit of 100
-    so it can never stop feeding Kobo while GET still needs Kobo as authority.
+    Before first authority, all normal gates and this device's accepted seed
+    evidence are required. Once ``ever_authoritative`` is set, Kobo's cloud is
+    stale by construction: gate drift or a new device may not split GET back
+    to upstream while PATCH remains local.
     """
     user_id = getattr(user, "id", None)
     reason = None
     try:
+        state = _state_for_book(user_id, book_id)
+        sticky = bool(state is not None and state.ever_authoritative)
         if not isinstance(page_limit, int) or isinstance(page_limit, bool):
             reason = "page_limit_invalid"
-        elif page_limit < 1 or page_limit > _LOCAL_PAGE_CAPACITY:
+        elif page_limit < 1 or (
+            page_limit > _LOCAL_PAGE_CAPACITY and not sticky
+        ):
             reason = "page_limit_unsupported"
 
-        from cps.services import kobo_annotation_stage0
-
-        state = None
-        if reason is None:
+        if reason is None and not sticky:
+            from cps.services import kobo_annotation_stage0
             schema_ready = kobo_annotation_stage0.schema_capable(
                 ub.session.get_bind(),
             )
-            state = _state_for_book(user_id, book_id)
             reason = kobo_annotation_stage0.gate_failure_reason(
                 settings, user, state, schema_ready=schema_ready,
             )
+        elif reason is None and state is None:
+            reason = "book_state_missing"
         if reason is None and (
             _normalized_entitlement_id(state.content_id)
             != _normalized_entitlement_id(entitlement_id)
@@ -440,7 +728,7 @@ def local_get_is_eligible(*, settings, user, book_id, entitlement_id,
             reason = "content_id_mismatch"
 
         declared_count = None
-        if reason is None:
+        if reason is None and not sticky:
             declared_count = _accepted_device_annotation_count(state.id, device_id)
             if declared_count is None:
                 reason = "accepted_device_seed_count_missing"
@@ -448,12 +736,35 @@ def local_get_is_eligible(*, settings, user, book_id, entitlement_id,
         visible_count = None
         if reason is None:
             visible_count = _visible_annotation_count(user_id, book_id)
-            if visible_count < declared_count:
+            if declared_count is not None and visible_count < declared_count:
                 reason = "local_count_below_device_seed"
-            elif visible_count > _LOCAL_PAGE_CAPACITY:
+            elif not sticky and visible_count > _LOCAL_PAGE_CAPACITY:
                 reason = "local_set_requires_pagination"
             elif visible_count > page_limit:
                 reason = "requested_page_too_small"
+        if reason is None and not sticky:
+            visible_ids = {
+                row[0] for row in (
+                    ub.session.query(ub.Annotation.annotation_id)
+                    .filter(
+                        ub.Annotation.user_id == user_id,
+                        ub.Annotation.book_id == book_id,
+                        (
+                            ub.Annotation.hidden.is_(None)
+                            | (ub.Annotation.hidden == False)  # noqa: E712
+                        ),
+                    )
+                    .all()
+                )
+            }
+            if not _captured_membership_is_safe(
+                state=state,
+                user_id=user_id,
+                book_id=book_id,
+                device_id=device_id,
+                visible_ids=visible_ids,
+            ):
+                reason = "captured_identity_missing"
     except Exception as error:
         _safe_rollback()
         reason = _failure_reason("authority_gate", error)
@@ -466,13 +777,33 @@ def local_get_is_eligible(*, settings, user, book_id, entitlement_id,
     return True
 
 
-def _render_count_is_safe(*, user_id, book_id, device_id, row_count):
-    """Recheck the accepted count at render time to close the query race."""
+def _render_count_is_safe(
+    *, user_id, book_id, device_id, row_count, row_ids=None,
+):
+    """Recheck count and captured identity membership at render time."""
     state = _state_for_book(user_id, book_id)
-    if state is None or state.authority_status != "authoritative":
+    if state is None or (
+        state.authority_status != "authoritative"
+        and not state.ever_authoritative
+    ):
         return False
-    declared_count = _accepted_device_annotation_count(state.id, device_id)
-    return declared_count is not None and row_count >= declared_count
+    if state.ever_authoritative:
+        # Historical capture bytes are no longer the live-set authority. The
+        # rows just queried are the complete monotonic store, including later
+        # local PATCHes and tombstones; corrupt capture evidence is repaired at
+        # the device pre-serve boundary rather than turning this GET into 5xx.
+        return True
+    if not state.ever_authoritative:
+        declared_count = _accepted_device_annotation_count(state.id, device_id)
+        if declared_count is None or row_count < declared_count:
+            return False
+    return _captured_membership_is_safe(
+        state=state,
+        user_id=user_id,
+        book_id=book_id,
+        device_id=device_id,
+        visible_ids=row_ids or set(),
+    )
 
 
 def _book_state(user_id, book_id, entitlement_id):
@@ -636,14 +967,126 @@ def _log_degraded(log, *, user_id, book_id, visible_count, reasons):
         pass
 
 
+def _snapshot_payload(state, *, log, user_id, book_id):
+    """Return last exact bytes only when bound to the current authority set."""
+    compressed = _blob(getattr(state, "last_served_body_gzip", None))
+    expected_digest = getattr(state, "last_served_body_sha256", None)
+    etag = getattr(state, "last_served_etag", None)
+    expected_count = getattr(state, "last_served_annotation_count", None)
+    snapshot_revision = getattr(state, "last_served_authority_revision", None)
+    snapshot_set_digest = getattr(state, "last_served_set_digest", None)
+    current_revision = getattr(state, "authority_revision", None)
+    current_set_digest = getattr(state, "set_digest", None)
+    if (
+        compressed is None
+        or not isinstance(expected_digest, str)
+        or len(expected_digest) != 64
+        or not isinstance(snapshot_set_digest, str)
+        or len(snapshot_set_digest) != 64
+        or snapshot_set_digest != expected_digest
+        or snapshot_set_digest != current_set_digest
+        or not isinstance(snapshot_revision, int)
+        or isinstance(snapshot_revision, bool)
+        or snapshot_revision != current_revision
+        or not isinstance(etag, str)
+        or not etag.startswith('W/"CWNG:')
+        or not isinstance(expected_count, int)
+        or isinstance(expected_count, bool)
+        or expected_count < 0
+    ):
+        return None
+    try:
+        body = gzip.decompress(compressed)
+        if hashlib.sha256(body).hexdigest() != expected_digest:
+            raise ValueError("snapshot digest mismatch")
+        payload = json.loads(body)
+        annotations = payload.get("annotations") if isinstance(payload, dict) else None
+        if (
+            not isinstance(annotations, list)
+            or len(annotations) != expected_count
+            or payload.get("nextPageOffsetToken") is not None
+        ):
+            raise ValueError("snapshot is not one complete page")
+    except Exception:
+        try:
+            log.error(
+                "Kobo authoritative last-served snapshot invalid "
+                "user_id=%s book_id=%s",
+                user_id, book_id, exc_info=True,
+            )
+        except Exception:
+            pass
+        return None
+    return body, etag
+
+
+def load_last_served_complete_set(*, user_id, book_id, log):
+    """Load CWNG's durable complete replacement set without inventing rows."""
+    try:
+        state = _state_for_book(user_id, book_id)
+        if state is None or not state.ever_authoritative:
+            return None
+        return _snapshot_payload(
+            state, log=log, user_id=user_id, book_id=book_id,
+        )
+    except Exception:
+        _safe_rollback()
+        try:
+            log.critical(
+                "Kobo authoritative last-served snapshot lookup failed "
+                "user_id=%s book_id=%s",
+                user_id, book_id, exc_info=True,
+            )
+        except Exception:
+            pass
+        return None
+
+
+def _commit_complete_render(*, state, body, digest, annotation_count):
+    """Advance CWNG revision and atomically persist the exact served bytes."""
+    if state.set_digest != digest:
+        state.authority_revision = (state.authority_revision or 0) + 1
+        state.set_digest = digest
+        state.last_mutation_at = datetime.now(timezone.utc)
+    revision = max(1, state.authority_revision or 0)
+    state.authority_revision = revision
+    etag = 'W/"CWNG:{}:{}:{}"'.format(
+        state.generation_id, revision, digest[:16],
+    )
+    state.current_etag = etag
+    state.etag_kind = "cwng_revision"
+    state.last_served_body_gzip = gzip.compress(body, mtime=0)
+    state.last_served_body_sha256 = digest
+    state.last_served_etag = etag
+    state.last_served_annotation_count = annotation_count
+    state.last_served_authority_revision = revision
+    state.last_served_set_digest = digest
+    state.last_served_at = datetime.now(timezone.utc)
+    # State, ETag, and fallback bytes become durable together before Flask can
+    # begin sending the replacement-set response.
+    ub.session.commit()
+    return etag
+
+
 def _emergency_render(*, user_id, book_id, entitlement_id, page_limit,
-                      device_id, log, reason):
+                      device_id, log, reason, force_authoritative=False):
     rows, query_reason = _emergency_rows(user_id, book_id, page_limit)
+    if query_reason is not None:
+        # A failed query supplies no evidence that the visible set is empty.
+        # Replaying our own last complete response is the only non-wiping 200.
+        _log_degraded(
+            log, user_id=user_id, book_id=book_id, visible_count=0,
+            reasons=[reason, query_reason, "last_served_snapshot_required"],
+        )
+        return load_last_served_complete_set(
+            user_id=user_id, book_id=book_id, log=log,
+        )
     if len(rows) > page_limit:
         return None
-    if not _render_count_is_safe(
+    if not force_authoritative and not _render_count_is_safe(
         user_id=user_id, book_id=book_id, device_id=device_id,
         row_count=len(rows),
+        row_ids={annotation.annotation_id for annotation, _ in rows},
     ):
         return None
     reasons = [reason]
@@ -671,10 +1114,30 @@ def _emergency_render(*, user_id, book_id, entitlement_id, page_limit,
     body = b'{"annotations":[' + b",".join(objects) \
         + b'],"nextPageOffsetToken":null}'
     digest = hashlib.sha256(body).hexdigest()
-    normalized_content_id = _normalized_entitlement_id(entitlement_id)
-    etag = _transient_etag(
-        user_id, book_id, normalized_content_id, digest,
+    state, normalized_content_id, state_reason = _book_state(
+        user_id, book_id, entitlement_id,
     )
+    if state_reason is not None:
+        reasons.append(state_reason)
+    if state is None:
+        etag = _transient_etag(
+            user_id, book_id, normalized_content_id, digest,
+        )
+    else:
+        try:
+            etag = _commit_complete_render(
+                state=state, body=body, digest=digest,
+                annotation_count=len(rows),
+            )
+        except Exception as error:
+            _safe_rollback()
+            reasons.append(_failure_reason("book_state_commit", error))
+            # The complete live body is newer evidence than any stored
+            # snapshot. Persistence failure may degrade durability, but must
+            # never replace known-complete live membership with an older set.
+            etag = _transient_etag(
+                user_id, book_id, normalized_content_id, digest,
+            )
     _log_degraded(
         log, user_id=user_id, book_id=book_id,
         visible_count=len(rows), reasons=reasons,
@@ -692,6 +1155,7 @@ def _render_owned_annotations(*, user_id, book_id, entitlement_id, page_limit,
     if not _render_count_is_safe(
         user_id=user_id, book_id=book_id, device_id=device_id,
         row_count=len(rows),
+        row_ids={annotation.annotation_id for annotation, _ in rows},
     ):
         return None
     for annotation, materialization in rows:
@@ -725,24 +1189,15 @@ def _render_owned_annotations(*, user_id, book_id, entitlement_id, page_limit,
         )
     else:
         try:
-            if state.set_digest != digest:
-                state.authority_revision = (state.authority_revision or 0) + 1
-                state.set_digest = digest
-                state.last_mutation_at = datetime.now(timezone.utc)
-            revision = max(1, state.authority_revision or 0)
-            state.authority_revision = revision
-            etag = 'W/"CWNG:{}:{}:{}"'.format(
-                state.generation_id, revision, digest[:16],
+            etag = _commit_complete_render(
+                state=state, body=body, digest=digest,
+                annotation_count=len(rows),
             )
-            state.current_etag = etag
-            state.etag_kind = "cwng_revision"
-            # Commit directly so this boundary owns the one sanitized error
-            # log. ``ub.session_commit`` logs before returning False, which
-            # would duplicate the degraded-response record below.
-            ub.session.commit()
         except Exception as error:
             _safe_rollback()
             reasons.append(_failure_reason("book_state_commit", error))
+            # Never discard the current complete render in favor of a prior
+            # snapshot merely because its persistence/ETag commit failed.
             etag = _transient_etag(
                 user_id, book_id, normalized_content_id, digest,
             )
@@ -780,3 +1235,18 @@ def render_owned_annotations(*, user_id, book_id, entitlement_id, page_limit,
             log=log,
             reason=_failure_reason("render", error),
         )
+
+
+def render_authoritative_complete_set(*, user_id, book_id, entitlement_id,
+                                      page_limit, device_id, log, reason):
+    """Rebuild or replay known authority; ``None`` requests terminal 503."""
+    return _emergency_render(
+        user_id=user_id,
+        book_id=book_id,
+        entitlement_id=entitlement_id,
+        page_limit=page_limit,
+        device_id=device_id,
+        log=log,
+        reason=reason,
+        force_authoritative=True,
+    )

@@ -30,6 +30,8 @@ REQUIRED_ANNOTATION_COLUMNS = {
     "annotation_type", "content_revision", "server_modified_at",
     "last_editor_device_id",
 }
+REQUIRED_BOOK_STATE_COLUMNS = {"ever_authoritative"}
+REQUIRED_SEED_CAPTURE_COLUMNS = {"seed_kind"}
 REQUIRED_INDEXES = {
     "kobo_annotation_materialization": {"ix_kam_serveable"},
     "kobo_annotation_book_state": {"ix_kabs_user_content", "ix_kabs_authority"},
@@ -84,6 +86,18 @@ def schema_capable(engine) -> bool:
             return False
         columns = {column["name"] for column in inspector.get_columns("annotation")}
         if not REQUIRED_ANNOTATION_COLUMNS <= columns:
+            return False
+        book_state_columns = {
+            column["name"]
+            for column in inspector.get_columns("kobo_annotation_book_state")
+        }
+        if not REQUIRED_BOOK_STATE_COLUMNS <= book_state_columns:
+            return False
+        seed_capture_columns = {
+            column["name"]
+            for column in inspector.get_columns("kobo_annotation_seed_capture")
+        }
+        if not REQUIRED_SEED_CAPTURE_COLUMNS <= seed_capture_columns:
             return False
         if "user" not in tables or "settings" not in tables:
             return False
