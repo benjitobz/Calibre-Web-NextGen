@@ -275,6 +275,18 @@ def get_email_status_json():
 @web.route("/ajax/bookmark/<int:book_id>/<book_format>", methods=['POST'])
 @user_login_required
 def set_bookmark(book_id, book_format):
+    try:
+        from .services.device_registry import (
+            WEBREADER_INSTALLATION_ID_HEADER,
+            ensure_webreader_device_best_effort,
+        )
+        g.annotation_origin_device_id = ensure_webreader_device_best_effort(
+            user_id=current_user.id,
+            installation_id=request.headers.get(WEBREADER_INSTALLATION_ID_HEADER),
+        )
+    except Exception:
+        log.warning("Best-effort web-reader device observation failed", exc_info=True)
+        g.annotation_origin_device_id = None
     book_format = (book_format or "").lower()
     bookmark_key = request.form["bookmark"]
     ub.session.query(ub.Bookmark).filter(and_(ub.Bookmark.user_id == int(current_user.id),
@@ -308,7 +320,12 @@ def set_bookmark(book_id, book_format):
     percentage = reading_position.coerce_percentage(request.form.get("percentage"))
     if percentage is not None:
         try:
-            reading_position.record_web_reader_progress(current_user, book_id, percentage)
+            reading_position.record_web_reader_progress(
+                current_user,
+                book_id,
+                percentage,
+                origin_device_id=g.annotation_origin_device_id,
+            )
         except Exception as e:
             # Position sharing must never cost the user their bookmark.
             log.warning("Could not share web reader progress for book %s: %s", book_id, e)

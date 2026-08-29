@@ -1311,6 +1311,7 @@ class Annotation(Base):
     __table_args__ = (
         Index('ix_annotation_user_annotation', 'user_id', 'annotation_id'),
         Index('ix_annotation_user_book', 'user_id', 'book_id'),
+        Index('ix_annotation_user_book_origin', 'user_id', 'book_id', 'origin_device_id'),
         UniqueConstraint(
             'user_id', 'book_id', 'annotation_id',
             name='uq_annotation_user_book_annotation',
@@ -3641,6 +3642,19 @@ def migrate_device_management_slice(engine, _session):
         ))
 
 
+def migrate_webreader_device_identity_slice(engine, _session):
+    """Add the M1 composite origin lookup without loading ORM rows."""
+    with engine.begin() as conn:
+        if not conn.execute(text(
+            "SELECT 1 FROM sqlite_master WHERE type='table' AND name='annotation'"
+        )).first():
+            return
+        conn.execute(text(
+            "CREATE INDEX IF NOT EXISTS ix_annotation_user_book_origin "
+            "ON annotation(user_id, book_id, origin_device_id)"
+        ))
+
+
 _KOBO_TWO_WAY_TABLES = (
     KoboAnnotationMaterialization.__table__,
     KoboAnnotationBookState.__table__,
@@ -4321,6 +4335,7 @@ def migrate_Database(_session):
     migrate_annotation_koreader_identity(engine, _session)
     migrate_multi_device_annotation_safe_slice(engine, _session)
     migrate_device_management_slice(engine, _session)
+    migrate_webreader_device_identity_slice(engine, _session)
     migrate_kobo_two_way_annotation_sync(engine, _session)
     migrate_book_cover_preview_table(engine, _session)
     migrate_notice_tables(engine, _session)

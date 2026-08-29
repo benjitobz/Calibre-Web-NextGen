@@ -49,6 +49,27 @@ def test_device_list_aggregates_zero_and_many_annotation_counts(session):
     assert rows[busy.public_id]["annotation_count"] == 12
 
 
+def test_device_list_exposes_webreader_kind_without_faking_legacy_rows(session):
+    from cps import ub
+    from cps.annotations import list_annotation_devices
+
+    browser = ub.Device(
+        user_id=7,
+        kind="webreader",
+        display_name="Web reader",
+        model="CWNG web reader",
+        platform="epub.js",
+        active=True,
+        created_by="auto",
+    )
+    session.add(browser)
+    session.commit()
+    payload = list_annotation_devices(user_id=7, session=session)[0]
+    assert payload["kind"] == "webreader"
+    assert payload["type"] == "webreader"
+    assert payload["label"] == "Web reader"
+
+
 @pytest.mark.parametrize("label", ["", "x" * 61, " leading", "trailing ", "bad\nlabel"])
 def test_device_rename_rejects_out_of_range_or_unsafe_labels(session, label):
     from cps.annotations import rename_annotation_device

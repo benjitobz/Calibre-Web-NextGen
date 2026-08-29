@@ -21,6 +21,7 @@ import {
   DEFAULT_HIT_CAP, MIN_QUERY_LENGTH, searchBook, type SearchHit,
 } from '../lib/reader/searchBook';
 import { chapterLabelForHref, splitSearchExcerpt } from '../lib/reader/searchUi';
+import { safeLocalStorageGet, safeLocalStorageSet } from '../lib/safeStorage';
 import styles from './Reader.module.css';
 
 // Highlight colors as ARIA/label keys (SC 1.4.1: a color must never be conveyed
@@ -171,7 +172,7 @@ const FONT_FAMILY: Record<ReaderSettings['font'], string> = {
 };
 
 function loadTheme(): ReaderTheme {
-  const v = localStorage.getItem(LS_THEME);
+  const v = safeLocalStorageGet(LS_THEME);
   if (v === 'light' || v === 'sepia' || v === 'dark' || v === 'black') return v;
   // First reader visit follows the already-resolved per-user app palette.
   // Thereafter the reader's explicit page-theme choice remains independent.
@@ -181,7 +182,7 @@ function loadTheme(): ReaderTheme {
   return 'dark';
 }
 function loadFont(): number {
-  const v = Number(localStorage.getItem(LS_FONT));
+  const v = Number(safeLocalStorageGet(LS_FONT));
   return v >= FONT_MIN && v <= FONT_MAX ? v : 100;
 }
 
@@ -558,7 +559,7 @@ export function Reader({ id }: { id: string }) {
       const created = await apiPost<Partial<AnnRow>>(`/annotations/${id}`, {
         cfi_range: cfiRange, highlighted_text: text, highlight_color: color,
         ...(note ? { note_text: note } : {}),
-      });
+      }, { webreaderDevice: true });
       const newId = created?.annotation_id ?? '';
       if (note && newId) notesRef.current.set(newId, note);
       setAnnList((rows) => [...rows, {
@@ -640,7 +641,7 @@ export function Reader({ id }: { id: string }) {
       try {
         const created = await apiPost<Partial<AnnRow>>(`/annotations/${id}`, {
           position_type: 'unanchored', note_text: note,
-        });
+        }, { webreaderDevice: true });
         setAnnList((rows) => [...rows, {
           annotation_id: created?.annotation_id ?? '',
           cfi_range: null,
@@ -661,7 +662,8 @@ export function Reader({ id }: { id: string }) {
     }
     if (!c.annotationId) return;
     try {
-      await apiPatch(`/annotations/${id}/${c.annotationId}`, { note_text: note });
+      await apiPatch(`/annotations/${id}/${c.annotationId}`, { note_text: note },
+        { webreaderDevice: true });
       if (note) notesRef.current.set(c.annotationId, note);
       else notesRef.current.delete(c.annotationId);
       setAnnList((rows) => rows.map((r) =>
@@ -774,7 +776,7 @@ export function Reader({ id }: { id: string }) {
     if (!hl) return;
     setActiveHl(null);
     try {
-      await apiDelete(`/annotations/${id}/${hl.id}`);
+      await apiDelete(`/annotations/${id}/${hl.id}`, { webreaderDevice: true });
       notesRef.current.delete(hl.id);
       setAnnList((rows) => rows.filter((r) => r.annotation_id !== hl.id));
       try { renditionRef.current?.annotations?.remove(hl.cfiRange, 'highlight'); } catch { /* noop */ }
@@ -791,7 +793,8 @@ export function Reader({ id }: { id: string }) {
     setActiveHl(null);
     if (hl.color === color) return;
     try {
-      await apiPatch(`/annotations/${id}/${hl.id}`, { highlight_color: color });
+      await apiPatch(`/annotations/${id}/${hl.id}`, { highlight_color: color },
+        { webreaderDevice: true });
       setAnnList((rows) => rows.map((r) =>
         r.annotation_id === hl.id ? { ...r, highlight_color: color } : r));
       // Recolouring must not silently drop the note marker.
@@ -1131,7 +1134,7 @@ export function Reader({ id }: { id: string }) {
             `/api/v1/books/${id}/bookmark`,
             pct != null ? { format: 'epub', bookmark: cfi, percentage: pct }
                         : { format: 'epub', bookmark: cfi },
-            { keepalive: true },
+            { keepalive: true, webreaderDevice: true },
           );
         }
       }
@@ -1147,11 +1150,11 @@ export function Reader({ id }: { id: string }) {
   // Apply theme / font changes to a live rendition without rebuilding it, and
   // remember the preference across sessions.
   useEffect(() => {
-    localStorage.setItem(LS_THEME, theme);
+    safeLocalStorageSet(LS_THEME, theme);
     applyTheme(theme);
   }, [theme, applyTheme]);
   useEffect(() => {
-    localStorage.setItem(LS_FONT, String(fontPct));
+    safeLocalStorageSet(LS_FONT, String(fontPct));
     applyTypography();
   }, [fontPct, fontFamily, margin, lineHeight, applyTypography]);
 
