@@ -121,6 +121,30 @@ def _add_list_values(book, field, raw):
     return joiner.join(existing + additions)
 
 
+def _delete_api_response(result):
+    """Translate the legacy delete core's message list into an API contract."""
+    try:
+        payload = json.loads(result or "[]")
+    except (TypeError, ValueError):
+        return _err("delete_failed", "Deleting the book failed", 500)
+    messages = payload if isinstance(payload, list) else [payload]
+    danger = next((item for item in messages
+                   if isinstance(item, dict) and item.get("type") == "danger"), None)
+    if danger:
+        return _err("delete_failed", str(danger.get("message") or "Deleting the book failed"), 500)
+    warning = next((item for item in messages
+                    if isinstance(item, dict) and item.get("type") == "warning"), None)
+    if warning:
+        return jsonify({
+            "deleted": True,
+            "warning": {
+                "code": "cleanup_incomplete",
+                "message": str(warning.get("message") or "File cleanup was incomplete"),
+            },
+        })
+    return "", 204
+
+
 def _custom_column_defs():
     """The custom columns the editor offers, or ``[]`` if they can't be read.
 
@@ -484,8 +508,7 @@ def delete_book(book_id):
         return _err("not_found", "Book not found", 404)
     # delete_book_from_table re-checks the role and does the data-safe (DB-first,
     # files-last) whole-book delete + shelf cleanup. book_format="" = whole book.
-    delete_book_from_table(book_id, "", True)
-    return "", 204
+    return _delete_api_response(delete_book_from_table(book_id, "", True))
 
 
 @api_v1.route("/books/<int:book_id>/formats/<fmt>/delete", methods=["POST"])
@@ -504,8 +527,7 @@ def delete_format(book_id, fmt):
     matching_formats = [data for data in book.data if data.format.upper() == fmt.upper()]
     if matching_formats and len(book.data) == 1:
         return _err("last_format", "A book must keep at least one format", 409)
-    delete_book_from_table(book_id, fmt.upper(), True)
-    return "", 204
+    return _delete_api_response(delete_book_from_table(book_id, fmt.upper(), True))
 
 
 @api_v1.route("/books/<int:book_id>/convert", methods=["POST"])

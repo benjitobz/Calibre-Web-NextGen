@@ -842,7 +842,16 @@ function FormatsManager({ id }: { id: string }) {
               <button className={styles.formatDelete}
                 onClick={() => {
                   if (window.confirm(t('Delete the {fmt} file? The book stays; only this format is removed.', { fmt: f.format }))) {
-                    deleteFormat.mutate(f.format);
+                    setMsg(null);
+                    deleteFormat.mutate(f.format, {
+                      onSuccess: (result) => setMsg(result?.warning
+                        ? { ok: false, text: result.warning.message }
+                        : { ok: true, text: t('Format deleted.') }),
+                      onError: (err) => setMsg({
+                        ok: false,
+                        text: err instanceof ApiError ? err.message : t('Could not delete this format.'),
+                      }),
+                    });
                   }
                 }}
                 disabled={deleteFormat.isPending || isLastFormat}

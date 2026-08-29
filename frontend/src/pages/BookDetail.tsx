@@ -637,7 +637,10 @@ export function BookDetail() {
                   )) return;
                   setDeleteError(null);
                   deleteBook.mutate(undefined, {
-                    onSuccess: () => navigate('/'),
+                    onSuccess: (result) => {
+                      if (result?.warning) window.alert(result.warning.message);
+                      navigate('/');
+                    },
                     onError: (err) =>
                       setDeleteError(err instanceof ApiError ? err.message : t('Could not delete this book.')),
                   });

@@ -2554,6 +2554,14 @@ msgstr "Metadata toegepast op {succeeded}; {failed} mislukt."
 msgid "A book must keep at least one format."
 msgstr "Een boek moet minstens één formaat behouden."
 
+#: cps/spa_strings.py
+msgid "Could not delete this format."
+msgstr "Kan dit formaat niet verwijderen."
+
+#: cps/spa_strings.py
+msgid "Format deleted."
+msgstr "Formaat verwijderd."
+
 #: cps/spa_strings.py cps/templates/detail.html
 msgid "Read now"
 msgstr "Nu lezen"

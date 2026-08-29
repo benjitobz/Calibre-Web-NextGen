@@ -938,10 +938,15 @@ export function useUpdateMetadata(id: string | number) {
  *  every cached catalog snapshot so a later scroll-restore can't resurrect it
  *  as a ghost card (#578), then refreshes the library + shelves. Callers redirect
  *  away from the now-deleted book's detail page on success. */
+export interface DeleteResult {
+  deleted: true;
+  warning?: { code: string; message: string };
+}
+
 export function useDeleteBook(id: string | number) {
   const qc = useQueryClient();
   return useMutation({
-    mutationFn: () => apiPost(`/api/v1/books/${id}/delete`),
+    mutationFn: () => apiPost<DeleteResult | undefined>(`/api/v1/books/${id}/delete`),
     onSuccess: () => {
       removeBookFromCache(Number(id));
       // Drop the deleted book's own detail cache, and refetch every surface that
@@ -981,7 +986,7 @@ export function useDeleteFormat(id: string | number) {
   const qc = useQueryClient();
   return useMutation({
     mutationFn: (fmt: string) =>
-      apiPost(`/api/v1/books/${id}/formats/${encodeURIComponent(fmt)}/delete`),
+      apiPost<DeleteResult | undefined>(`/api/v1/books/${id}/formats/${encodeURIComponent(fmt)}/delete`),
     onSuccess: () => {
       void qc.invalidateQueries({ queryKey: ['book', String(id)] });
       void qc.invalidateQueries({ queryKey: ['books'] });

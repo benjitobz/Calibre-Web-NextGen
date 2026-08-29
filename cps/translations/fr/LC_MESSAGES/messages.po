@@ -2664,6 +2664,14 @@ msgstr "Métadonnées appliquées à {succeeded} ; {failed} échec(s)."
 msgid "A book must keep at least one format."
 msgstr "Un livre doit conserver au moins un format."
 
+#: cps/spa_strings.py
+msgid "Could not delete this format."
+msgstr "Impossible de supprimer ce format."
+
+#: cps/spa_strings.py
+msgid "Format deleted."
+msgstr "Format supprimé."
+
 #: cps/spa_strings.py cps/templates/detail.html
 msgid "Read now"
 msgstr "Lire"
