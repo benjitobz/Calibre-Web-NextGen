@@ -342,3 +342,15 @@ def test_a_rename_out_of_a_shipping_directory_still_reports_the_shipping_path(tm
         "a diff that removes a module from cps/ must still require a "
         "release-note entry"
     )
+
+
+def test_a_pull_request_that_changes_no_file_needs_no_changelog_entry():
+    """An empty tree diff ships nothing, so there is nothing to announce.
+
+    A `-s ours` back-merge that reconnects an off-main hotfix tag to main is
+    exactly this shape. Before the fix, `all([])` was blocked by a
+    `changed_paths and` clause that fell through to the error instead, so the
+    guard refused such a pull request for "changing shipping paths" while its
+    diff was empty.
+    """
+    assert GUARD.changelog_requirement_errors([]) == []
