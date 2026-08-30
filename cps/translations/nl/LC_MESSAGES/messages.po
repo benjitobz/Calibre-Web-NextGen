@@ -14658,3 +14658,9 @@ msgstr "Toon gelezen/niet gelezen selectie"
 #~ msgstr ""
 #~ "Boeken moeten eerst worden gearchiveerd en het apparaat moet worden "
 #~ "gesynchroniseerd, voordat een boek veilig kan worden verwijderd."
+
+msgid "Position repair queued"
+msgstr "Herstel van leespositie in wachtrij"
+
+msgid "{n} devices · {m} active"
+msgstr "{n} apparaten · {m} actief"

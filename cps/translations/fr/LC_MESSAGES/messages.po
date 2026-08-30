@@ -15151,3 +15151,9 @@ msgstr "Afficher la section Lu / Non lu"
 #~ msgstr ""
 #~ "Les livres doivent d'abord être archivés et l'appareil synchronisé avant "
 #~ "qu'un livre puisse être supprimé en tout sécurité."
+
+msgid "Position repair queued"
+msgstr "Restauration de la position en attente"
+
+msgid "{n} devices · {m} active"
+msgstr "{n} appareils · {m} actifs"
