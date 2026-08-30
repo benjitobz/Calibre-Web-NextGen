@@ -11,7 +11,7 @@ from types import SimpleNamespace
 import pytest
 from flask import Flask
 from sqlalchemy import create_engine, event, inspect
-from sqlalchemy.orm import sessionmaker
+from sqlalchemy.orm import scoped_session, sessionmaker
 
 from cps import constants, db, ub
 from cps.progress_syncing.models import KOSyncProgress
@@ -697,6 +697,462 @@ def test_membership_mutations_invalidate_cached_filter_in_same_request(
                 .filter(after_remove).all()] == [2]
 
 
+def test_batch_add_reports_mixed_visible_and_forbidden_ids_per_item(
+        app_session, calibre_session, monkeypatch):
+    """One forbidden id must not bypass policy or hide an allowed success."""
+    from cps import user_library
+    from cps.api import actions
+
+    english = db.Languages("eng")
+    french = db.Languages("fra")
+    books = calibre_session.query(db.Books).order_by(db.Books.id).all()
+    books[0].languages.append(english)
+    books[1].languages.append(french)
+    calibre_session.commit()
+
+    user = _mode_user(app_session, "batch-mixed-policy")
+    user.default_language = "eng"
+    app_session.commit()
+    monkeypatch.setattr(ub, "session", app_session)
+    monkeypatch.setattr(user_library, "calibre_db", _cdb(calibre_session))
+    monkeypatch.setattr(actions, "current_user", user)
+
+    app = Flask(__name__)
+    with app.test_request_context(
+            "/api/v1/books/my-library/batch", method="POST",
+            json={"operation": "add", "book_ids": [1, 2]}):
+        response = actions.batch_my_library_membership.__wrapped__()
+
+    payload = response.get_json()
+    assert payload["operation"] == "add"
+    assert payload["succeeded_ids"] == [1]
+    assert payload["failed_ids"] == [2]
+    assert payload["partial_failure"] is True
+    assert payload["results"] == [
+        {
+            "book_id": 1,
+            "status": "succeeded",
+            "changed": True,
+            "in_my_library": True,
+        },
+        {
+            "book_id": 2,
+            "status": "failed",
+            "error": {
+                "code": "library_membership_rejected",
+                "message": "Book not found in the visible global library.",
+            },
+            "http_status": 403,
+        },
+    ]
+    memberships = (app_session.query(ub.UserLibraryBook)
+                   .filter_by(user_id=user.id).all())
+    assert [row.book_id for row in memberships] == [1]
+    assert memberships[0].added_at != datetime.min
+    with pytest.raises(user_library.UserLibraryError, match="visible global"):
+        user_library.add_book(
+            user, 2, app_session=app_session, cdb=_cdb(calibre_session)
+        )
+
+
+def test_batch_add_cannot_self_grant_without_global_browse(
+        app_session, calibre_session, monkeypatch):
+    """The self-service route must not use the admin-managed add policy."""
+    from cps import user_library
+    from cps.api import actions
+
+    user = _user(app_session, "batch-no-global-browse", True)
+    assert user.role_browse_global() is False
+    monkeypatch.setattr(ub, "session", app_session)
+    monkeypatch.setattr(user_library, "calibre_db", _cdb(calibre_session))
+    monkeypatch.setattr(actions, "current_user", user)
+
+    app = Flask(__name__)
+    with app.test_request_context(
+            "/api/v1/books/my-library/batch", method="POST",
+            json={"operation": "add", "book_ids": [1]}):
+        response = actions.batch_my_library_membership.__wrapped__()
+
+    payload = response.get_json()
+    assert payload["succeeded_ids"] == []
+    assert payload["failed_ids"] == [1]
+    assert payload["results"] == [{
+        "book_id": 1,
+        "status": "failed",
+        "error": {
+            "code": "library_membership_rejected",
+            "message": (
+                "You need global-library browse permission to change "
+                "My Library."
+            ),
+        },
+        "http_status": 403,
+    }]
+    assert app_session.query(ub.UserLibraryBook).filter_by(
+        user_id=user.id, book_id=1
+    ).count() == 0
+
+
+def test_batch_membership_rejects_guest_when_anonymous_browsing_is_enabled(
+        app_session, monkeypatch):
+    """The per-route guard must stop Guest after both outer gates admit it."""
+    from cps import api as api_root
+    from cps import usermanagement
+    from cps.api import actions, api_v1
+
+    guest = _user(app_session, "Guest", True)
+    guest.role = constants.ROLE_ANONYMOUS
+    app_session.add(ub.UserLibraryBook(user_id=guest.id, book_id=2))
+    app_session.commit()
+    assert guest.is_anonymous is True
+
+    monkeypatch.setattr(ub, "session", app_session)
+    monkeypatch.setattr(actions, "current_user", guest)
+    monkeypatch.setattr(api_root, "current_user", guest)
+    monkeypatch.setattr(
+        api_root.config, "config_allow_reverse_proxy_header_login", False,
+        raising=False,
+    )
+    monkeypatch.setattr(
+        api_root.config, "config_anonbrowse", 1, raising=False
+    )
+    monkeypatch.setattr(
+        usermanagement.config,
+        "config_allow_reverse_proxy_header_login",
+        False,
+        raising=False,
+    )
+    monkeypatch.setattr(
+        usermanagement.config, "config_anonbrowse", 1, raising=False
+    )
+
+    app = Flask(__name__)
+    app.testing = True
+    app.config["SECRET_KEY"] = "batch-membership-test"
+    app.config["WTF_CSRF_ENABLED"] = False
+    app.config["RATELIMIT_ENABLED"] = False
+    app.register_blueprint(api_v1)
+    response = app.test_client().post(
+        "/api/v1/books/my-library/batch",
+        json={"operation": "add", "book_ids": [1]},
+    )
+
+    assert response.status_code == 401
+    assert response.get_json() == {
+        "error": {
+            "code": "unauthorized",
+            "message": "You must be signed in",
+        }
+    }
+    assert [row.book_id for row in app_session.query(ub.UserLibraryBook)
+            .filter_by(user_id=guest.id).all()] == [2]
+
+
+def test_batch_remove_preserves_managed_account_policy_and_partial_success(
+        app_session, monkeypatch):
+    """Sequential removals report a protected last book and an absent no-op."""
+    from cps.api import actions
+
+    user = _user(app_session, "batch-managed-remove", True)
+    app_session.add_all([
+        ub.UserLibraryBook(user_id=user.id, book_id=1),
+        ub.UserLibraryBook(user_id=user.id, book_id=2),
+    ])
+    app_session.commit()
+    monkeypatch.setattr(ub, "session", app_session)
+    monkeypatch.setattr(actions, "current_user", user)
+
+    app = Flask(__name__)
+    with app.test_request_context(
+            "/api/v1/books/my-library/batch", method="POST",
+            json={"operation": "remove", "book_ids": [1, 2, 3]}):
+        response = actions.batch_my_library_membership.__wrapped__()
+
+    payload = response.get_json()
+    assert payload["succeeded_ids"] == [1, 3]
+    assert payload["failed_ids"] == [2]
+    assert payload["results"] == [
+        {
+            "book_id": 1,
+            "status": "succeeded",
+            "changed": True,
+            "in_my_library": False,
+            "affected_shelves": [],
+            "kobo_removal_on_next_sync": True,
+            "reading_data_preserved": True,
+        },
+        {
+            "book_id": 2,
+            "status": "failed",
+            "error": {
+                "code": "library_membership_rejected",
+                "message": (
+                    "The last book cannot be removed unless this user can "
+                    "browse the global library."
+                ),
+            },
+            "http_status": 409,
+        },
+        {
+            "book_id": 3,
+            "status": "succeeded",
+            "changed": False,
+            "in_my_library": False,
+            "affected_shelves": [],
+            "kobo_removal_on_next_sync": True,
+            "reading_data_preserved": True,
+        },
+    ]
+    assert [row.book_id for row in app_session.query(ub.UserLibraryBook)
+            .filter_by(user_id=user.id).all()] == [2]
+
+
+@pytest.mark.parametrize("network_share", [False, True])
+def test_concurrent_batch_removals_cannot_empty_managed_library(
+        tmp_path, monkeypatch, network_share):
+    """Concurrent route calls must atomically preserve one membership.
+
+    A sequential test cannot see this class of bug: each request observes the
+    preceding commit.  These two real HTTP requests instead pause after both
+    helpers have observed two memberships, then race removals of different
+    books.  Keep them concurrent so the read/check/delete gap cannot return.
+    """
+    from cps import api as api_root
+    from cps import user_library, usermanagement
+    from cps.api import actions, api_v1
+
+    monkeypatch.setenv(
+        "NETWORK_SHARE_MODE", "true" if network_share else "false"
+    )
+    engine = ub._create_app_db_engine(tmp_path / "app.db")
+    ub.Base.metadata.create_all(engine)
+    sessions = scoped_session(sessionmaker(bind=engine))
+    setup_session = sessions()
+    persisted_user = _user(setup_session, "concurrent-managed-remove", True)
+    user_id = persisted_user.id
+    setup_session.add_all([
+        ub.UserLibraryBook(user_id=user_id, book_id=1),
+        ub.UserLibraryBook(user_id=user_id, book_id=2),
+    ])
+    setup_session.commit()
+    sessions.remove()
+
+    with engine.connect() as connection:
+        expected_mode = "delete" if network_share else "wal"
+        assert connection.exec_driver_sql(
+            "PRAGMA journal_mode"
+        ).scalar_one().lower() == expected_mode
+
+    current_user = SimpleNamespace(
+        id=user_id,
+        has_own_library=True,
+        is_authenticated=True,
+        is_anonymous=False,
+        role_browse_global=lambda: False,
+    )
+    monkeypatch.setattr(ub, "session", sessions)
+    monkeypatch.setattr(actions, "current_user", current_user)
+    monkeypatch.setattr(api_root.config, "config_anonbrowse", 1, raising=False)
+    monkeypatch.setattr(
+        api_root.config,
+        "config_allow_reverse_proxy_header_login",
+        False,
+        raising=False,
+    )
+    monkeypatch.setattr(
+        usermanagement.config, "config_anonbrowse", 1, raising=False
+    )
+    monkeypatch.setattr(
+        usermanagement.config,
+        "config_allow_reverse_proxy_header_login",
+        False,
+        raising=False,
+    )
+
+    app = Flask(__name__)
+    app.testing = False
+    app.config["SECRET_KEY"] = "concurrent-membership-test"
+    app.config["WTF_CSRF_ENABLED"] = False
+    app.config["RATELIMIT_ENABLED"] = False
+    app.register_blueprint(api_v1)
+
+    both_counted = threading.Barrier(2)
+    original_membership_count = user_library.membership_count
+
+    def synchronize_vulnerable_check(counted_user_id, session=None):
+        count = original_membership_count(counted_user_id, session)
+        both_counted.wait(timeout=5)
+        return count
+
+    monkeypatch.setattr(
+        user_library, "membership_count", synchronize_vulnerable_check
+    )
+    start = threading.Barrier(2)
+    responses = []
+    errors = []
+
+    def remove_one(book_id):
+        try:
+            start.wait(timeout=5)
+            response = app.test_client().post(
+                "/api/v1/books/my-library/batch",
+                json={"operation": "remove", "book_ids": [book_id]},
+            )
+            responses.append((book_id, response.status_code, response.get_json()))
+        except BaseException as error:  # surfaced after both threads join
+            errors.append(error)
+        finally:
+            sessions.remove()
+
+    threads = [
+        threading.Thread(target=remove_one, args=(book_id,))
+        for book_id in (1, 2)
+    ]
+    try:
+        for thread in threads:
+            thread.start()
+        for thread in threads:
+            thread.join(timeout=10)
+
+        assert all(not thread.is_alive() for thread in threads)
+        assert errors == []
+        assert sorted(status for _, status, _ in responses) == [200, 200]
+        item_results = sorted(
+            (
+                response_payload["results"][0]
+                for _, _, response_payload in responses
+            ),
+            key=lambda item: item["status"],
+        )
+        assert [item["status"] for item in item_results] == [
+            "failed", "succeeded",
+        ]
+        assert [item.get("changed") for item in item_results] == [None, True]
+        succeeded = next(
+            item for item in item_results if item["status"] == "succeeded"
+        )
+        assert succeeded["kobo_removal_on_next_sync"] is True
+        assert succeeded["reading_data_preserved"] is True
+
+        observer = sessions()
+        assert observer.query(ub.UserLibraryBook).filter_by(
+            user_id=user_id
+        ).count() == 1
+    finally:
+        sessions.remove()
+        engine.dispose()
+
+
+def test_batch_add_and_remove_are_idempotent(
+        app_session, calibre_session, monkeypatch):
+    from cps import user_library
+    from cps.api import actions
+
+    user = _mode_user(app_session, "batch-idempotent")
+    monkeypatch.setattr(ub, "session", app_session)
+    monkeypatch.setattr(user_library, "calibre_db", _cdb(calibre_session))
+    monkeypatch.setattr(actions, "current_user", user)
+    app = Flask(__name__)
+
+    with app.test_request_context(
+            "/api/v1/books/my-library/batch", method="POST",
+            json={"operation": "add", "book_ids": [1, 1]}):
+        add_payload = (
+            actions.batch_my_library_membership.__wrapped__().get_json()
+        )
+    assert [result["changed"] for result in add_payload["results"]] == [
+        True, False,
+    ]
+    membership = (app_session.query(ub.UserLibraryBook)
+                  .filter_by(user_id=user.id, book_id=1).one())
+    genuine_arrival = membership.added_at
+    assert genuine_arrival != datetime.min
+
+    with app.test_request_context(
+            "/api/v1/books/my-library/batch", method="POST",
+            json={"operation": "add", "book_ids": [1]}):
+        repeat_add = actions.batch_my_library_membership.__wrapped__().get_json()
+    app_session.refresh(membership)
+    assert repeat_add["results"][0]["changed"] is False
+    assert membership.added_at == genuine_arrival
+    assert app_session.query(ub.UserLibraryBook).filter_by(
+        user_id=user.id, book_id=1
+    ).count() == 1
+
+    with app.test_request_context(
+            "/api/v1/books/my-library/batch", method="POST",
+            json={"operation": "remove", "book_ids": [1, 1]}):
+        remove_payload = (
+            actions.batch_my_library_membership.__wrapped__().get_json()
+        )
+    assert [result["changed"] for result in remove_payload["results"]] == [
+        True, False,
+    ]
+    assert app_session.query(ub.UserLibraryBook).filter_by(
+        user_id=user.id, book_id=1
+    ).count() == 0
+
+
+def test_batch_membership_rejects_more_than_200_before_mutating(
+        app_session, calibre_session, monkeypatch):
+    from cps import user_library
+    from cps.api import actions
+
+    user = _mode_user(app_session, "batch-cap")
+    monkeypatch.setattr(ub, "session", app_session)
+    monkeypatch.setattr(user_library, "calibre_db", _cdb(calibre_session))
+    monkeypatch.setattr(actions, "current_user", user)
+
+    app = Flask(__name__)
+    with app.test_request_context(
+            "/api/v1/books/my-library/batch", method="POST",
+            json={"operation": "add", "book_ids": list(range(1, 202))}):
+        response, status = (
+            actions.batch_my_library_membership.__wrapped__()
+        )
+    assert status == 400
+    assert response.get_json() == {
+        "error": {
+            "code": "batch_too_large",
+            "message": "book_ids accepts at most 200 items",
+            "max_items": 200,
+        }
+    }
+    assert app_session.query(ub.UserLibraryBook).filter_by(
+        user_id=user.id
+    ).count() == 0
+
+
+@pytest.mark.parametrize("payload", [
+    None,
+    {},
+    {"operation": "archive", "book_ids": [1]},
+    {"operation": "add", "book_ids": []},
+    {"operation": "add", "book_ids": [1, True]},
+    {"operation": "remove", "book_ids": [0]},
+])
+def test_batch_membership_rejects_invalid_envelopes_before_mutating(
+        payload, app_session, monkeypatch):
+    from cps.api import actions
+
+    user = _mode_user(app_session, "batch-invalid")
+    monkeypatch.setattr(ub, "session", app_session)
+    monkeypatch.setattr(actions, "current_user", user)
+    app = Flask(__name__)
+    request_kwargs = {} if payload is None else {"json": payload}
+    with app.test_request_context(
+            "/api/v1/books/my-library/batch", method="POST",
+            **request_kwargs):
+        response, status = (
+            actions.batch_my_library_membership.__wrapped__()
+        )
+    assert status == 400
+    assert response.get_json()["error"]["code"] == "invalid_request"
+    assert app_session.query(ub.UserLibraryBook).filter_by(
+        user_id=user.id
+    ).count() == 0
+
+
 def test_recent_global_discovery_excludes_existing_membership(
         app_session, calibre_session, monkeypatch):
     from cps import user_library
@@ -1189,6 +1645,7 @@ def test_http_route_contract_is_registered():
     assert routes["/api/v1/books/<int:book_id>/my-library"] >= {
         "GET", "PUT", "DELETE"
     }
+    assert routes["/api/v1/books/my-library/batch"] >= {"POST"}
     assert routes["/api/v1/account/library-mode"] >= {"POST"}
     assert routes["/api/v1/account/my-library-intro/dismiss"] >= {"POST"}
     assert routes["/api/v1/admin/users/<int:user_id>"] >= {"POST"}
