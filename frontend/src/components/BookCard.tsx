@@ -1,3 +1,4 @@
+import { memo } from 'react';
 import { BookOpen, BookCheck, BookPlus, Check, EyeOff, X, Pencil } from 'lucide-react';
 import { Link } from 'wouter';
 import type { Book } from '../lib/api';
@@ -56,7 +57,7 @@ function formatSeriesIndex(idx: number | null | undefined): string | null {
   return Number.isInteger(idx) ? String(idx) : String(idx);
 }
 
-export function BookCard({
+function BookCardInner({
   book, style, onRemove, removeLabel = 'Remove',
   selectable = false, selected = false, onToggleSelect,
   showSeriesIndex = false,
@@ -268,3 +269,7 @@ export function BookCard({
     </div>
   );
 }
+
+/** Grid items re-render only when their own props change: a selection tap or
+ *  settings refetch in a 500-card catalog must not reconcile every card. */
+export const BookCard = memo(BookCardInner);

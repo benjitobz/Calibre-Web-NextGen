@@ -1039,7 +1039,7 @@ export function Catalog({ entityKind, entityId, view, defaultFilter }: CatalogPr
                 key={book.id}
                 book={book}
                 showSeriesIndex={isSeries}
-                style={{ animationDelay: `${Math.min(i, 24) * 35}ms` }}
+                style={{ animationDelay: i < 24 ? `${i * 35}ms` : '0ms' }}
                 quickEdit={canEdit && !selecting}
                 canRead={!!me?.role?.viewer}
                 hideActions={cardActionsHidden}
