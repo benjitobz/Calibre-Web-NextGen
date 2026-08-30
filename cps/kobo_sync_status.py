@@ -7,14 +7,16 @@
 
 from .cw_login import current_user
 from . import logger, ub
-from datetime import datetime, timezone
-from sqlalchemy.sql.expression import or_, and_, true
+from datetime import datetime, timedelta, timezone
+from sqlalchemy.sql.expression import and_, true
 from sqlalchemy.dialects.sqlite import insert as sqlite_insert
 # from sqlalchemy import exc
 
 log = logger.create()
 
 _LEDGER_UPSERT_BATCH_SIZE = 250
+PENDING_SYNC_PAGE_TTL = timedelta(days=7)
+PENDING_SYNC_PAGE_PRUNE_LIMIT = 10
 
 
 # Record the current user's delivered book identity.
@@ -42,7 +44,7 @@ def _book_identity(identity):
 
 
 def add_synced_books_batch(book_identities, *, commit=True):
-    """Stage a delivered page, optionally committing the shared transaction."""
+    """Stage an acknowledged page, optionally committing its transaction."""
     page_books = dict(_book_identity(identity) for identity in book_identities)
     if not page_books:
         return True
@@ -92,11 +94,11 @@ def get_device_entitlement_fingerprints(device_id, book_ids):
 def stage_device_entitlement_fingerprints(
     device_id, fingerprints, change_bases=None, payload_schema_version=1,
 ):
-    """Upsert delivered entitlement hashes into the caller's transaction.
+    """Upsert acknowledged entitlement hashes in the caller's transaction.
 
-    The sync handler stages this alongside ``add_synced_books_batch``
-    (``commit=False``) and makes both durable in one checked request-level
-    commit before the response token is constructed.
+    The sync acknowledgment path stages this beside the flat markers and the
+    replacement pending page. The request-level commit therefore cannot expose
+    confirmed classification without the token evidence that justified it.
     """
     if not device_id or not fingerprints:
         return
@@ -224,6 +226,123 @@ def mark_device_entitlement_ledgers_seeded(device_ids):
         for device_id in device_ids
     ])
     ub.session.execute(statement.on_conflict_do_nothing(index_elements=["device_id"]))
+
+
+def get_kobo_device_ids_requiring_classification(user_id, version):
+    """Return seeded Kobo devices whose delivery rows predate ``version``."""
+    return [
+        row.device_id for row in ub.session.query(
+            ub.KoboDeviceEntitlementSeed.device_id,
+        ).join(
+            ub.Device,
+            ub.Device.id == ub.KoboDeviceEntitlementSeed.device_id,
+        ).filter(
+            ub.Device.user_id == int(user_id),
+            ub.Device.kind == "kobo",
+            ub.KoboDeviceEntitlementSeed.classification_version < int(version),
+        ).order_by(ub.KoboDeviceEntitlementSeed.device_id).all()
+    ]
+
+
+def mark_device_entitlement_classification(device_ids, version):
+    """Stage the completed New/Changed classification migration."""
+    normalized = sorted({int(device_id) for device_id in device_ids if device_id})
+    if not normalized:
+        return
+    ub.session.query(ub.KoboDeviceEntitlementSeed).filter(
+        ub.KoboDeviceEntitlementSeed.device_id.in_(normalized),
+    ).update(
+        {ub.KoboDeviceEntitlementSeed.classification_version: int(version)},
+        synchronize_session=False,
+    )
+
+
+def get_pending_sync_page(device_id):
+    """Return the single unacknowledged response retained for ``device_id``."""
+    if not device_id:
+        return None
+    return ub.session.get(ub.KoboDevicePendingSyncPage, int(device_id))
+
+
+def stage_pending_sync_page(
+    device_id,
+    incoming_token_hash,
+    outgoing_token,
+    response_body,
+    response_headers_json,
+    confirmation_json,
+):
+    """Replace a device's acknowledged page with its next durable response."""
+    now = datetime.now(timezone.utc)
+    statement = sqlite_insert(ub.KoboDevicePendingSyncPage).values({
+        "device_id": int(device_id),
+        "incoming_token_hash": incoming_token_hash,
+        "outgoing_token": outgoing_token,
+        "response_body": response_body,
+        "response_headers_json": response_headers_json,
+        "confirmation_json": confirmation_json,
+        "created_at": now,
+    })
+    ub.session.execute(statement.on_conflict_do_update(
+        index_elements=["device_id"],
+        set_={
+            "incoming_token_hash": statement.excluded.incoming_token_hash,
+            "outgoing_token": statement.excluded.outgoing_token,
+            "response_body": statement.excluded.response_body,
+            "response_headers_json": statement.excluded.response_headers_json,
+            "confirmation_json": statement.excluded.confirmation_json,
+            "created_at": statement.excluded.created_at,
+        },
+    ))
+
+
+def delete_pending_sync_page(device_id):
+    """Delete a pending page inside the caller-owned transaction."""
+    if not device_id:
+        return 0
+    return ub.session.query(ub.KoboDevicePendingSyncPage).filter_by(
+        device_id=int(device_id),
+    ).delete(synchronize_session=False)
+
+
+def prune_expired_pending_sync_pages(
+    user_id,
+    *,
+    now=None,
+    ttl=PENDING_SYNC_PAGE_TTL,
+    limit=PENDING_SYNC_PAGE_PRUNE_LIMIT,
+):
+    """Stage a bounded deletion of one user's abandoned response snapshots.
+
+    A pending page is only delivery evidence after the device acknowledges its
+    returned token. Expiry therefore discards the opaque replay body without
+    promoting its confirmation payload. Per-device entitlement ledgers and
+    rehydrate latches are deliberately untouched.
+    """
+    batch_size = max(0, min(int(limit), PENDING_SYNC_PAGE_PRUNE_LIMIT))
+    if not user_id or batch_size == 0:
+        return 0
+    cutoff = (now or datetime.now(timezone.utc)) - ttl
+    expired_device_ids = [
+        row.device_id for row in ub.session.query(
+            ub.KoboDevicePendingSyncPage.device_id,
+        ).join(
+            ub.Device,
+            ub.Device.id == ub.KoboDevicePendingSyncPage.device_id,
+        ).filter(
+            ub.Device.user_id == int(user_id),
+            ub.Device.kind == "kobo",
+            ub.KoboDevicePendingSyncPage.created_at <= cutoff,
+        ).order_by(
+            ub.KoboDevicePendingSyncPage.created_at.asc(),
+            ub.KoboDevicePendingSyncPage.device_id.asc(),
+        ).limit(batch_size).all()
+    ]
+    if not expired_device_ids:
+        return 0
+    return ub.session.query(ub.KoboDevicePendingSyncPage).filter(
+        ub.KoboDevicePendingSyncPage.device_id.in_(expired_device_ids),
+    ).delete(synchronize_session=False)
 
 
 def _record_user_book_deletions(session, user_id, book_deletions, deleted_at):
