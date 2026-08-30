@@ -23,8 +23,11 @@ test.describe('#1839 desktop sidebar pin', () => {
     await expect.poll(() => railWidth(page)).toBe('220px');
     await expect.poll(() => nav.evaluate((element) => getComputedStyle(element).contain))
       .toBe('layout paint');
-    await expect.poll(() => nav.evaluate((element) => getComputedStyle(element).marginRight))
-      .toBe('-156px');
+    // Hover expansion is an out-of-flow overlay: the rail's flow box must keep
+    // its collapsed footprint (the structural successor of the old -156px
+    // margin trick).
+    await expect.poll(() => nav.locator('..').evaluate((element) => getComputedStyle(element).width))
+      .toBe('64px');
 
     const pin = page.getByRole('button', { name: 'Pin sidebar' });
     await expect(pin).toHaveAttribute('aria-pressed', 'false');
@@ -32,8 +35,10 @@ test.describe('#1839 desktop sidebar pin', () => {
 
     await page.mouse.move(1000, 300);
     await expect.poll(() => railWidth(page)).toBe('220px');
-    await expect.poll(() => nav.evaluate((element) => getComputedStyle(element).marginRight))
-      .toBe('0px');
+    // Pinning is the one deliberate flow change: the rail reserves the
+    // expanded width so <main> starts past it.
+    await expect.poll(() => nav.locator('..').evaluate((element) => getComputedStyle(element).width))
+      .toBe('220px');
     await expect.poll(() => nav.evaluate((element) => getComputedStyle(element).contain))
       .toBe('layout paint');
     await expect.poll(() => page.locator('main#main').evaluate((element) => element.getBoundingClientRect().left))
@@ -97,8 +102,8 @@ test.describe('#1839 desktop sidebar pin', () => {
       .toHaveAttribute('aria-pressed', 'true');
     await expect(nav).not.toHaveAttribute('inert', '');
     await expect.poll(() => railWidth(page)).toBe('220px');
-    await expect.poll(() => nav.evaluate((element) => getComputedStyle(element).marginRight))
-      .toBe('0px');
+    await expect.poll(() => nav.locator('..').evaluate((element) => getComputedStyle(element).width))
+      .toBe('220px');
   });
 
   test('a pinned short rail stays at the top and scrolls to its final item', async ({ page }, testInfo) => {
