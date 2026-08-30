@@ -514,19 +514,15 @@ def delete_book(book_id):
 @api_v1.route("/books/<int:book_id>/formats/<fmt>/delete", methods=["POST"])
 @login_required_if_no_ano
 def delete_format(book_id, fmt):
-    """Delete a single format from a book (keeps the book). Reuses the data-safe
-    delete core (re-checks role, DB-first/files-last)."""
+    """Delete a single format from a book while keeping its metadata record.
+
+    The shared core re-checks the role, performs the sole visibility-scoped
+    lookup, and stages storage deletion reversibly across the metadata commit.
+    """
     if not current_user.is_authenticated or current_user.is_anonymous:
         return _err("unauthorized", "You must be signed in", 401)
     if not current_user.role_delete_books():
         return _err("forbidden", "You are not allowed to delete books", 403)
-    # Same visibility-scoped authorization as whole-book delete above.
-    book = calibre_db.get_filtered_book(book_id, allow_show_archived=True, allow_show_hidden=True)
-    if not book:
-        return _err("not_found", "Book not found", 404)
-    matching_formats = [data for data in book.data if data.format.upper() == fmt.upper()]
-    if matching_formats and len(book.data) == 1:
-        return _err("last_format", "A book must keep at least one format", 409)
     return _delete_api_response(delete_book_from_table(book_id, fmt.upper(), True))
 
 
