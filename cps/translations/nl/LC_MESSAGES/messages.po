@@ -12,8 +12,8 @@ msgstr ""
 "Automated\n"
 "POT-Creation-Date: 2026-07-17 21:21-0400\n"
 "PO-Revision-Date: 2026-04-26 13:31+0200\n"
-"Last-Translator: Michiel Cornelissen <michiel.cornelissen+gitbhun at "
-"proton.me>\n"
+"Last-Translator: Michiel Cornelissen <michiel.cornelissen+gitbhun at proton."
+"me>\n"
 "Language-Team: ed.driesen@telenet.be\n"
 "Language: nl\n"
 "MIME-Version: 1.0\n"
@@ -5749,6 +5749,10 @@ msgstr "KOReader"
 msgid "KOReader Progress"
 msgstr "KOReader-voortgang"
 
+#: cps/progress_syncing/protocols/kosync.py cps/spa_strings.py
+msgid "KOReader Sync Plugin"
+msgstr "KOReader Synchronisatie Plugin"
+
 #: cps/spa_strings.py
 msgid "Key file path"
 msgstr "Pad naar sleutelbestand"
@@ -6858,6 +6862,10 @@ msgstr "Instellen…"
 msgid "Settings saved."
 msgstr "Instellingen opgeslagen."
 
+#: cps/spa_strings.py cps/templates/admin.html
+msgid "Setup KOReader Sync"
+msgstr "KOReader-synchronisatie instellen"
+
 #: cps/spa_strings.py
 msgid "Shelf name"
 msgstr "Boekenplanknaam"
@@ -7923,8 +7931,8 @@ msgstr "Kies e-mailadressen:"
 #, fuzzy
 msgid "Success! Book queued for sending to the selected address(es)!"
 msgstr ""
-"Het boek is in de wachtrij geplaatst om te worden verstuurd aan %"
-"(eReadermail)s"
+"Het boek is in de wachtrij geplaatst om te worden verstuurd aan "
+"%(eReadermail)s"
 
 #: cps/web.py
 msgid "Please wait one minute to register next user"
@@ -8080,10 +8088,6 @@ msgstr "Ongeldige boek ID."
 #: cps/api/browse.py
 msgid "Tag could not be deleted"
 msgstr ""
-
-#: cps/progress_syncing/protocols/kosync.py
-msgid "KOReader Sync Plugin"
-msgstr "KOReader Synchronisatie Plugin"
 
 #: cps/services/gmail.py
 msgid "Found no valid gmail.json file with OAuth information"
@@ -8624,10 +8628,6 @@ msgstr ""
 #: cps/templates/admin.html
 msgid "Check NextGen Status"
 msgstr ""
-
-#: cps/templates/admin.html
-msgid "Setup KOReader Sync"
-msgstr "KOReader-synchronisatie instellen"
 
 #: cps/templates/admin.html
 msgid "NextGen Library Conversion Service"
@@ -14344,11 +14344,10 @@ msgstr "Toon gelezen/niet gelezen selectie"
 #~ msgstr ""
 #~ "Deze paden zijn alleen intern voor CWA, je kunt aan de linkerkant naar "
 #~ "hartenlust wijzigen waar ze aan gekoppeld zijn, maar er is geen reden om "
-#~ "de paden aan de rechterkant te wijzigen.<br><br>Als je je "
-#~ "<code>metadata.db</code> bestand op een andere locatie wilt dan de rest "
-#~ "van je bibliotheek, gebruik dan de <b>Scheid Boekbestanden van "
-#~ "Bibliotheek Optie hieronder en voer daar het pad naar de rest van de "
-#~ "bibliotheek in</b>"
+#~ "de paden aan de rechterkant te wijzigen.<br><br>Als je je <code>metadata."
+#~ "db</code> bestand op een andere locatie wilt dan de rest van je "
+#~ "bibliotheek, gebruik dan de <b>Scheid Boekbestanden van Bibliotheek Optie "
+#~ "hieronder en voer daar het pad naar de rest van de bibliotheek in</b>"
 
 #~ msgid "Enable CWA Auto-Convert"
 #~ msgstr "Schakel CWA Auto-Conversie in"
