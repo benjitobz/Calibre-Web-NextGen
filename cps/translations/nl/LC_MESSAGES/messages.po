@@ -2600,6 +2600,16 @@ msgid "Read {title}"
 msgstr "{title} lezen"
 
 #: cps/spa_strings.py
+#, python-brace-format
+msgid "More actions for {title}"
+msgstr "Meer acties voor {title}"
+
+#: cps/spa_strings.py
+#, python-brace-format
+msgid "Actions for {title}"
+msgstr "Acties voor {title}"
+
+#: cps/spa_strings.py
 msgid "Standard (username / password)"
 msgstr "Standaard (gebruikersnaam / wachtwoord)"
 
@@ -5968,16 +5978,6 @@ msgstr "Model"
 #, python-brace-format
 msgid "More actions for {name}"
 msgstr "Meer acties voor {name}"
-
-#: cps/spa_strings.py
-#, python-brace-format
-msgid "More actions for {title}"
-msgstr "Meer acties voor {title}"
-
-#: cps/spa_strings.py
-#, python-brace-format
-msgid "Actions for {title}"
-msgstr "Acties voor {title}"
 
 #: cps/spa_strings.py
 msgid "More cover options (search providers, e-reader preview)"
