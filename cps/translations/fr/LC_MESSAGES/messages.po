@@ -13955,9 +13955,9 @@ msgstr "Créer/visualiser"
 msgid "Last used"
 msgstr "Dernière modification"
 
-#: cps/templates/user_edit.html
+#: cps/spa_strings.py cps/templates/user_edit.html
 msgid "Never"
-msgstr ""
+msgstr "Jamais"
 
 #: cps/templates/user_edit.html
 msgid "Revoke this app password?"
@@ -14905,3 +14905,147 @@ msgstr "Afficher la section Lu / Non lu"
 #~ msgstr ""
 #~ "Les livres doivent d'abord être archivés et l'appareil synchronisé avant "
 #~ "qu'un livre puisse être supprimé en tout sécurité."
+
+#: cps/spa_strings.py
+msgid "Active"
+msgstr "Actif"
+
+#: cps/spa_strings.py
+msgid "Annotation pages"
+msgstr "Pages d’annotations"
+
+#: cps/spa_strings.py
+msgid "Authoritative books"
+msgstr "Livres sous autorité locale"
+
+#: cps/spa_strings.py
+msgid "Books seeding"
+msgstr "Livres en cours d’initialisation"
+
+#: cps/spa_strings.py
+msgid "Books awaiting authority"
+msgstr "Livres en attente d’autorité"
+
+#: cps/spa_strings.py
+msgid "Could not load device annotations."
+msgstr "Impossible de charger les annotations de l’appareil."
+
+#: cps/spa_strings.py
+msgid "Could not load reading positions."
+msgstr "Impossible de charger les positions de lecture."
+
+#: cps/spa_strings.py
+msgid "Could not load the device board."
+msgstr "Impossible de charger le tableau des appareils."
+
+#: cps/spa_strings.py
+msgid "Device administration"
+msgstr "Administration des appareils"
+
+#: cps/spa_strings.py
+msgid "Device data"
+msgstr "Données de l’appareil"
+
+#: cps/spa_strings.py
+msgid "Device library"
+msgstr "Bibliothèque de l’appareil"
+
+#: cps/spa_strings.py
+msgid "Device summary"
+msgstr "Résumé de l’appareil"
+
+#: cps/spa_strings.py
+msgid "Disabled books"
+msgstr "Livres désactivés"
+
+#: cps/spa_strings.py
+msgid "Dog-ears"
+msgstr "Signets"
+
+#: cps/spa_strings.py
+msgid "E-reader not found"
+msgstr "Liseuse introuvable"
+
+#: cps/spa_strings.py
+msgid "Inactive"
+msgstr "Inactif"
+
+#: cps/spa_strings.py
+msgid "Kind"
+msgstr "Type"
+
+#: cps/spa_strings.py
+msgid "Last seen: {when}"
+msgstr "Dernière activité : {when}"
+
+#: cps/spa_strings.py
+msgid "Loading device annotations…"
+msgstr "Chargement des annotations de l’appareil…"
+
+#: cps/spa_strings.py
+msgid "Loading reading positions…"
+msgstr "Chargement des positions de lecture…"
+
+#: cps/spa_strings.py
+msgid "Model"
+msgstr "Modèle"
+
+#: cps/spa_strings.py
+msgid "No reading positions from this device yet."
+msgstr "Aucune position de lecture enregistrée par cet appareil."
+
+#: cps/spa_strings.py
+msgid "No registered devices."
+msgstr "Aucun appareil enregistré."
+
+#: cps/spa_strings.py
+msgid "Notes"
+msgstr "Notes"
+
+#: cps/spa_strings.py
+msgid "Nothing in this category yet."
+msgstr "Cette catégorie est encore vide."
+
+#: cps/spa_strings.py
+msgid "Page {page} of {pages}"
+msgstr "Page {page} sur {pages}"
+
+#: cps/spa_strings.py
+msgid "Partially seeded books"
+msgstr "Livres partiellement initialisés"
+
+#: cps/spa_strings.py
+msgid "Position recorded"
+msgstr "Position enregistrée"
+
+#: cps/spa_strings.py
+msgid "Quarantined books"
+msgstr "Livres en quarantaine"
+
+#: cps/spa_strings.py
+msgid "Reading positions"
+msgstr "Positions de lecture"
+
+#: cps/spa_strings.py
+msgid "Seeded books"
+msgstr "Livres initialisés"
+
+#: cps/spa_strings.py
+msgid "Show annotations assigned to this device"
+msgstr "Afficher les annotations attribuées à cet appareil"
+
+#: cps/spa_strings.py
+msgid "Showing {shown} of {total} annotations."
+msgstr "Affichage de {shown} annotations sur {total}."
+
+#: cps/spa_strings.py
+msgid "This e-reader is unavailable or belongs to another account."
+msgstr "Cette liseuse est indisponible ou appartient à un autre compte."
+
+#: cps/spa_strings.py
+msgid "Unseeded books"
+msgstr "Livres non initialisés"
+
+#: cps/spa_strings.py
+msgid "{percent}% read"
+msgstr "{percent} % lu"

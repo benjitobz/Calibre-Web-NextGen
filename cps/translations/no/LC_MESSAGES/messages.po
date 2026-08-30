@@ -11213,9 +11213,8 @@ msgstr ""
 
 #: cps/templates/cwng_feedback_popup.html cps/templates/feed.xml
 #: cps/templates/layout.html
-#, fuzzy
 msgid "Next"
-msgstr "Admin side"
+msgstr "Neste"
 
 #: cps/templates/cwng_feedback_popup.html
 msgid "Anything you’d like to add?"

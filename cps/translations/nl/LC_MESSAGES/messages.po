@@ -13612,9 +13612,9 @@ msgstr "Aanmaken/Bekijken"
 msgid "Last used"
 msgstr ""
 
-#: cps/templates/user_edit.html
+#: cps/spa_strings.py cps/templates/user_edit.html
 msgid "Never"
-msgstr ""
+msgstr "Nooit"
 
 #: cps/templates/user_edit.html
 msgid "Revoke this app password?"
@@ -14413,3 +14413,147 @@ msgstr "Toon gelezen/niet gelezen selectie"
 #~ msgstr ""
 #~ "Boeken moeten eerst worden gearchiveerd en het apparaat moet worden "
 #~ "gesynchroniseerd, voordat een boek veilig kan worden verwijderd."
+
+#: cps/spa_strings.py
+msgid "Active"
+msgstr "Actief"
+
+#: cps/spa_strings.py
+msgid "Annotation pages"
+msgstr "Annotatiepagina's"
+
+#: cps/spa_strings.py
+msgid "Authoritative books"
+msgstr "Boeken met lokale autoriteit"
+
+#: cps/spa_strings.py
+msgid "Books seeding"
+msgstr "Boeken worden geïnitialiseerd"
+
+#: cps/spa_strings.py
+msgid "Books awaiting authority"
+msgstr "Boeken wachten op autoriteit"
+
+#: cps/spa_strings.py
+msgid "Could not load device annotations."
+msgstr "Kan apparaatannotaties niet laden."
+
+#: cps/spa_strings.py
+msgid "Could not load reading positions."
+msgstr "Kan leesposities niet laden."
+
+#: cps/spa_strings.py
+msgid "Could not load the device board."
+msgstr "Kan het apparaatoverzicht niet laden."
+
+#: cps/spa_strings.py
+msgid "Device administration"
+msgstr "Apparaatbeheer"
+
+#: cps/spa_strings.py
+msgid "Device data"
+msgstr "Apparaatgegevens"
+
+#: cps/spa_strings.py
+msgid "Device library"
+msgstr "Apparaatbibliotheek"
+
+#: cps/spa_strings.py
+msgid "Device summary"
+msgstr "Apparaatoverzicht"
+
+#: cps/spa_strings.py
+msgid "Disabled books"
+msgstr "Uitgeschakelde boeken"
+
+#: cps/spa_strings.py
+msgid "Dog-ears"
+msgstr "Bladwijzers"
+
+#: cps/spa_strings.py
+msgid "E-reader not found"
+msgstr "E-reader niet gevonden"
+
+#: cps/spa_strings.py
+msgid "Inactive"
+msgstr "Inactief"
+
+#: cps/spa_strings.py
+msgid "Kind"
+msgstr "Type"
+
+#: cps/spa_strings.py
+msgid "Last seen: {when}"
+msgstr "Laatst gezien: {when}"
+
+#: cps/spa_strings.py
+msgid "Loading device annotations…"
+msgstr "Apparaatannotaties laden…"
+
+#: cps/spa_strings.py
+msgid "Loading reading positions…"
+msgstr "Leesposities laden…"
+
+#: cps/spa_strings.py
+msgid "Model"
+msgstr "Model"
+
+#: cps/spa_strings.py
+msgid "No reading positions from this device yet."
+msgstr "Nog geen leesposities van dit apparaat."
+
+#: cps/spa_strings.py
+msgid "No registered devices."
+msgstr "Geen geregistreerde apparaten."
+
+#: cps/spa_strings.py
+msgid "Notes"
+msgstr "Notities"
+
+#: cps/spa_strings.py
+msgid "Nothing in this category yet."
+msgstr "Nog niets in deze categorie."
+
+#: cps/spa_strings.py
+msgid "Page {page} of {pages}"
+msgstr "Pagina {page} van {pages}"
+
+#: cps/spa_strings.py
+msgid "Partially seeded books"
+msgstr "Gedeeltelijk geïnitialiseerde boeken"
+
+#: cps/spa_strings.py
+msgid "Position recorded"
+msgstr "Positie vastgelegd"
+
+#: cps/spa_strings.py
+msgid "Quarantined books"
+msgstr "Boeken in quarantaine"
+
+#: cps/spa_strings.py
+msgid "Reading positions"
+msgstr "Leesposities"
+
+#: cps/spa_strings.py
+msgid "Seeded books"
+msgstr "Geïnitialiseerde boeken"
+
+#: cps/spa_strings.py
+msgid "Show annotations assigned to this device"
+msgstr "Toon annotaties die aan dit apparaat zijn toegewezen"
+
+#: cps/spa_strings.py
+msgid "Showing {shown} of {total} annotations."
+msgstr "{shown} van {total} annotaties weergegeven."
+
+#: cps/spa_strings.py
+msgid "This e-reader is unavailable or belongs to another account."
+msgstr "Deze e-reader is niet beschikbaar of hoort bij een ander account."
+
+#: cps/spa_strings.py
+msgid "Unseeded books"
+msgstr "Niet-geïnitialiseerde boeken"
+
+#: cps/spa_strings.py
+msgid "{percent}% read"
+msgstr "{percent}% gelezen"
