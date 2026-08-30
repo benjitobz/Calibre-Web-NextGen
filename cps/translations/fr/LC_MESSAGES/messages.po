@@ -1574,6 +1574,12 @@ msgid "Book Successfully Deleted"
 msgstr "Le livre a été supprimé avec succès"
 
 #: cps/editbooks.py
+msgid ""
+"Format metadata was deleted, but file cleanup was incomplete; an "
+"administrator can recover the quarantined file."
+msgstr ""
+
+#: cps/editbooks.py
 msgid "You are missing permissions to delete books"
 msgstr "Vous n’avez par les permissions pour supprimer les livres"
 
@@ -5303,6 +5309,15 @@ msgid "Delete tag {name}"
 msgstr "Supprimer l’étiquette {name}"
 
 #: cps/spa_strings.py
+#, python-brace-format
+msgid ""
+"Delete the {fmt} file? The book record, metadata, shelves, and reading state "
+"stay available."
+msgstr ""
+"Supprimer le fichier {fmt} ? La fiche du livre, ses métadonnées, ses "
+"étagères et l’état de lecture resteront disponibles."
+
+#: cps/spa_strings.py
 msgid "Delete this smart shelf? Your books are not affected."
 msgstr ""
 "Supprimer cette étagère intelligente ? Vos livres ne sont pas affectés."
@@ -7230,6 +7245,16 @@ msgstr "Détails techniques"
 #: cps/spa_strings.py
 msgid "That URL is not a usable image."
 msgstr "Cette URL ne correspond pas à une image utilisable."
+
+#: cps/spa_strings.py cps/templates/book_edit.html
+#: cps/templates/modal_dialogs.html
+msgid ""
+"The book record, metadata, shelves, and reading state stay available. If "
+"this is the last format, you can add a replacement later."
+msgstr ""
+"La fiche du livre, ses métadonnées, ses étagères et l’état de lecture "
+"resteront disponibles. S’il s’agit du dernier format, vous pourrez en "
+"ajouter un autre plus tard."
 
 #: cps/spa_strings.py
 msgid ""
@@ -14324,13 +14349,6 @@ msgstr "Synchroniser les étagères sélectionnées avec Kobo"
 #: cps/templates/user_table.html
 msgid "Show Read/Unread Section"
 msgstr "Afficher la section Lu / Non lu"
-
-#, python-brace-format
-msgid "Delete the {fmt} file? The book record, metadata, shelves, and reading state stay available."
-msgstr "Supprimer le fichier {fmt} ? La fiche du livre, ses métadonnées, ses étagères et l’état de lecture resteront disponibles."
-
-msgid "The book record, metadata, shelves, and reading state stay available. If this is the last format, you can add a replacement later."
-msgstr "La fiche du livre, ses métadonnées, ses étagères et l’état de lecture resteront disponibles. S’il s’agit du dernier format, vous pourrez en ajouter un autre plus tard."
 
 #~ msgid "HTML is allowed and sanitized on display."
 #~ msgstr "Le HTML est autorisé et nettoyé à l’affichage."

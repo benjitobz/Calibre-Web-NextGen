@@ -1496,6 +1496,12 @@ msgid "Book Successfully Deleted"
 msgstr "Het boek is verwijderd"
 
 #: cps/editbooks.py
+msgid ""
+"Format metadata was deleted, but file cleanup was incomplete; an "
+"administrator can recover the quarantined file."
+msgstr ""
+
+#: cps/editbooks.py
 msgid "You are missing permissions to delete books"
 msgstr "U mist rechten om boeken te verwijderen"
 
@@ -5177,6 +5183,15 @@ msgid "Delete tag {name}"
 msgstr "Label {name} verwijderen"
 
 #: cps/spa_strings.py
+#, python-brace-format
+msgid ""
+"Delete the {fmt} file? The book record, metadata, shelves, and reading state "
+"stay available."
+msgstr ""
+"Het bestand {fmt} verwijderen? De boekvermelding, metadata, boekenplanken en "
+"leesstatus blijven beschikbaar."
+
+#: cps/spa_strings.py
 msgid "Delete this smart shelf? Your books are not affected."
 msgstr "Deze slimme boekenplank verwijderen? Je boeken worden niet beïnvloed."
 
@@ -7088,6 +7103,16 @@ msgstr "Technische details"
 #: cps/spa_strings.py
 msgid "That URL is not a usable image."
 msgstr "Die URL is geen bruikbare afbeelding."
+
+#: cps/spa_strings.py cps/templates/book_edit.html
+#: cps/templates/modal_dialogs.html
+msgid ""
+"The book record, metadata, shelves, and reading state stay available. If "
+"this is the last format, you can add a replacement later."
+msgstr ""
+"De boekvermelding, metadata, boekenplanken en leesstatus blijven "
+"beschikbaar. Als dit het laatste formaat is, kun je later een vervangend "
+"formaat toevoegen."
 
 #: cps/spa_strings.py
 msgid ""
@@ -13988,13 +14013,6 @@ msgstr "Synchroniseer geselecteerde boekenplanken met Kobo"
 #, fuzzy
 msgid "Show Read/Unread Section"
 msgstr "Toon gelezen/niet gelezen selectie"
-
-#, python-brace-format
-msgid "Delete the {fmt} file? The book record, metadata, shelves, and reading state stay available."
-msgstr "Het bestand {fmt} verwijderen? De boekvermelding, metadata, boekenplanken en leesstatus blijven beschikbaar."
-
-msgid "The book record, metadata, shelves, and reading state stay available. If this is the last format, you can add a replacement later."
-msgstr "De boekvermelding, metadata, boekenplanken en leesstatus blijven beschikbaar. Als dit het laatste formaat is, kun je later een vervangend formaat toevoegen."
 
 #~ msgid "HTML is allowed and sanitized on display."
 #~ msgstr "HTML is toegestaan en wordt bij weergave opgeschoond."

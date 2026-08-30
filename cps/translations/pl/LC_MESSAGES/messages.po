@@ -1530,6 +1530,12 @@ msgid "Book Successfully Deleted"
 msgstr "Książka została usunięta"
 
 #: cps/editbooks.py
+msgid ""
+"Format metadata was deleted, but file cleanup was incomplete; an "
+"administrator can recover the quarantined file."
+msgstr ""
+
+#: cps/editbooks.py
 msgid "You are missing permissions to delete books"
 msgstr "Brak uprawnień do usuwania książek"
 
@@ -5163,6 +5169,13 @@ msgid "Delete tag {name}"
 msgstr ""
 
 #: cps/spa_strings.py
+#, python-brace-format
+msgid ""
+"Delete the {fmt} file? The book record, metadata, shelves, and reading state "
+"stay available."
+msgstr ""
+
+#: cps/spa_strings.py
 msgid "Delete this smart shelf? Your books are not affected."
 msgstr "Usunąć tę inteligentną półkę? Twoje książki nie zostaną naruszone."
 
@@ -7052,6 +7065,13 @@ msgstr "Szczegóły techniczne"
 #: cps/spa_strings.py
 msgid "That URL is not a usable image."
 msgstr "Ten adres URL nie jest prawidłowym obrazem."
+
+#: cps/spa_strings.py cps/templates/book_edit.html
+#: cps/templates/modal_dialogs.html
+msgid ""
+"The book record, metadata, shelves, and reading state stay available. If "
+"this is the last format, you can add a replacement later."
+msgstr ""
 
 #: cps/spa_strings.py
 msgid ""
