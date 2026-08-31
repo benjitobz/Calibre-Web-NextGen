@@ -98,11 +98,15 @@ class LibraryConverter:
 
         self.db = CWA_DB()
         self.cwa_settings = self.db.cwa_settings
-        self.target_format = self.cwa_settings['auto_convert_target_format']
+        target_setting = self.cwa_settings['auto_convert_target_format']
+        if isinstance(target_setting, str):
+            target_setting = [target_setting]
+        self.target_formats = [str(f).strip().lower() for f in target_setting if f and str(f).strip()]
         
         # Validate target format
-        if not self.target_format or not isinstance(self.target_format, str):
-            raise ValueError(f"Invalid target format configuration: {self.target_format}. Must be a non-empty string.")
+        if not self.target_formats:
+            raise ValueError(f"Invalid target format configuration: {target_setting}. Must contain at least one format.")
+        self.target_format = self.target_formats[0]
         
         # Enhanced convert_ignored_formats handling
         ignored_formats_setting = self.cwa_settings.get('auto_convert_ignored_formats', [])
@@ -573,14 +577,23 @@ def main():
 
     logger.info(f"NextGen Convert Library Service - Run Started: {datetime.now()}\n")
     converter = LibraryConverter(args)
-    if len(converter.to_convert) > 0:
-        converter.convert_library()
-    else:
-        print_and_log(f'[convert-library]: No books found in library without a copy in the target format ({converter.target_format}). Exiting now...')
+    total_converted = 0
+    for target_format in converter.target_formats:
+        converter.target_format = target_format
+        converter.to_convert = converter.get_books_to_convert()
+        converter.current_book = 1
+        if len(converter.to_convert) > 0:
+            converter.convert_library()
+            total_converted += len(converter.to_convert)
+        else:
+            print_and_log(f'[convert-library]: No books found in library without a copy in the target format ({target_format}).')
+
+    if total_converted == 0:
+        print_and_log('[convert-library]: All books already have every target format. Exiting now...')
         logger.info(f"\nNextGen Convert Library Service - Run Ended: {datetime.now()}")
         sys.exit(0)
 
-    print_and_log(f"\n[convert-library]: Library conversion complete! {len(converter.to_convert)} books converted! Exiting now...")
+    print_and_log(f"\n[convert-library]: Library conversion complete! {total_converted} conversions performed! Exiting now...")
     logger.info(f"\nNextGen Convert Library Service - Run Ended: {datetime.now()}")
     sys.exit(0)
 
