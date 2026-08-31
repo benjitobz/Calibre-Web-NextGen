@@ -8,6 +8,7 @@ import atexit
 import collections
 import json
 import os
+import re
 import subprocess
 import sys
 from calibre_library_target import library_arguments
@@ -1988,9 +1989,6 @@ class NewBookProcessor:
 
     def generate_additional_formats(self, book_id, present_formats) -> None:
         """Convert the original file to every remaining target format and attach the results to the imported book"""
-        remaining = [f for f in self.target_formats if f not in present_formats and f != self.input_format]
-        if not remaining:
-            return
         if book_id is None:
             try:
                 with sqlite3.connect(self.metadata_db, timeout=30) as con:
@@ -2003,6 +2001,13 @@ class NewBookProcessor:
         if book_id is None:
             print(f"[ingest-processor] No book ID available, skipping additional target formats for {self.filename}", flush=True)
             return
+
+        self.clean_redundant_series_title(int(book_id))
+
+        remaining = [f for f in self.target_formats if f not in present_formats and f != self.input_format]
+        if not remaining:
+            return
+
         for fmt in remaining:
             if fmt == "kepub":
                 convert_successful, converted_filepath = self.convert_to_kepub()
@@ -2011,6 +2016,40 @@ class NewBookProcessor:
             if convert_successful:
                 self.add_format_to_book(int(book_id), converted_filepath)
         self.reconcile_book_files(int(book_id))
+
+    def clean_redundant_series_title(self, book_id) -> None:
+        """Strip the Amazon-style series suffix from an ingested title and store it as series metadata"""
+        try:
+            with sqlite3.connect(self.metadata_db, timeout=30) as con:
+                row = con.execute("SELECT title FROM books WHERE id = ?", (book_id,)).fetchone()
+        except Exception as e:
+            print(f"[ingest-processor] Could not read title for book {book_id}: {e}", flush=True)
+            return
+        if not row or not row[0]:
+            return
+        original = row[0].strip()
+        m = re.match(r"^(?P<title>.+?)\s*\((?P<series>[^()]+?)(?:,\s*(?:Book\s+)?|\s+Book\s+|\s*#)(?P<index>\d+(?:\.\d+)?)\)$", original, re.IGNORECASE)
+        if not m:
+            return
+        title = m.group("title").strip()
+        series = m.group("series").strip()
+        index = m.group("index")
+        if not title or not series or series.isdigit():
+            return
+        try:
+            from calibre_library_target import library_arguments as _library_arguments
+            lib_args = _library_arguments(self.library_dir)
+        except Exception:
+            lib_args = [f"--library-path={self.library_dir}"]
+        result = subprocess.run(["calibredb", "set_metadata", str(book_id),
+                                 "-f", f"title:{title}",
+                                 "-f", f"series:{series}",
+                                 "-f", f"series_index:{index}"] + lib_args,
+                                env=self.calibre_env, capture_output=True, text=True)
+        if result.returncode != 0:
+            print(f"[ingest-processor] Could not clean series-suffix title for book {book_id}: {result.stderr}", flush=True)
+            return
+        print(f"[ingest-processor] Cleaned title for book {book_id}: '{original}' -> '{title}' (series '{series}' #{index})", flush=True)
 
     def reconcile_book_files(self, book_id) -> None:
         """Move format files back into the book's current folder when a concurrent rename left them behind"""
