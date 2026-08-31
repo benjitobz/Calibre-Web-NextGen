@@ -30,6 +30,8 @@ REQUIRED_ANNOTATION_COLUMNS = {
     "annotation_type", "content_revision", "server_modified_at",
     "last_editor_device_id",
 }
+REQUIRED_BOOK_STATE_COLUMNS = {"ever_authoritative"}
+REQUIRED_SEED_CAPTURE_COLUMNS = {"seed_kind"}
 REQUIRED_INDEXES = {
     "kobo_annotation_materialization": {"ix_kam_serveable"},
     "kobo_annotation_book_state": {"ix_kabs_user_content", "ix_kabs_authority"},
@@ -85,6 +87,18 @@ def schema_capable(engine) -> bool:
         columns = {column["name"] for column in inspector.get_columns("annotation")}
         if not REQUIRED_ANNOTATION_COLUMNS <= columns:
             return False
+        book_state_columns = {
+            column["name"]
+            for column in inspector.get_columns("kobo_annotation_book_state")
+        }
+        if not REQUIRED_BOOK_STATE_COLUMNS <= book_state_columns:
+            return False
+        seed_capture_columns = {
+            column["name"]
+            for column in inspector.get_columns("kobo_annotation_seed_capture")
+        }
+        if not REQUIRED_SEED_CAPTURE_COLUMNS <= seed_capture_columns:
+            return False
         if "user" not in tables or "settings" not in tables:
             return False
         if "kobo_two_way_annotation_sync" not in {
@@ -120,14 +134,26 @@ def emergency_override_disables(environ=None) -> bool:
     return value is not None and value.strip().lower() in {"0", "false", "off", "no"}
 
 
-def gates_allow(settings, user, book_state, *, schema_ready) -> bool:
-    """Evaluate the future route gate; Stage 0 does not call this from routes."""
+def gate_failure_reason(settings, user, book_state, *, schema_ready):
+    """Return a privacy-safe reason code, or ``None`` when gates pass."""
     if emergency_override_disables():
-        return False
+        return "emergency_override"
     if not schema_ready:
-        return False
+        return "schema_incomplete"
     if not bool(getattr(settings, "config_kobo_two_way_annotation_sync", False)):
-        return False
+        return "instance_gate_disabled"
     if not bool(getattr(user, "kobo_two_way_annotation_sync", False)):
-        return False
-    return getattr(book_state, "authority_status", None) == "authoritative"
+        return "user_gate_disabled"
+    status = getattr(book_state, "authority_status", None)
+    if status != "authoritative":
+        if status in {"unseeded", "seeding", "quarantined", "disabled"}:
+            return f"authority_status_{status}"
+        return "authority_state_missing_or_invalid"
+    return None
+
+
+def gates_allow(settings, user, book_state, *, schema_ready) -> bool:
+    """Evaluate the local Kobo annotation wire-authority gate."""
+    return gate_failure_reason(
+        settings, user, book_state, schema_ready=schema_ready,
+    ) is None

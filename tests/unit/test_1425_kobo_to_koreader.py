@@ -424,7 +424,7 @@ def test_settles_pending_writes_before_opening_the_savepoint():
     from cps.kobo import share_kobo_progress_with_koreader
     src = inspect.getsource(share_kobo_progress_with_koreader)
     assert "session_flush()" in src
-    assert src.index("session_flush()") < src.index("begin_nested()")
+    assert src.index("session_flush()") < src.index("begin_contained_nested")
 
 
 @pytest.mark.unit

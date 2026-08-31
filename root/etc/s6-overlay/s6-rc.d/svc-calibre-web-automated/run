@@ -9,6 +9,14 @@ echo "[svc-calibre-web-automated] Starting Calibre-Web server on port ${CWA_PORT
 
 export CALIBRE_DBPATH=/config
 
+# s6-setuidgid/cwa-as-abc changes uid/gid but deliberately does not rewrite
+# HOME. Without an explicit Calibre config path the abc process therefore
+# falls back to /root/.config/calibre and cannot write files created there by
+# root. Keep the normal runtime config separate from the operator plugin dir;
+# calibre_user_plugins.apply_to_env() overrides this only when that opt-in is
+# enabled.
+export CALIBRE_CONFIG_DIRECTORY="${CALIBRE_CONFIG_DIRECTORY:-/config/.config/calibre-runtime}"
+
 # -P keeps the current directory off sys.path. This unit no longer chdirs into
 # the app root, so it inherits cwd /config (the Dockerfile WORKDIR) -- and
 # /config is a volume the user mounts and writes. `python -m` puts cwd at

@@ -26,7 +26,7 @@ from sqlalchemy.orm import sessionmaker
 
 from tests.fixtures.kobo_reader_sqlite import (
     build_kobo_db_with_bookmark_type,
-    build_synthetic_kobo_db,
+    build_kobo_db_without_bookmark_type,
 )
 
 pytestmark = pytest.mark.unit
@@ -89,7 +89,10 @@ def test_an_empty_device_word_is_stored_as_null(memory_db, tmp_path):
 
 def test_an_older_schema_still_imports_and_stores_null(memory_db, tmp_path):
     """No Type column on the device is not an error, and must not lose rows."""
-    rows = _import(memory_db, build_synthetic_kobo_db(tmp_path / "old.sqlite"))
+    rows = _import(
+        memory_db,
+        build_kobo_db_without_bookmark_type(tmp_path / "old.sqlite"),
+    )
     assert len(rows) >= 3, "the older-schema import lost rows"
     assert {r.annotation_type for r in rows.values()} == {None}
 

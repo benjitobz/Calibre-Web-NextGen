@@ -156,6 +156,24 @@ class TestIngestCounts:
         assert row.source == "kobo"
         assert row.chapter_progress == 0.024
 
+    def test_inserted_row_keeps_device_date_created(self, memory_db, synthetic_db):
+        from cps import ub
+        from cps.annotations import ingest_bookmarks
+
+        session, _, _ = memory_db
+        ingest_bookmarks(
+            synthetic_db,
+            user_id=7,
+            session=session,
+            book_lookup=_make_book_lookup({
+                "b3d1b38b-74fd-43b7-a796-996e5a6a8b04": 348,
+            }),
+            commit=session.commit,
+        )
+
+        row = session.query(ub.Annotation).filter_by(annotation_id="bm-002").one()
+        assert row.created_at == datetime(2026, 1, 1, 10, 5, 0, 123000)
+
     def test_color_round_trips(self, memory_db, synthetic_db):
         """Device integer -> what lands in the column -> what the reader is told.
 
@@ -194,6 +212,137 @@ class TestIngestCounts:
         assert displayed["bm-001"] == "yellow"
         assert displayed["bm-002"] == "pink"
         assert displayed["bm-003"] == "blue"
+
+
+@pytest.mark.unit
+class TestWireAndDatabaseSentinelEquivalence:
+    BOOK_UUID = "b3d1b38b-74fd-43b7-a796-996e5a6a8b04"
+
+    @staticmethod
+    def _write_wire_row(session, monkeypatch):
+        from cps import ub
+        from cps.services.annotation_sync import (
+            dispatch_annotation_sync,
+            reset_registry_for_testing,
+            set_remote_enqueue,
+        )
+
+        def commit():
+            session.commit()
+            return True
+
+        monkeypatch.setattr(ub, "session", session)
+        monkeypatch.setattr(ub, "session_commit", commit)
+        reset_registry_for_testing()
+        set_remote_enqueue(None)
+        book = SimpleNamespace(
+            id=348,
+            uuid=TestWireAndDatabaseSentinelEquivalence.BOOK_UUID,
+            title="Animal Farm",
+        )
+        user = SimpleNamespace(id=7)
+        payload = {
+            "id": "bm-001",
+            "highlightedText": "All animals are equal.",
+            "noteText": None,
+            "highlightColor": "#F6F3B3",
+            "type": "highlight",
+            "clientLastModifiedUtc": "2026-01-01T10:00:00Z",
+            "location": {"span": {
+                "chapterFilename": "OEBPS/chapter1.html",
+                "startPath": "span#kobo\\.1\\.1",
+                "startChar": 0,
+                "endPath": "span#kobo\\.1\\.1",
+                "endChar": 15,
+                "contextString": "... All animals are equal. But ...",
+                "chapterProgress": 0.01,
+            }},
+        }
+
+        assert dispatch_annotation_sync([payload], book, user) is True
+        wire_row = session.query(ub.Annotation).filter_by(
+            annotation_id="bm-001",
+        ).one()
+        assert wire_row.start_container_child_index is None
+        assert wire_row.end_container_child_index is None
+        return wire_row, commit
+
+    def test_wire_delivered_annotation_is_already_present(
+        self, memory_db, synthetic_db, monkeypatch,
+    ):
+        """NULL on the wire and -99 in SQLite describe one KoboSpan selector."""
+        from cps import ub
+        from cps.annotations import ingest_bookmarks
+
+        session, _, _ = memory_db
+        _, commit = self._write_wire_row(session, monkeypatch)
+
+        result = ingest_bookmarks(
+            synthetic_db,
+            user_id=7,
+            session=session,
+            book_lookup=_make_book_lookup({self.BOOK_UUID: 348}),
+            commit=commit,
+        )
+
+        assert result["skipped_existing"] == 1, result
+        assert result["skipped_newer_server"] == 0, result
+        assert session.query(ub.Annotation).filter_by(
+            user_id=7, book_id=348, annotation_id="bm-001",
+        ).count() == 1
+
+    def test_wire_delivered_annotation_with_newer_server_content_is_rejected(
+        self, memory_db, synthetic_db, monkeypatch,
+    ):
+        """Sentinel equivalence must not hide a real server-side edit."""
+        from cps.annotations import ingest_bookmarks
+
+        session, _, _ = memory_db
+        wire_row, commit = self._write_wire_row(session, monkeypatch)
+        wire_row.note_text = "newer server note"
+        session.commit()
+
+        result = ingest_bookmarks(
+            synthetic_db,
+            user_id=7,
+            session=session,
+            book_lookup=_make_book_lookup({self.BOOK_UUID: 348}),
+            commit=commit,
+        )
+
+        assert result["skipped_existing"] == 0, result
+        assert result["skipped_newer_server"] == 1, result
+        assert wire_row.note_text == "newer server note"
+        assert wire_row.start_container_child_index is None
+        assert wire_row.end_container_child_index is None
+
+    def test_newer_device_edit_preserves_wire_child_index_representation(
+        self, memory_db, synthetic_db, monkeypatch,
+    ):
+        """A content update must not turn wire NULLs into equivalent -99s."""
+        from cps.annotations import ingest_bookmarks
+
+        session, _, _ = memory_db
+        wire_row, commit = self._write_wire_row(session, monkeypatch)
+        old_clock = datetime(2025, 1, 1)
+        wire_row.client_modified_at = old_clock
+        wire_row.server_modified_at = old_clock
+        wire_row.last_synced = old_clock
+        wire_row.created_at = old_clock
+        session.commit()
+
+        result = ingest_bookmarks(
+            synthetic_db,
+            user_id=7,
+            session=session,
+            book_lookup=_make_book_lookup({self.BOOK_UUID: 348}),
+            commit=commit,
+        )
+
+        assert result["updated"] == 1, result
+        assert result["skipped_newer_server"] == 0, result
+        assert wire_row.start_container_child_index is None
+        assert wire_row.end_container_child_index is None
 
 
 @pytest.mark.unit
@@ -343,6 +492,19 @@ class TestPreviouslyInvisibleDeviceRows:
 
 
 @pytest.mark.unit
+class TestKoboDeviceClockParsing:
+    def test_naive_clock_requires_explicit_date_created_opt_in(self):
+        from cps.annotations import _parse_kobo_datetime
+
+        clock = "2026-08-15T22:27:08.567"
+        assert _parse_kobo_datetime(clock) is None
+        assert _parse_kobo_datetime(
+            clock,
+            assume_naive_utc=True,
+        ) == datetime(2026, 8, 15, 22, 27, 8, 567000)
+
+
+@pytest.mark.unit
 class TestOutOfRangeDeviceClock:
     @pytest.mark.parametrize("clock", OVERFLOWING_KOBO_CLOCKS)
     def test_parser_rejects_both_utc_overflows(self, clock):
@@ -483,6 +645,46 @@ class TestNewerDeviceMerge:
         self._edit_fixture(
             synthetic_db, modified="2097-01-01T00:00:00Z",
             text="stale device passage", note="stale device note",
+        )
+
+        result = ingest_bookmarks(
+            synthetic_db, user_id=7, session=session,
+            book_lookup=lookup, commit=session.commit,
+        )
+        row = session.query(ub.Annotation).filter_by(annotation_id="bm-002").one()
+
+        assert result["updated"] == 0, result
+        assert result["skipped_newer_server"] == 1, result
+        assert _accounted(result) == result["total_seen"]
+        assert row.highlighted_text == "Four legs good, two legs bad."
+        assert row.note_text == "newer server note"
+        assert row.highlight_color == "#E8AFCF"
+
+    def test_naive_device_modified_clock_cannot_overwrite_server(
+        self, memory_db, synthetic_db,
+    ):
+        from cps import ub
+        from cps.annotations import ingest_bookmarks
+
+        session, _, _ = memory_db
+        lookup = _make_book_lookup({self.BOOK_UUID: 348})
+        ingest_bookmarks(
+            synthetic_db, user_id=7, session=session,
+            book_lookup=lookup, commit=session.commit,
+        )
+        row = session.query(ub.Annotation).filter_by(annotation_id="bm-002").one()
+        row.note_text = "newer server note"
+        row.server_modified_at = datetime(2027, 6, 1, 11, 30)
+        session.commit()
+
+        # Without an offset, noon could be a local UTC+N clock representing an
+        # instant before the 11:30 UTC server edit. Treating it as noon UTC is a
+        # fail-open guess that lets this ambiguous device snapshot overwrite.
+        self._edit_fixture(
+            synthetic_db,
+            modified="2027-06-01T12:00:00.000",
+            text="ambiguous device passage",
+            note="ambiguous device note",
         )
 
         result = ingest_bookmarks(

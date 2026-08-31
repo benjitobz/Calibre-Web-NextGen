@@ -8,6 +8,7 @@ from .. import constants
 from ..clean_html import clean_string
 from ..cover_version import COVER_VERSION_ARG, cover_version_token
 from ..ui_themes import theme_slug
+from ..user_preferences import serialize_named_preferences
 
 
 # Fork #585 (@Glennza1962 et al.): map the SPA sidebar's nav entries to the
@@ -75,7 +76,7 @@ def serialize_sidebar_order(user):
 
 
 def serialize_user(user):
-    return {
+    payload = {
         "id": user.id,
         "name": user.name,
         "locale": user.locale,
@@ -90,6 +91,9 @@ def serialize_user(user):
             "delete_books": user.role_delete_books(),
             "edit_shelfs": user.role_edit_shelfs(),
             "viewer": user.role_viewer(),
+            "browse_global": bool(
+                getattr(user, "role_browse_global", lambda: False)()
+            ),
             "passwd": user.role_passwd(),
             "anonymous": user.role_anonymous(),
         },
@@ -97,12 +101,38 @@ def serialize_user(user):
         "sidebar": serialize_sidebar_visibility(user),
         # Fork #585 v2: the user's saved sidebar order ([] = SPA default order).
         "sidebar_order": serialize_sidebar_order(user),
+        # Generic per-user UI preferences. ``None`` means never set, which lets
+        # the SPA adopt a pre-existing local value exactly once.
+        "preferences": serialize_named_preferences(user),
         # Fork #866: marking a shelf "Kobo sync on" is inert until this account
         # setting is on. The shelf page warns about that, so /me carries the
         # flag — otherwise every shelf view would have to fetch the whole
         # account payload (app passwords, locale + language lists) for one bool.
         "kobo_only_shelves_sync": bool(getattr(user, "kobo_only_shelves_sync", False)),
     }
+    mode = getattr(user, "library_mode", None)
+    payload.update({
+        "library_mode": (
+            mode() if callable(mode)
+            else (constants.LIBRARY_MODE_PERSONAL
+                  if bool(getattr(user, "has_own_library", False))
+                  else constants.LIBRARY_MODE_MONOLIBRARY)
+        ),
+        "my_library_seeded": bool(
+            getattr(user, "user_library_seeded", False)
+        ),
+        "can_switch_library_mode": bool(
+            getattr(user, "role_browse_global", lambda: False)()
+        ),
+        "library_mode_managed": not bool(
+            getattr(user, "role_browse_global", lambda: False)()
+        ),
+        "show_my_library_intro": (
+            not user.role_anonymous()
+            and not bool(getattr(user, "my_library_intro_dismissed", False))
+        ),
+    })
+    return payload
 
 
 def serialize_shelf(shelf, count, is_owner):
@@ -200,7 +230,7 @@ def _serialize_custom_columns(book, definitions):
 
 def serialize_book_detail(book, read=False, archived=False, favorited=False, hidden=False,
                           in_progress=False, custom_column_definitions=None,
-                          original_filename=None):
+                          original_filename=None, annotation_count=0):
     """Full detail serializer — pure, no Flask/DB imports.
 
     Callers must enrich each language object with a ``.language_name`` attribute
@@ -308,6 +338,7 @@ def serialize_book_detail(book, read=False, archived=False, favorited=False, hid
             "size_bytes": d.uncompressed_size,
             "download_url": f"/download/{bid}/{fmt.lower()}/{d.name}",
             "read_url": f"/read/{bid}/{fmt.lower()}",
+            "content_url": f"/show/{bid}/{fmt.lower()}",
         })
 
     return {
@@ -338,4 +369,5 @@ def serialize_book_detail(book, read=False, archived=False, favorited=False, hid
         "favorited": bool(favorited),
         "hidden": bool(hidden),
         "in_progress": bool(in_progress),
+        "annotation_count": int(annotation_count or 0),
     }

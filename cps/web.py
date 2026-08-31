@@ -15,6 +15,7 @@ import zipfile
 import xml.etree.ElementTree as ET
 from datetime import datetime, timezone
 from pathlib import Path as _Path
+from urllib.parse import urlencode
 
 from flask import Blueprint, jsonify
 from flask import request, redirect, send_from_directory, send_file, make_response, flash, abort, url_for, Response, g
@@ -32,8 +33,7 @@ from werkzeug.datastructures import Headers
 from werkzeug.security import generate_password_hash, check_password_hash
 
 from . import constants, logger, isoLanguages, services, helper, spa, oauth_auto_redirect
-from .constants import DIRS_JSON
-from . import db, ub, config, app
+from . import db, ub, config, app, user_library
 from . import calibre_db, kobo_sync_status
 from .services.ereader_send import send_includes_own_address
 from .services import reading_position
@@ -46,7 +46,7 @@ from .helper import check_valid_domain, check_email, check_username, \
 from .pagination import Pagination
 from .sort_orders import BOOK_SORT_ORDERS, book_sort_order
 from .redirect import get_redirect_location
-from .cw_babel import get_available_locale
+from .cw_babel import get_available_locale, get_available_translations, sanitize_locale_for_write
 from .usermanagement import login_required_if_no_ano
 from .ui_themes import config_theme_code
 from .kobo_sync_status import remove_synced_book
@@ -276,6 +276,18 @@ def get_email_status_json():
 @web.route("/ajax/bookmark/<int:book_id>/<book_format>", methods=['POST'])
 @user_login_required
 def set_bookmark(book_id, book_format):
+    try:
+        from .services.device_registry import (
+            WEBREADER_INSTALLATION_ID_HEADER,
+            ensure_webreader_device_best_effort,
+        )
+        g.annotation_origin_device_id = ensure_webreader_device_best_effort(
+            user_id=current_user.id,
+            installation_id=request.headers.get(WEBREADER_INSTALLATION_ID_HEADER),
+        )
+    except Exception:
+        log.warning("Best-effort web-reader device observation failed", exc_info=True)
+        g.annotation_origin_device_id = None
     book_format = (book_format or "").lower()
     bookmark_key = request.form["bookmark"]
     ub.session.query(ub.Bookmark).filter(and_(ub.Bookmark.user_id == int(current_user.id),
@@ -309,7 +321,13 @@ def set_bookmark(book_id, book_format):
     percentage = reading_position.coerce_percentage(request.form.get("percentage"))
     if percentage is not None:
         try:
-            reading_position.record_web_reader_progress(current_user, book_id, percentage)
+            reading_position.record_web_reader_progress(
+                current_user,
+                book_id,
+                percentage,
+                origin_device_id=g.annotation_origin_device_id,
+                cfi=bookmark_key,
+            )
         except Exception as e:
             # Position sharing must never cost the user their bookmark.
             log.warning("Could not share web reader progress for book %s: %s", book_id, e)
@@ -357,6 +375,44 @@ def toggle_favorite(book_id):
         favorited = True
     ub.session_commit("Book {} favorite bit toggled".format(book_id))
     return json.dumps({"favorited": favorited})
+
+
+@web.route("/ajax/mylibrary/<int:book_id>/add", methods=['POST'])
+@user_login_required
+def add_to_my_library(book_id):
+    from . import user_library
+    try:
+        user_library.add_book(current_user, book_id)
+    except user_library.UserLibraryError as ex:
+        return json.dumps({"error": str(ex)}), 403
+    return json.dumps({"in_my_library": True})
+
+
+@web.route("/ajax/mylibrary/<int:book_id>/remove", methods=['POST'])
+@user_login_required
+def remove_from_my_library(book_id):
+    from . import user_library
+    try:
+        shelves = user_library.remove_book(current_user, book_id)
+    except user_library.UserLibraryError as ex:
+        return json.dumps({"error": str(ex)}), 409
+    return json.dumps({
+        "in_my_library": False,
+        "affected_shelves": shelves,
+        "kobo_removal_on_next_sync": True,
+        "reading_data_preserved": True,
+    })
+
+
+@web.route("/ajax/mylibrary/<int:book_id>/removal-impact", methods=['GET'])
+@user_login_required
+def my_library_removal_impact(book_id):
+    """Describe removal effects before the classic UI confirms the action."""
+    from . import user_library
+    try:
+        return json.dumps(user_library.removal_impact(current_user, book_id))
+    except user_library.UserLibraryError as ex:
+        return json.dumps({"error": str(ex)}), 409
 
 
 # --- Web-reader per-user display settings -----------------------------------
@@ -576,11 +632,7 @@ def get_sort_function(sort_param, data):
 
 
 def cwa_get_library_location() -> str:
-    dirs = {}
-    with open(DIRS_JSON, 'r') as f:
-        dirs: dict[str, str] = json.load(f)
-    library_dir = dirs['calibre_library_dir']
-    return library_dir
+    return constants.calibre_library_dir()
 
 def cwa_get_num_books_in_library() -> int:
     try:
@@ -1511,29 +1563,77 @@ def health_check():
 @web.route('/page/<int:page>')
 @login_required_if_no_ano
 def index(page):
+    sort_param = (request.args.get('sort') or 'stored').lower()
+
+    # Decide the response surface before creating Classic-only flashes. The SPA
+    # does not consume Flask's flash queue (#1959), so flashing before this
+    # redirect would hide the warning and accumulate duplicates in the session.
+    # The helper returns False for cwng_feedback, preserving that Classic path.
+    if spa.classic_index_redirects_to_spa():
+        return redirect(spa.spa_shell_url())
+
     if current_user.is_authenticated and current_user.role_admin():
         arch_warning = helper.check_architecture()
         if arch_warning:
             flash(arch_warning, category="cwa_arch_warning")
 
-    sort_param = (request.args.get('sort') or 'stored').lower()
-
-    # Sticky new UI (#739). The SPA's "Back to classic view" nav lands here
-    # carrying cwng_feedback=newui — drop the preference cookie so leaving the
-    # SPA is sticky too. Only the web index does this; books_list, authors,
-    # OPDS, Kobo and the API never touch the cookie.
+    # The SPA's "Back to classic view" nav lands here with a one-shot feedback
+    # marker. Persist the explicit Classic opt-out and clear the legacy SPA
+    # cookie (downgrade compatibility). Only the web index does this; books_list,
+    # authors, OPDS, Kobo and the API never touch either cookie.
     if request.args.get('cwng_feedback'):
-        response = make_response(render_books_list("newest", sort_param, 1, page))
+        response = make_response(render_books_list("root", sort_param, 1, page))
+        spa.stamp_prefer_classic_cookie(response)
         spa.clear_prefer_spa_cookie(response)
         return response
 
-    # And once a browser prefers the SPA, bounce a bookmarked classic-home URL
-    # to the new UI rather than silently reverting (and re-nagging). Same
-    # web-index-only scope; the helper also gates on SPA available + accepts HTML.
-    if spa.classic_index_redirects_to_spa():
-        return redirect(spa.spa_shell_url())
+    return render_books_list("root", sort_param, 1, page)
 
-    return render_books_list("newest", sort_param, 1, page)
+
+@web.route('/global-library', defaults={'sort_param': 'stored', 'page': 1})
+@web.route('/global-library/<sort_param>', defaults={'page': 1})
+@web.route('/global-library/<sort_param>/<int:page>')
+@user_login_required
+def global_library(sort_param, page):
+    if current_user.is_anonymous or not current_user.role_browse_global():
+        abort(403, description=_("You don't have permission to browse the global library."))
+    recent_missing = sort_param == "recent-missing"
+    search_term = (request.args.get("search") or "").strip()
+    order = get_sort_function(
+        "new" if recent_missing else sort_param, "global_library"
+    )
+    filters = []
+    if recent_missing:
+        filters.append(user_library.global_missing_filter(current_user, cdb=calibre_db))
+    if search_term:
+        like = "%" + search_term + "%"
+        filters.append(or_(
+            func.lower(db.Books.title).ilike(func.lower(like)),
+            db.Books.authors.any(func.lower(db.Authors.name).ilike(func.lower(like))),
+            db.Books.series.any(func.lower(db.Series.name).ilike(func.lower(like))),
+        ))
+    global_filter = and_(*filters) if filters else True
+    entries, random, pagination = calibre_db.fill_indexpage(
+        page, 0, db.Books, global_filter, order[0],
+        True, config.config_read_column,
+        db.books_series_link,
+        db.Books.id == db.books_series_link.c.book,
+        db.Series,
+        allow_show_global=True,
+    )
+    page_ids = [int(getattr(entry, "Books", entry).id) for entry in entries]
+    global_member_ids = {int(row[0]) for row in (
+        ub.session.query(ub.UserLibraryBook.book_id)
+        .filter(ub.UserLibraryBook.user_id == int(current_user.id),
+                ub.UserLibraryBook.book_id.in_(page_ids)).all()
+    )}
+    return render_title_template(
+        'index.html', random=random, entries=entries, pagination=pagination,
+        title=_("Global Library (%(count)s)", count=pagination.total_count),
+        page="global_library", order=order[1], global_library=True,
+        recent_missing=recent_missing, global_member_ids=global_member_ids,
+        global_search=search_term,
+    )
 
 
 @web.route('/<data>/<sort_param>', defaults={'page': 1, 'book_id': 1})
@@ -2853,14 +2953,34 @@ def login():
     if config.config_login_type != constants.LOGIN_OAUTH:
         oauth_auto_redirect.clear_auto_redirect_state(flask_session)
 
-    # #908: the UI preference is intentionally per-browser, not per-user, so it
-    # remains readable after logout. Route an anonymous HTML browser into the
-    # SPA's logged-out tree before rendering the Classic login template.
+    # A no-JS browser reaches the fixed Classic feedback URL from the SPA
+    # shell. On login-required instances the index decorator redirects here
+    # before index() can stamp the opt-out, with that URL nested in ``next``.
+    # Finish the handoff on the Classic login surface; sending it back to the
+    # SPA would repeat shell -> feedback index -> login forever. The predicate
+    # accepts only our prefix-scoped marker and never redirects to ``next``.
+    if spa.classic_fallback_requested_from_next(request.args.get("next")):
+        response = make_response(render_login())
+        spa.stamp_prefer_classic_cookie(response)
+        spa.clear_prefer_spa_cookie(response)
+        return response
+
+    # #908: the UI preference is per-browser, not per-user, so it remains readable
+    # after logout. Every configured login mode now has an SPA authentication
+    # path, so only an explicit Classic opt-out keeps the Classic login.
     if spa.preferred_spa_html_request():
         # The destination is fixed and app-owned. spa_shell_url() preserves a
         # valid reverse-proxy subpath while rejecting hostile forwarded prefixes;
-        # never redirect to the user-controlled ``next`` query parameter.
-        return redirect(spa.spa_shell_url())
+        # ``next`` is carried only as encoded data for the SPA's strict
+        # post-auth sanitizer, never used as the redirect destination itself.
+        destination = spa.spa_shell_url()
+        next_url = request.args.get("next")
+        if next_url:
+            destination = "%s?%s" % (destination, urlencode({"next": next_url}))
+        # The SPA has no Flask flash renderer. Do not carry Classic-only login
+        # messages forward to accumulate or surface later on an unrelated page.
+        flask_session.pop("_flashes", None)
+        return redirect(destination)
 
     # Handle OAuth-only authentication mode
     if config.config_login_type == constants.LOGIN_OAUTH:
@@ -2965,6 +3085,16 @@ def login_post():
                 # LDAP unavailable and no local fallback
                 log.info(error)
                 flash(_(u"Could not login: %(message)s", message=error), category="error")
+            elif login_result is False and user and user.password \
+                    and check_password_hash(str(user.password), form['password']) \
+                    and user.name != "Guest":
+                # LDAP rejected the credentials, try the stored local password
+                log.info("Local Fallback Login as: '{}' (LDAP rejected)".format(user.name))
+                return handle_login_user(user,
+                                         remember_me,
+                                         _(u"Local Login as: '%(nickname)s', "
+                                           u"LDAP authentication rejected", nickname=user.name),
+                                         "warning")
             else:
                 # LDAP authentication failed
                 # Use request.remote_addr (already corrected by ProxyFix) instead of raw header
@@ -2988,7 +3118,6 @@ def login_post():
                     log.debug(f"Failed to log failed login attempt: {e}")
                 
                 flash(_(u"Wrong Username or Password"), category="error")
-            flash(_(u"Wrong Username or Password"), category="error")
     else:
         # Use request.remote_addr (already corrected by ProxyFix) instead of raw header
         ip_address = request.remote_addr
@@ -3055,7 +3184,23 @@ def logout():
 def change_profile(kobo_support, hardcover_support, local_oauth_check, oauth_status, translations, languages):
     to_save = request.form.to_dict()
     current_user.random_books = 0
+    desired_library_mode = to_save.get(
+        "library_mode", user_library.mode_for_user(current_user)
+    )
+    library_seed_prepared = False
     try:
+        if desired_library_mode not in constants.LIBRARY_MODES:
+            raise ValueError(_("Invalid library mode"))
+        if (desired_library_mode != user_library.mode_for_user(current_user)
+                and not current_user.role_browse_global()):
+            raise user_library.UserLibraryError(
+                _("Your library contents are managed by an administrator."))
+        if (desired_library_mode == constants.LIBRARY_MODE_PERSONAL
+                and not bool(current_user.user_library_seeded)):
+            # This combined classic form edits many fields. Seed first so its
+            # bounded commits cannot persist unrelated half-validated input.
+            user_library.prepare_user_library_seed(current_user)
+            library_seed_prepared = True
         if current_user.role_passwd() or current_user.role_admin():
             if to_save.get("password", "") != "":
                 current_user.password = generate_password_hash(valid_password(to_save.get("password")))
@@ -3074,7 +3219,12 @@ def change_profile(kobo_support, hardcover_support, local_oauth_check, oauth_sta
                 current_user.name = check_username(to_save.get("name"))
         current_user.random_books = 1 if to_save.get("show_random") == "on" else 0
         current_user.default_language = to_save.get("default_language", "all")
-        current_user.locale = to_save.get("locale", "en")
+        # A stored locale is returned verbatim by get_locale() on every later
+        # request, so it has to be one we actually ship (F-011141). An
+        # unusable value leaves the current one alone rather than being stored.
+        validated_locale = sanitize_locale_for_write(to_save.get("locale"))
+        if validated_locale:
+            current_user.locale = validated_locale
         old_state = current_user.kobo_only_shelves_sync
         current_user.kobo_only_shelves_sync = int(to_save.get("kobo_only_shelves_sync") == "on") or 0
         if kobo_sync_status.needs_shelf_reconciliation(old_state,
@@ -3326,11 +3476,20 @@ def change_profile(kobo_support, hardcover_support, local_oauth_check, oauth_sta
         current_user.sidebar_view += constants.DETAIL_RANDOM
 
     try:
+        user_library.set_library_mode(
+            current_user,
+            desired_library_mode,
+            seed_rows_prepared=library_seed_prepared,
+            commit=False,
+        )
         ub.session.commit()
         flash(_("Success! Profile Updated"), category="success")
         log.debug("Profile updated")
         # Redirect to refresh sidebar with updated shelf visibility
         return redirect(url_for('web.profile'))
+    except user_library.UserLibraryError as ex:
+        ub.session.rollback()
+        flash(str(ex), category="error")
     except IntegrityError:
         ub.session.rollback()
         flash(_("Oops! An account already exists for this Email."), category="error")

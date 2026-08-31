@@ -41,6 +41,7 @@ Library, settings, users, OAuth tokens, and KOReader sync state are preserved. S
 - [What's included](#whats-included)
 - [Quick start](#quick-start)
 - [Full Docker Compose setup](#full-docker-compose-setup)
+- [Runtime path overrides for packagers](#runtime-path-overrides-for-packagers)
 - [First run](#first-run)
 - [Migrating](#migrating)
   - [From upstream CWA](#from-upstream-cwa)
@@ -175,6 +176,12 @@ services:
       # limit. Free; sign up at https://comicvine.gamespot.com/api/
       # - COMICVINE_API_KEY=...
 
+      # Optional: override paths inside the container. The matching
+      # volume targets below must use the same paths.
+      # - CWA_INGEST_FOLDER=/cwa-book-ingest
+      # - CWA_CALIBRE_LIBRARY_DIR=/calibre-library
+      # - CWA_TMP_CONVERSION_DIR=/config/.cwa_conversion_tmp
+
     volumes:
       # Settings, user database, logs. Empty folder for new installs;
       # for existing CWA users, point at your existing /config.
@@ -212,6 +219,50 @@ services:
 | `/cwa-book-ingest` | Drop zone for new books | Files here are **deleted** after processing. Don't park books here long-term. |
 
 > Don't nest the binds. All three should be separate top-level folders. Putting `ingest` inside `library` produces recursive ingest behavior.
+
+---
+
+## Runtime path overrides for packagers
+
+Bare-metal and distro packages can configure all three runtime paths from the
+process environment instead of editing `dirs.json` inside the installation:
+
+| Environment variable | `dirs.json` fallback | Compiled-in default |
+|---|---|---|
+| `CWA_INGEST_FOLDER` | `ingest_folder` | `/cwa-book-ingest` |
+| `CWA_CALIBRE_LIBRARY_DIR` | `calibre_library_dir` | `/calibre-library` |
+| `CWA_TMP_CONVERSION_DIR` | `tmp_conversion_dir` | `/config/.cwa_conversion_tmp` |
+
+Each non-blank environment value wins for its key. If it is unset or blank,
+CWNG reads that key from the file selected by `CWA_DIRS_JSON`; a missing or
+malformed file, a non-object document, or a null/blank value falls back to the
+compiled-in default. Existing hand-edited `dirs.json` files therefore remain
+supported.
+
+Runtime path values are trimmed and lexically normalized, and must be absolute,
+non-root paths without a `..` component. Repeated separators, `.` components,
+and trailing separators are collapsed without resolving symlinks. A non-blank
+environment or `dirs.json` value that violates that contract stops the affected
+startup service instead of letting an unsafe path reach file watchers or
+recursive ownership operations.
+
+For example, a systemd unit can load a packager-owned file:
+
+```ini
+[Service]
+EnvironmentFile=/etc/calibre-web-nextgen/paths.env
+```
+
+```bash
+CWA_INGEST_FOLDER=/srv/calibre-web-nextgen/ingest
+CWA_CALIBRE_LIBRARY_DIR=/srv/calibre/library
+CWA_TMP_CONVERSION_DIR=/var/cache/calibre-web-nextgen/conversion
+```
+
+When `CWA_CALIBRE_LIBRARY_DIR` is set, it is authoritative. Automatic library
+discovery will leave `dirs.json` unchanged; if discovery finds a different
+library, startup stops and reports both paths so the environment file can be
+corrected.
 
 ---
 
@@ -358,6 +409,8 @@ After Shelfmark starts, open it and pick **Settings → Security → Authenticat
 
 ### Network shares (NFS, SMB, ZFS)
 
+See [`examples/.env.example`](examples/.env.example) for the complete environment-variable reference and defaults.
+
 If `/config` or `/calibre-library` lives on a network share, set:
 
 ```yaml
@@ -468,7 +521,22 @@ Behind multiple proxies (e.g. Cloudflare Tunnel then nginx then CWA), set the pr
 - TRUSTED_PROXY_COUNT=2
 ```
 
-Without this, CWA may see different client IPs across requests and trigger Session Protection warnings, forcing re-login on every page load. Default is `1`.
+Without this, CWA may see different client IPs across requests and trigger Session Protection warnings, forcing re-login on every page load. It can also mistake an externally secure OIDC callback for plain HTTP. Default is `1`.
+
+`TRUSTED_PROXY_COUNT` applies one trust depth to `X-Forwarded-For`,
+`X-Forwarded-Proto`, `X-Forwarded-Host`, and `X-Forwarded-Prefix`. If your
+proxy chain appends or replaces those headers at different layers, override the
+first three independently; each falls back to `TRUSTED_PROXY_COUNT`, then `1`:
+
+```yaml
+- PROXYFIX_X_FOR=2
+- PROXYFIX_X_PROTO=1
+- PROXYFIX_X_HOST=1
+```
+
+The corresponding ProxyFix arguments are `x_for`, `x_proto`, and `x_host`.
+Count only proxies you control and that overwrite or sanitize the corresponding
+header.
 
 ### Hardcover metadata provider
 
@@ -512,7 +580,7 @@ CWA has built-in KOReader progress sync; no separate kosync server is needed.
 2. Point the plugin at `http://your-cwa:8083` and log in with your CWA username and password.
 3. Read on any device. Progress syncs back to CWA, and from there to Kobo if Kobo sync is enabled.
 
-**Keeping the plugin updated.** KOReader's [Updates Manager](https://github.com/advokatb/updatesmanager.koplugin) and [appstore.koplugin](https://github.com/kaz-utashiro/appstore.koplugin) can both update the plugin in place. Point either at the plugin's own repository, [`new-usemame/cwasync.koplugin`](https://github.com/new-usemame/cwasync.koplugin/releases) — not at this one. The plugin publishes a release only when the plugin itself changes, and its version is the server version it last changed in, so it can legitimately sit behind your server version; that alone doesn't mean anything is wrong. With the plugin repository configured, a check that reports no new release means the plugin stream has nothing newer.
+**Keeping the plugin updated.** KOReader's [Updates Manager](https://github.com/advokatb/updatesmanager.koplugin) and [appstore.koplugin](https://github.com/kaz-utashiro/appstore.koplugin) can both update the plugin in place. Point either at the plugin's own repository, [`new-usemame/cwngsync.koplugin`](https://github.com/new-usemame/cwngsync.koplugin/releases) — not at this one. The plugin publishes a release only when the plugin itself changes, and its version is the server version it last changed in, so it can legitimately sit behind your server version; that alone doesn't mean anything is wrong. With the plugin repository configured, a check that reports no new release means the plugin stream has nothing newer.
 
 If your update manager is still pointed at this repository, switch it. That setup keeps working — a release that changes the plugin attaches the plugin download — but the plugin only appears on those releases, which is easy to misread as "no update available". The download on `/kosync` always serves the plugin bundled with your running server if you would rather update by hand.
 
@@ -680,34 +748,34 @@ The interface ships with the locales below. Completion is auto-refreshed on ever
 | Language | Completion | Strings | Fuzzy |
 |---|---|---:|---:|
 | English (source) | 100% | source | — |
-| Russian (`ru`) | `████████████████████` 100% | 2844/2844 | 0 |
-| Spanish (`es`) | `███████████████████░` 93% | 2638/2844 | 0 |
-| Polish (`pl`) | `██████████████████░░` 92% | 2602/2844 | 0 |
-| French (`fr`) | `████████████████░░░░` 82% | 2344/2844 | 127 |
-| German (`de`) | `███████████████░░░░░` 76% | 2172/2844 | 12 |
-| Dutch (`nl`) | `█████████████░░░░░░░` 66% | 1888/2844 | 292 |
-| Hungarian (`hu`) | `████████████░░░░░░░░` 58% | 1644/2844 | 121 |
-| Portuguese (Brazil) (`pt_BR`) | `██████████░░░░░░░░░░` 50% | 1407/2844 | 310 |
-| Chinese (Traditional, Taiwan) (`zh_Hant_TW`) | `██████████░░░░░░░░░░` 49% | 1382/2844 | 182 |
-| Japanese (`ja`) | `█████████░░░░░░░░░░░` 46% | 1318/2844 | 247 |
-| Slovenian (`sl`) | `█████████░░░░░░░░░░░` 43% | 1212/2844 | 318 |
-| Chinese (Simplified, China) (`zh_Hans_CN`) | `████████░░░░░░░░░░░░` 41% | 1174/2844 | 348 |
-| Italian (`it`) | `███████░░░░░░░░░░░░░` 34% | 955/2844 | 269 |
-| Korean (`ko`) | `███████░░░░░░░░░░░░░` 33% | 946/2844 | 269 |
-| Arabic (`ar`) | `██████░░░░░░░░░░░░░░` 28% | 788/2844 | 286 |
-| Slovak (`sk`) | `█████░░░░░░░░░░░░░░░` 26% | 747/2844 | 313 |
-| Portuguese (`pt`) | `█████░░░░░░░░░░░░░░░` 25% | 699/2844 | 360 |
-| Indonesian (`id`) | `█████░░░░░░░░░░░░░░░` 24% | 676/2844 | 362 |
-| Galician (`gl`) | `█████░░░░░░░░░░░░░░░` 24% | 675/2844 | 361 |
-| Swedish (`sv`) | `████░░░░░░░░░░░░░░░░` 20% | 582/2844 | 388 |
-| Greek (`el`) | `████░░░░░░░░░░░░░░░░` 18% | 504/2844 | 399 |
-| Czech (`cs`) | `███░░░░░░░░░░░░░░░░░` 17% | 475/2844 | 408 |
-| Ukrainian (`uk`) | `███░░░░░░░░░░░░░░░░░` 16% | 442/2844 | 372 |
-| Norwegian (`no`) | `███░░░░░░░░░░░░░░░░░` 15% | 431/2844 | 435 |
-| Vietnamese (`vi`) | `███░░░░░░░░░░░░░░░░░` 15% | 421/2844 | 357 |
-| Finnish (`fi`) | `██░░░░░░░░░░░░░░░░░░` 12% | 354/2844 | 388 |
-| Turkish (`tr`) | `██░░░░░░░░░░░░░░░░░░` 10% | 289/2844 | 385 |
-| Khmer (`km`) | `█░░░░░░░░░░░░░░░░░░░` 7% | 207/2844 | 343 |
+| Russian (`ru`) | `██████████████████░░` 92% | 2829/3078 | 0 |
+| Spanish (`es`) | `█████████████████░░░` 85% | 2623/3078 | 0 |
+| Polish (`pl`) | `█████████████████░░░` 84% | 2588/3078 | 0 |
+| French (`fr`) | `█████████████████░░░` 83% | 2558/3078 | 125 |
+| German (`de`) | `██████████████░░░░░░` 70% | 2162/3078 | 12 |
+| Dutch (`nl`) | `██████████████░░░░░░` 68% | 2104/3078 | 289 |
+| Hungarian (`hu`) | `███████████░░░░░░░░░` 53% | 1638/3078 | 119 |
+| Portuguese (Brazil) (`pt_BR`) | `█████████░░░░░░░░░░░` 46% | 1403/3078 | 306 |
+| Chinese (Traditional, Taiwan) (`zh_Hant_TW`) | `█████████░░░░░░░░░░░` 45% | 1377/3078 | 181 |
+| Japanese (`ja`) | `█████████░░░░░░░░░░░` 43% | 1312/3078 | 244 |
+| Slovenian (`sl`) | `████████░░░░░░░░░░░░` 39% | 1206/3078 | 313 |
+| Chinese (Simplified, China) (`zh_Hans_CN`) | `████████░░░░░░░░░░░░` 38% | 1168/3078 | 343 |
+| Italian (`it`) | `██████░░░░░░░░░░░░░░` 31% | 950/3078 | 266 |
+| Korean (`ko`) | `██████░░░░░░░░░░░░░░` 31% | 941/3078 | 266 |
+| Arabic (`ar`) | `█████░░░░░░░░░░░░░░░` 26% | 786/3078 | 281 |
+| Slovak (`sk`) | `█████░░░░░░░░░░░░░░░` 24% | 746/3078 | 308 |
+| Portuguese (`pt`) | `█████░░░░░░░░░░░░░░░` 23% | 698/3078 | 355 |
+| Galician (`gl`) | `████░░░░░░░░░░░░░░░░` 22% | 674/3078 | 356 |
+| Indonesian (`id`) | `████░░░░░░░░░░░░░░░░` 22% | 675/3078 | 357 |
+| Swedish (`sv`) | `████░░░░░░░░░░░░░░░░` 19% | 582/3078 | 383 |
+| Greek (`el`) | `███░░░░░░░░░░░░░░░░░` 16% | 504/3078 | 394 |
+| Czech (`cs`) | `███░░░░░░░░░░░░░░░░░` 15% | 475/3078 | 403 |
+| Ukrainian (`uk`) | `███░░░░░░░░░░░░░░░░░` 14% | 443/3078 | 368 |
+| Norwegian (`no`) | `███░░░░░░░░░░░░░░░░░` 14% | 431/3078 | 431 |
+| Vietnamese (`vi`) | `███░░░░░░░░░░░░░░░░░` 14% | 421/3078 | 352 |
+| Finnish (`fi`) | `██░░░░░░░░░░░░░░░░░░` 12% | 354/3078 | 383 |
+| Turkish (`tr`) | `██░░░░░░░░░░░░░░░░░░` 9% | 289/3078 | 380 |
+| Khmer (`km`) | `█░░░░░░░░░░░░░░░░░░░` 7% | 207/3078 | 340 |
 <!-- TRANSLATION_STATUS_END -->
 
 ---

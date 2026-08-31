@@ -291,12 +291,30 @@ def test_non_object_annotation_member_is_skipped_without_dropping_later_members(
 ):
     s, user = patched_session
 
-    dispatch_annotation_sync([
+    result = dispatch_annotation_sync([
         _payload("uuid-before", text_="before"),
         "not-an-annotation-object",
         _payload("uuid-after", text_="after"),
     ], _book(), user)
 
+    assert result is False
+    assert [row.annotation_id for row in s.query(ub.Annotation).order_by(ub.Annotation.id)] == [
+        "uuid-before", "uuid-after",
+    ]
+
+
+def test_idless_annotation_member_makes_batch_incomplete_without_dropping_later_members(
+    patched_session,
+):
+    s, user = patched_session
+
+    result = dispatch_annotation_sync([
+        _payload("uuid-before", text_="before"),
+        {"highlightedText": "cannot be addressed or retried after acknowledgement"},
+        _payload("uuid-after", text_="after"),
+    ], _book(), user)
+
+    assert result is False
     assert [row.annotation_id for row in s.query(ub.Annotation).order_by(ub.Annotation.id)] == [
         "uuid-before", "uuid-after",
     ]

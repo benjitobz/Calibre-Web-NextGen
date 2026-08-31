@@ -430,7 +430,10 @@ class EPUBFixer:
         """Backup original file"""
         if self.cwa_settings['auto_backup_epub_fixes']:
             try:
-                output_path = f"/config/processed_books/fixed_originals/"
+                output_path = str(
+                    app_paths.processed_books_dir() / "fixed_originals"
+                )
+                os.makedirs(output_path, exist_ok=True)
                 shutil.copy2(epub_path, output_path)
             except Exception as e:
                 print_and_log(f"[cwa-kindle-epub-fixer] ERROR - Error occurred when backing up {epub_path} to {output_path}:\n{e}", log=self.manually_triggered)
@@ -1243,16 +1246,11 @@ def get_library_location() -> str:
         con.close()
         return split_path
     else:
-        dirs = {}
         # The module-level `dirs_json`, not a fresh app_paths lookup: it is the
         # same value, and it is the seam the rest of this module (and its tests)
-        # already resolve through. Before #1462 this line hardcoded a path that
-        # does not exist outside the container, so it raised and the caller's
-        # `except` branch quietly did the right thing via that global.
-        with open(dirs_json, 'r') as f:
-            dirs: dict[str, str] = json.load(f)
-        library_dir = f"{dirs['calibre_library_dir']}/"
-        return library_dir
+        # already resolve through. app_paths adds the per-key environment and
+        # safe default layers while preserving this function's trailing slash.
+        return f"{app_paths.calibre_library_dir(dirs_json)}/"
 
 # Calibre's own bookkeeping directories inside the library root. Matched by
 # exact name so that a book whose author or title legitimately begins with a

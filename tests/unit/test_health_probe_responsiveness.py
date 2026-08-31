@@ -133,6 +133,7 @@ def test_locked_metadata_probe_returns_promptly_without_stalling_another_request
         _http_get(server.server_port, "/health-probe-concurrent", results)
 
     concurrent_client = threading.Thread(target=request_concurrently, daemon=True)
+    safety_timer_alive = False
 
     try:
         health_client.start()
@@ -148,11 +149,15 @@ def test_locked_metadata_probe_returns_promptly_without_stalling_another_request
         concurrent_client.join(timeout=0.1)
     finally:
         safety_timer.cancel()
+        if safety_timer.ident is not None:
+            safety_timer.join(timeout=2)
+        safety_timer_alive = safety_timer.is_alive()
         if not unlock_fired.is_set():
             writer.rollback()
         writer.close()
         server.stop(timeout=1)
 
+    assert not safety_timer_alive, "safety unlock timer survived test teardown"
     assert not health_client.is_alive(), (
         "/health did not return within the five-second test bound"
     )

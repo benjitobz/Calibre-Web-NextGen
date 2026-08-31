@@ -1,10 +1,12 @@
 import { useState, useEffect, useRef, Fragment } from 'react';
 import { Link, useParams, useLocation } from 'wouter';
-import { Download, Pencil, Star, Archive, EyeOff, Eye, Send, Highlighter, Image as ImageIcon, Plus, X, BookOpen, Trash2, RefreshCw } from 'lucide-react';
+import { Download, Pencil, Star, Archive, EyeOff, Eye, Send, Highlighter, Image as ImageIcon, Plus, X, BookOpen, BookCheck, BookPlus, Trash2, RefreshCw, TabletSmartphone } from 'lucide-react';
 import {
   useBook, useToggleRead, useToggleFavorite, useToggleArchived, useToggleHidden,
   useSendToEreader, useMe, useAccount, useUpdateMetadata, useDeleteBook, useReloadMetadata,
   useBookShelves, useShelves, useKoboTwoWayAnnotations, selectKoboTwoWayBook,
+  useAddToMyLibrary, useMyLibraryRemovalImpact, useRemoveFromMyLibrary,
+  useActiveDeliveryDevices, useQueueDeviceDelivery,
 } from '../lib/queries';
 import { authorityLabel, opaqueLabel } from '../lib/koboTwoWay';
 import { MetadataTypeahead } from '../components/MetadataTypeahead';
@@ -15,14 +17,17 @@ import { MoreByAuthor } from '../components/MoreByAuthor';
 import { AUTHOR_SEPARATOR } from '../lib/authors';
 import { SpinnerCentered, Spinner } from '../components/Spinner';
 import { EmptyState } from '../components/EmptyState';
-import type { CustomColumn, CustomColumnValue, EntityRef } from '../lib/api';
+import type { CustomColumn, CustomColumnValue, EntityRef, DeliveryDevice } from '../lib/api';
 import { ApiError, resourceUrl, resourceSrcSet } from '../lib/api';
 import { useT } from '../lib/i18n';
 import { getPrimaryReadTarget } from '../lib/readerTarget';
+import { canDownloadBooks, canReadBooks } from '../lib/permissions';
 import styles from './BookDetail.module.css';
 import { useCardActionsHidden } from '../lib/useCardActionsHidden';
 import { BookUserNotices } from '../components/UserNotices';
 import { backTarget } from '../lib/backLink';
+import { useAnnouncer } from '../lib/a11y/announcer';
+import { useMediaQuery } from '../lib/useMediaQuery';
 
 /* `fetchpriority` is a plain DOM attribute. react-dom 18.3 has no knowledge of
    it, so the camelCase `fetchPriority` that @types/react declares would trip its
@@ -135,6 +140,49 @@ function SendPanel({ formats, pending, banner, defaultEmail, onSend }: SendPanel
         </button>
       </div>
       <p className={banner ? (banner.ok ? styles.sendOk : styles.sendErr) : undefined} role="status">{banner?.text}</p>
+    </div>
+  );
+}
+
+interface DeviceSendPanelProps {
+  devices: DeliveryDevice[];
+  pending: boolean;
+  banner: { ok: boolean; text: string } | null;
+  onSend: (device: string) => void;
+}
+
+/** Pull delivery is intentionally separate from e-mail sending: the selected
+ * reader collects this queue on its own next sync, even through a reverse proxy. */
+function DeviceSendPanel({ devices, pending, banner, onSend }: DeviceSendPanelProps) {
+  const t = useT();
+  const [device, setDevice] = useState(devices[0]?.public_id ?? '');
+  const hintId = 'device-delivery-hint';
+  useEffect(() => {
+    if (!devices.some((item) => item.public_id === device)) {
+      setDevice(devices[0]?.public_id ?? '');
+    }
+  }, [devices, device]);
+  return (
+    <div id="device-send-panel" className={styles.sendPanel} data-testid="device-send-panel">
+      <label className={styles.sendField}>
+        <span>{t('Device')}</span>
+        <select value={device} aria-describedby={hintId}
+          onChange={(event) => setDevice(event.target.value)}>
+          <option value="" disabled>{t('Choose a device')}</option>
+          {devices.map((item) => (
+            <option key={item.public_id} value={item.public_id}>{item.label}</option>
+          ))}
+        </select>
+      </label>
+      <p id={hintId} className={styles.sendHint}>{t("Collects on the device's next sync.")}</p>
+      <div className={styles.sendActions}>
+        <button type="button" className={`${styles.actionPrimary} ${styles.deviceSendButton}`}
+          disabled={pending || !device} onClick={() => onSend(device)}>
+          {pending ? t('Queueing…') : t('Send to device')}
+        </button>
+      </div>
+      <p className={banner ? (banner.ok ? styles.sendOk : styles.sendErr) : undefined}
+        role="status" aria-live="polite">{banner?.text}</p>
     </div>
   );
 }
@@ -254,6 +302,7 @@ function TagEditor({ bookId, tags, canEdit }:
 export function BookDetail() {
   const [cardActionsHidden] = useCardActionsHidden();
   const t = useT();
+  const announce = useAnnouncer();
   const params = useParams<{ id: string }>();
   const id = params.id;
 
@@ -263,10 +312,17 @@ export function BookDetail() {
   const toggleArchived = useToggleArchived(id);
   const toggleHidden = useToggleHidden(id);
   const sendToEreader = useSendToEreader(id);
+  const queueDeviceDelivery = useQueueDeviceDelivery(id);
   const deleteBook = useDeleteBook(id);
   const reloadMetadata = useReloadMetadata(id);
+  const addToLibrary = useAddToMyLibrary();
+  const removalImpact = useMyLibraryRemovalImpact();
+  const removeFromLibrary = useRemoveFromMyLibrary();
   const [location, navigate] = useLocation();
   const me = useMe().data;
+  const deliveryDevices = useActiveDeliveryDevices(
+    !!me && !me.role?.anonymous && !!me.role?.download,
+  );
   /* Stage 0 two-way sync state chip (read-only; manage it on Account). */
   const twoWay = useKoboTwoWayAnnotations({
     enabled: !!me && !me.role?.anonymous && !!me.features?.kobo_two_way_annotations,
@@ -279,8 +335,17 @@ export function BookDetail() {
   const savedEreader = useAccount({ enabled: canSend }).data?.kindle_mail ?? '';
   const [sendOpen, setSendOpen] = useState(false);
   const [sendBanner, setSendBanner] = useState<{ ok: boolean; text: string } | null>(null);
+  const [deviceSendOpen, setDeviceSendOpen] = useState(false);
+  const [deviceSendBanner, setDeviceSendBanner] = useState<{ ok: boolean; text: string } | null>(null);
   const [deleteError, setDeleteError] = useState<string | null>(null);
   const [reloadMessage, setReloadMessage] = useState('');
+  /* #1828's destructive-control swap is a CONDITIONAL RENDER, not a hidden
+     element: the icon button and the bordered region never exist in the DOM
+     together, because a display:none control still shows up in DOM sweeps with
+     an empty accessible name (it has none — it is not rendered) and failed
+     hidden-books.spec's every-control-is-named sweep on desktop. Keep this
+     query in sync with the 700px mobile cutover in BookDetail.module.css. */
+  const narrowLayout = useMediaQuery('(max-width: 700px)');
   // Shelf membership for the metadata list (#1254). Both queries are already
   // in flight for the always-rendered AddToShelf popover below and share its
   // cache keys, so reading them here costs no extra request.
@@ -292,25 +357,66 @@ export function BookDetail() {
     return (
       <main className={styles.container}>
         <Link href={bookBackTarget.href} className={styles.back}>
-          {t(bookBackTarget.isOrigin ? '← Back' : '← Library')}
+          {bookBackTarget.isOrigin ? t('← Back') : t('← Library')}
         </Link>
         <EmptyState message={error instanceof Error ? error.message : t('Book not found.')} />
       </main>
     );
   }
 
-  const primaryReadTarget = getPrimaryReadTarget(book.id, book.formats.map((f) => f.format));
+  const primaryReadTarget = getPrimaryReadTarget(
+    book.id,
+    book.formats.map((f) => f.format),
+    canReadBooks(me),
+  );
 
   // The membership endpoint returns ids only, and both it and the shelf list
   // apply the same server-side visibility filter (own shelves + public ones),
   // so every id here resolves to a name the caller is allowed to see.
   const onShelfIds = new Set(shelfMembership?.shelf_ids ?? []);
   const bookShelves = (visibleShelves?.items ?? []).filter((s) => onShelfIds.has(s.id));
+  const selectionMode = me?.library_mode === 'personal_library';
+  const inLibrary = !selectionMode || book.in_my_library !== false;
+
+  const requestDeleteBook = () => {
+    if (deleteBook.isPending) return;
+    if (!window.confirm(
+      t('Delete "{title}" from the global library? The book and all its files are permanently erased for every member. This cannot be undone.', { title: book.title })
+    )) return;
+    setDeleteError(null);
+    deleteBook.mutate(undefined, {
+      onSuccess: (result) => {
+        if (result?.warning) window.alert(result.warning.message);
+        navigate('/');
+      },
+      onError: (err) =>
+        setDeleteError(err instanceof ApiError ? err.message : t('Could not delete this book.')),
+    });
+  };
+
+  const removeMembership = () => {
+    removalImpact.mutate(book.id, {
+      onSuccess: (impact) => {
+        const lines = [t('Remove "{title}" from your library?', { title: book.title }), '',
+          t('It leaves your library and your OPDS feed.'),
+          t("If you use Kobo's built-in sync, it also leaves your Kobo at its next sync. Other e-readers keep downloaded copies, and KOReader progress sync keeps working.")];
+        if (impact.affected_shelves.length) lines.push(t('It also leaves these shelves: {shelves}.', { shelves: impact.affected_shelves.join(', ') }));
+        lines.push(t('Nothing is deleted: the book stays in the global library, and your highlights, notes and reading progress are kept.'));
+        lines.push(me?.role?.browse_global ? t('You can add it back any time from the global library.') : t('Only an administrator can add it back.'));
+        if (!window.confirm(lines.join('\n'))) return;
+        removeFromLibrary.mutate(book.id, {
+          onSuccess: () => announce(t('Removed from your library')),
+          onError: () => announce(t('Could not remove the book. Please try again.'), { assertive: true }),
+        });
+      },
+      onError: () => announce(t('Could not remove the book. Please try again.'), { assertive: true }),
+    });
+  };
 
   return (
     <main className={styles.container}>
       <Link href={bookBackTarget.href} className={styles.back}>
-        {t(bookBackTarget.isOrigin ? '← Back' : '← Library')}
+        {bookBackTarget.isOrigin ? t('← Back') : t('← Library')}
       </Link>
 
       <BookUserNotices bookId={book.id} />
@@ -412,27 +518,66 @@ export function BookDetail() {
             )}
           </div>
 
+          {/* Description — in the DOM directly under the title/author header,
+              because on a phone that is where it belongs (#1828): the thing the
+              page is about comes before the controls and the attribute list.
+              Desktop keeps its long-standing visual order (actions first,
+              description last) via `order` in the stylesheet, so this reorder
+              changes nothing there. */}
+          {book.description_html && (
+            <div
+              className={styles.description}
+              dir="auto"
+              // description_html is sanitized server-side in serialize_book_detail
+              // (cps/clean_html.clean_string — bleach/nh3 allowlist, same as the
+              // legacy templates), so it is safe to render here.
+              // eslint-disable-next-line react/no-danger
+              dangerouslySetInnerHTML={{ __html: book.description_html }}
+            />
+          )}
+
           {/* Actions */}
           <div className={styles.actions} data-testid="book-actions">
-            {primaryReadTarget ? (
+            {!inLibrary && selectionMode && me?.role?.browse_global && (
+              <button type="button" className={styles.actionPrimary} disabled={addToLibrary.isPending}
+                onClick={() => addToLibrary.mutate(book.id, {
+                  onSuccess: () => announce(t('Added to your library')),
+                  onError: () => announce(t('Could not add the book. Please try again.'), { assertive: true }),
+                })}>
+                <BookPlus size={15} aria-hidden="true" focusable={false} />
+                {addToLibrary.isPending ? t('Adding…') : t('Add to my library')}
+              </button>
+            )}
+            {inLibrary && primaryReadTarget ? (
               <Link href={primaryReadTarget} className={styles.actionPrimary}>
                 {t('Read now')}
               </Link>
             ) : null}
 
-            <button
+            {inLibrary && <button
               className={book.read ? styles.readToggleActive : styles.readToggleGhost}
               onClick={() => toggleRead.mutate(!book.read)}
               disabled={toggleRead.isPending}
               aria-label={book.read ? t('Mark as unread') : t('Mark as read')}
             >
               {book.read ? `${t('Read')} ✓` : t('Mark as read')}
-            </button>
+            </button>}
 
-            <AddToShelf bookId={book.id} />
+            {selectionMode && inLibrary && (
+              <button type="button" className={styles.readToggleGhost}
+                disabled={removalImpact.isPending || removeFromLibrary.isPending}
+                aria-label={t('Remove from my library')} onClick={removeMembership}>
+                <BookCheck size={14} aria-hidden="true" focusable={false} />
+                {removeFromLibrary.isPending ? t('Removing…') : t('In your library')}
+              </button>
+            )}
+
+            {(inLibrary || me?.role?.browse_global) && (
+              <AddToShelf bookId={book.id} inLibrary={inLibrary} />
+            )}
 
             {/* Star / favorite */}
-            <button
+            {inLibrary && <button
               className={book.favorited ? styles.readToggleActive : styles.readToggleGhost}
               onClick={() => toggleFavorite.mutate()}
               disabled={toggleFavorite.isPending}
@@ -440,10 +585,10 @@ export function BookDetail() {
             >
               <Star size={14} fill={book.favorited ? 'currentColor' : 'none'} />
               {book.favorited ? t('Favorited') : t('Favorite')}
-            </button>
+            </button>}
 
             {/* Archive (sync-pause) */}
-            <button
+            {inLibrary && <button
               data-testid="archive-book-toggle"
               className={book.archived ? styles.readToggleActive : styles.readToggleGhost}
               onClick={() => toggleArchived.mutate()}
@@ -452,9 +597,9 @@ export function BookDetail() {
             >
               <Archive size={14} />
               {book.archived ? t('Archived') : t('Archive')}
-            </button>
+            </button>}
 
-            {book.formats.map((fmt) => (
+            {inLibrary && canDownloadBooks(me) && book.formats.map((fmt) => (
               <a
                 key={fmt.format}
                 href={resourceUrl(fmt.download_url)}
@@ -483,7 +628,7 @@ export function BookDetail() {
             ))}
 
             {/* Send to e-reader — gated on mail being configured + download role */}
-            {me?.features?.mail_configured && me?.role?.download && book.formats.length > 0 && (
+            {inLibrary && me?.features?.mail_configured && me?.role?.download && book.formats.length > 0 && (
               <button
                 className={styles.downloadBtn}
                 onClick={() => { setSendOpen((v) => !v); setSendBanner(null); }}
@@ -491,6 +636,15 @@ export function BookDetail() {
               >
                 <Send size={14} />
                 {t('Send to e-reader')}
+              </button>
+            )}
+
+            {inLibrary && me?.role?.download && book.formats.length > 0 && (deliveryDevices.data?.devices.length ?? 0) > 0 && (
+              <button type="button" className={styles.downloadBtn}
+                aria-expanded={deviceSendOpen} aria-controls="device-send-panel"
+                onClick={() => { setDeviceSendOpen((value) => !value); setDeviceSendBanner(null); }}>
+                <TabletSmartphone size={14} aria-hidden="true" focusable={false} />
+                {t('Send to device')}
               </button>
             )}
 
@@ -528,16 +682,24 @@ export function BookDetail() {
             {/* Highlights/annotations — view + export + import (Kobo). Opens the
                 server annotations page; in-reader highlight creation is the
                 flagship reader phase-2 (tracked separately). */}
-            <Link href={`/book/${book.id}/annotations`} className={styles.downloadBtn}>
+            {inLibrary && <Link href={`/book/${book.id}/annotations`} className={styles.downloadBtn}
+              aria-label={(book.annotation_count ?? 0) > 0
+                ? t('Highlights, {count} saved annotations', { count: book.annotation_count ?? 0 })
+                : undefined}>
               <Highlighter size={14} aria-hidden="true" focusable={false} />
               {t('Highlights')}
-            </Link>
+              {(book.annotation_count ?? 0) > 0 && (
+                <span className={styles.highlightCount} data-testid="highlight-count" aria-hidden="true">
+                  {book.annotation_count}
+                </span>
+              )}
+            </Link>}
 
             {/* Stage 0 per-book two-way state, when the user opted in and the
                 book has pipeline state. Read-only; manage it on Account. */}
             {(() => {
               const twoWayBook = selectKoboTwoWayBook(twoWay.data, book.id);
-              if (!twoWay.data?.enabled || !twoWayBook) return null;
+              if (!inLibrary || !twoWay.data?.enabled || !twoWayBook) return null;
               return (
                 <Link href="/account" className={styles.twoWayChip}>
                   {t('Kobo two-way sync: {state}', { state: authorityLabel(t, twoWayBook, twoWay.data.scope) })}
@@ -550,7 +712,7 @@ export function BookDetail() {
                 sits immediately beside Delete when Delete is available and is
                 still the final action for ordinary users. Guest sessions cannot
                 own hidden state, so never offer them a control that returns 401. */}
-            {!me?.role?.anonymous && (me?.features?.hide_books || book.hidden) && (
+            {inLibrary && !me?.role?.anonymous && (me?.features?.hide_books || book.hidden) && (
               <button
                 type="button"
                 data-testid="hide-book-toggle"
@@ -566,42 +728,54 @@ export function BookDetail() {
               </button>
             )}
 
+            {/* Narrow-viewport destructive control (#1828): the whole-book
+                delete is an icon-level button at the END of this row — a red
+                trash can, the confirm dialog doing the actual guarding. It is
+                rendered only in the narrow layout; at desktop widths the
+                separated region below renders instead (both share
+                requestDeleteBook, so behaviour is identical). Placed last so
+                the primary actions keep their positions. */}
+            {narrowLayout && me?.role?.delete_books && me?.role?.edit && (
+              <button
+                type="button"
+                data-testid="book-delete-icon"
+                className={styles.deleteIconButton}
+                disabled={deleteBook.isPending}
+                aria-label={t('Delete from the global library')}
+                title={t('Delete from the global library')}
+                onClick={requestDeleteBook}
+              >
+                <Trash2 size={16} aria-hidden="true" focusable={false} />
+              </button>
+            )}
+
           </div>
           <p className={reloadMessage ? styles.actionStatus : undefined} role="status">{reloadMessage}</p>
 
           {/* Whole-book deletion is intentionally separated from the wrapping row
-              of ordinary action chips (#1046). The server still re-checks the role;
+              of ordinary action chips (#1046) in the wide layout; in the narrow
+              layout the icon-level control inside the action row above renders
+              INSTEAD of this region (#1828) — neither is ever hidden in the DOM.
+              This uses the same delete-and-edit policy as the server;
               this gate and grouping are the discoverability/UX layer. */}
-          {me?.role?.delete_books && (
+          {!narrowLayout && me?.role?.delete_books && me?.role?.edit && (
             <section className={styles.dangerZone} data-testid="book-destructive-actions"
-              aria-labelledby={`delete-book-heading-${book.id}`}>
-              <h2 id={`delete-book-heading-${book.id}`} className={styles.dangerZoneTitle}>
-                {t('Delete book')}
-              </h2>
+              aria-label={t('Delete from the global library')}>
               <button
                 type="button"
                 className={styles.actionDanger}
                 disabled={deleteBook.isPending}
-                aria-label={t('Delete book')}
-                onClick={() => {
-                  if (deleteBook.isPending) return;
-                  if (!window.confirm(
-                    t('Delete "{title}"? This permanently removes the book and all its files from your library. This cannot be undone.', { title: book.title })
-                  )) return;
-                  setDeleteError(null);
-                  deleteBook.mutate(undefined, {
-                    onSuccess: () => navigate('/'),
-                    onError: (err) =>
-                      setDeleteError(err instanceof ApiError ? err.message : t('Could not delete this book.')),
-                  });
-                }}
+                aria-label={t('Delete from the global library')}
+                onClick={requestDeleteBook}
               >
                 <Trash2 size={14} aria-hidden="true" focusable={false} />
-                {deleteBook.isPending ? t('Deleting…') : t('Delete')}
+                {deleteBook.isPending ? t('Deleting…') : t('Delete from the global library')}
               </button>
-              {deleteError && <p className={styles.deleteErr} role="alert">{deleteError}</p>}
             </section>
           )}
+          {/* Rendered outside the region so the error still surfaces on mobile,
+              where the region itself is hidden (#1828). */}
+          {deleteError && <p className={styles.deleteErr} role="alert">{deleteError}</p>}
 
           {/* Send-to-e-reader panel */}
           {sendOpen && (
@@ -620,6 +794,26 @@ export function BookDetail() {
                       setSendBanner({ ok: false, text: err instanceof ApiError ? err.message : t('Send failed.') }),
                   },
                 );
+              }}
+            />
+          )}
+
+
+          {deviceSendOpen && (
+            <DeviceSendPanel
+              devices={deliveryDevices.data?.devices ?? []}
+              pending={queueDeviceDelivery.isPending}
+              banner={deviceSendBanner}
+              onSend={(device) => {
+                setDeviceSendBanner(null);
+                queueDeviceDelivery.mutate(device, {
+                  onSuccess: (result) => setDeviceSendBanner({ ok: true, text: result.message }),
+                  onError: (err) => setDeviceSendBanner({
+                    ok: false,
+                    text: err instanceof ApiError
+                      ? err.message : t('Could not queue this book for the device.'),
+                  }),
+                });
               }}
             />
           )}
@@ -744,19 +938,6 @@ export function BookDetail() {
               </Fragment>
             ))}
           </dl>
-
-          {/* Description */}
-          {book.description_html && (
-            <div
-              className={styles.description}
-              dir="auto"
-              // description_html is sanitized server-side in serialize_book_detail
-              // (cps/clean_html.clean_string — bleach/nh3 allowlist, same as the
-              // legacy templates), so it is safe to render here.
-              // eslint-disable-next-line react/no-danger
-              dangerouslySetInnerHTML={{ __html: book.description_html }}
-            />
-          )}
         </div>
       </div>
 
@@ -767,6 +948,7 @@ export function BookDetail() {
       {book.authors.length > 0 && (
         <MoreByAuthor
           hideActions={cardActionsHidden}
+          canRead={canReadBooks(me)}
           key={book.id}
           authorId={book.authors[0].id}
           authorName={book.authors[0].name}

@@ -2,8 +2,8 @@
 # SPDX-License-Identifier: GPL-3.0-or-later
 """Stage 0 contract for Kobo two-way annotation sync.
 
-Stage 0 is deliberately passive: it adds durable evidence and opt-ins, while
-the existing reading-services proxy remains the only response owner.
+Stage 0 is deliberately passive: it adds durable evidence and opt-ins.  The
+later owned-book wire-authority route consumes that evidence independently.
 """
 
 from __future__ import annotations
@@ -15,7 +15,7 @@ from datetime import datetime, timezone
 from types import SimpleNamespace
 
 import pytest
-from flask import Flask, make_response
+from flask import Flask
 from sqlalchemy import create_engine, inspect, text
 from sqlalchemy.orm import sessionmaker
 
@@ -31,6 +31,50 @@ OLD_ANNOTATION_COLUMNS = (
     "client_modified_at", "origin_device_id", "assigned_device_id",
     "routing_revision", "last_synced",
 )
+
+
+@pytest.fixture(autouse=True)
+def _stage0_route_tests_assume_completed_seed(monkeypatch):
+    """Stage-0 route tests predate and are orthogonal to the authority gate."""
+    import cps.readingservices as readingservices
+    from cps.services import kobo_annotation_authority
+    monkeypatch.setattr(
+        readingservices, "current_user",
+        SimpleNamespace(id=7, name="stage0-reader", is_authenticated=True),
+    )
+    monkeypatch.setattr(
+        readingservices, "_owned_patch_is_local_authority",
+        lambda *_args, **_kwargs: True,
+    )
+    monkeypatch.setattr(
+        kobo_annotation_authority, "advance_authoritative_patch_revision",
+        lambda *_args, **_kwargs: True,
+    )
+
+    def _dispatch_without_app_db(
+        annotation_sync, *, updated, deleted, deterministic_update_rejection,
+        book, entitlement_id, dispatch_kwargs,
+    ):
+        # Stage-0 route tests mock persistence and intentionally have no app DB.
+        # The request transaction itself is covered in test_1942_seed_pipeline.
+        if deterministic_update_rejection:
+            readingservices._dispatch_kobo_annotation_deletes(
+                annotation_sync, deleted, entitlement_id, book,
+            )
+        if updated and annotation_sync.dispatch_annotation_sync(
+            updated, book, readingservices.current_user, **dispatch_kwargs,
+        ) is False:
+            return False
+        if not deterministic_update_rejection:
+            if readingservices._dispatch_kobo_annotation_deletes(
+                annotation_sync, deleted, entitlement_id, book,
+            ) is False:
+                return False
+        return True
+
+    monkeypatch.setattr(
+        readingservices, "_persist_owned_patch_atomically", _dispatch_without_app_db,
+    )
 
 
 def _create_gate_tables(conn, *, user_gate=False, settings_gate=False):
@@ -458,6 +502,13 @@ def test_stage0_orm_parent_deletes_remove_all_owned_children():
             seed_capture_id=capture.id, page_number=0,
             response_body_gzip=b"page", response_sha256="1" * 64,
         ),
+        ub.KoboAnnotationSeedRowBaseline(
+            seed_capture_id=capture.id,
+            annotation_key="ann",
+            annotation_row_id=annotation.id,
+            content_revision=1,
+            content_sha256="2" * 64,
+        ),
         ub.KoboAnnotationPageCursor(
             token="cursor", snapshot_id=snapshot.snapshot_id, page_offset=0,
         ),
@@ -473,6 +524,7 @@ def test_stage0_orm_parent_deletes_remove_all_owned_children():
         ub.KoboDeviceBookAnnotationState,
         ub.KoboAnnotationSeedCapture,
         ub.KoboAnnotationSeedCapturePage,
+        ub.KoboAnnotationSeedRowBaseline,
         ub.KoboAnnotationPageSnapshot,
         ub.KoboAnnotationPageCursor,
     ):
@@ -527,13 +579,12 @@ def test_dispatch_persists_raw_sidecar_without_rewriting_parsed_location(monkeyp
 
 
 @pytest.mark.unit
-def test_patch_raw_capture_failure_logs_but_keeps_proxy_bytes_and_response(caplog, monkeypatch):
+def test_patch_raw_capture_failure_logs_but_keeps_local_ack_and_dispatch(caplog, monkeypatch):
     import cps.readingservices as rs
 
     app = Flask(__name__)
     forwarded = []
     dispatched = []
-    response_body = b' {"upstream":"unchanged"} '
 
     monkeypatch.setattr(rs, "resolve_entitlement_ownership", lambda _content_id: SimpleNamespace(id=348))
     monkeypatch.setattr(rs, "log_annotation_data", lambda *_args, **_kwargs: None)
@@ -544,7 +595,7 @@ def test_patch_raw_capture_failure_logs_but_keeps_proxy_bytes_and_response(caplo
     monkeypatch.setattr(
         rs, "proxy_to_kobo_reading_services",
         lambda **_kwargs: forwarded.append(rs.request.get_data()) or
-        make_response(response_body, 207, {"X-Upstream": "same"}),
+        pytest.fail("owned PATCH must not contact Kobo"),
     )
     rejected_capture_bodies = (
         b'{"updatedAnnotations":[{"id":"ann-1","location":null}]}',
@@ -565,10 +616,9 @@ def test_patch_raw_capture_failure_logs_but_keeps_proxy_bytes_and_response(caplo
             response = rs.handle_annotations.__wrapped__("book")
 
         assert dispatched
-        assert forwarded == [rejected_body]
-        assert response.status_code == 207
-        assert response.get_data() == response_body
-        assert response.headers["X-Upstream"] == "same"
+        assert forwarded == []
+        assert response.status_code == 204
+        assert response.get_data() == b""
         assert "raw lexical capture failed" in caplog.text.lower()
 
     forwarded.clear()
@@ -578,10 +628,9 @@ def test_patch_raw_capture_failure_logs_but_keeps_proxy_bytes_and_response(caplo
         data=RAW_PATCH, content_type="application/json",
     ):
         response = rs.handle_annotations.__wrapped__("book")
-    assert forwarded == [RAW_PATCH]
-    assert response.status_code == 207
-    assert response.get_data() == response_body
-    assert response.headers["X-Upstream"] == "same"
+    assert forwarded == []
+    assert response.status_code == 204
+    assert response.get_data() == b""
     raw_records = dispatched[0][1]["raw_materializations"]
     assert raw_records[0].raw_annotation_json in RAW_PATCH
     assert raw_records[0].raw_location_json == RAW_LOCATION

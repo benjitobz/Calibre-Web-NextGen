@@ -14,7 +14,7 @@ from .cw_login import current_user
 from sqlalchemy.exc import InvalidRequestError, OperationalError
 from sqlalchemy.sql.expression import func, true
 
-from . import calibre_db, config, db, logger, ub
+from . import calibre_db, config, constants, db, logger, ub, user_library
 from .render_template import render_title_template
 from .sort_orders import BOOK_SORT_ORDERS
 from .usermanagement import login_required_if_no_ano, user_login_required
@@ -77,22 +77,63 @@ def _log_shelf_activity(event_type, book_id, shelf_obj):
 SHELF_OK = "ok"
 SHELF_ALREADY_PRESENT = "already_present"
 SHELF_INVALID_BOOK = "invalid_book"
+SHELF_NOT_IN_LIBRARY = "not_in_library"
 SHELF_NOT_PRESENT = "not_present"
+
+SHELF_MANAGED_MEMBERSHIP_REFUSAL = (
+    "This book is not in your library. Ask an administrator to add it to "
+    "My Library before adding it to a shelf."
+)
+SHELF_MEMBERSHIP_REQUIRED = (
+    "This book is not in your library. Add it to My Library before adding "
+    "it to a shelf."
+)
+
+
+def prepare_user_shelf_add(book_id):
+    """Establish membership for an explicit user shelf-add gesture.
+
+    This deliberately lives above ``add_book_to_shelf``: the core is reused by
+    non-gesture transports where an implicit My Library grant would be a wire
+    side effect. Existing members (including administrator-managed users) pass
+    without needing global browse permission; only a missing membership asks
+    ``user_library.add_book`` to apply the normal self-service add policy.
+    """
+    if user_library.mode_for_user(current_user) != constants.LIBRARY_MODE_PERSONAL:
+        return
+    membership = (ub.session.query(ub.UserLibraryBook)
+                  .filter(ub.UserLibraryBook.user_id == int(current_user.id),
+                          ub.UserLibraryBook.book_id == int(book_id)).first())
+    if membership is not None:
+        return
+    if not current_user.role_browse_global():
+        raise user_library.UserLibraryError(SHELF_MANAGED_MEMBERSHIP_REFUSAL)
+    user_library.add_book(current_user, book_id)
 
 
 def add_book_to_shelf(shelf_obj, book_id):
     """Append ``book_id`` to ``shelf_obj``. Returns ``(status, message)`` where
-    status is SHELF_OK / SHELF_ALREADY_PRESENT / SHELF_INVALID_BOOK. On success
-    the shelf's ``last_modified`` is bumped (Kobo propagation), the activity is
-    logged, and a Hardcover sync is queued. Raises (OperationalError,
-    InvalidRequestError) on DB failure so the caller can roll back + report."""
+    status is SHELF_OK / SHELF_ALREADY_PRESENT / SHELF_INVALID_BOOK /
+    SHELF_NOT_IN_LIBRARY. On success the shelf's ``last_modified`` is bumped
+    (Kobo propagation), the activity is logged, and a Hardcover sync is queued.
+    Raises (OperationalError, InvalidRequestError) on DB failure so the caller
+    can roll back + report."""
     if ub.session.query(ub.BookShelf).filter(ub.BookShelf.shelf == shelf_obj.id,
                                              ub.BookShelf.book_id == book_id).first():
         return SHELF_ALREADY_PRESENT, "Book is already part of the shelf: %s" % shelf_obj.name
 
-    book = calibre_db.session.query(db.Books).filter(db.Books.id == book_id).one_or_none()
+    book = (calibre_db.session.query(db.Books)
+            .filter(db.Books.id == book_id)
+            .filter(calibre_db.common_filters()).one_or_none())
     if not book:
-        return SHELF_INVALID_BOOK, "%s is a invalid Book Id. Could not be added to Shelf" % book_id
+        visible_global_book = (calibre_db.session.query(db.Books.id)
+                               .filter(db.Books.id == book_id)
+                               .filter(calibre_db.common_filters(
+                                   allow_show_global=True,
+                               )).first())
+        if visible_global_book:
+            return SHELF_NOT_IN_LIBRARY, SHELF_MEMBERSHIP_REQUIRED
+        return SHELF_INVALID_BOOK, "Book not found in the visible global library."
 
     max_order = ub.session.query(func.max(ub.BookShelf.order)).filter(
         ub.BookShelf.shelf == shelf_obj.id).first()[0] or 0
@@ -143,6 +184,24 @@ def add_to_shelf(shelf_id, book_id):
         return "Sorry you are not allowed to add a book to the that shelf", 403
 
     try:
+        prepare_user_shelf_add(book_id)
+    except user_library.UserLibraryBookNotFound:
+        message = "Book not found in the visible global library."
+        if not xhr:
+            flash(_("Book not found in the visible global library."), category="error")
+            return redirect(request.environ.get("HTTP_REFERER") or url_for('web.index'))
+        return message, 404
+    except user_library.UserLibraryError:
+        message = SHELF_MANAGED_MEMBERSHIP_REFUSAL
+        if not xhr:
+            flash(_(
+                "This book is not in your library. Ask an administrator to add it to "
+                "My Library before adding it to a shelf."
+            ), category="error")
+            return redirect(request.environ.get("HTTP_REFERER") or url_for('web.index'))
+        return message, 403
+
+    try:
         status, _message = add_book_to_shelf(shelf, book_id)
     except (OperationalError, InvalidRequestError) as e:
         ub.session.rollback()
@@ -161,12 +220,22 @@ def add_to_shelf(shelf_id, book_id):
         return "Book is already part of the shelf: %s" % shelf.name, 400
 
     if status == SHELF_INVALID_BOOK:
-        log.error("Invalid Book Id: %s. Could not be added to shelf %s", book_id, shelf.name)
+        log.error("Book %s was not found and could not be added to shelf %s", book_id, shelf.name)
         if not xhr:
-            flash(_("%(book_id)s is a invalid Book Id. Could not be added to Shelf", book_id=book_id),
-                  category="error")
-            return redirect(url_for('web.index'))
-        return "%s is a invalid Book Id. Could not be added to Shelf" % book_id, 400
+            flash(_("Book not found in the visible global library."), category="error")
+            return redirect(request.environ.get("HTTP_REFERER") or url_for('web.index'))
+        return "Book not found in the visible global library.", 404
+
+    if status == SHELF_NOT_IN_LIBRARY:
+        log.error("Book %s is not in the user's library; could not add it to shelf %s",
+                  book_id, shelf.name)
+        if not xhr:
+            flash(_(
+                "This book is not in your library. Add it to My Library before adding "
+                "it to a shelf."
+            ), category="error")
+            return redirect(request.environ.get("HTTP_REFERER") or url_for('web.index'))
+        return SHELF_MEMBERSHIP_REQUIRED, 409
 
     if not xhr:
         log.debug("Book has been added to shelf: {}".format(shelf.name))
@@ -470,9 +539,14 @@ def order_shelf(shelf_id):
 
         result = list()
         if shelf:
+            # Keep the legacy KeyedTuple contract consumed by
+            # shelf_order.html. Visibility is a labelled presentation bit:
+            # filtered rows render as "Hidden Book" placeholders instead of
+            # changing the stored shelf or crashing the template on bare
+            # Books entities.
             result = calibre_db.session.query(db.Books) \
-                .join(ub.BookShelf, ub.BookShelf.book_id == db.Books.id, isouter=True) \
                 .add_columns(calibre_db.common_filters().label("visible")) \
+                .join(ub.BookShelf, ub.BookShelf.book_id == db.Books.id, isouter=True) \
                 .filter(ub.BookShelf.shelf == shelf_id).order_by(ub.BookShelf.order.asc()).all()
         return render_title_template('shelf_order.html', entries=result,
                                      title=_("Change order of Shelf: '%(name)s'", name=shelf.name),
@@ -603,10 +677,14 @@ def delete_shelf_helper(cur_shelf):
 
 
 def change_shelf_order(shelf_id, order):
+    # This mutates the shelf owner's stored order, so it is deliberately
+    # global. Applying the current viewer's hidden/archive/library predicate
+    # here renumbers only an intersection and leaves duplicate order values.
     result = calibre_db.session.query(db.Books).outerjoin(db.books_series_link,
                                                           db.Books.id == db.books_series_link.c.book)\
         .outerjoin(db.Series).join(ub.BookShelf, ub.BookShelf.book_id == db.Books.id) \
-        .filter(ub.BookShelf.shelf == shelf_id).order_by(*order).all()
+        .filter(ub.BookShelf.shelf == shelf_id) \
+        .order_by(*order).all()
     for index, entry in enumerate(result):
         book = ub.session.query(ub.BookShelf).filter(ub.BookShelf.shelf == shelf_id) \
             .filter(ub.BookShelf.book_id == entry.id).first()
@@ -716,7 +794,9 @@ def add_selected_to_shelf():
         ub.BookShelf.shelf == shelf_id).scalar() or 0
 
     for book_id in book_ids:
-        book = calibre_db.session.query(db.Books).filter(db.Books.id == book_id).one_or_none()
+        book = (calibre_db.session.query(db.Books)
+                .filter(db.Books.id == book_id)
+                .filter(calibre_db.common_filters()).one_or_none())
         if not book:
             errors.append(f"Book with ID {book_id} not found.")
             log.error(f"Invalid Book Id: {book_id}. Could not be added to shelf {shelf.name}")

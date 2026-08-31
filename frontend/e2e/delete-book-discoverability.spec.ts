@@ -17,18 +17,25 @@ async function firstBook(page: Page): Promise<SeedBook | null> {
 }
 
 async function setDeletePermission(page: Page, allowed: boolean) {
+  const response = await page.context().request.get(new URL('/api/v1/auth/me', page.url()).href);
+  const status = response.status();
+  const headers = response.headers();
+  const me = await response.json();
+  await response.dispose();
+  me.role = { ...(me.role ?? {}), delete_books: allowed };
+
   await page.route('**/api/v1/auth/me', async (route) => {
-    const response = await route.fetch();
-    const me = await response.json();
-    me.role = { ...(me.role ?? {}), delete_books: allowed };
-    await route.fulfill({ response, json: me });
+    await route.fulfill({ status, headers, json: me });
   });
 }
 
 test('the edit page exposes whole-book deletion to users with delete permission (#1046)', async ({ page }) => {
   await page.goto('/app');
   const book = await firstBook(page);
-  test.skip(book == null, 'seed has no books');
+  if (book == null) {
+    test.skip(true, 'seed has no books');
+    return;
+  }
 
   await setDeletePermission(page, true);
   await page.goto(`/app/book/${book.id}/edit`, { waitUntil: 'domcontentloaded' });
@@ -41,7 +48,10 @@ test('the edit page exposes whole-book deletion to users with delete permission 
 test('the edit page hides whole-book deletion without delete permission (#1046)', async ({ page }) => {
   await page.goto('/app');
   const book = await firstBook(page);
-  test.skip(book == null, 'seed has no books');
+  if (book == null) {
+    test.skip(true, 'seed has no books');
+    return;
+  }
 
   await setDeletePermission(page, false);
   await page.goto(`/app/book/${book.id}/edit`, { waitUntil: 'domcontentloaded' });
@@ -54,7 +64,10 @@ test('the edit page hides whole-book deletion without delete permission (#1046)'
 test('edit-page deletion confirms before mutation and a declined confirm does nothing (#1046)', async ({ page }) => {
   await page.goto('/app');
   const book = await firstBook(page);
-  test.skip(book == null, 'seed has no books');
+  if (book == null) {
+    test.skip(true, 'seed has no books');
+    return;
+  }
 
   await setDeletePermission(page, true);
   let deleteCalls = 0;
@@ -97,10 +110,17 @@ test('edit-page deletion confirms before mutation and a declined confirm does no
   await expect(page).not.toHaveURL(new RegExp(`/book/${book.id}(?:/edit)?\\b`));
 });
 
-test('book-detail deletion is grouped outside the ordinary action chips (#1046)', async ({ page }) => {
+test('book-detail deletion is grouped outside the ordinary action chips (#1046)', async ({ page, isMobile }) => {
+  // Desktop grouping. #1828 deliberately reverses this on mobile, where the
+  // heavy region yielded to an icon-level control inside the row — asserted by
+  // the mobile counterpart directly below.
+  test.skip(isMobile === true, 'desktop grouping — mobile intentionally differs (#1828)');
   await page.goto('/app');
   const book = await firstBook(page);
-  test.skip(book == null, 'seed has no books');
+  if (book == null) {
+    test.skip(true, 'seed has no books');
+    return;
+  }
 
   await setDeletePermission(page, true);
   await page.goto(`/app/book/${book.id}`, { waitUntil: 'domcontentloaded' });
@@ -109,7 +129,37 @@ test('book-detail deletion is grouped outside the ordinary action chips (#1046)'
   const destructiveActions = page.getByTestId('book-destructive-actions');
   await expect(ordinaryActions).toBeVisible();
   await expect(destructiveActions).toBeVisible();
-  await expect(destructiveActions.getByRole('heading', { name: 'Delete book' })).toBeVisible();
-  await expect(destructiveActions.getByRole('button', { name: 'Delete book' })).toBeVisible();
-  await expect(ordinaryActions.getByRole('button', { name: 'Delete book' })).toHaveCount(0);
+  // #1939's wording stays on the book-detail region and control. The edit
+  // page's separate "Delete book" button remains asserted above.
+  await expect(destructiveActions).toHaveAccessibleName('Delete from the global library');
+  await expect(destructiveActions.getByRole('heading')).toHaveCount(0);
+  const deleteButton = destructiveActions
+    .getByRole('button', { name: 'Delete from the global library' });
+  await expect(deleteButton).toBeVisible();
+  await expect(deleteButton).toHaveText('Delete from the global library');
+  await expect(ordinaryActions.getByRole('button', { name: 'Delete from the global library' })).toHaveCount(0);
+});
+
+test('mobile groups deletion as an icon-level control inside the action row (#1828)', async ({ page, isMobile }) => {
+  test.skip(isMobile !== true, 'mobile-only grouping');
+  await page.goto('/app');
+  const book = await firstBook(page);
+  if (book == null) {
+    test.skip(true, 'seed has no books');
+    return;
+  }
+
+  await setDeletePermission(page, true);
+  await page.goto(`/app/book/${book.id}`, { waitUntil: 'domcontentloaded' });
+
+  // The mobile trade: the destructive control joins the ordinary action row as
+  // an icon (the confirm dialog is the guard), and the separated desktop
+  // region is not rendered at this width at all. The reporter's ask, verbatim,
+  // was that "a red trash can is more than enough for book delete".
+  const ordinaryActions = page.getByTestId('book-actions');
+  await expect(ordinaryActions).toBeVisible();
+  await expect(
+    ordinaryActions.getByRole('button', { name: 'Delete from the global library' }),
+  ).toHaveCount(1);
+  await expect(page.getByTestId('book-destructive-actions')).toHaveCount(0);
 });

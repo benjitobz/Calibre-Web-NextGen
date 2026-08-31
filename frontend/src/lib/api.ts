@@ -1,5 +1,7 @@
 /* Typed fetch helpers — same-origin, credentials included. */
 
+import { webreaderDeviceHeaders } from './deviceIdentity';
+
 declare global {
   interface Window { __CWNG_PREFIX__?: string; }
 }
@@ -93,6 +95,9 @@ export interface Me {
   /** Saved per-user sidebar order (#585 v2) — list of entry keys. Absent/empty
    *  → the SPA default order. */
   sidebar_order?: string[];
+  /** Generic per-user UI preferences. null means the account has never stored
+   * that preference, allowing one-time adoption from the local fallback. */
+  preferences?: Record<string, boolean | null>;
   /** Custom profile picture (#668) — a `data:image/…;base64,…` URI set in the
    *  classic profile-pictures panel, or null when the user has none. Absent on
    *  older servers → treat as null (falls back to the neutral glyph). */
@@ -112,6 +117,13 @@ export interface Me {
   catalog?: {
     default_filter: AdvancedSearchParams | null;
   };
+  /** Named My Library mode. Older servers omit it and therefore behave as the
+   * whole-library mode that predates per-user selections. */
+  library_mode?: 'monolibrary' | 'personal_library';
+  my_library_seeded?: boolean;
+  show_my_library_intro?: boolean;
+  can_switch_library_mode?: boolean;
+  library_mode_managed?: boolean;
 }
 
 export interface Book {
@@ -133,6 +145,9 @@ export interface Book {
   archived?: boolean;
   /** Personal-library declutter state. Present on list items from current servers. */
   hidden?: boolean;
+  /** Global-library lists only. Absent means the server predates My Library and
+   * the book is treated as part of the whole library. */
+  in_my_library?: boolean;
 }
 
 export interface UserNotice {
@@ -154,6 +169,27 @@ export interface BookFormat {
   size_bytes: number;
   download_url: string;
   read_url: string;
+  /** Raw book bytes served inline under viewer_required (used by epub.js).
+   *  Optional while a newly-deployed SPA can still meet an older API worker. */
+  content_url?: string;
+}
+
+/** An active physical reader registered through Kobo or KOReader sync. */
+export interface DeliveryDevice {
+  public_id: string;
+  label: string;
+  type: string;
+  model: string | null;
+  active: boolean;
+  can_receive_books: boolean;
+}
+
+export interface DeviceDeliveryResult {
+  delivery_id?: number;
+  format?: string;
+  queued: boolean;
+  state: string;
+  message: string;
 }
 
 /** A linked entity (author, series, tag, publisher, language). id is numeric
@@ -208,6 +244,11 @@ export interface BookDetail {
   archived: boolean;
   favorited: boolean;
   hidden: boolean;
+  /** Current user's visible highlights/notes for this book. Older servers omit it. */
+  annotation_count?: number;
+  /** Membership for personal-library detail deep links. Older servers omit it,
+   *  which preserves the historical whole-library behavior. */
+  in_my_library?: boolean;
   /** Sync-driven "currently reading" tri-state (fork #634) — true when KOReader/
    *  Kobo reports the book as in progress (read_status IN_PROGRESS) and it isn't
    *  marked read. Distinct from `read`; matches the classic detail page marker. */
@@ -324,6 +365,20 @@ export interface Account {
   locales: { id: string; name: string }[];
   languages: { id: string; name: string }[];
   app_passwords: AppPassword[];
+  library_mode: 'monolibrary' | 'personal_library';
+  my_library_seeded: boolean;
+  show_my_library_intro: boolean;
+  can_switch_library_mode: boolean;
+  library_mode_managed: boolean;
+}
+
+/** Stock-Kobo credential plus the non-secret server address KOReader expects. */
+export interface KoboSyncToken {
+  user_id: number;
+  configured: boolean;
+  sync_url: string | null;
+  server_url: string;
+  is_localhost: boolean;
 }
 
 export interface ProfileUpdate {
@@ -416,7 +471,12 @@ export interface EditableCustomColumn {
 
 /** Custom columns are sent flat, keyed as the server expects (`custom_column_7`),
  *  not as the definition list the GET returns. */
+export type MetadataListMode = 'add' | 'replace';
+
 export type MetadataUpdate = Partial<Omit<BookMetadata, 'id' | 'errors' | 'custom_columns'>> & {
+  /** Request-level behavior for authors/tags/publishers/languages. Omission is
+   *  the API's backwards-compatible replace behavior. */
+  list_mode?: MetadataListMode;
   [key: `custom_column_${number}`]: string;
 };
 
@@ -434,6 +494,30 @@ export interface AdminUser {
   default_language: string;
   is_guest: boolean;
   roles: Record<string, boolean>;
+  library_mode: 'monolibrary' | 'personal_library';
+  my_library_seeded: boolean;
+  show_my_library_intro: boolean;
+  can_switch_library_mode: boolean;
+  library_mode_managed: boolean;
+}
+
+export interface LibraryModePayload {
+  library_mode: 'monolibrary' | 'personal_library';
+  my_library_seeded: boolean;
+  show_my_library_intro: boolean;
+  can_switch_library_mode: boolean;
+  library_mode_managed: boolean;
+}
+
+export interface GlobalLibraryPage extends BooksPage {
+  library_mode: 'monolibrary' | 'personal_library';
+  filter: 'all' | 'not_in_my_library';
+}
+
+export interface LibraryRemovalImpact {
+  affected_shelves: string[];
+  kobo_removal_on_next_sync: boolean;
+  reading_data_preserved: boolean;
 }
 
 export interface OAuthProvider {
@@ -521,6 +605,8 @@ export function navigateToLogout(): void {
 
 export interface ApiRequestOptions {
   auth?: 'protected' | 'public';
+  /** Attribute a reading-data mutation to this browser installation. */
+  webreaderDevice?: boolean;
 }
 
 function isProtected(options?: ApiRequestOptions): boolean {
@@ -703,11 +789,14 @@ export async function apiPost<T>(
   requestOptions?: Pick<RequestInit, 'keepalive'> & ApiRequestOptions,
 ): Promise<T> {
   const doPost = async (csrf: string): Promise<Response> => {
-    const { auth: _auth, ...fetchOptions } = requestOptions ?? {};
+    const { auth: _auth, webreaderDevice: _device, ...fetchOptions } = requestOptions ?? {};
     return classifiedFetch(path, {
       method: 'POST',
       credentials: 'include',
-      headers: {
+      headers: requestOptions?.webreaderDevice ? webreaderDeviceHeaders({
+        'Content-Type': 'application/json',
+        'X-CSRFToken': csrf,
+      }) : {
         'Content-Type': 'application/json',
         'X-CSRFToken': csrf,
       },
@@ -744,6 +833,34 @@ export async function apiPost<T>(
   return JSON.parse(text) as T;
 }
 
+/** PUT with the same JSON, CSRF, mount-prefix and stale-token behaviour as
+ * apiPost. My Library add is deliberately idempotent and therefore uses PUT. */
+export async function apiPut<T>(path: string, body?: unknown, options?: ApiRequestOptions): Promise<T> {
+  const doPut = async (csrf: string): Promise<Response> =>
+    classifiedFetch(path, {
+      method: 'PUT', credentials: 'include',
+      headers: { 'Content-Type': 'application/json', 'X-CSRFToken': csrf },
+      body: body !== undefined ? JSON.stringify(body) : undefined,
+    }, options);
+
+  let csrf = await getCsrf(options);
+  let res = await doPut(csrf);
+  const isJson400 = res.status === 400
+    && (res.headers.get('content-type') || '').includes('application/json');
+  if (res.status === 400 && !isJson400) {
+    clearCsrf();
+    csrf = await getCsrf(options);
+    res = await doPut(csrf);
+  }
+  if (!res.ok) {
+    const parsed = await readApiError(res);
+    throw new ApiError(res.status, parsed.message, parsed.detail);
+  }
+  if (res.status === 204) return undefined as unknown as T;
+  const text = await res.text();
+  return text ? JSON.parse(text) as T : undefined as T;
+}
+
 /** DELETE with the same CSRF/base-path handling as apiPost (#782 — the reader
  *  needs to remove a highlight). DELETE responses are frequently empty or 204,
  *  so this tolerates a missing body rather than throwing on res.json(). */
@@ -752,7 +869,9 @@ export async function apiDelete<T>(path: string, options?: ApiRequestOptions): P
     classifiedFetch(path, {
       method: 'DELETE',
       credentials: 'include',
-      headers: { 'X-CSRFToken': csrf },
+      headers: options?.webreaderDevice
+        ? webreaderDeviceHeaders({ 'X-CSRFToken': csrf })
+        : { 'X-CSRFToken': csrf },
     }, options);
 
   let csrf = await getCsrf(options);
@@ -790,7 +909,10 @@ export async function apiPatch<T>(path: string, body?: unknown, options?: ApiReq
     classifiedFetch(path, {
       method: 'PATCH',
       credentials: 'include',
-      headers: {
+      headers: options?.webreaderDevice ? webreaderDeviceHeaders({
+        'Content-Type': 'application/json',
+        'X-CSRFToken': csrf,
+      }) : {
         'Content-Type': 'application/json',
         'X-CSRFToken': csrf,
       },

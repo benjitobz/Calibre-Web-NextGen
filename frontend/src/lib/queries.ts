@@ -1,19 +1,23 @@
 import { keepPreviousData, useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import type { QueryClient } from '@tanstack/react-query';
 import {
-  apiGet, apiPost, apiDelete, apiUpload, apiPostForm, ApiError,
+  apiGet, apiPost, apiPut, apiDelete, apiUpload, apiPostForm, ApiError,
   navigateToLogout, noteSessionIdentity,
   getMetadataProviders, setMetadataProviderActive,
 } from './api';
 import { removeBookFromCache, applyBookEditToCache } from './scrollCache';
-import { settleById } from './bulkResults';
+import { settleByBatch, settleById, type BulkFailureDetail } from './bulkResults';
 import { createEntityListQueryOptions } from './entityListQueryOptions';
+import { dismissNoticeIdsInBatches } from './noticeDismissal';
 import type { MetadataProvider, MetaSearchResponse } from './api';
 import type {
   Me, Book, BooksPage, BookDetail, EntityList, Shelf, ShelfDetail,
   SearchOptions, AdvancedSearchParams, AdvSearchResult, Account, ProfileUpdate,
   BookMetadata, MetadataUpdate, UploadResult, AdminUser, AboutInfo, TaskItem, AuthConfig,
   NoticeInbox, KoboTwoWaySettings, KoboTwoWayBookState, KoboTwoWayUpdate,
+  GlobalLibraryPage, LibraryModePayload, LibraryRemovalImpact, DeliveryDevice,
+  DeviceDeliveryResult,
+  KoboSyncToken,
 } from './api';
 
 /** Entity kinds the catalog can be filtered by. Singular here; the browse-list
@@ -89,6 +93,40 @@ export function useUpdateSidebar() {
   });
 }
 
+/** Persist allowlisted boolean UI preferences and optimistically update /me.
+ * Mutations from one hook instance are serialized so rapid toggles cannot leave
+ * the server with an older request winning the race. */
+export function useUpdateNamedPreferences() {
+  const queryClient = useQueryClient();
+  return useMutation({
+    scope: { id: 'named-user-preferences' },
+    mutationFn: (preferences: Record<string, boolean>) =>
+      apiPost<{ preferences: Record<string, boolean | null> }>(
+        '/api/v1/account/preferences', { preferences }),
+    onMutate: async (preferences) => {
+      await queryClient.cancelQueries({ queryKey: ['me'] });
+      const previous = queryClient.getQueryData<Me | null>(['me']);
+      queryClient.setQueryData<Me | null>(['me'], (current) => current ? {
+        ...current,
+        preferences: { ...(current.preferences ?? {}), ...preferences },
+      } : current);
+      return { previous };
+    },
+    onError: (_error, _preferences, context) => {
+      if (context) queryClient.setQueryData(['me'], context.previous);
+    },
+    onSuccess: (data) => {
+      queryClient.setQueryData<Me | null>(['me'], (current) => current ? {
+        ...current,
+        preferences: { ...(current.preferences ?? {}), ...data.preferences },
+      } : current);
+    },
+    onSettled: () => {
+      void queryClient.invalidateQueries({ queryKey: ['me'] });
+    },
+  });
+}
+
 /** Queries whose response body depends on *who* is asking, and so must not
  *  survive an identity change that happens without a page load. Today that is
  *  /about, which withholds component versions from non-admins (#1287).
@@ -97,8 +135,10 @@ export function useUpdateSidebar() {
  *  identity would otherwise land after the switch and repopulate the cache with
  *  the wrong identity's answer. */
 async function dropIdentityScopedQueries(queryClient: QueryClient) {
-  await queryClient.cancelQueries({ queryKey: ['about'] });
-  queryClient.removeQueries({ queryKey: ['about'] });
+  for (const key of ['about', 'books', 'book', 'global-library', 'account', 'shelves', 'shelf']) {
+    await queryClient.cancelQueries({ queryKey: [key] });
+    queryClient.removeQueries({ queryKey: [key] });
+  }
 }
 
 export function useLogin() {
@@ -256,6 +296,137 @@ export function useBooks(q: BooksQuery) {
   });
 }
 
+export interface GlobalLibraryQuery {
+  page: number;
+  perPage?: number;
+  search?: string;
+  sort?: string;
+  filter?: 'all' | 'not_in_my_library';
+}
+
+export function useGlobalLibrary(q: GlobalLibraryQuery) {
+  const params = new URLSearchParams({
+    page: String(q.page), per_page: String(q.perPage ?? 24),
+    sort: q.sort ?? 'new', filter: q.filter ?? 'all',
+  });
+  if (q.search) params.set('search', q.search);
+  return useQuery<GlobalLibraryPage>({
+    queryKey: ['global-library', q.page, q.perPage ?? 24, q.search ?? '', q.sort ?? 'new', q.filter ?? 'all'],
+    queryFn: () => apiGet<GlobalLibraryPage>(`/api/v1/library/global?${params.toString()}`),
+    placeholderData: keepPreviousData,
+    retry: false,
+  });
+}
+
+function setGlobalMembership(qc: QueryClient, bookId: number, owned: boolean) {
+  qc.setQueriesData<GlobalLibraryPage>({ queryKey: ['global-library'] }, (page) => page ? {
+    ...page,
+    items: page.items.map((book) => book.id === bookId ? { ...book, in_my_library: owned } : book),
+  } : page);
+}
+
+function setBookMembership(qc: QueryClient, bookId: number, owned: boolean) {
+  qc.setQueryData<BookDetail>(['book', String(bookId)], (book) => book ? {
+    ...book,
+    in_my_library: owned,
+  } : book);
+}
+
+export function useAddToMyLibrary() {
+  const qc = useQueryClient();
+  return useMutation({
+    mutationFn: (bookId: number) => apiPut<{ in_my_library: true }>(`/api/v1/books/${bookId}/my-library`),
+    onMutate: async (bookId) => {
+      await Promise.all([
+        qc.cancelQueries({ queryKey: ['global-library'] }),
+        qc.cancelQueries({ queryKey: ['book', String(bookId)] }),
+      ]);
+      const previous = qc.getQueriesData<GlobalLibraryPage>({ queryKey: ['global-library'] });
+      const previousDetail = qc.getQueryData<BookDetail>(['book', String(bookId)]);
+      setGlobalMembership(qc, bookId, true);
+      setBookMembership(qc, bookId, true);
+      return { previous, previousDetail };
+    },
+    onError: (_error, bookId, context) => {
+      context?.previous.forEach(([key, value]) => qc.setQueryData(key, value));
+      if (context?.previousDetail !== undefined) {
+        qc.setQueryData(['book', String(bookId)], context.previousDetail);
+      }
+    },
+    onSettled: () => {
+      void qc.invalidateQueries({ queryKey: ['global-library'] });
+      void qc.invalidateQueries({ queryKey: ['books'] });
+    },
+  });
+}
+
+export function useMyLibraryRemovalImpact() {
+  return useMutation({
+    mutationFn: (bookId: number) => apiGet<LibraryRemovalImpact>(`/api/v1/books/${bookId}/my-library`),
+  });
+}
+
+export function useRemoveFromMyLibrary() {
+  const qc = useQueryClient();
+  return useMutation({
+    mutationFn: (bookId: number) => apiDelete<LibraryRemovalImpact & { in_my_library: false }>(
+      `/api/v1/books/${bookId}/my-library`),
+    onMutate: async (bookId) => {
+      await Promise.all([
+        qc.cancelQueries({ queryKey: ['books'] }),
+        qc.cancelQueries({ queryKey: ['book', String(bookId)] }),
+      ]);
+      const previous = qc.getQueriesData<BooksPage>({ queryKey: ['books'] });
+      const previousDetail = qc.getQueryData<BookDetail>(['book', String(bookId)]);
+      qc.setQueriesData<BooksPage>({ queryKey: ['books'] }, (page) => page ? {
+        ...page, items: page.items.filter((book) => book.id !== bookId),
+        total: Math.max(0, page.total - 1),
+      } : page);
+      setGlobalMembership(qc, bookId, false);
+      setBookMembership(qc, bookId, false);
+      return { previous, previousDetail };
+    },
+    onError: (_error, bookId, context) => {
+      context?.previous.forEach(([key, value]) => qc.setQueryData(key, value));
+      if (context?.previousDetail !== undefined) {
+        qc.setQueryData(['book', String(bookId)], context.previousDetail);
+      }
+    },
+    onSettled: () => {
+      void qc.invalidateQueries({ queryKey: ['books'] });
+      void qc.invalidateQueries({ queryKey: ['global-library'] });
+      void qc.invalidateQueries({ queryKey: ['shelves'] });
+      void qc.invalidateQueries({ queryKey: ['shelf'] });
+    },
+  });
+}
+
+export function useUpdateLibraryMode() {
+  const qc = useQueryClient();
+  return useMutation({
+    mutationFn: (mode: LibraryModePayload['library_mode']) =>
+      apiPost<LibraryModePayload>('/api/v1/account/library-mode', { mode }),
+    onSuccess: (payload) => {
+      qc.setQueryData<Me | null>(['me'], (me) => me ? { ...me, ...payload } : me);
+      qc.setQueryData<Account>(['account'], (account) => account ? { ...account, ...payload } : account);
+      qc.removeQueries({ queryKey: ['books'] });
+      qc.removeQueries({ queryKey: ['global-library'] });
+      void qc.invalidateQueries({ queryKey: ['me'] });
+    },
+  });
+}
+
+export function useDismissMyLibraryIntro() {
+  const qc = useQueryClient();
+  return useMutation({
+    mutationFn: () => apiPost<LibraryModePayload>('/api/v1/account/my-library-intro/dismiss'),
+    onSuccess: (payload) => {
+      qc.setQueryData<Me | null>(['me'], (me) => me ? { ...me, ...payload } : me);
+      qc.setQueryData<Account>(['account'], (account) => account ? { ...account, ...payload } : account);
+    },
+  });
+}
+
 /** Fetch an entity-browse list (authors/series/tags/publishers/languages).
  *  `plural` is the endpoint segment (e.g. "authors"). */
 export function useEntityList(plural: string) {
@@ -373,6 +544,28 @@ export function useSendToEreader(id: string | number) {
   return useMutation({
     mutationFn: (v: { format: string; convert?: boolean; emails?: string }) =>
       apiPost<{ ok: boolean; message: string }>(`/api/v1/books/${id}/send`, v),
+  });
+}
+
+/** Active Kobo/KOReader devices that can pull queued books on their next sync. */
+export function useActiveDeliveryDevices(enabled = true) {
+  return useQuery<{ devices: DeliveryDevice[] }>({
+    queryKey: ['annotation-devices', 'active'],
+    queryFn: () => apiGet<{ devices: DeliveryDevice[] }>(
+      '/api/annotations/devices?active=true'),
+    enabled,
+    staleTime: 30000,
+    select: (payload) => ({
+      devices: payload.devices.filter((device) => device.can_receive_books),
+    }),
+  });
+}
+
+/** Queue one idempotent pull delivery for a reader owned by this user. */
+export function useQueueDeviceDelivery(id: string | number) {
+  return useMutation({
+    mutationFn: (device: string) =>
+      apiPost<DeviceDeliveryResult>(`/api/v1/books/${id}/device-deliveries`, { device }),
   });
 }
 
@@ -624,10 +817,37 @@ export function useUpdateSecurityConfig() {
 export function useUpdateAdminUser() {
   const qc = useQueryClient();
   return useMutation({
-    mutationFn: (v: { id: number; roles?: Record<string, boolean>; email?: string }) => {
+    mutationFn: (v: { id: number; roles?: Record<string, boolean>; email?: string; library_mode?: LibraryModePayload['library_mode'] }) => {
       const { id, ...body } = v;
       return apiPost<AdminUser>(`/api/v1/admin/users/${id}`, body);
     },
+    onSuccess: () => void qc.invalidateQueries({ queryKey: ['admin-users'] }),
+  });
+}
+
+export interface MyLibraryMigrationRow {
+  user_id: number; name: string; status: string; seeded_books: number;
+  membership_count?: number; library_mode: LibraryModePayload['library_mode']; error?: string;
+}
+
+export function useMigrateMyLibrary() {
+  const qc = useQueryClient();
+  return useMutation({
+    mutationFn: (userId?: number) => apiPost<{
+      results: MyLibraryMigrationRow[]; accounts: number; seeded_books: number; errors: number;
+      skipped: MyLibraryMigrationRow[]; skipped_accounts: number;
+    }>('/api/v1/admin/my-library/migrate', userId === undefined ? {} : { user_id: userId }),
+    onSuccess: () => void qc.invalidateQueries({ queryKey: ['admin-users'] }),
+  });
+}
+
+export function useAdminAddBookToLibrary() {
+  const qc = useQueryClient();
+  return useMutation({
+    mutationFn: ({ userId, bookId }: { userId: number; bookId: number }) =>
+      apiPut<{ in_my_library: true; user_id: number; book_id: number; book_title: string; membership_count: number }>(
+        `/api/v1/admin/users/${userId}/my-library/${bookId}`,
+      ),
     onSuccess: () => void qc.invalidateQueries({ queryKey: ['admin-users'] }),
   });
 }
@@ -649,7 +869,9 @@ export function useBulkActions() {
   const qc = useQueryClient();
   const refresh = () => {
     void qc.invalidateQueries({ queryKey: ['books'] });
+    void qc.invalidateQueries({ queryKey: ['global-library'] });
     void qc.invalidateQueries({ queryKey: ['shelves'] });
+    void qc.invalidateQueries({ queryKey: ['shelf'] });
   };
   const markRead = useMutation({
     mutationFn: (v: { ids: number[]; read: boolean }) =>
@@ -665,7 +887,7 @@ export function useBulkActions() {
       })),
     onSuccess: refresh,
   });
-  const remove = useMutation({
+  const deleteBooks = useMutation({
     mutationFn: (ids: number[]) => settleById(ids, (id) => apiPost(`/api/v1/books/${id}/delete`)),
     onSuccess: ({ succeededIds }) => {
       // Evict deleted books from every cached catalog snapshot so a later
@@ -674,14 +896,47 @@ export function useBulkActions() {
       refresh();
     },
   });
-  // Bulk metadata: apply the same partial field set to every selected book via
-  // the per-book metadata endpoint (replace semantics for the filled fields).
+  const removeFromMyLibrary = useMutation({
+    // Keep this synchronized with cps.api.actions.BATCH_MEMBERSHIP_LIMIT. The
+    // server still validates the request and returns a structured
+    // batch_too_large error, which settleByBatch preserves for the UI.
+    mutationFn: (ids: number[]) => settleByBatch(ids, 200, async (bookIds) => {
+      const result = await apiPost<{
+        succeeded_ids: number[];
+        failed_ids: number[];
+        results: Array<{
+          book_id: number;
+          status: 'succeeded' | 'failed';
+          error?: { code?: unknown; message?: unknown };
+        }>;
+      }>(
+        '/api/v1/books/my-library/batch',
+        { operation: 'remove', book_ids: bookIds },
+      );
+      const failureDetails: BulkFailureDetail[] = result.results.flatMap((item) => {
+        if (item.status !== 'failed' || typeof item.error?.message !== 'string') return [];
+        return [{
+          id: item.book_id,
+          ...(typeof item.error.code === 'string' ? { code: item.error.code } : {}),
+          message: item.error.message,
+        }];
+      });
+      return {
+        succeededIds: result.succeeded_ids,
+        failedIds: result.failed_ids,
+        failureDetails,
+      };
+    }),
+    onSuccess: refresh,
+  });
+  // Bulk metadata: apply the same partial field set and explicit relationship
+  // mode to every selected book via the per-book metadata endpoint.
   const setMetadata = useMutation({
     mutationFn: (v: { ids: number[]; fields: MetadataUpdate }) =>
       settleById(v.ids, (id) => apiPost(`/api/v1/books/${id}/metadata`, v.fields)),
     onSuccess: refresh,
   });
-  return { markRead, addToShelf, remove, setMetadata };
+  return { markRead, addToShelf, deleteBooks, removeFromMyLibrary, setMetadata };
 }
 
 /** Merge books: the first id is the target (kept); the rest are merged into it
@@ -772,15 +1027,20 @@ export function useUpdateMetadata(id: string | number) {
 }
 
 /** Delete a whole book — DB rows + files on disk (fork #803). Reuses the
- *  data-safe POST /api/v1/books/<id>/delete (role_delete_books re-checked
- *  server-side → 403 if the user lacks the delete role). Evicts the book from
+ *  data-safe POST /api/v1/books/<id>/delete (delete_books + edit re-checked
+ *  server-side → 403 unless the user has both roles). Evicts the book from
  *  every cached catalog snapshot so a later scroll-restore can't resurrect it
  *  as a ghost card (#578), then refreshes the library + shelves. Callers redirect
  *  away from the now-deleted book's detail page on success. */
+export interface DeleteResult {
+  deleted: true;
+  warning?: { code: string; message: string };
+}
+
 export function useDeleteBook(id: string | number) {
   const qc = useQueryClient();
   return useMutation({
-    mutationFn: () => apiPost(`/api/v1/books/${id}/delete`),
+    mutationFn: () => apiPost<DeleteResult | undefined>(`/api/v1/books/${id}/delete`),
     onSuccess: () => {
       removeBookFromCache(Number(id));
       // Drop the deleted book's own detail cache, and refetch every surface that
@@ -820,7 +1080,7 @@ export function useDeleteFormat(id: string | number) {
   const qc = useQueryClient();
   return useMutation({
     mutationFn: (fmt: string) =>
-      apiPost(`/api/v1/books/${id}/formats/${encodeURIComponent(fmt)}/delete`),
+      apiPost<DeleteResult | undefined>(`/api/v1/books/${id}/formats/${encodeURIComponent(fmt)}/delete`),
     onSuccess: () => {
       void qc.invalidateQueries({ queryKey: ['book', String(id)] });
       void qc.invalidateQueries({ queryKey: ['books'] });
@@ -972,7 +1232,7 @@ export function useSaveBookmark(bookId: string | number) {
     // it to the shared Kobo/KOReader carrier so browser reading reaches the
     // user's devices. Omitted until epub.js has generated locations.
     mutationFn: (vars: { format: string; bookmark: string; percentage?: number }) =>
-      apiPost(`/api/v1/books/${bookId}/bookmark`, vars),
+      apiPost(`/api/v1/books/${bookId}/bookmark`, vars, { webreaderDevice: true }),
     // #1318: deliberately NO react-query `retry` here. The route now answers
     // 5xx when the write did not land, which is worth re-sending — but a
     // built-in retry re-sends the SAME variables, and the reader fires a save
@@ -1032,6 +1292,37 @@ export function useRevokeAppPassword() {
   return useMutation({
     mutationFn: (id: number) => apiPost(`/api/v1/account/app-passwords/${id}/delete`),
     onSuccess: () => void qc.invalidateQueries({ queryKey: ['account'] }),
+  });
+}
+
+// ── Kobo / KOReader pairing ─────────────────────────────────────────────────
+
+const KOBO_SYNC_TOKEN_KEY = ['kobo-sync-token'] as const;
+
+export function useKoboSyncToken(enabled = true) {
+  return useQuery<KoboSyncToken>({
+    queryKey: KOBO_SYNC_TOKEN_KEY,
+    queryFn: () => apiGet<KoboSyncToken>('/api/v1/account/kobo-sync-token'),
+    enabled,
+    retry: false,
+  });
+}
+
+export function useCreateKoboSyncToken() {
+  const qc = useQueryClient();
+  return useMutation({
+    mutationFn: () => apiPost<KoboSyncToken>('/api/v1/account/kobo-sync-token'),
+    onSuccess: (data) => qc.setQueryData(KOBO_SYNC_TOKEN_KEY, data),
+  });
+}
+
+export function useDeleteKoboSyncToken() {
+  const qc = useQueryClient();
+  return useMutation({
+    mutationFn: () => apiDelete('/api/v1/account/kobo-sync-token'),
+    onSuccess: () => qc.setQueryData<KoboSyncToken>(KOBO_SYNC_TOKEN_KEY, (old) => (
+      old ? { ...old, configured: false, sync_url: null } : old
+    )),
   });
 }
 
@@ -1309,10 +1600,13 @@ export function useDismissNotices() {
   const qc = useQueryClient();
   return useMutation({
     mutationFn: (noticeIds: number[]) =>
-      apiPost<{ dismissed: number; remaining: number }>('/api/v1/notices/dismiss', {
-        notice_ids: noticeIds,
-      }),
-    onSuccess: () => void qc.invalidateQueries({ queryKey: ['notices'] }),
+      dismissNoticeIdsInBatches(noticeIds, (batch) =>
+        apiPost<{ dismissed: number; remaining: number }>('/api/v1/notices/dismiss', {
+          notice_ids: batch,
+        })),
+    // A later batch can fail after an earlier one committed. Refresh on either
+    // outcome so the banner reflects the server's actual remaining notices.
+    onSettled: () => void qc.invalidateQueries({ queryKey: ['notices'] }),
   });
 }
 

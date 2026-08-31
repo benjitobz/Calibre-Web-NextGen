@@ -65,17 +65,36 @@ def _wait_for_full_request_io_capacity(spool, timeout=2):
     return capacity
 
 
+def _require_full_request_io_capacity(spool, boundary):
+    """Fail the permit owner, then restore isolation for the next test."""
+    capacity = _wait_for_full_request_io_capacity(spool)
+    if capacity == [True, True, False]:
+        return
+    spool._reset_request_io_slots_after_fork()
+    pytest.fail(
+        "Kobo PATCH request I/O permit leak "
+        f"{boundary}: expected [True, True, False], observed {capacity}; "
+        "resetting capacity so later tests are not poisoned"
+    )
+
+
 @pytest.fixture(autouse=True)
-def _cancel_spool_retention_timers_after_test():
-    """Secondary test isolation; production dependency capture is the fix."""
+def _isolate_request_io_capacity():
+    """Attribute permit leaks to their owner instead of the next test."""
+    spool = _module()
+    _require_full_request_io_capacity(spool, "before test setup")
+    yield
+    _require_full_request_io_capacity(spool, "during test teardown")
+
+
+@pytest.fixture(autouse=True)
+def _stop_spool_retention_threads_after_test():
+    """Finish every retention owner before monkeypatch restores global state."""
     yield
     spool = _module()
-    with spool._RETENTION_TIMERS_LOCK:
-        timers = [timer for _deadline, timer in spool._RETENTION_TIMERS.values()]
-        spool._RETENTION_TIMERS.clear()
-        spool._RETENTION_STARTED = False
-    for timer in timers:
-        timer.cancel()
+    assert spool.stop_retention_maintenance(timeout=5), (
+        "Kobo PATCH retention maintenance survived deterministic test teardown"
+    )
 
 
 def _hold_advisory_lock(lock_path, ready, release):
@@ -128,13 +147,28 @@ def _app(monkeypatch, *, dispatch):
     monkeypatch.setattr(rs, "resolve_entitlement_ownership", lambda _content_id: book)
     monkeypatch.setattr(rs, "log_annotation_data", lambda *_args, **_kwargs: None)
     monkeypatch.setattr(
-        "cps.services.annotation_sync.dispatch_annotation_sync", dispatch,
+        rs, "_owned_patch_is_local_authority", lambda *_args, **_kwargs: True,
     )
     monkeypatch.setattr(
+        "cps.services.kobo_annotation_authority.advance_authoritative_patch_revision",
+        lambda *_args, **_kwargs: True,
+    )
+    monkeypatch.setattr(
+        "cps.services.annotation_sync.dispatch_annotation_sync", dispatch,
+    )
+
+    def _atomic_dispatch(annotation_sync, *, updated, book, dispatch_kwargs, **_kwargs):
+        # These spool tests deliberately have no app-db session. Keep their
+        # seam at the dispatcher boundary while production exercises the real
+        # request transaction in test_1942_seed_pipeline.py.
+        return annotation_sync.dispatch_annotation_sync(
+            updated, book, user, **dispatch_kwargs,
+        ) is not False
+
+    monkeypatch.setattr(rs, "_persist_owned_patch_atomically", _atomic_dispatch)
+    monkeypatch.setattr(
         rs, "proxy_to_kobo_reading_services",
-        lambda **_kwargs: app.response_class(
-            b'{"upstream":"accepted"}', status=207, headers={"X-Upstream": "same"},
-        ),
+        lambda **_kwargs: pytest.fail("owned PATCH must not contact Kobo"),
     )
     return app
 
@@ -156,8 +190,8 @@ def test_patch_spool_is_durable_before_parse_and_dispatch(monkeypatch, tmp_path)
         f"/annotations/{BOOK_UUID}", data=RAW_PATCH, content_type="application/json",
     )
 
-    assert response.status_code == 207
-    assert response.get_data() == b'{"upstream":"accepted"}'
+    assert response.status_code == 204
+    assert response.get_data() == b""
     [(path, record)] = _records(spool, root)
     assert record["body"] == RAW_PATCH
     assert record["body_sha256"] == spool.sha256_bytes(RAW_PATCH)
@@ -273,8 +307,8 @@ def test_spool_failure_cannot_change_patch_response_or_dispatch(monkeypatch, tmp
         f"/annotations/{BOOK_UUID}", data=RAW_PATCH, content_type="application/json",
     )
 
-    assert response.status_code == 207
-    assert response.get_data() == b'{"upstream":"accepted"}'
+    assert response.status_code == 204
+    assert response.get_data() == b""
     assert len(dispatched) == 1
 
 
@@ -635,10 +669,15 @@ def test_forked_child_recovers_full_request_io_capacity(monkeypatch, tmp_path):
     ready = [threading.Event(), threading.Event()]
 
     def _hold_slot(signal):
-        assert spool._REQUEST_IO_SLOTS.acquire(blocking=False)
-        signal.set()
-        assert release.wait(5)
-        spool._REQUEST_IO_SLOTS.release()
+        slots = spool._REQUEST_IO_SLOTS
+        acquired = slots.acquire(blocking=False)
+        try:
+            assert acquired
+            signal.set()
+            assert release.wait(5)
+        finally:
+            if acquired:
+                slots.release()
 
     holders = [
         threading.Thread(target=_hold_slot, args=(signal,), daemon=True)
@@ -646,20 +685,25 @@ def test_forked_child_recovers_full_request_io_capacity(monkeypatch, tmp_path):
     ]
     for holder in holders:
         holder.start()
-    assert all(signal.wait(2) for signal in ready)
-
-    context = multiprocessing.get_context("fork")
-    result_parent, result_child = context.Pipe(duplex=False)
-    child = context.Process(
-        target=_stage_in_forked_child, args=(root, result_child),
-    )
-    child.start()
+    child = None
     try:
+        assert all(signal.wait(2) for signal in ready), (
+            "Kobo PATCH request I/O permit leak prevented both parent holders "
+            "from acquiring capacity"
+        )
+
+        context = multiprocessing.get_context("fork")
+        result_parent, result_child = context.Pipe(duplex=False)
+        child = context.Process(
+            target=_stage_in_forked_child, args=(root, result_child),
+        )
+        child.start()
         assert result_parent.poll(5), "forked child did not report its stage"
         body, capacity, process_lock_inherited_locked = result_parent.recv()
     finally:
         release.set()
-        child.join(5)
+        if child is not None:
+            child.join(5)
         for holder in holders:
             holder.join(5)
 
@@ -733,13 +777,17 @@ def test_spawn_enqueue_then_raise_releases_the_permit_exactly_once(
     [(_path, record)] = _records(spool, root)
     assert record["body"] == RAW_PATCH
 
-    assert spool._REQUEST_IO_SLOTS.acquire(blocking=False)
-    assert spool._REQUEST_IO_SLOTS.acquire(blocking=False)
+    capacity = []
     try:
-        assert not spool._REQUEST_IO_SLOTS.acquire(blocking=False)
+        capacity = [
+            spool._REQUEST_IO_SLOTS.acquire(blocking=False)
+            for _index in range(spool.MAX_PENDING_IO_OPERATIONS + 1)
+        ]
+        assert capacity == [True, True, False]
     finally:
-        spool._REQUEST_IO_SLOTS.release()
-        spool._REQUEST_IO_SLOTS.release()
+        for acquired in capacity:
+            if acquired:
+                spool._REQUEST_IO_SLOTS.release()
 
 
 @pytest.mark.unit
@@ -804,9 +852,12 @@ def test_timed_out_stage_finishes_and_does_not_poison_its_successor(
 def test_pending_spool_work_is_bounded(monkeypatch, tmp_path):
     """Two pending operations cannot grow into an unbounded memory queue."""
     spool, root = _root(monkeypatch, tmp_path)
-    assert spool._REQUEST_IO_SLOTS.acquire(blocking=False)
-    assert spool._REQUEST_IO_SLOTS.acquire(blocking=False)
+    acquired = []
     try:
+        for _index in range(spool.MAX_PENDING_IO_OPERATIONS):
+            permit = spool._REQUEST_IO_SLOTS.acquire(blocking=False)
+            acquired.append(permit)
+            assert permit
         started = time.monotonic()
         ticket = spool.stage_patch(
             raw_body=RAW_PATCH, entitlement_id=BOOK_UUID,
@@ -814,8 +865,9 @@ def test_pending_spool_work_is_bounded(monkeypatch, tmp_path):
         )
         elapsed = time.monotonic() - started
     finally:
-        spool._REQUEST_IO_SLOTS.release()
-        spool._REQUEST_IO_SLOTS.release()
+        for permit in acquired:
+            if permit:
+                spool._REQUEST_IO_SLOTS.release()
 
     assert ticket is None
     assert elapsed < 0.05
@@ -904,6 +956,85 @@ def test_startup_retention_expires_records_before_any_new_patch(monkeypatch, tmp
 
 
 @pytest.mark.unit
+def test_stop_retention_maintenance_joins_running_timer_and_prevents_reschedule(
+    monkeypatch, tmp_path,
+):
+    """A timer already in its callback cannot escape into the next test."""
+    spool, root = _root(monkeypatch, tmp_path)
+    callback_entered = threading.Event()
+    release_callback = threading.Event()
+    stop_result = []
+
+    def _blocked_expiry(captured_root, captured_age):
+        assert captured_root == root
+        assert captured_age == 60
+        callback_entered.set()
+        assert release_callback.wait(5), "test did not release retention callback"
+        return time.time() + 60
+
+    monkeypatch.setattr(spool, "_expire_root_blocking", _blocked_expiry)
+    spool._schedule_retention(root, time.time(), 60)
+    assert callback_entered.wait(2), "retention callback never started"
+
+    stopper = threading.Thread(
+        target=lambda: stop_result.append(
+            spool.stop_retention_maintenance(timeout=5)
+        ),
+        daemon=True,
+    )
+    stopper.start()
+    time.sleep(0.05)
+    assert stopper.is_alive(), "teardown returned without joining the live callback"
+    release_callback.set()
+    stopper.join(2)
+
+    assert not stopper.is_alive()
+    assert stop_result == [True]
+    assert spool._RETENTION_TIMERS == {}
+
+
+@pytest.mark.unit
+def test_stop_retention_maintenance_joins_running_startup_thread(
+    monkeypatch, tmp_path,
+):
+    """The startup sweeper is tracked just like scheduled timers."""
+    spool, root = _root(monkeypatch, tmp_path)
+    bootstrap_entered = threading.Event()
+    release_bootstrap = threading.Event()
+    stop_result = []
+
+    def _blocked_expiry(captured_root, captured_age):
+        assert captured_root == root
+        assert captured_age == 60
+        bootstrap_entered.set()
+        assert release_bootstrap.wait(5), "test did not release startup retention"
+        return None
+
+    monkeypatch.setattr(spool, "MAX_AGE_SECONDS", 60)
+    monkeypatch.setattr(spool, "_RETENTION_STARTED", False)
+    monkeypatch.setattr(spool, "_expire_root_blocking", _blocked_expiry)
+    assert spool.start_retention_maintenance() is True
+    assert bootstrap_entered.wait(2), "startup retention thread never started"
+
+    stopper = threading.Thread(
+        target=lambda: stop_result.append(
+            spool.stop_retention_maintenance(timeout=5)
+        ),
+        daemon=True,
+    )
+    stopper.start()
+    time.sleep(0.05)
+    assert stopper.is_alive(), "teardown returned without joining startup retention"
+    release_bootstrap.set()
+    stopper.join(2)
+
+    assert not stopper.is_alive()
+    assert stop_result == [True]
+    assert spool._RETENTION_BOOTSTRAP_THREAD is None
+    assert spool._RETENTION_STARTED is False
+
+
+@pytest.mark.unit
 def test_startup_retention_captures_root_and_age_before_thread_runs(
     monkeypatch, tmp_path,
 ):
@@ -948,7 +1079,9 @@ def test_startup_retention_captures_root_and_age_before_thread_runs(
             self.target(*self.args)
 
     monkeypatch.setattr(spool, "threading", SimpleNamespace(Thread=_DeferredThread))
-    monkeypatch.setattr(spool, "_schedule_retention", lambda *_args: None)
+    monkeypatch.setattr(
+        spool, "_schedule_retention", lambda *_args, **_kwargs: None,
+    )
 
     assert spool.start_retention_maintenance() is True
     [bootstrap] = deferred_threads
@@ -1154,6 +1287,13 @@ def test_unreadable_patch_body_still_refuses_but_unreadable_get_body_does_not(
     """
     _root(monkeypatch, tmp_path)
     app = _app(monkeypatch, dispatch=lambda *_a, **_k: None)
+    upstream_body = b'{"upstream":"preserved"}'
+    monkeypatch.setattr(
+        rs, "proxy_to_kobo_reading_services",
+        lambda **_kwargs: app.response_class(
+            upstream_body, status=207, headers={"X-Upstream": "same"},
+        ),
+    )
 
     def _unreadable(self, *args, **kwargs):
         del self, args, kwargs
@@ -1167,7 +1307,9 @@ def test_unreadable_patch_body_still_refuses_but_unreadable_get_body_does_not(
     assert patch_response.status_code == 503
 
     get_response = app.test_client().get(f"/annotations/{BOOK_UUID}")
-    assert get_response.status_code != 503
+    assert get_response.status_code == 207
+    assert get_response.get_data() == upstream_body
+    assert get_response.headers["X-Upstream"] == "same"
 
 
 @pytest.mark.unit

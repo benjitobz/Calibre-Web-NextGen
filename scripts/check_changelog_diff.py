@@ -15,15 +15,42 @@ RELEASE_HEADING = re.compile(r"^## \[(v\d+\.\d+\.\d+)\]", re.MULTILINE)
 ENTRY_LEAD = re.compile(r"^- \*\*", re.MULTILINE)
 FRAGMENT_PATH = re.compile(r"^changelog\.d/[A-Za-z0-9][A-Za-z0-9._-]*\.md$")
 NON_SHIPPING_PATH_PREFIXES = (
+    # Translation refreshes ship, but a .po/.pot-only diff is not a release-note
+    # event an outside translator should have to author (operator ruling
+    # 2026-08-27; #1896 was forced to invent a fragment).
+    "cps/translations/",
     "docs/",
+    # Example configuration files document; they do not ship.
+    "examples/",
     "findings/",
     "frontend/e2e/",
+    # The runtime image deletes frontend/ and copies only the Vite-built bundle
+    # from cps/static/app, so frontend test sources never ship (Dockerfile
+    # steps 6 and 6.1).
+    "frontend/tests/",
     "notes/",
+    # Agent mission records. Unreachable until PR #2034, because every earlier
+    # `state/`-only commit rode inside a PR that also carried shipping code and
+    # was covered by that PR's fragment. The first state-only PR went red, and
+    # the only way to satisfy the guard would have been to invent a user-facing
+    # entry for a note recording which SHAs merged.
+    "state/",
     "tests/",
     "wiki-src/",
 )
 NON_SHIPPING_PATHS = frozenset(
-    {"changelog.d/README.md", "scripts/check_changelog_diff.py"}
+    {
+        # The upstream-comparison ledger records changes that have ALREADY
+        # shipped, with their squash SHA and containing release tag. A
+        # post-release backfill of those fields is bookkeeping about the past,
+        # so demanding a release-note fragment for it can only be satisfied by
+        # inventing a duplicate entry for a change the changelog already
+        # carries (OBSERVED 2026-08-28: the v4.1.42 backfill PR went red here).
+        "CHANGES-vs-upstream.md",
+        "changelog.d/README.md",
+        "messages.pot",
+        "scripts/check_changelog_diff.py",
+    }
 )
 
 
@@ -97,6 +124,14 @@ def _is_non_shipping_path(path: str) -> bool:
 
 def changelog_requirement_errors(changed_paths: list[str]) -> list[str]:
     """Require a changelog entry unless every changed path is non-shipping."""
+    if not changed_paths:
+        # A pull request that changes no file ships nothing, so there is
+        # nothing to announce. This is not hypothetical: a `-s ours`
+        # back-merge that reconnects a hotfix tag to main has an empty tree
+        # diff by design, and the `changed_paths and` guard below (added so
+        # that all([]) could not vacuously pass) sent it here instead, where
+        # it was refused for "changing shipping paths" it had not touched.
+        return []
     if "CHANGELOG.md" in changed_paths:
         return []
     if any(

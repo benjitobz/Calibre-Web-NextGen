@@ -65,6 +65,14 @@ test('Customize panel can restore hidden Table view', async ({ page }) => {
   // click times out at 45s. Open the drawer first when it is there. (Same
   // shape as the collapsed search field; the suite's sidebar spec already
   // drives the hamburger this way.)
+  //
+  // Wait for catalog content BEFORE probing for the hamburger: the TopBar
+  // mounts asynchronously after goto resolves, and isVisible() is a one-shot
+  // probe — under CI load it ran before the hamburger existed, skipped the
+  // click, and the Customize click then retried against a closed drawer for
+  // the full 45s (first attempt on #2006's run; the retry, warm, took 1.1s).
+  // mobile.spec.ts's drawer spec uses this same content-first ordering.
+  await expect(page.locator('a[href*="/book/"]').first()).toBeVisible();
   const hamburger = page.getByRole('button', { name: /open navigation/i });
   if (await hamburger.isVisible().catch(() => false)) await hamburger.click();
   await page.getByRole('button', { name: 'Customize navigation' }).click();

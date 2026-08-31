@@ -515,6 +515,34 @@ class TestKepubFailureAlwaysReturnsAPair:
         nbp.backup = lambda f, backup_type: nbp.backed_up.append((f, backup_type))
         return nbp
 
+    def test_failed_kepub_ticket_conversion_removes_import_sidecar(
+        self, tmp_path
+    ):
+        source = tmp_path / "Library Ticket.acsm"
+        source.write_text("ticket contents")
+        intermediate = tmp_path / "Library Ticket.epub"
+        intermediate.write_text("fulfilled epub")
+        import_manifest = Path(str(source) + ".cwa.json")
+        import_manifest.write_text('{"action": "import"}')
+
+        nbp = object.__new__(ingest_processor.NewBookProcessor)
+        nbp.filepath = str(source)
+        nbp.input_format = "acsm"
+        nbp.backed_up = []
+
+        def _backup(filepath, backup_type):
+            nbp.backed_up.append((filepath, backup_type))
+            return True
+
+        nbp.backup = _backup
+        nbp._backup_failed_kepub_inputs(str(intermediate))
+
+        assert nbp.backed_up == [
+            (str(source), "failed"),
+            (str(intermediate), "failed"),
+        ]
+        assert not import_manifest.exists()
+
     @pytest.mark.parametrize(
         "exc",
         [
@@ -673,7 +701,7 @@ class TestNotABookFormatsAreNotRescued:
         assert import_manifest.read_text() == '{"action": "import"}'
 
 
-class TestAutoConvertOffDoesNotImportTickets:
+class TestFailedTicketFulfilmentDoesNotImportTickets:
     @staticmethod
     def _run(
         monkeypatch,
@@ -696,6 +724,22 @@ class TestAutoConvertOffDoesNotImportTickets:
             fake.is_target_format = is_target_format
             if convert_ignored:
                 fake.convert_ignored_formats = [fmt]
+
+            # A real failed ticket conversion owns its backup and guidance.
+            # Model that contract here so this class keeps testing the main()
+            # dispatch without reducing convert_book() to an impossible bare
+            # False that has discarded the user-facing failure handling.
+            def _failed_ticket_conversion(end_format=None):
+                fake.convert_book_calls += 1
+                fake.backup(filepath, backup_type="failed")
+                guidance = ingest_processor.conversion_failure_guidance(
+                    fmt, fake.filename
+                )
+                if guidance:
+                    print(f"\n[ingest-processor]: {guidance}\n", flush=True)
+                return False, ""
+
+            fake.convert_book = _failed_ticket_conversion
             holder["fake"] = fake
             return fake
 
@@ -708,7 +752,10 @@ class TestAutoConvertOffDoesNotImportTickets:
         return holder["fake"], str(source), capsys.readouterr().out
 
     @staticmethod
-    def _assert_ticket_was_failed_not_imported(fake, source, output, notice):
+    def _assert_ticket_was_failed_not_imported(
+        fake, source, output, notice, conversion_attempted=True
+    ):
+        assert fake.convert_book_calls == int(conversion_attempted)
         assert fake.imported == []
         assert fake.backed_up == [(source, "failed")]
         assert fake.delete_current_file_calls == 1
@@ -716,7 +763,7 @@ class TestAutoConvertOffDoesNotImportTickets:
         assert "processed_books/failed" in output
         assert "is currently unsupported / is not a known ebook format" not in output
 
-    def test_lcpl_gets_guidance_and_never_becomes_a_book(
+    def test_failed_lcpl_fulfilment_gets_guidance_and_never_becomes_a_book(
         self, monkeypatch, tmp_path, capsys
     ):
         result = self._run(monkeypatch, tmp_path, capsys, "lcpl")
@@ -724,7 +771,7 @@ class TestAutoConvertOffDoesNotImportTickets:
             *result, notice="LCPL_NOTICE:"
         )
 
-    def test_acsm_gets_guidance_and_never_becomes_a_book(
+    def test_failed_acsm_fulfilment_gets_guidance_and_never_becomes_a_book(
         self, monkeypatch, tmp_path, capsys
     ):
         result = self._run(monkeypatch, tmp_path, capsys, "acsm")
@@ -732,7 +779,7 @@ class TestAutoConvertOffDoesNotImportTickets:
             *result, notice="ACSM_NOTICE:"
         )
 
-    def test_ignored_lcpl_conversion_never_imports_the_licence(
+    def test_ignored_lcpl_is_fulfilled_but_failure_never_imports_the_licence(
         self, monkeypatch, tmp_path, capsys
     ):
         result = self._run(
@@ -759,7 +806,7 @@ class TestAutoConvertOffDoesNotImportTickets:
             is_target_format=True,
         )
         self._assert_ticket_was_failed_not_imported(
-            *result, notice="LCPL_NOTICE:"
+            *result, notice="LCPL_NOTICE:", conversion_attempted=False
         )
 
 

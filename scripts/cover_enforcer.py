@@ -38,7 +38,7 @@ except Exception:
     # environment where the Flask stack it drags in is not importable -- that is what the
     # inline sanitizer fallback below exists for, and hard-failing here would take it out.
     # Resolve through the same two knobs, in the same order, as cps/constants.py.
-    _config_root = os.environ.get("CALIBRE_DBPATH", "/config")
+    _config_root = str(app_paths.config_dir())
     _CHANGE_LOGS_DIR = os.environ.get(
         "CWA_METADATA_CHANGE_LOGS_DIR", os.path.join(_config_root, "metadata_change_logs"))
     _METADATA_TEMP_DIR = os.environ.get(
@@ -301,9 +301,7 @@ class Book:
 
     def get_calibre_library(self) -> str:
         """Gets Calibre-Library location from dirs.json"""
-        with open(dirs_json, 'r') as f:
-            dirs = json.load(f)
-        return dirs['calibre_library_dir'] # Returns without / on the end
+        return app_paths.calibre_library_dir(dirs_json) # Returns without / on the end
 
 
     def get_time(self) -> str:
@@ -472,9 +470,7 @@ class Enforcer:
 
 
     def get_calibre_library(self) -> str:
-        with open(dirs_json, 'r') as f:
-            dirs = json.load(f)
-        return dirs['calibre_library_dir'] # Returns without / on the end
+        return app_paths.calibre_library_dir(dirs_json) # Returns without / on the end
 
 
     def _restat_format_size_after_modification(self, book_id: str, file_format: str, file_path: str) -> None:

@@ -10,6 +10,7 @@ import os
 import re
 import sys
 import sqlite3
+import threading
 import time
 from datetime import datetime, timezone, timedelta
 import itertools
@@ -23,12 +24,12 @@ from .cw_login import user_logged_in
 try:
     from flask_dance.consumer.backend.sqla import OAuthConsumerMixin  # pyright: ignore[reportMissingImports]
     oauth_support = True
-except ImportError as e:
+except ImportError:
     # fails on flask-dance >1.3, due to renaming
     try:
         from flask_dance.consumer.storage.sqla import OAuthConsumerMixin
         oauth_support = True
-    except ImportError as e:
+    except ImportError:
         OAuthConsumerMixin = BaseException
         oauth_support = False
 from sqlalchemy import create_engine, DDL, exc, exists, event, text
@@ -45,6 +46,7 @@ from sqlalchemy.orm import backref, relationship, sessionmaker, Session, scoped_
 from werkzeug.security import generate_password_hash
 
 from . import constants, logger
+from .sqlite_utils import network_share_mode_enabled
 from .string_helper import strip_whitespaces
 
 log = logger.create()
@@ -194,6 +196,15 @@ class UserBase:
     def role_viewer(self):
         return self._has_role(constants.ROLE_VIEWER)
 
+    def role_browse_global(self):
+        return self._has_role(constants.ROLE_BROWSE_GLOBAL)
+
+    def library_mode(self):
+        """Return the named #1939 mode; false is deliberate monolibrary."""
+        if bool(getattr(self, "has_own_library", False)):
+            return constants.LIBRARY_MODE_PERSONAL
+        return constants.LIBRARY_MODE_MONOLIBRARY
+
     @property
     def is_active(self):
         return True
@@ -237,7 +248,9 @@ class UserBase:
             return None
         return self.view_settings[page].get(prop)
 
-    def set_view_property(self, page, prop, value):
+    def set_view_property(self, page, prop, value, commit=True):
+        if not isinstance(self.view_settings, dict):
+            self.view_settings = {}
         if not self.view_settings.get(page):
             self.view_settings[page] = dict()
         self.view_settings[page][prop] = value
@@ -245,11 +258,12 @@ class UserBase:
             flag_modified(self, "view_settings")
         except AttributeError:
             pass
-        try:
-            session.commit()
-        except (exc.OperationalError, exc.InvalidRequestError) as e:
-            session.rollback()
-            log.error_or_exception(e)
+        if commit:
+            try:
+                session.commit()
+            except (exc.OperationalError, exc.InvalidRequestError) as e:
+                session.rollback()
+                log.error_or_exception(e)
 
     def __repr__(self):
         return '<User %r>' % self.name
@@ -290,6 +304,22 @@ class User(UserBase, Base):
     view_settings = Column(JSON, default={})
     kobo_only_shelves_sync = Column(Integer, default=0)
     opds_only_shelves_sync = Column(Integer, default=0)
+    # Named library-mode selector. False is monolibrary mode: this account's
+    # library continuously mirrors the global archive. True is personal mode:
+    # CalibreDB.common_filters limits it to UserLibraryBook rows.
+    has_own_library = Column(
+        Boolean, nullable=False, default=False, server_default=text("0"),
+    )
+    # Durable seed-once marker, intentionally separate from membership count.
+    # A user may curate a personal library to zero rows; a later mode toggle
+    # must restore that empty set, not mistake it for never-initialized state.
+    user_library_seeded = Column(
+        Boolean, nullable=False, default=False, server_default=text("0"),
+    )
+    # The My Library introductory card is account state, not browser storage.
+    my_library_intro_dismissed = Column(
+        Boolean, nullable=False, default=False, server_default=text("0"),
+    )
     # Stage 0 Kobo two-way annotation opt-in.  No route consumes this flag
     # until a later rollout stage; existing and new users are safely off.
     kobo_two_way_annotation_sync = Column(
@@ -367,6 +397,9 @@ class Anonymous(AnonymousUserMixin, UserBase):
         self.hardcover_token = None
         self.kobo_only_shelves_sync = None
         self.opds_only_shelves_sync = None
+        self.has_own_library = False
+        self.user_library_seeded = False
+        self.my_library_intro_dismissed = False
         self.kobo_two_way_annotation_sync = False
         self.kobo_two_way_annotation_scope = 'all'
         self.view_settings = {}
@@ -402,6 +435,9 @@ class Anonymous(AnonymousUserMixin, UserBase):
         self.view_settings = data.view_settings
         self.kobo_only_shelves_sync = data.kobo_only_shelves_sync
         self.opds_only_shelves_sync = data.opds_only_shelves_sync
+        self.has_own_library = data.has_own_library
+        self.user_library_seeded = data.user_library_seeded
+        self.my_library_intro_dismissed = data.my_library_intro_dismissed
         self.kobo_two_way_annotation_sync = data.kobo_two_way_annotation_sync
         self.kobo_two_way_annotation_scope = data.kobo_two_way_annotation_scope
         self.hardcover_token = data.hardcover_token
@@ -439,8 +475,8 @@ class Anonymous(AnonymousUserMixin, UserBase):
             return flask_session['view'][page].get(prop)
         return None
 
-    def set_view_property(self, page, prop, value):
-        if not 'view' in flask_session:
+    def set_view_property(self, page, prop, value, commit=True):
+        if 'view' not in flask_session:
             flask_session['view'] = dict()
         if not flask_session['view'].get(page):
             flask_session['view'][page] = dict()
@@ -792,6 +828,26 @@ class FavoriteBook(Base):
     )
 
 
+class UserLibraryBook(Base):
+    """A user's membership set over the one global Calibre library.
+
+    Book ids deliberately have no foreign key: they belong to metadata.db,
+    while this table lives in app.db. Removing a membership row never removes
+    reading state, Kobo ownership, annotations, or the global book record.
+    """
+    __tablename__ = 'user_library_book'
+
+    id = Column(Integer, primary_key=True)
+    user_id = Column(Integer, ForeignKey('user.id', ondelete='CASCADE'),
+                     nullable=False, index=True)
+    book_id = Column(Integer, nullable=False, index=True)
+    added_at = Column(DateTime, default=lambda: datetime.now(timezone.utc))
+
+    __table_args__ = (
+        UniqueConstraint('user_id', 'book_id', name='uq_user_library_book'),
+    )
+
+
 class KoboSyncedBooks(Base):
     __tablename__ = 'kobo_synced_books'
     id = Column(Integer, primary_key=True, autoincrement=True)
@@ -801,6 +857,126 @@ class KoboSyncedBooks(Base):
 
     __table_args__ = (
         UniqueConstraint('user_id', 'book_id', name='uq_kobo_synced_books_user_book'),
+    )
+
+
+class KoboDeviceBookEntitlement(Base):
+    """Last stable entitlement delivered to one physical Kobo.
+
+    Kobo's opaque sync token is device-owned and can disappear after an
+    interrupted sync, firmware install, or USB interruption.  This server-side
+    ledger is deliberately per-device (not per-user): it lets a known device
+    suppress an identical entitlement replay without causing another Kobo on
+    the same account to miss its first delivery or a later real change.
+    """
+    __tablename__ = 'kobo_device_book_entitlement'
+
+    id = Column(Integer, primary_key=True, autoincrement=True)
+    device_id = Column(
+        Integer, ForeignKey('device.id', ondelete='CASCADE'), nullable=False,
+    )
+    # Cross-database identity: calibre's Books row lives in metadata.db, so
+    # this cannot be a foreign key in app.db.
+    book_id = Column(Integer, nullable=False)
+    fingerprint = Column(String(64), nullable=False)
+    payload_schema_version = Column(
+        Integer, nullable=False, default=1, server_default="1",
+    )
+    # Canonical, constituent-preserving book/archive clock encoding that
+    # justified the delivered entitlement. A declared renderer-schema
+    # transition may replace the fingerprint only while this entire non-null
+    # tuple is byte-identical. NULL is retained for #1925 rows and deliberately
+    # fails open on a changed payload.
+    change_basis = Column(Text, nullable=True)
+    updated_at = Column(
+        DateTime, nullable=False, default=lambda: datetime.now(timezone.utc),
+    )
+
+    __table_args__ = (
+        UniqueConstraint(
+            'device_id', 'book_id',
+            name='uq_kobo_device_book_entitlement_device_book',
+        ),
+        Index('ix_kobo_device_book_entitlement_book', 'book_id'),
+    )
+
+
+class KoboDeviceDeletedEntitlement(Base):
+    """Last hard-delete entitlement delivered to one physical Kobo.
+
+    Hard-deleted books no longer have a calibre ``book_id``.  Keep their UUID
+    replay state separate from the live-book ledger so a stale archive cursor
+    cannot re-offer the same ``IsRemoved`` entitlement forever, while another
+    device and a tokenless factory-reset sync can still receive it.
+    """
+    __tablename__ = 'kobo_device_deleted_entitlement'
+
+    id = Column(Integer, primary_key=True, autoincrement=True)
+    device_id = Column(
+        Integer, ForeignKey('device.id', ondelete='CASCADE'), nullable=False,
+    )
+    book_uuid = Column(String(64), nullable=False)
+    fingerprint = Column(String(64), nullable=False)
+    payload_schema_version = Column(
+        Integer, nullable=False, default=1, server_default="1",
+    )
+    change_basis = Column(Text, nullable=True)
+    updated_at = Column(
+        DateTime, nullable=False, default=lambda: datetime.now(timezone.utc),
+    )
+
+    __table_args__ = (
+        UniqueConstraint(
+            'device_id', 'book_uuid',
+            name='uq_kobo_device_deleted_entitlement_device_uuid',
+        ),
+        Index('ix_kobo_device_deleted_entitlement_uuid', 'book_uuid'),
+    )
+
+
+class KoboDeviceEntitlementSeed(Base):
+    """Marks completion of the one-time pre-#1925 ledger seed per device.
+
+    A marker is necessary: inferring completeness from missing ledger rows
+    would recreate rows deliberately cleared by resend, unsync, archive, or
+    duplicate-merge operations and suppress the very delivery they request.
+    """
+    __tablename__ = 'kobo_device_entitlement_seed'
+
+    device_id = Column(
+        Integer, ForeignKey('device.id', ondelete='CASCADE'), primary_key=True,
+    )
+    seeded_at = Column(
+        DateTime, nullable=False, default=lambda: datetime.now(timezone.utc),
+    )
+    # Version 1 means the per-device rows were audited against the legacy
+    # New/Changed classifier.  Version 0 rows predate #1735 and may include
+    # fingerprints for ChangedEntitlements a device could not apply.
+    classification_version = Column(
+        Integer, nullable=False, default=0, server_default="0",
+    )
+
+
+class KoboDevicePendingSyncPage(Base):
+    """One unacknowledged Kobo sync response per physical device.
+
+    The response body and wire headers are retained verbatim so a retry with
+    the same incoming token can be replayed without consulting mutable library
+    state.  ``confirmation_json`` contains only the bounded page state that is
+    promoted after the device presents ``outgoing_token``.
+    """
+    __tablename__ = 'kobo_device_pending_sync_page'
+
+    device_id = Column(
+        Integer, ForeignKey('device.id', ondelete='CASCADE'), primary_key=True,
+    )
+    incoming_token_hash = Column(String(64), nullable=False, index=True)
+    outgoing_token = Column(Text, nullable=False)
+    response_body = Column(Text, nullable=False)
+    response_headers_json = Column(Text, nullable=False, default="{}")
+    confirmation_json = Column(Text, nullable=False, default="{}")
+    created_at = Column(
+        DateTime, nullable=False, default=lambda: datetime.now(timezone.utc),
     )
 
 
@@ -1044,6 +1220,48 @@ class Device(Base):
     )
 
 
+class DeviceReadingPosition(Base):
+    """One device's last reported position for a Calibre book.
+
+    ``book_id`` deliberately has no foreign key because the book lives in
+    metadata.db while this journal lives in app.db. ``KoboReadingState`` stays
+    the resolved, user-level carrier served on the Kobo wire; this table keeps
+    the device observations that feed that resolution and the rehydrate latch.
+    """
+    __tablename__ = 'device_reading_position'
+
+    id = Column(Integer, primary_key=True, autoincrement=True)
+    device_id = Column(
+        Integer, ForeignKey('device.id', ondelete='CASCADE'), nullable=False,
+    )
+    book_id = Column(Integer, nullable=False)
+    location_source = Column(String, nullable=True)
+    location_type = Column(String, nullable=True)
+    location_value = Column(String, nullable=True)
+    progress_percent = Column(Float, nullable=True)
+    content_source_progress_percent = Column(Float, nullable=True)
+    cfi = Column(Text, nullable=True)
+    client_modified_at = Column(DateTime, nullable=True)
+    server_modified_at = Column(
+        DateTime, nullable=False, default=lambda: datetime.now(timezone.utc),
+    )
+    rehydrate_needed = Column(
+        Boolean, nullable=False, default=False, server_default='0',
+    )
+
+    __table_args__ = (
+        UniqueConstraint(
+            'device_id', 'book_id',
+            name='uq_device_reading_position_device_book',
+        ),
+        Index('ix_device_reading_position_book', 'book_id'),
+        Index(
+            'ix_device_reading_position_rehydrate',
+            'device_id', 'rehydrate_needed',
+        ),
+    )
+
+
 class DeviceIdentity(Base):
     """Versioned, keyed derivation of an upstream device identifier."""
     __tablename__ = 'device_identity'
@@ -1060,6 +1278,148 @@ class DeviceIdentity(Base):
         UniqueConstraint('scheme', 'key_version', 'fingerprint',
                          name='uq_device_identity_scheme_version_fingerprint'),
         Index('ix_device_identity_device', 'device_id'),
+    )
+
+
+class DeviceInventoryReport(Base):
+    """One complete inventory observation submitted by a registered device."""
+    __tablename__ = 'device_inventory_report'
+
+    id = Column(Integer, primary_key=True, autoincrement=True)
+    device_id = Column(Integer, ForeignKey('device.id', ondelete='CASCADE'), nullable=False)
+    observed_at = Column(DateTime, nullable=False, default=lambda: datetime.now(timezone.utc))
+    item_count = Column(Integer, nullable=False)
+    matched_count = Column(Integer, nullable=False)
+    device = relationship("Device")
+    __table_args__ = (
+        Index('ix_device_inventory_report_device_observed', 'device_id', 'observed_at'),
+    )
+
+
+class DeviceInventoryItem(Base):
+    """A book observed on a device; absence from a later report is not deletion."""
+    __tablename__ = 'device_inventory_item'
+
+    id = Column(Integer, primary_key=True, autoincrement=True)
+    device_id = Column(Integer, ForeignKey('device.id', ondelete='CASCADE'), nullable=False)
+    lpath = Column(String(1024), nullable=False)
+    checksum = Column(String(32), nullable=False)
+    book_id = Column(Integer, nullable=True)
+    size = Column(Integer, nullable=False)
+    mtime = Column(Integer, nullable=False)
+    first_seen_at = Column(DateTime, nullable=False, default=lambda: datetime.now(timezone.utc))
+    last_seen_at = Column(DateTime, nullable=False, default=lambda: datetime.now(timezone.utc))
+    last_report_id = Column(
+        Integer, ForeignKey('device_inventory_report.id', ondelete='CASCADE'), nullable=False,
+    )
+    device = relationship("Device")
+    last_report = relationship("DeviceInventoryReport")
+    __table_args__ = (
+        UniqueConstraint('device_id', 'lpath', 'checksum',
+                         name='uq_device_inventory_item_observation'),
+        Index('ix_device_inventory_item_device_report', 'device_id', 'last_report_id'),
+        Index('ix_device_inventory_item_book_device', 'book_id', 'device_id'),
+    )
+
+
+class DeviceBookDelivery(Base):
+    """One idempotent wanted-book entry for a registered device.
+
+    ``book_id`` belongs to calibre's separate metadata database, so it is an
+    ordinary integer rather than a foreign key. Ownership is derived through
+    ``Device``; no duplicate user id is stored and the registry remains the
+    authority for binding an opaque client identity to an account.
+    """
+    __tablename__ = 'device_book_delivery'
+
+    id = Column(Integer, primary_key=True, autoincrement=True)
+    device_id = Column(Integer, ForeignKey('device.id', ondelete='CASCADE'), nullable=False)
+    book_id = Column(Integer, nullable=False)
+    state = Column(String(24), nullable=False)
+    format = Column(String(16), nullable=True)
+    filename = Column(String(255), nullable=True)
+    expected_size = Column(Integer, nullable=True)
+    expected_checksum = Column(String(32), nullable=True)
+    queued_at = Column(DateTime, nullable=False, default=lambda: datetime.now(timezone.utc))
+    claimed_at = Column(DateTime, nullable=True)
+    claim_expires_at = Column(DateTime, nullable=True)
+    claim_token = Column(String(96), nullable=True)
+    attempt_count = Column(Integer, nullable=False, default=0)
+    completed_at = Column(DateTime, nullable=True)
+    installed_lpath = Column(String(1024), nullable=True)
+    installed_checksum = Column(String(32), nullable=True)
+    installed_size = Column(Integer, nullable=True)
+    installed_mtime = Column(Integer, nullable=True)
+    failure_reason = Column(String(512), nullable=True)
+    device = relationship("Device")
+    __table_args__ = (
+        UniqueConstraint('device_id', 'book_id', name='uq_device_book_delivery_book'),
+        Index('ix_device_book_delivery_claim', 'device_id', 'state', 'claim_expires_at'),
+    )
+
+
+class DeviceStorageSnapshot(Base):
+    """A device-supplied point-in-time disk measurement."""
+    __tablename__ = 'device_storage_snapshot'
+
+    id = Column(Integer, primary_key=True, autoincrement=True)
+    device_id = Column(Integer, ForeignKey('device.id', ondelete='CASCADE'), nullable=False)
+    observed_at = Column(DateTime, nullable=False, default=lambda: datetime.now(timezone.utc))
+    free_bytes = Column(Integer, nullable=False)
+    total_bytes = Column(Integer, nullable=False)
+    device = relationship("Device")
+    __table_args__ = (
+        CheckConstraint('free_bytes >= 0', name='ck_device_storage_free_nonnegative'),
+        CheckConstraint('total_bytes >= free_bytes', name='ck_device_storage_total_gte_free'),
+        Index('ix_device_storage_device_observed', 'device_id', 'observed_at'),
+    )
+
+
+class DeviceBookDeletion(Base):
+    """One explicit, exact file-removal request for a registered device."""
+    __tablename__ = 'device_book_deletion'
+
+    id = Column(Integer, primary_key=True, autoincrement=True)
+    device_id = Column(Integer, ForeignKey('device.id', ondelete='CASCADE'), nullable=False)
+    inventory_item_id = Column(
+        Integer, ForeignKey('device_inventory_item.id', ondelete='SET NULL'), nullable=True,
+    )
+    book_id = Column(Integer, nullable=True)
+    lpath = Column(String(1024), nullable=False)
+    checksum = Column(String(32), nullable=False)
+    state = Column(String(24), nullable=False)
+    requested_at = Column(DateTime, nullable=False, default=lambda: datetime.now(timezone.utc))
+    claimed_at = Column(DateTime, nullable=True)
+    claim_token = Column(String(96), nullable=False)
+    completed_at = Column(DateTime, nullable=True)
+    failure_reason = Column(String(512), nullable=True)
+    device = relationship("Device")
+    __table_args__ = (
+        UniqueConstraint(
+            'device_id', 'lpath', 'checksum',
+            name='uq_device_book_deletion_named_target',
+        ),
+        Index('ix_device_book_deletion_claim', 'device_id', 'state', 'id'),
+    )
+
+
+class DeviceCollectionSync(Base):
+    """Per-user, per-device delivery state for server shelf collections."""
+    __tablename__ = 'device_collection_sync'
+
+    id = Column(Integer, primary_key=True, autoincrement=True)
+    user_id = Column(Integer, ForeignKey('user.id', ondelete='CASCADE'), nullable=False)
+    device_id = Column(Integer, ForeignKey('device.id', ondelete='CASCADE'), nullable=False)
+    scope_id = Column(String(36), nullable=False, default=lambda: str(uuid.uuid4()))
+    revision = Column(Integer, nullable=False, default=1)
+    snapshot_hash = Column(String(64), nullable=False)
+    delivered_at = Column(DateTime, nullable=False, default=lambda: datetime.now(timezone.utc))
+    applied_at = Column(DateTime, nullable=True)
+    device = relationship("Device")
+    __table_args__ = (
+        UniqueConstraint('user_id', 'device_id', name='uq_device_collection_user_device'),
+        UniqueConstraint('scope_id', name='uq_device_collection_scope'),
+        Index('ix_device_collection_device_user', 'device_id', 'user_id'),
     )
 
 
@@ -1167,6 +1527,7 @@ class Annotation(Base):
     __table_args__ = (
         Index('ix_annotation_user_annotation', 'user_id', 'annotation_id'),
         Index('ix_annotation_user_book', 'user_id', 'book_id'),
+        Index('ix_annotation_user_book_origin', 'user_id', 'book_id', 'origin_device_id'),
         UniqueConstraint(
             'user_id', 'book_id', 'annotation_id',
             name='uq_annotation_user_book_annotation',
@@ -1258,9 +1619,23 @@ class KoboAnnotationBookState(Base):
     content_id = Column(String(64), nullable=False)
     authority_status = Column(String(24), nullable=False, default='unseeded')
     authority_revision = Column(Integer, nullable=False, default=0)
+    ever_authoritative = Column(
+        Boolean, nullable=False, default=False, server_default=text("0"),
+    )
     generation_id = Column(String(36), nullable=False, default=lambda: str(uuid.uuid4()))
     set_digest = Column(String(64), nullable=True)
     current_etag = Column(Text, nullable=True)
+    # Exact bytes from the last complete local replacement set.  Nickel can
+    # treat an empty/error annotations GET as authoritative deletion, so this
+    # is the durable fallback when both live render queries fail after Kobo's
+    # cloud copy has become stale.
+    last_served_body_gzip = Column(BLOB, nullable=True)
+    last_served_body_sha256 = Column(String(64), nullable=True)
+    last_served_etag = Column(Text, nullable=True)
+    last_served_annotation_count = Column(Integer, nullable=True)
+    last_served_authority_revision = Column(Integer, nullable=True)
+    last_served_set_digest = Column(String(64), nullable=True)
+    last_served_at = Column(DateTime, nullable=True)
     etag_kind = Column(String(24), nullable=True)
     upstream_seed_etag = Column(Text, nullable=True)
     opaque_content_status = Column(String(16), nullable=False, default='unknown')
@@ -1362,6 +1737,12 @@ class KoboAnnotationSeedCapture(Base):
     )
     device_id = Column(Integer, ForeignKey('device.id', ondelete='SET NULL'), nullable=True)
     started_at = Column(DateTime, nullable=False, default=lambda: datetime.now(timezone.utc))
+    # Authority revision observed when this capture acquired the book-level
+    # pending-owner slot. Reconciliation is refused if the shared set moved in
+    # the meantime; a stale cloud snapshot may never overwrite newer state.
+    started_authority_revision = Column(
+        Integer, nullable=False, default=0, server_default=text("0"),
+    )
     completed_at = Column(DateTime, nullable=True)
     device_etag = Column(Text, nullable=True)
     upstream_etag = Column(Text, nullable=True)
@@ -1369,16 +1750,39 @@ class KoboAnnotationSeedCapture(Base):
     annotation_count = Column(Integer, nullable=True)
     page_count = Column(Integer, nullable=True)
     result = Column(String(24), nullable=False, default='pending')
+    seed_kind = Column(
+        String(32), nullable=False, default='upstream_capture',
+        server_default=text("'upstream_capture'"),
+    )
     failure_reason = Column(String(64), nullable=True)
+    reconciliation_conflict_count = Column(
+        Integer, nullable=False, default=0, server_default=text("0"),
+    )
     book_state = relationship("KoboAnnotationBookState", back_populates="seed_captures")
     pages = relationship(
         "KoboAnnotationSeedCapturePage", back_populates="seed_capture",
+        cascade="all, delete-orphan",
+    )
+    row_baselines = relationship(
+        "KoboAnnotationSeedRowBaseline", back_populates="seed_capture",
         cascade="all, delete-orphan",
     )
 
     __table_args__ = (
         CheckConstraint("result IN ('pending', 'accepted', 'rejected', 'failed')",
                         name='ck_kasc_result'),
+        CheckConstraint(
+            "seed_kind IN ('upstream_capture', 'routing_only')",
+            name='ck_kasc_seed_kind',
+        ),
+        # A pending capture is the SQLite-enforced reconciliation lease. The
+        # book_state row is already unique per (user, book), so this partial
+        # unique index permits historical completed captures while allowing
+        # only one live owner across all of the user's Kobo devices.
+        Index(
+            'uq_kasc_pending_book_owner', 'book_state_id', unique=True,
+            sqlite_where=text("result = 'pending'"),
+        ),
         Index('ix_kasc_book_time', 'book_state_id', 'started_at'),
     )
 
@@ -1401,6 +1805,34 @@ class KoboAnnotationSeedCapturePage(Base):
     __table_args__ = (
         UniqueConstraint('seed_capture_id', 'page_number', name='uq_kascp_capture_page'),
         Index('ix_kascp_capture', 'seed_capture_id', 'page_number'),
+    )
+
+
+class KoboAnnotationSeedRowBaseline(Base):
+    """Server-owned per-row CAS evidence for one upstream seed capture."""
+    __tablename__ = 'kobo_annotation_seed_row_baseline'
+
+    id = Column(Integer, primary_key=True, autoincrement=True)
+    seed_capture_id = Column(
+        Integer, ForeignKey('kobo_annotation_seed_capture.id', ondelete='CASCADE'),
+        nullable=False,
+    )
+    annotation_key = Column(String, nullable=False)
+    # Deliberately not a foreign key: deletion/reinsertion is itself CAS
+    # divergence and the historical identity must survive to prove it.
+    annotation_row_id = Column(Integer, nullable=True)
+    content_revision = Column(Integer, nullable=False, default=0, server_default=text("0"))
+    content_sha256 = Column(String(64), nullable=True)
+    seed_capture = relationship(
+        "KoboAnnotationSeedCapture", back_populates="row_baselines",
+    )
+
+    __table_args__ = (
+        UniqueConstraint(
+            'seed_capture_id', 'annotation_key',
+            name='uq_kasrb_capture_annotation',
+        ),
+        Index('ix_kasrb_capture', 'seed_capture_id'),
     )
 
 
@@ -1814,28 +2246,73 @@ def add_missing_tables(engine, _session):
     # NameError on any app.db missing kosync_progress (a fresh install).
     from .progress_syncing.models import KOSyncProgress
 
-    if not engine.dialect.has_table(engine.connect(), "archived_book"):
-        ArchivedBook.__table__.create(bind=engine, checkfirst=True)
-    if not engine.dialect.has_table(engine.connect(), "thumbnail"):
-        Thumbnail.__table__.create(bind=engine, checkfirst=True)
-    if not engine.dialect.has_table(engine.connect(), "kosync_progress"):
-        KOSyncProgress.__table__.create(bind=engine, checkfirst=True)
-    if not engine.dialect.has_table(engine.connect(), "magic_shelf"):
-        MagicShelf.__table__.create(bind=engine, checkfirst=True)
-    if not engine.dialect.has_table(engine.connect(), "magic_shelf_cache"):
-        MagicShelfCache.__table__.create(bind=engine, checkfirst=True)
-    if not engine.dialect.has_table(engine.connect(), "opds_shelf_exposure"):
-        OpdsShelfExposure.__table__.create(bind=engine, checkfirst=True)
-    if not engine.dialect.has_table(engine.connect(), "book_original_filename"):
-        BookOriginalFilename.__table__.create(bind=engine, checkfirst=True)
-    if not engine.dialect.has_table(engine.connect(), "opds_magic_shelf_exposure"):
-        OpdsMagicShelfExposure.__table__.create(bind=engine, checkfirst=True)
-    if not engine.dialect.has_table(engine.connect(), "hidden_magic_shelf_templates"):
-        HiddenMagicShelfTemplate.__table__.create(bind=engine, checkfirst=True)
-    if not engine.dialect.has_table(engine.connect(), "kobo_annotation_backup"):
-        KoboAnnotationBackup.__table__.create(bind=engine, checkfirst=True)
-    if not engine.dialect.has_table(engine.connect(), "favorite_book"):
-        FavoriteBook.__table__.create(bind=engine, checkfirst=True)
+    tables = (
+        ("archived_book", ArchivedBook.__table__),
+        ("thumbnail", Thumbnail.__table__),
+        ("kosync_progress", KOSyncProgress.__table__),
+        ("magic_shelf", MagicShelf.__table__),
+        ("magic_shelf_cache", MagicShelfCache.__table__),
+        ("opds_shelf_exposure", OpdsShelfExposure.__table__),
+        ("book_original_filename", BookOriginalFilename.__table__),
+        ("opds_magic_shelf_exposure", OpdsMagicShelfExposure.__table__),
+        ("hidden_magic_shelf_templates", HiddenMagicShelfTemplate.__table__),
+        ("kobo_annotation_backup", KoboAnnotationBackup.__table__),
+        ("favorite_book", FavoriteBook.__table__),
+        ("user_library_book", UserLibraryBook.__table__),
+        ("device_inventory_report", DeviceInventoryReport.__table__),
+        ("device_inventory_item", DeviceInventoryItem.__table__),
+        ("device_book_delivery", DeviceBookDelivery.__table__),
+        ("device_storage_snapshot", DeviceStorageSnapshot.__table__),
+        ("device_book_deletion", DeviceBookDeletion.__table__),
+        ("device_collection_sync", DeviceCollectionSync.__table__),
+    )
+    kobo_entitlement_tables = (
+        ("kobo_device_book_entitlement", KoboDeviceBookEntitlement.__table__),
+        ("kobo_device_deleted_entitlement", KoboDeviceDeletedEntitlement.__table__),
+        ("kobo_device_entitlement_seed", KoboDeviceEntitlementSeed.__table__),
+        ("kobo_device_pending_sync_page", KoboDevicePendingSyncPage.__table__),
+    )
+    for table_name, table in tables + kobo_entitlement_tables:
+        # Explicit transaction control means even schema inspection begins a
+        # real read transaction. Close it before opening the separate DDL
+        # transaction or the inspection connection can block its commit.
+        with engine.connect() as connection:
+            table_exists = engine.dialect.has_table(connection, table_name)
+        if not table_exists:
+            table.create(bind=engine, checkfirst=True)
+
+
+def migrate_kobo_entitlement_ledger_columns(engine, _session):
+    """Add #1953 replay-ledger provenance before any mapped-row load.
+
+    ``add_missing_tables`` creates the complete current tables on fresh app.db
+    files.  Existing #1925 tables need additive columns, and SQLAlchemy selects
+    every mapped column when a ledger entity is loaded.  Keep this migration
+    immediately after table creation in ``migrate_Database`` so no ORM query
+    can observe the old physical shape (the same ordering invariant as #1950).
+    """
+    for table_name in (
+        "kobo_device_book_entitlement",
+        "kobo_device_deleted_entitlement",
+    ):
+        _add_column_if_missing(
+            engine,
+            table_name,
+            "payload_schema_version",
+            "payload_schema_version INTEGER NOT NULL DEFAULT 1",
+        )
+        _add_column_if_missing(
+            engine,
+            table_name,
+            "change_basis",
+            "change_basis TEXT",
+        )
+    _add_column_if_missing(
+        engine,
+        "kobo_device_entitlement_seed",
+        "classification_version",
+        "classification_version INTEGER NOT NULL DEFAULT 0",
+    )
 
 
 # migrate all settings missing in registration table
@@ -1844,11 +2321,13 @@ def migrate_registration_table(engine, _session):
         # Handle table exists, but no content
         cnt = _session.query(Registration).count()
         if not cnt:
-            with engine.connect() as conn:
-                trans = conn.begin()
-                conn.execute(text("insert into registration (domain, allow) values('%.%',1)"))
-                trans.commit()
+            _session.add(Registration(domain='%.%', allow=1))
+        # The inspection SELECT now opens a real transaction. Commit on the
+        # same session both to persist the seed row and to release its read
+        # lock before later migrations use independent engine connections.
+        _session.commit()
     except exc.OperationalError:  # Database is not writeable
+        _session.rollback()
         print('Settings database is not writeable. Exiting...')
         sys.exit(2)
 
@@ -2082,6 +2561,103 @@ def migrate_user_table(engine, _session):
         _safe_session_rollback(_session, "user.kindle_mail_subject")
         _run_ddl_with_retry(engine, "ALTER TABLE user ADD column 'kindle_mail_subject' String DEFAULT ''")
 
+    # Migration for cover-preview per-user preference columns (Phase 2 of
+    # cover-normalization — see notes/COVER-NORMALIZATION-DESIGN.md).
+    # Existing users default to False on upgrade so the rollout is silent;
+    # new users default True per the column-level default.
+    try:
+        _session.query(exists().where(User.show_ereader_previews)).scalar()
+        _session.commit()
+    except exc.OperationalError:
+        _safe_session_rollback(_session, "user.show_ereader_previews")
+        _run_ddl_with_retry(engine, "ALTER TABLE user ADD column 'show_ereader_previews' Boolean DEFAULT 1")
+        try:
+            updated = _session.query(User).update({User.show_ereader_previews: 0})
+            _session.commit()
+            print(f"[cover-preview-migration] Defaulted show_ereader_previews=0 for {updated} existing user(s) to preserve current view on upgrade.", flush=True)
+        except Exception as e:
+            print(f"[cover-preview-migration] Could not back-fill show_ereader_previews=0 for existing users: {e}", flush=True)
+            _session.rollback()
+
+    try:
+        _session.query(exists().where(User.preview_preset)).scalar()
+        _session.commit()
+    except exc.OperationalError:
+        _safe_session_rollback(_session, "user.preview_preset")
+        _run_ddl_with_retry(engine, "ALTER TABLE user ADD column 'preview_preset' String DEFAULT 'kobo_libra_color'")
+
+    try:
+        _session.query(exists().where(User.preview_default_fill)).scalar()
+        _session.commit()
+    except exc.OperationalError:
+        _safe_session_rollback(_session, "user.preview_default_fill")
+        _run_ddl_with_retry(engine, "ALTER TABLE user ADD column 'preview_default_fill' String DEFAULT 'edge_mirror'")
+
+    try:
+        _session.query(exists().where(User.preview_default_color)).scalar()
+        _session.commit()
+    except exc.OperationalError:
+        _safe_session_rollback(_session, "user.preview_default_color")
+        _run_ddl_with_retry(engine, "ALTER TABLE user ADD column 'preview_default_color' String")
+
+    # #701 — user-selectable UI font presets.
+    try:
+        _session.query(exists().where(User.ui_font_body)).scalar()
+        _session.commit()
+    except exc.OperationalError:
+        _safe_session_rollback(_session, "user.ui_font_body")
+        _run_ddl_with_retry(engine, "ALTER TABLE user ADD column 'ui_font_body' String DEFAULT ''")
+
+    try:
+        _session.query(exists().where(User.ui_font_display)).scalar()
+        _session.commit()
+    except exc.OperationalError:
+        _safe_session_rollback(_session, "user.ui_font_display")
+        _run_ddl_with_retry(engine, "ALTER TABLE user ADD column 'ui_font_display' String DEFAULT ''")
+
+    # #1939 — named per-user library mode. Existing rows remain in monolibrary
+    # mode, which is byte-for-byte the historical global-library behavior.
+    try:
+        _session.query(exists().where(User.has_own_library)).scalar()
+        _session.commit()
+    except exc.OperationalError:
+        _safe_session_rollback(_session, "user.has_own_library")
+        _run_ddl_with_retry(
+            engine,
+            "ALTER TABLE user ADD column 'has_own_library' Boolean "
+            "NOT NULL DEFAULT 0",
+        )
+
+    # Seed completion is durable and independent of membership row count.
+    # Adding this column never changes an account's mode: upgrades remain in
+    # whole-library mode until an administrator or permitted user opts in.
+    try:
+        _session.query(exists().where(User.user_library_seeded)).scalar()
+        _session.commit()
+    except exc.OperationalError:
+        _safe_session_rollback(_session, "user.user_library_seeded")
+        _run_ddl_with_retry(
+            engine,
+            "ALTER TABLE user ADD column 'user_library_seeded' Boolean "
+            "NOT NULL DEFAULT 0",
+        )
+
+    try:
+        _session.query(exists().where(User.my_library_intro_dismissed)).scalar()
+        _session.commit()
+    except exc.OperationalError:
+        _safe_session_rollback(_session, "user.my_library_intro_dismissed")
+        _run_ddl_with_retry(
+            engine,
+            "ALTER TABLE user ADD column 'my_library_intro_dismissed' Boolean "
+            "NOT NULL DEFAULT 0",
+        )
+
+    # Keep full User entity loads below every additive User-column migration.
+    # SQLAlchemy selects every mapped column for query(User), so loading rows
+    # before a later ALTER makes populated older schemas fail on undeclared
+    # physical columns even when the migration only reads role/sidebar_view.
+
     # Migration to enable duplicates sidebar for existing admin users (one-time)
     try:
         from . import constants
@@ -2142,59 +2718,38 @@ def migrate_user_table(engine, _session):
         print(f"[Migration] Warning: Could not update favorites sidebar setting: {e}")
         _session.rollback()
 
-    # Migration for cover-preview per-user preference columns (Phase 2 of
-    # cover-normalization — see notes/COVER-NORMALIZATION-DESIGN.md).
-    # Existing users default to False on upgrade so the rollout is silent;
-    # new users default True per the column-level default.
-    try:
-        _session.query(exists().where(User.show_ereader_previews)).scalar()
-        _session.commit()
-    except exc.OperationalError:
-        _safe_session_rollback(_session, "user.show_ereader_previews")
-        _run_ddl_with_retry(engine, "ALTER TABLE user ADD column 'show_ereader_previews' Boolean DEFAULT 1")
-        try:
-            updated = _session.query(User).update({User.show_ereader_previews: 0})
-            _session.commit()
-            print(f"[cover-preview-migration] Defaulted show_ereader_previews=0 for {updated} existing user(s) to preserve current view on upgrade.", flush=True)
-        except Exception as e:
-            print(f"[cover-preview-migration] Could not back-fill show_ereader_previews=0 for existing users: {e}", flush=True)
-            _session.rollback()
 
-    try:
-        _session.query(exists().where(User.preview_preset)).scalar()
-        _session.commit()
-    except exc.OperationalError:
-        _safe_session_rollback(_session, "user.preview_preset")
-        _run_ddl_with_retry(engine, "ALTER TABLE user ADD column 'preview_preset' String DEFAULT 'kobo_libra_color'")
+def rollback_user_library_schema(engine):
+    """Remove the #1939 schema additions, safely and idempotently.
 
-    try:
-        _session.query(exists().where(User.preview_default_fill)).scalar()
-        _session.commit()
-    except exc.OperationalError:
-        _safe_session_rollback(_session, "user.preview_default_fill")
-        _run_ddl_with_retry(engine, "ALTER TABLE user ADD column 'preview_default_fill' String DEFAULT 'edge_mirror'")
+    This is an explicit downgrade hook because this project uses startup
+    migrations rather than Alembic. Membership data is discarded by design;
+    all Kobo ownership, annotations, shelves, and progress tables are left
+    untouched. Supported SQLite versions provide ``DROP COLUMN``.
+    """
+    from sqlalchemy import inspect as sa_inspect
 
-    try:
-        _session.query(exists().where(User.preview_default_color)).scalar()
-        _session.commit()
-    except exc.OperationalError:
-        _safe_session_rollback(_session, "user.preview_default_color")
-        _run_ddl_with_retry(engine, "ALTER TABLE user ADD column 'preview_default_color' String")
-
-    # #701 — user-selectable UI font presets.
-    try:
-        _session.query(exists().where(User.ui_font_body)).scalar()
-        _session.commit()
-    except exc.OperationalError:
-        _safe_session_rollback(_session, "user.ui_font_body")
-        _run_ddl_with_retry(engine, "ALTER TABLE user ADD column 'ui_font_body' String DEFAULT ''")
-
-    try:
-        _session.query(exists().where(User.ui_font_display)).scalar()
-        _session.commit()
-    except exc.OperationalError:
-        _safe_session_rollback(_session, "user.ui_font_display")
-        _run_ddl_with_retry(engine, "ALTER TABLE user ADD column 'ui_font_display' String DEFAULT ''")
+    inspector = sa_inspect(engine)
+    tables = set(inspector.get_table_names())
+    if "user" in tables:
+        # Strip the permission bit before older code (which does not know it)
+        # reads the role mask.
+        _run_ddl_with_retry(
+            engine,
+            "UPDATE user SET role = role & -513 WHERE role & 512 = 512",
+        )
+        user_columns = {column["name"] for column in inspector.get_columns("user")}
+        for column_name in (
+            "my_library_intro_dismissed",
+            "user_library_seeded",
+            "has_own_library",
+        ):
+            if column_name in user_columns:
+                _run_ddl_with_retry(
+                    engine, "ALTER TABLE user DROP COLUMN %s" % column_name
+                )
+    if "user_library_book" in tables:
+        _run_ddl_with_retry(engine, "DROP TABLE user_library_book")
 
 def migrate_oauth_provider_table(engine, _session):
     """Ensure every migration-managed column on oauthProvider exists.
@@ -2527,21 +3082,24 @@ def _merge_kobo_bookmark(_session, winner, loser):
         winner.current_bookmark = loser.current_bookmark
         loser.current_bookmark = None
         return
-    w, l = winner.current_bookmark, loser.current_bookmark
-    if l.created_at and (not w.created_at or l.created_at < w.created_at):
-        w.created_at = l.created_at
-    if _loser_wins_lm(l, w):
+    winning, losing = winner.current_bookmark, loser.current_bookmark
+    if (losing.created_at
+            and (not winning.created_at
+                 or losing.created_at < winning.created_at)):
+        winning.created_at = losing.created_at
+    if _loser_wins_lm(losing, winning):
         for attr in ("location_source", "location_type", "location_value",
                      "progress_percent", "content_source_progress_percent",
                      "last_modified"):
-            setattr(w, attr, getattr(l, attr))
+            setattr(winning, attr, getattr(losing, attr))
     else:
         # Even if winner's bookmark is newer overall, prefer non-null
         # losing fields if the winner has nulls there (defensive).
         for attr in ("location_source", "location_type", "location_value",
                      "progress_percent", "content_source_progress_percent"):
-            if getattr(w, attr) is None and getattr(l, attr) is not None:
-                setattr(w, attr, getattr(l, attr))
+            if (getattr(winning, attr) is None
+                    and getattr(losing, attr) is not None):
+                setattr(winning, attr, getattr(losing, attr))
 
 
 def _merge_kobo_statistics(_session, winner, loser):
@@ -2552,15 +3110,16 @@ def _merge_kobo_statistics(_session, winner, loser):
         winner.statistics = loser.statistics
         loser.statistics = None
         return
-    w, l = winner.statistics, loser.statistics
-    if _loser_wins_lm(l, w):
+    winning, losing = winner.statistics, loser.statistics
+    if _loser_wins_lm(losing, winning):
         for attr in ("remaining_time_minutes", "spent_reading_minutes",
                      "last_modified"):
-            setattr(w, attr, getattr(l, attr))
+            setattr(winning, attr, getattr(losing, attr))
     else:
         for attr in ("remaining_time_minutes", "spent_reading_minutes"):
-            if getattr(w, attr) is None and getattr(l, attr) is not None:
-                setattr(w, attr, getattr(l, attr))
+            if (getattr(winning, attr) is None
+                    and getattr(losing, attr) is not None):
+                setattr(winning, attr, getattr(losing, attr))
 
 
 def _dedupe_book_read_link(_session):
@@ -3387,6 +3946,175 @@ def migrate_device_management_slice(engine, _session):
         ))
 
 
+def migrate_webreader_device_identity_slice(engine, _session):
+    """Add the M1 composite origin lookup without loading ORM rows."""
+    with engine.begin() as conn:
+        if not conn.execute(text(
+            "SELECT 1 FROM sqlite_master WHERE type='table' AND name='annotation'"
+        )).first():
+            return
+        conn.execute(text(
+            "CREATE INDEX IF NOT EXISTS ix_annotation_user_book_origin "
+            "ON annotation(user_id, book_id, origin_device_id)"
+        ))
+
+
+def migrate_device_reading_position_slice(engine, _session):
+    """Install M3's additive per-device position journal before ORM use."""
+    Base.metadata.create_all(
+        engine,
+        tables=[DeviceReadingPosition.__table__],
+        checkfirst=True,
+    )
+    with engine.begin() as conn:
+        if not conn.execute(text(
+            "SELECT 1 FROM sqlite_master "
+            "WHERE type='table' AND name='device_reading_position'"
+        )).first():
+            return
+        conn.execute(text(
+            "CREATE INDEX IF NOT EXISTS ix_device_reading_position_book "
+            "ON device_reading_position(book_id)"
+        ))
+        conn.execute(text(
+            "CREATE INDEX IF NOT EXISTS ix_device_reading_position_rehydrate "
+            "ON device_reading_position(device_id, rehydrate_needed)"
+        ))
+
+
+def migrate_kobo_annotation_seed_pipeline(engine, _session):
+    """Install M2's sticky-authority and capture-kind columns before ORM use."""
+    Base.metadata.create_all(
+        engine,
+        tables=[
+            KoboAnnotationBookState.__table__,
+            KoboAnnotationSeedCapture.__table__,
+            KoboAnnotationSeedCapturePage.__table__,
+            KoboAnnotationSeedRowBaseline.__table__,
+        ],
+        checkfirst=True,
+    )
+    with engine.begin() as conn:
+        table_names = {
+            row[0] for row in conn.execute(text(
+                "SELECT name FROM sqlite_master WHERE type='table' AND name IN "
+                "('kobo_annotation_book_state', 'kobo_annotation_seed_capture')"
+            ))
+        }
+        additions = (
+            (
+                "kobo_annotation_book_state",
+                "ever_authoritative",
+                "ever_authoritative BOOLEAN NOT NULL DEFAULT 0",
+            ),
+            (
+                "kobo_annotation_book_state",
+                "last_served_body_gzip",
+                "last_served_body_gzip BLOB",
+            ),
+            (
+                "kobo_annotation_book_state",
+                "last_served_body_sha256",
+                "last_served_body_sha256 VARCHAR(64)",
+            ),
+            (
+                "kobo_annotation_book_state",
+                "last_served_etag",
+                "last_served_etag TEXT",
+            ),
+            (
+                "kobo_annotation_book_state",
+                "last_served_annotation_count",
+                "last_served_annotation_count INTEGER",
+            ),
+            (
+                "kobo_annotation_book_state",
+                "last_served_authority_revision",
+                "last_served_authority_revision INTEGER",
+            ),
+            (
+                "kobo_annotation_book_state",
+                "last_served_set_digest",
+                "last_served_set_digest VARCHAR(64)",
+            ),
+            (
+                "kobo_annotation_book_state",
+                "last_served_at",
+                "last_served_at DATETIME",
+            ),
+            (
+                "kobo_annotation_seed_capture",
+                "seed_kind",
+                "seed_kind TEXT NOT NULL DEFAULT 'upstream_capture' "
+                "CHECK (seed_kind IN ('upstream_capture', 'routing_only'))",
+            ),
+            (
+                "kobo_annotation_seed_capture",
+                "started_authority_revision",
+                "started_authority_revision INTEGER NOT NULL DEFAULT 0",
+            ),
+            (
+                "kobo_annotation_seed_capture",
+                "reconciliation_conflict_count",
+                "reconciliation_conflict_count INTEGER NOT NULL DEFAULT 0",
+            ),
+        )
+        for table_name, column_name, ddl in additions:
+            if table_name not in table_names:
+                continue
+            existing = {
+                row[1] for row in conn.execute(
+                    text(f"PRAGMA table_info({table_name})")
+                )
+            }
+            if column_name in existing:
+                continue
+            try:
+                conn.execute(text(f"ALTER TABLE {table_name} ADD COLUMN {ddl}"))
+            except exc.OperationalError as error:
+                if "duplicate column" not in str(error).lower():
+                    raise
+
+        # Preserve the safety history of databases that reached authority by
+        # the hand-run M2 precursor. Raw SQL keeps this pre-ORM per #1950.
+        conn.execute(text(
+            "UPDATE kobo_annotation_book_state SET ever_authoritative=1 "
+            "WHERE authority_status='authoritative' AND ever_authoritative=0"
+        ))
+        # Before M2, an accepted empty capture with no page evidence could only
+        # be the runbook's routing-only seed. Captured empty upstream sets have
+        # page evidence and are therefore not rewritten here.
+        conn.execute(text(
+            "UPDATE kobo_annotation_seed_capture SET seed_kind='routing_only' "
+            "WHERE result='accepted' AND annotation_count=0 "
+            "AND NOT EXISTS (SELECT 1 FROM kobo_annotation_seed_capture_page p "
+            "WHERE p.seed_capture_id=kobo_annotation_seed_capture.id)"
+        ))
+        # Retain only the newest legacy pending capture for each book before
+        # installing the partial unique owner index. Superseded rows are
+        # diagnostic history, not reconciliation candidates.
+        conn.execute(text(
+            "UPDATE kobo_annotation_seed_capture SET result='failed', "
+            "completed_at=COALESCE(completed_at, CURRENT_TIMESTAMP), "
+            "failure_reason='seed_capture_superseded' "
+            "WHERE result='pending' AND id NOT IN ("
+            "SELECT MAX(id) FROM kobo_annotation_seed_capture "
+            "WHERE result='pending' GROUP BY book_state_id)"
+        ))
+        conn.execute(text(
+            "UPDATE kobo_annotation_seed_capture "
+            "SET started_authority_revision=COALESCE(("
+            "SELECT authority_revision FROM kobo_annotation_book_state s "
+            "WHERE s.id=kobo_annotation_seed_capture.book_state_id), 0) "
+            "WHERE started_authority_revision=0 AND result='pending'"
+        ))
+        conn.execute(text(
+            "CREATE UNIQUE INDEX IF NOT EXISTS uq_kasc_pending_book_owner "
+            "ON kobo_annotation_seed_capture(book_state_id) "
+            "WHERE result='pending'"
+        ))
+
+
 _KOBO_TWO_WAY_TABLES = (
     KoboAnnotationMaterialization.__table__,
     KoboAnnotationBookState.__table__,
@@ -3394,6 +4122,7 @@ _KOBO_TWO_WAY_TABLES = (
     KoboDeviceBookAnnotationState.__table__,
     KoboAnnotationSeedCapture.__table__,
     KoboAnnotationSeedCapturePage.__table__,
+    KoboAnnotationSeedRowBaseline.__table__,
     KoboAnnotationPageSnapshot.__table__,
     KoboAnnotationPageCursor.__table__,
 )
@@ -3705,8 +4434,9 @@ def migrate_kobo_two_way_annotation_sync(engine, _session):
                 result = conn.execute(text(
                     "INSERT INTO kobo_annotation_book_state "
                     "(user_id, book_id, content_id, authority_status, authority_revision, "
+                    "ever_authoritative, "
                     "generation_id, opaque_content_status, updated_at) VALUES "
-                    "(:user_id, :book_id, :content_id, 'unseeded', 0, :generation_id, "
+                    "(:user_id, :book_id, :content_id, 'unseeded', 0, 0, :generation_id, "
                     "'unknown', :updated_at)"
                 ), {
                     "user_id": user_id,
@@ -4039,6 +4769,7 @@ def migrate_thumbnail_lookup_index(engine, _session):
 def migrate_Database(_session):
     engine = _session.bind
     add_missing_tables(engine, _session)
+    migrate_kobo_entitlement_ledger_columns(engine, _session)
     migrate_thumbnail_lookup_index(engine, _session)
     migrate_registration_table(engine, _session)
     migrate_user_session_table(engine, _session)
@@ -4066,6 +4797,9 @@ def migrate_Database(_session):
     migrate_annotation_koreader_identity(engine, _session)
     migrate_multi_device_annotation_safe_slice(engine, _session)
     migrate_device_management_slice(engine, _session)
+    migrate_webreader_device_identity_slice(engine, _session)
+    migrate_device_reading_position_slice(engine, _session)
+    migrate_kobo_annotation_seed_pipeline(engine, _session)
     migrate_kobo_two_way_annotation_sync(engine, _session)
     migrate_book_cover_preview_table(engine, _session)
     migrate_notice_tables(engine, _session)
@@ -4094,7 +4828,7 @@ def migrate_Database(_session):
             # Get all system shelves for this user
             user_system_shelves = _session.query(MagicShelf).filter(
                 MagicShelf.user_id == user.id,
-                MagicShelf.is_system == True
+                MagicShelf.is_system.is_(True)
             ).all()
             
             # Delete system shelves that don't match current templates
@@ -4125,7 +4859,7 @@ def migrate_Database(_session):
                 has_template = _session.query(MagicShelf).filter(
                     MagicShelf.user_id == user.id,
                     MagicShelf.name == template_data['name'],
-                    MagicShelf.is_system == True
+                    MagicShelf.is_system.is_(True)
                 ).first()
                 
                 if not has_template:
@@ -4136,8 +4870,11 @@ def migrate_Database(_session):
                 created = magic_shelf.create_system_magic_shelves(user.id, templates_to_create)
                 total_created += created
         
+        # Even a no-op pass performed SELECTs and therefore owns a real read
+        # transaction under explicit BEGIN handling. End it before the trigger
+        # guard below opens a separate DDL transaction on the same database.
+        _session.commit()
         if total_deleted > 0 or total_created > 0:
-            _session.commit()
             log.info(f"System shelf migration complete: {total_deleted} old shelves removed, {total_created} new shelves created")
     except Exception as e:
         log.error(f"Error during system shelf migration: {e}")
@@ -4234,6 +4971,96 @@ def create_system_magic_shelves_for_user(user_id):
         return 0
 
 
+def _request_app_db_wal(dbapi_connection):
+    """Request WAL on a raw sqlite3 connection, before SQLAlchemy autobegins."""
+    cursor = dbapi_connection.cursor()
+    try:
+        row = cursor.execute("PRAGMA journal_mode=WAL").fetchone()
+        return (row[0] if row else None), None
+    except sqlite3.Error as error:
+        return None, error
+    finally:
+        cursor.close()
+
+
+def begin_contained_nested(db_session):
+    """Open a SAVEPOINT inside a real outer SQLite transaction.
+
+    sqlite3's legacy transaction control does not emit BEGIN for SELECT or
+    SAVEPOINT. If a session has only read before ``Session.begin_nested()``,
+    releasing that SAVEPOINT commits its writes and a later outer rollback
+    cannot undo them. Start an immediate transaction on that same connection
+    only when the driver has no real transaction yet, then let SQLAlchemy open
+    the nested transaction normally.
+
+    Localizing BEGIN IMMEDIATE here is essential: applying it to every outer
+    SQLAlchemy transaction makes read-only sessions reserve the writer slot and
+    block unrelated pooled connections for their entire lifetime.
+    """
+    connection = db_session.connection()
+    if connection.dialect.name == 'sqlite':
+        driver_connection = connection.connection.driver_connection
+        if not driver_connection.in_transaction:
+            connection.exec_driver_sql('BEGIN IMMEDIATE')
+    return db_session.begin_nested()
+
+
+def _create_app_db_engine(app_db_path):
+    """Create an app.db engine with WAL and legacy sqlite3 transactions.
+
+    Python's sqlite3 legacy transaction mode emits BEGIN for DML only. A
+    SAVEPOINT reached after SELECTs therefore has no enclosing transaction,
+    and releasing it makes its writes durable before Session.commit(). The
+    ``begin_contained_nested`` helper fixes that locally at SAVEPOINT call sites
+    without changing transaction behavior for every request and startup step.
+
+    WAL support is decided once per engine. If the first raw connection cannot
+    enable it (for example, app.db is on a network share), the engine remains in
+    rollback-journal mode and warns once. Every connection retains sqlite3's
+    legacy transaction control in either journal mode.
+    """
+    engine = create_engine(
+        'sqlite:///{0}'.format(app_db_path),
+        echo=False,
+        connect_args={'timeout': 30},
+    )
+    wal_mode = {'configured': False}
+    wal_mode_lock = threading.Lock()
+    network_share_mode = network_share_mode_enabled()
+
+    @event.listens_for(engine, 'connect')
+    def _configure_app_db_journal_mode(dbapi_connection, _connection_record):
+        if not wal_mode['configured']:
+            with wal_mode_lock:
+                if not wal_mode['configured']:
+                    if network_share_mode:
+                        log.warning(
+                            "NETWORK_SHARE_MODE=true disables SQLite WAL for every database, "
+                            "including app.db %s even when /config is on local disk, because "
+                            "WAL is unsafe on network filesystems. app.db is using legacy "
+                            "sqlite3 transaction control with a rollback journal; call sites "
+                            "requiring contained SAVEPOINTs acquire a local write transaction.",
+                            app_db_path,
+                        )
+                    else:
+                        journal_mode, wal_error = _request_app_db_wal(dbapi_connection)
+                        wal_enabled = str(journal_mode).lower() == 'wal'
+                        if not wal_enabled:
+                            reason = ("PRAGMA journal_mode=WAL failed: {}".format(wal_error)
+                                      if wal_error is not None
+                                      else "SQLite kept journal_mode={!r}".format(journal_mode))
+                            log.warning(
+                                "SQLite WAL is unavailable for app.db %s (%s). Using a "
+                                "rollback journal with legacy sqlite3 transaction control; "
+                                "call sites requiring contained SAVEPOINTs acquire a local "
+                                "write transaction.",
+                                app_db_path, reason,
+                            )
+                    wal_mode['configured'] = True
+
+    return engine
+
+
 def init_db_thread():
     global app_DB_path
     if not app_DB_path:
@@ -4246,8 +5073,7 @@ def init_db_thread():
         raise RuntimeError(
             "ub.init_db_thread() called before ub.init_db(); app_DB_path "
             "is unset, refusing to create a stray 'None' SQLite file")
-    engine = create_engine('sqlite:///{0}'.format(app_DB_path), echo=False,
-                           connect_args={'timeout': 30})
+    engine = _create_app_db_engine(app_DB_path)
 
     Session = scoped_session(sessionmaker())
     Session.configure(bind=engine)
@@ -4260,8 +5086,7 @@ def init_db(app_db_path):
     global app_DB_path
 
     app_DB_path = app_db_path
-    engine = create_engine('sqlite:///{0}'.format(app_db_path), echo=False,
-                           connect_args={'timeout': 30})
+    engine = _create_app_db_engine(app_db_path)
 
     Session = scoped_session(sessionmaker())
     Session.configure(bind=engine)
@@ -4294,8 +5119,7 @@ def _healthcheck_app_db(app_db_path: str) -> None:
             return
         if not os.access(app_db_path, os.W_OK):
             log.error("app.db is not writable: %s", app_db_path)
-        network_share_mode = os.environ.get("NETWORK_SHARE_MODE", "false").lower() in ("1", "true", "yes")
-        if network_share_mode:
+        if network_share_mode_enabled():
             log.info("Skipping PRAGMA quick_check for app.db due to NETWORK_SHARE_MODE=true")
             return
         try:
@@ -4336,8 +5160,7 @@ def password_change(user_credentials=None):
 
 
 def get_new_session_instance():
-    new_engine = create_engine('sqlite:///{0}'.format(app_DB_path), echo=False,
-                               connect_args={'timeout': 30})
+    new_engine = _create_app_db_engine(app_DB_path)
     new_session = scoped_session(sessionmaker())
     new_session.configure(bind=new_engine)
 
