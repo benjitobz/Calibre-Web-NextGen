@@ -166,7 +166,9 @@ a, button {
     to {
         width: 0;
         height: 0;
-        overflow: hidden
+        padding: 0;
+        overflow: hidden;
+        visibility: hidden
     }
 }
 
@@ -174,6 +176,8 @@ a, button {
     to {
         width: 0;
         height: 0;
+        padding: 0;
+        overflow: hidden;
         visibility: hidden
     }
 }
