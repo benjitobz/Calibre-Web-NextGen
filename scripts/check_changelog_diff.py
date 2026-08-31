@@ -124,6 +124,14 @@ def _is_non_shipping_path(path: str) -> bool:
 
 def changelog_requirement_errors(changed_paths: list[str]) -> list[str]:
     """Require a changelog entry unless every changed path is non-shipping."""
+    if not changed_paths:
+        # A pull request that changes no file ships nothing, so there is
+        # nothing to announce. This is not hypothetical: a `-s ours`
+        # back-merge that reconnects a hotfix tag to main has an empty tree
+        # diff by design, and the `changed_paths and` guard below (added so
+        # that all([]) could not vacuously pass) sent it here instead, where
+        # it was refused for "changing shipping paths" it had not touched.
+        return []
     if "CHANGELOG.md" in changed_paths:
         return []
     if any(
