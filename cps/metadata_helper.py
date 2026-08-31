@@ -25,6 +25,10 @@ SERIES_SUFFIX_PATTERN = re.compile(
     r"^(?P<title>.+?)\s*\((?P<series>[^()]+?)(?:,\s*(?:Book\s+)?|\s+Book\s+|\s*#)(?P<index>\d+(?:\.\d+)?)\)$",
     re.IGNORECASE)
 
+SERIES_MARKER_PATTERN = re.compile(
+    r"^(?P<title>.+?)\s*\((?:The\s+)?(?P<series>[^()]+?)\s+(?:Novels?|Series|Saga|Chronicles|Cycle|Trilogy)\)$",
+    re.IGNORECASE)
+
 
 def strip_series_suffix(title):
     """Split an Amazon-style series suffix off a title, e.g. Foo (Bar, 1) -> (Foo, Bar, 1)"""
@@ -32,7 +36,14 @@ def strip_series_suffix(title):
         return title, None, None
     m = SERIES_SUFFIX_PATTERN.match(title.strip())
     if not m:
-        return title, None, None
+        m = SERIES_MARKER_PATTERN.match(title.strip())
+        if not m:
+            return title, None, None
+        clean = m.group("title").strip()
+        series = m.group("series").strip()
+        if not clean or not series or series.isdigit():
+            return title, None, None
+        return clean, series, None
     clean = m.group("title").strip()
     series = m.group("series").strip()
     if not clean or not series or series.isdigit():

@@ -2030,12 +2030,16 @@ class NewBookProcessor:
         if not row or not row[0]:
             return
         original = row[0].strip()
+        index = None
         m = re.match(r"^(?P<title>.+?)\s*\((?P<series>[^()]+?)(?:,\s*(?:Book\s+)?|\s+Book\s+|\s*#)(?P<index>\d+(?:\.\d+)?)\)$", original, re.IGNORECASE)
+        if m:
+            index = m.group("index")
+        else:
+            m = re.match(r"^(?P<title>.+?)\s*\((?:The\s+)?(?P<series>[^()]+?)\s+(?:Novels?|Series|Saga|Chronicles|Cycle|Trilogy)\)$", original, re.IGNORECASE)
         if not m:
             return
         title = m.group("title").strip()
         series = m.group("series").strip()
-        index = m.group("index")
         if not title or not series or series.isdigit():
             return
         try:
@@ -2043,10 +2047,10 @@ class NewBookProcessor:
             lib_args = _library_arguments(self.library_dir)
         except Exception:
             lib_args = [f"--library-path={self.library_dir}"]
-        result = subprocess.run(["calibredb", "set_metadata", str(book_id),
-                                 "-f", f"title:{title}",
-                                 "-f", f"series:{series}",
-                                 "-f", f"series_index:{index}"] + lib_args,
+        fields = ["-f", f"title:{title}", "-f", f"series:{series}"]
+        if index is not None:
+            fields += ["-f", f"series_index:{index}"]
+        result = subprocess.run(["calibredb", "set_metadata", str(book_id)] + fields + lib_args,
                                 env=self.calibre_env, capture_output=True, text=True)
         if result.returncode != 0:
             print(f"[ingest-processor] Could not clean series-suffix title for book {book_id}: {result.stderr}", flush=True)
