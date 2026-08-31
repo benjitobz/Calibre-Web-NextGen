@@ -1032,6 +1032,7 @@ export function Catalog({ entityKind, entityId, view, defaultFilter }: CatalogPr
         <div
           ref={setGridNode}
           data-testid="catalog-grid"
+          data-catalog-column-count={columnCount}
           data-virtualized-grid={usesGrid ? 'true' : undefined}
           className={`${styles.grid} ${styles[`density_${density}`]}`}
         >
