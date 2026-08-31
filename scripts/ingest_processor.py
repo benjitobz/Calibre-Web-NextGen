@@ -2012,6 +2012,45 @@ class NewBookProcessor:
                 convert_successful, converted_filepath = self.convert_book(end_format=fmt)
             if convert_successful:
                 self.add_format_to_book(int(book_id), converted_filepath)
+        self.reconcile_book_files(int(book_id))
+
+    def reconcile_book_files(self, book_id) -> None:
+        """Move format files back into the book's current folder when a concurrent rename left them behind"""
+        try:
+            with sqlite3.connect(self.metadata_db, timeout=30) as con:
+                row = con.execute("SELECT path FROM books WHERE id = ?", (book_id,)).fetchone()
+                formats = con.execute("SELECT format, name FROM data WHERE book = ?", (book_id,)).fetchall()
+        except Exception as e:
+            print(f"[ingest-processor] Could not read book {book_id} for file reconciliation: {e}", flush=True)
+            return
+        if not row or not row[0]:
+            return
+        book_dir = os.path.join(self.library_dir, row[0])
+        author_dir = os.path.dirname(book_dir)
+        suffix = f"({book_id})"
+        for fmt, name in formats:
+            ext = str(fmt).lower()
+            target = os.path.join(book_dir, f"{name}.{ext}")
+            if os.path.exists(target):
+                continue
+            if not os.path.isdir(author_dir):
+                continue
+            for entry in os.listdir(author_dir):
+                stray_dir = os.path.join(author_dir, entry)
+                if not entry.endswith(suffix) or stray_dir == book_dir or not os.path.isdir(stray_dir):
+                    continue
+                strays = [f for f in os.listdir(stray_dir) if f.lower().endswith(f".{ext}")]
+                if not strays:
+                    continue
+                os.makedirs(book_dir, exist_ok=True)
+                shutil.move(os.path.join(stray_dir, strays[0]), target)
+                print(f"[ingest-processor] Relocated {strays[0]} into {row[0]} after a concurrent rename", flush=True)
+                try:
+                    if not any(f for f in os.listdir(stray_dir) if not f.startswith(".")):
+                        os.rmdir(stray_dir)
+                except OSError:
+                    pass
+                break
 
     def add_format_to_book(self, book_id:int, book_path:str) -> None:
         """Attach a new format file to an existing Calibre book using calibredb add_format"""
