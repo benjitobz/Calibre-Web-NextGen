@@ -263,6 +263,8 @@ def edit_selected_books():
     checkA = d.get('checkA')
 
     if len(selections) != 0:
+        successful_books = []
+        failed_books = []
         for book_id in selections:
             vals = {
                 "pk": book_id,
@@ -271,7 +273,13 @@ def edit_selected_books():
             }
             book = calibre_db.get_book(book_id)
             if not book:
+                failed_books.append({
+                    'book_id': book_id,
+                    'stage': 'lookup',
+                    'files_may_be_inconsistent': False,
+                })
                 continue
+            resolved_book_id = book.id
 
             # Collect all changes
             changes = {key: d.get(key) for key in ['title', 'title_sort', 'author_sort', 'authors', 'categories', 'series', 'languages', 'publishers', 'comments'] if d.get(key)}
@@ -340,11 +348,16 @@ def edit_selected_books():
 
             # Update directory structure once if title or authors changed
             if title_changed or authors_changed:
-                rename_error = helper.update_dir_structure(book.id, config.get_book_path(), input_authors[0])
+                rename_error = helper.update_dir_structure(resolved_book_id, config.get_book_path(), input_authors[0])
                 if rename_error:
-                    # Handle error appropriately, maybe flash a message
                     calibre_db.session.rollback()
-                    continue # or return an error response
+                    log.error("Bulk edit failed to rename book %s: %s", resolved_book_id, rename_error)
+                    failed_books.append({
+                        'book_id': resolved_book_id,
+                        'stage': 'rename',
+                        'files_may_be_inconsistent': True,
+                    })
+                    continue
 
             helper.mark_book_modified(book, set_dirty=metadata_changed)
             try:
@@ -352,9 +365,14 @@ def edit_selected_books():
             except (OperationalError, IntegrityError, StaleDataError) as e:
                 calibre_db.session.rollback()
                 log.error_or_exception("Database error: {}".format(e))
-                # Handle error appropriately
+                failed_books.append({
+                    'book_id': resolved_book_id,
+                    'stage': 'commit',
+                    'files_may_be_inconsistent': title_changed or authors_changed,
+                })
                 continue
 
+            successful_books.append(resolved_book_id)
             if metadata_changed and log_payload:
                 try:
                     log_payload.setdefault('title', book.title)
@@ -370,13 +388,39 @@ def edit_selected_books():
                     os.makedirs(constants.CWA_METADATA_CHANGE_LOGS_DIR, exist_ok=True)
                     log_path = os.path.join(
                         constants.CWA_METADATA_CHANGE_LOGS_DIR,
-                        f'{now.strftime("%Y%m%d%H%M%S")}-{book.id}.json')
+                        f'{now.strftime("%Y%m%d%H%M%S")}-{resolved_book_id}.json')
                     with open(log_path, 'w', encoding='utf-8') as f:
                         json.dump(log_payload, f, indent=4, ensure_ascii=False)
-                    log.debug(f"Created metadata change log for book {book.id} with changes: {list(log_payload.keys())}")
+                    log.debug(f"Created metadata change log for book {resolved_book_id} with changes: {list(log_payload.keys())}")
                 except Exception as e:
-                    log.error_or_exception(f"Failed to write metadata change log for book {book.id}: {e}")
+                    log.error_or_exception(f"Failed to write metadata change log for book {resolved_book_id}: {e}")
 
+        if failed_books:
+            failed_ids = ", ".join(
+                str(failure['book_id'])
+                for failure in failed_books
+                if isinstance(failure['book_id'], int)
+                and not isinstance(failure['book_id'], bool)
+            )
+            failed_ids_message = _(
+                " (book IDs: %(failed_ids)s)", failed_ids=failed_ids,
+            ) if failed_ids else ""
+            message = _(
+                "Bulk edit completed with errors: %(success_count)s succeeded and "
+                "%(failure_count)s failed%(failed_ids_message)s. One or more "
+                "failed books may have had files renamed before the database update "
+                "failed; their files and database entries may now be inconsistent.",
+                success_count=len(successful_books),
+                failure_count=len(failed_books),
+                failed_ids_message=failed_ids_message,
+            )
+            return json.dumps({
+                'success': False,
+                'partial': bool(successful_books),
+                'successful_books': successful_books,
+                'failed_books': failed_books,
+                'message': message,
+            })
         return json.dumps({'success': True})
     return ""
 
