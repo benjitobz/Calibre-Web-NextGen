@@ -750,7 +750,7 @@ class CWA_DB:
     def update_cwa_settings(self, result) -> None:
         """Sets settings using POST request from set_cwa_settings()"""
         for setting in result.keys():
-            if setting == "auto_convert_ignored_formats" or setting == "auto_ingest_ignored_formats" or setting == "auto_convert_retained_formats":
+            if setting in ("auto_convert_ignored_formats", "auto_ingest_ignored_formats", "auto_convert_retained_formats", "auto_convert_target_format") and isinstance(result[setting], list):
                 result[setting] = ','.join(result[setting])
 
             # Skip updates for unset values to avoid NOT NULL constraint failures

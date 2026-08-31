@@ -832,25 +832,32 @@ def set_cwa_settings():
                         result["auto_convert_retained_formats"].append(value)
                     continue
                 elif setting == "auto_convert_target_format":
-                    if value is None:
-                        value = cwa_db.cwa_settings['auto_convert_target_format']
+                    continue
 
                 result |= {setting:value}
             
-            # Prevent ignoring of target format
-            if result['auto_convert_target_format'] in result['auto_convert_ignored_formats']:
-                result['auto_convert_ignored_formats'].remove(result['auto_convert_target_format'])
-            if result['auto_convert_target_format'] in result['auto_ingest_ignored_formats']:
-                result['auto_ingest_ignored_formats'].remove(result['auto_convert_target_format'])
+            target_formats_selected = [f for f in target_formats if request.form.get(f"target_format_{f}")]
+            if not target_formats_selected:
+                current_targets = cwa_db.cwa_settings['auto_convert_target_format']
+                target_formats_selected = current_targets if isinstance(current_targets, list) else [current_targets]
+            result |= {"auto_convert_target_format": target_formats_selected}
+
+            # Prevent ignoring of target formats
+            for target_format in result['auto_convert_target_format']:
+                if target_format in result['auto_convert_ignored_formats']:
+                    result['auto_convert_ignored_formats'].remove(target_format)
+                if target_format in result['auto_ingest_ignored_formats']:
+                    result['auto_ingest_ignored_formats'].remove(target_format)
 
             # Prevent retaining of ignored ingest formats (create a copy to avoid modification during iteration)
             for ignored_format in result['auto_ingest_ignored_formats'][:]:
                 if ignored_format in result['auto_convert_retained_formats']:
                     result['auto_convert_retained_formats'].remove(ignored_format)
 
-            # Force target format to be retained (ensure it's not already there to avoid duplicates)
-            if result['auto_convert_target_format'] not in result['auto_convert_retained_formats']:
-                result['auto_convert_retained_formats'].append(result['auto_convert_target_format'])
+            # Force target formats to be retained (ensure they're not already there to avoid duplicates)
+            for target_format in result['auto_convert_target_format']:
+                if target_format not in result['auto_convert_retained_formats']:
+                    result['auto_convert_retained_formats'].append(target_format)
 
             # Handle integer settings
             for setting in integer_settings:
@@ -1112,6 +1119,9 @@ def set_cwa_settings():
 
 
     next_scan_run = get_next_duplicate_scan_run(cwa_settings)
+
+    if isinstance(cwa_settings.get('auto_convert_target_format'), str):
+        cwa_settings['auto_convert_target_format'] = [cwa_settings['auto_convert_target_format']]
 
     return render_title_template("cwa_settings.html", title=_("Calibre-Web NextGen User Settings"), page="cwa-settings",
                                     cwa_settings=cwa_settings, ignorable_formats=ignorable_formats, target_formats=target_formats,
@@ -2019,7 +2029,7 @@ def kill_convert_library(queue):
 @admin_required
 def show_convert_library_page():
     return render_title_template('cwa_convert_library.html', title=_("Calibre-Web NextGen - Convert Library"), page="cwa-library-convert",
-                                target_format=CWA_DB().cwa_settings['auto_convert_target_format'].upper())
+                                target_format=', '.join(f.upper() for f in (CWA_DB().cwa_settings['auto_convert_target_format'] if isinstance(CWA_DB().cwa_settings['auto_convert_target_format'], list) else [CWA_DB().cwa_settings['auto_convert_target_format']])))
 
 @convert_library.route('/cwa-convert-library/schedule/<int:delay>', methods=["GET"])
 @login_required_if_no_ano

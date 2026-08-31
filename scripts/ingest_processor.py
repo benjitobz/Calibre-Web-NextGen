@@ -1117,7 +1117,8 @@ class NewBookProcessor:
 
         # Core ingest settings
         self.auto_convert_on = self.cwa_settings['auto_convert']
-        self.target_format = _normalize_format(self.cwa_settings['auto_convert_target_format'])
+        self.target_formats = list(dict.fromkeys(_normalize_format_list(self.cwa_settings['auto_convert_target_format']))) or ['epub']
+        self.target_format = self.target_formats[0]
         self.ingest_ignored_formats = _normalize_format_list(self.cwa_settings['auto_ingest_ignored_formats'])
 
         # Add known temporary / partial extensions
@@ -1168,7 +1169,7 @@ class NewBookProcessor:
         self.last_added_ids_are_fallback = False
         self.can_convert, self.input_format = self.can_convert_check()
         # Determine if the file is already in the desired target format using normalized extensions
-        self.is_target_format = (self.input_format.lower() == str(self.target_format).lower())
+        self.is_target_format = (self.input_format.lower() in self.target_formats)
 
         # Calibre subprocess environment. HOME is only redirected to
         # /config when the operator opts in via CWA_CALIBRE_USER_PLUGINS;
@@ -1497,12 +1498,12 @@ class NewBookProcessor:
 
     def convert_book(self, end_format=None) -> tuple[bool, str]:
         """Uses the following terminal command to convert the books provided using the calibre converter tool:\n\n--- ebook-convert myfile.input_format myfile.output_format\n\nAnd then saves the resulting files to the calibre-web import folder."""
-        print(f"[ingest-processor]: Starting conversion process for {self.filename}...", flush=True)
-        print(f"[ingest-processor]: Converting file from {self.input_format} to {self.target_format} format...\n", flush=True)
-        print(f"\n[ingest-processor]: START_CON: Converting {self.filename}...\n", flush=True)
-
         if end_format == None:
             end_format = self.target_format # If end_format isn't given, the file is converted to the target format specified in the CWA Settings page
+
+        print(f"[ingest-processor]: Starting conversion process for {self.filename}...", flush=True)
+        print(f"[ingest-processor]: Converting file from {self.input_format} to {end_format} format...\n", flush=True)
+        print(f"\n[ingest-processor]: START_CON: Converting {self.filename}...\n", flush=True)
 
         original_filepath = Path(self.filepath)
         target_filepath = f"{self.tmp_conversion_dir}{original_filepath.stem}.{end_format}"
@@ -1520,7 +1521,7 @@ class NewBookProcessor:
 
             self.db.conversion_add_entry(original_filepath.stem,
                                         self.input_format,
-                                        self.target_format,
+                                        end_format,
                                         str(self.cwa_settings["auto_backup_conversions"]))
 
             return True, target_filepath
@@ -1764,7 +1765,7 @@ class NewBookProcessor:
                           f"{book_path}: {e}", flush=True)
 
         # If kindle-epub-fixer is on, run it first and import the *fixed* file.
-        if self.target_format == "epub" and self.is_kindle_epub_fixer:
+        if str(book_path).lower().endswith(".epub") and self.is_kindle_epub_fixer:
             fixed_epub_path = Path(self.tmp_conversion_dir) / os.path.basename(book_path)
             self.run_kindle_epub_fixer(book_path, dest=self.tmp_conversion_dir)
             try:
@@ -1986,6 +1987,31 @@ class NewBookProcessor:
         except Exception as e:
             print(f"[ingest-processor] ERROR: Failed to validate book_id {book_id}: {e}", flush=True)
             return False
+
+    def generate_additional_formats(self, book_id, present_formats) -> None:
+        """Convert the original file to every remaining target format and attach the results to the imported book"""
+        remaining = [f for f in self.target_formats if f not in present_formats and f != self.input_format]
+        if not remaining:
+            return
+        if book_id is None:
+            try:
+                with sqlite3.connect(self.metadata_db, timeout=30) as con:
+                    cur = con.cursor()
+                    cur.execute("SELECT id FROM books ORDER BY timestamp DESC LIMIT 1")
+                    res = cur.fetchone()
+                    book_id = res[0] if res else None
+            except Exception as e:
+                print(f"[ingest-processor] Could not resolve book ID for additional target formats: {e}", flush=True)
+        if book_id is None:
+            print(f"[ingest-processor] No book ID available, skipping additional target formats for {self.filename}", flush=True)
+            return
+        for fmt in remaining:
+            if fmt == "kepub":
+                convert_successful, converted_filepath = self.convert_to_kepub()
+            else:
+                convert_successful, converted_filepath = self.convert_book(end_format=fmt)
+            if convert_successful:
+                self.add_format_to_book(int(book_id), converted_filepath)
 
     def add_format_to_book(self, book_id:int, book_path:str) -> None:
         """Attach a new format file to an existing Calibre book using calibredb add_format"""
@@ -2452,6 +2478,7 @@ def main(filepath=None):
             if is_a_book_format(nbp.input_format):
                 print(f"\n[ingest-processor]: No conversion needed for {nbp.filename}, importing now...", flush=True)
                 nbp.add_book_to_library(filepath)
+                nbp.generate_additional_formats(nbp.last_added_book_id, {nbp.input_format})
             else:
                 _fail_not_a_book_input(nbp, filepath)
         elif nbp.is_supported_audiobook():
@@ -2482,6 +2509,7 @@ def main(filepath=None):
 
                 if convert_successful: # If previous conversion process was successful, remove tmp files and import into library
                     nbp.add_book_to_library(converted_filepath) # type: ignore
+                    nbp.generate_additional_formats(nbp.last_added_book_id, {nbp.target_format})
 
                     # If the original format should be retained, also add it as an additional format
                     if nbp.input_format in nbp.convert_retained_formats and nbp.input_format not in nbp.ingest_ignored_formats:
