@@ -10,6 +10,7 @@ import json
 import os
 import subprocess
 import sys
+from calibre_library_target import library_arguments
 import tempfile
 import time
 import shutil
@@ -1821,7 +1822,7 @@ class NewBookProcessor:
                         cmd=[
                             "calibredb", "add", str(staged_path),
                             "--automerge", self.cwa_settings['auto_ingest_automerge'],
-                            f"--library-path={self.library_dir}",
+                            *library_arguments(self.library_dir),
                         ] + comic_meta_args,
                         env=self.calibre_env,
                     )
@@ -1845,7 +1846,7 @@ class NewBookProcessor:
 
                 add_command = [
                     "calibredb", "add", str(staged_path), "--automerge", self.cwa_settings['auto_ingest_automerge'],
-                    f"--library-path={self.library_dir}",
+                    *library_arguments(self.library_dir),
                 ]
                 if _title:
                     add_command.extend(["--title", _title])
@@ -2014,7 +2015,7 @@ class NewBookProcessor:
             mark_ingest_batch_active()
             wait_for_duplicate_full_scan_to_finish()
             result = subprocess.run([
-                "calibredb", "add_format", str(book_id), str(staged_path), f"--library-path={self.library_dir}"
+                "calibredb", "add_format", str(book_id), str(staged_path), *library_arguments(self.library_dir)
             ], env=self.calibre_env, check=True, capture_output=True, text=True)
             print(f"[ingest-processor] Added new format for book id {book_id}: {os.path.basename(str(staged_path))}", flush=True)
             mark_ingest_batch_dirty()
