@@ -1272,7 +1272,7 @@ def test_private_observability_root_is_excluded_from_docker_context():
 
 
 @pytest.mark.unit
-def test_unreadable_patch_body_still_refuses_but_unreadable_get_body_does_not(
+def test_unreadable_owned_patch_and_get_bodies_both_refuse_without_snapshot(
     monkeypatch, tmp_path,
 ):
     """Moving the body read earlier must not change either hazard.
@@ -1281,16 +1281,29 @@ def test_unreadable_patch_body_still_refuses_but_unreadable_get_body_does_not(
     the bytes.  Two things must survive that move:
       * a PATCH whose body cannot be read is still refused with 503, because
         nothing was stored (F-5c1146 / #1825);
-      * a GET whose body cannot be read is NOT refused, because a 503 on the
-        annotations GET is a measured way to make Nickel empty the book's local
-        annotation set.
+      * an owned GET whose body cannot be read is refused when no current
+        snapshot can be loaded, because forwarding Kobo's stale set would make
+        the failure look like an authoritative replacement.
     """
     _root(monkeypatch, tmp_path)
     app = _app(monkeypatch, dispatch=lambda *_a, **_k: None)
+    from cps.services import kobo_annotation_authority as authority
+    monkeypatch.setattr(
+        authority, "ever_authoritative",
+        lambda *_args: authority.AUTHORITY_LOOKUP_FAILED,
+    )
+    monkeypatch.setattr(
+        authority, "authority_evidence_for_route",
+        lambda *_args: authority.AUTHORITY_LOOKUP_FAILED,
+    )
+    monkeypatch.setattr(
+        authority, "load_last_served_complete_set", lambda **_kwargs: None,
+    )
     upstream_body = b'{"upstream":"preserved"}'
+    proxy_calls = []
     monkeypatch.setattr(
         rs, "proxy_to_kobo_reading_services",
-        lambda **_kwargs: app.response_class(
+        lambda **_kwargs: proxy_calls.append(True) or app.response_class(
             upstream_body, status=207, headers={"X-Upstream": "same"},
         ),
     )
@@ -1307,9 +1320,11 @@ def test_unreadable_patch_body_still_refuses_but_unreadable_get_body_does_not(
     assert patch_response.status_code == 503
 
     get_response = app.test_client().get(f"/annotations/{BOOK_UUID}")
-    assert get_response.status_code == 207
-    assert get_response.get_data() == upstream_body
-    assert get_response.headers["X-Upstream"] == "same"
+    assert get_response.status_code == 503
+    assert get_response.get_json() == {
+        "error": "Authoritative annotation set temporarily unavailable",
+    }
+    assert proxy_calls == []
 
 
 @pytest.mark.unit
