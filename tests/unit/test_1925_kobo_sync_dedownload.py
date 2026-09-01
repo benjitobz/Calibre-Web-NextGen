@@ -393,9 +393,56 @@ def test_interrupted_sync_token_loss_does_not_redeliver_unchanged_entitlement(
     assert "cursors in=" in summaries[-1] and " out=" in summaries[-1]
 
 
-def test_expired_pending_page_is_pruned_before_same_token_rebuild(sync_harness):
-    """An abandoned response body expires without confirming its delivery."""
-    from cps import kobo_sync_status, ub
+def test_expired_pending_page_ack_is_honoured_before_ttl_prune(
+    sync_harness, monkeypatch,
+):
+    """An idle Kobo's returned token remains authoritative after the TTL."""
+    from cps import kobo, kobo_sync_status, ub
+
+    monkeypatch.setattr(
+        kobo.config, "config_kobo_suppress_replayed_entitlements", True,
+    )
+
+    first = sync_harness.sync(acknowledge=False)
+    pending = sync_harness.session.query(
+        ub.KoboDevicePendingSyncPage,
+    ).filter_by(device_id=sync_harness.device.id).one()
+    outgoing_token = pending.outgoing_token
+    pending.created_at = (
+        datetime.now(timezone.utc)
+        - kobo_sync_status.PENDING_SYNC_PAGE_TTL
+        - timedelta(seconds=1)
+    )
+    sync_harness.session.commit()
+
+    acknowledged = sync_harness.sync(
+        outgoing_token,
+        acknowledge=False,
+    )
+
+    assert len(_entitlements(first)) == 1
+    assert _entitlements(acknowledged) == [], (
+        "the final page must not be re-emitted after its returned token "
+        "acknowledges delivery"
+    )
+    ledger = sync_harness.session.query(
+        ub.KoboDeviceBookEntitlement,
+    ).filter_by(
+        device_id=sync_harness.device.id,
+        book_id=sync_harness.book.id,
+    ).one()
+    assert ledger.fingerprint
+    assert sync_harness.session.query(ub.KoboSyncedBooks).filter_by(
+        user_id=sync_harness.user.id,
+        book_id=sync_harness.book.id,
+    ).count() == 1
+
+
+def test_expired_orphan_pending_page_is_pruned_after_device_moves_on(
+    sync_harness,
+):
+    """A never-acknowledged page expires when the Kobo presents another token."""
+    from cps import kobo, kobo_sync_status, ub
 
     first = sync_harness.sync(acknowledge=False)
     pending = sync_harness.session.query(
@@ -409,7 +456,11 @@ def test_expired_pending_page_is_pruned_before_same_token_rebuild(sync_harness):
     pending.created_at = expired_at
     sync_harness.session.commit()
 
-    rebuilt = sync_harness.sync(acknowledge=False)
+    moved_on_token = kobo.SyncToken.SyncToken(
+        books_last_id=sync_harness.book.id + 100,
+    ).build_sync_token()
+    assert moved_on_token != pending.outgoing_token
+    rebuilt = sync_harness.sync(moved_on_token, acknowledge=False)
     replacement = sync_harness.session.query(
         ub.KoboDevicePendingSyncPage,
     ).filter_by(device_id=sync_harness.device.id).one()

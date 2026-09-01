@@ -717,14 +717,37 @@ def HandleSyncRequest():
     sync_token = SyncToken.SyncToken.from_headers(request.headers)
     sync_cursor_in = _sync_cursor_summary(sync_token)
     requesting_device_id = getattr(g, "annotation_origin_device_id", None)
-    pruned_pending_pages = kobo_sync_status.prune_expired_pending_sync_pages(
-        current_user.id,
-    )
-    if pruned_pending_pages and ub.session_commit() is False:
-        return abort(503)
     pending_page = kobo_sync_status.get_pending_sync_page(
         requesting_device_id,
     )
+    acknowledged_pending_page = False
+    if (pending_page is not None
+            and raw_sync_token == pending_page.outgoing_token):
+        # TTL is a garbage-collection bound, not a validity window for direct
+        # token evidence. A Kobo may accept its final page and then stay idle
+        # beyond the TTL, so promote that returned-token acknowledgment before
+        # expiry can discard the page's confirmation payload (F-802720).
+        if not _acknowledge_pending_page(
+            pending_page, requesting_device_id,
+        ):
+            return abort(503)
+        acknowledged_pending_page = True
+        pending_page = None
+
+    pruned_pending_pages = kobo_sync_status.prune_expired_pending_sync_pages(
+        current_user.id,
+    )
+    # Keep a successful acknowledgment in the caller-owned transaction: it
+    # must commit atomically with the replacement page at the response boundary.
+    if (pruned_pending_pages
+            and not acknowledged_pending_page
+            and ub.session_commit() is False):
+        return abort(503)
+    if not acknowledged_pending_page:
+        # Pruning may have removed the row loaded for the pre-prune ack lookup.
+        pending_page = kobo_sync_status.get_pending_sync_page(
+            requesting_device_id,
+        )
     if pending_page is not None:
         if pending_page.incoming_token_hash == _sync_token_hash(raw_sync_token):
             replay = _pending_response(pending_page)
@@ -735,12 +758,7 @@ def HandleSyncRequest():
                 requesting_device_id,
             )
             return replay
-        if raw_sync_token == pending_page.outgoing_token:
-            if not _acknowledge_pending_page(
-                pending_page, requesting_device_id,
-            ):
-                return abort(503)
-        elif not sync_token.is_cwng_token:
+        if not sync_token.is_cwng_token:
             # An official-store/malformed token is a reset boundary.  The old
             # response remains unconfirmed, but it must not block a fresh
             # device from starting a new serial page chain.
