@@ -41,6 +41,31 @@ echo "idle" > "$STATUS_FILE"
 # Ensure failed backup directory exists
 mkdir -p "/config/processed_books/failed" 2>/dev/null || true
 
+# Treat cwa.db as untrusted at the shell boundary. SQLite affinity does not
+# guarantee that an existing INTEGER column contains digits, and Bash
+# recursively evaluates variable contents inside arithmetic expressions. Keep
+# this validator free of arithmetic so a DB value cannot be interpreted before
+# it has been reduced to canonical decimal digits. Leading zeroes are stripped
+# as well, preventing otherwise-valid values such as 08 from acquiring Bash's
+# octal semantics. The caller supplies the setting's documented schema default.
+non_negative_integer_or_default() {
+    local value="$1"
+    local default_value="$2"
+
+    case "$value" in
+        ""|*[!0-9]*)
+            value="$default_value"
+            ;;
+        *)
+            while [ "${#value}" -gt 1 ] && [ "${value:0:1}" = "0" ]; do
+                value="${value#0}"
+            done
+            ;;
+    esac
+
+    printf '%s\n' "$value"
+}
+
 # Function to get timeout from database
 get_timeout_from_db() {
     local timeout_minutes
@@ -62,7 +87,8 @@ except:
     print(15)
 " 2>/dev/null || echo "15")
     fi
-    echo $((timeout_minutes * 60))  # Convert to seconds
+    timeout_minutes=$(non_negative_integer_or_default "$timeout_minutes" 15)
+    printf '%s\n' "$((timeout_minutes * 60))"  # Convert to seconds
 }
 
 # Tunables (override via env)
@@ -97,7 +123,7 @@ except:
     print(120)
 " 2>/dev/null || echo "120")
         fi
-        echo "$minutes"
+        non_negative_integer_or_default "$minutes" 120
 }
 
 get_stale_temp_interval_from_db() {
@@ -118,7 +144,7 @@ except:
     print(600)
 " 2>/dev/null || echo "600")
         fi
-        echo "$seconds"
+        non_negative_integer_or_default "$seconds" 600
 }
 
 wait_for_stable_file() {
