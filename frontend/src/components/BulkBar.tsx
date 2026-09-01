@@ -6,6 +6,7 @@ import { useAnnouncer } from '../lib/a11y/announcer';
 import { Spinner } from './Spinner';
 import { ApiError, type MetadataListMode, type MetadataUpdate } from '../lib/api';
 import { uniqueBulkRemovalFailureReasons } from '../lib/bulkRemoval';
+import { canDeleteBooks } from '../lib/permissions';
 import styles from './BulkBar.module.css';
 
 interface BulkBarProps {
@@ -91,7 +92,7 @@ export function BulkBar({ ids, personalLibrary, onClear, onChanged }: BulkBarPro
     };
   }, [shelfOpen]);
 
-  const canDelete = !!me?.role?.delete_books && !!me?.role?.edit;
+  const canDelete = canDeleteBooks(me);
   const canEditPublic = !!me?.role?.edit_shelfs;
   const editableShelves = (shelvesData?.items ?? []).filter(
     (s) => s.is_owner || (s.is_public && canEditPublic),

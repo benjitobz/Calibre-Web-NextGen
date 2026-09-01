@@ -63,6 +63,20 @@ def _require_edit():
     return None
 
 
+def _require_book_delete():
+    """Mirror Classic's effective destructive-book policy.
+
+    Whole-book controls on the detail page require both roles. Format and bulk
+    deletion live behind Classic's edit-only surfaces and then pass through the
+    delete-role core, so those paths have the same effective conjunction.
+    """
+    if not current_user.is_authenticated or current_user.is_anonymous:
+        return _err("unauthorized", "You must be signed in", 401)
+    if not current_user.role_delete_books() or not current_user.role_edit():
+        return _err("forbidden", "You are not allowed to delete books", 403)
+    return None
+
+
 def _parse_edit_result(result):
     """edit_book_param returns a JSON Response, an empty string, or a
     ``(message, status)`` tuple. Normalize to ``(ok: bool, message: str)``."""
@@ -495,10 +509,9 @@ def update_metadata(book_id):
 @api_v1.route("/books/<int:book_id>/delete", methods=["POST"])
 @login_required_if_no_ano
 def delete_book(book_id):
-    if not current_user.is_authenticated or current_user.is_anonymous:
-        return _err("unauthorized", "You must be signed in", 401)
-    if not current_user.role_delete_books() or not current_user.role_edit():
-        return _err("forbidden", "You are not allowed to delete books", 403)
+    guard = _require_book_delete()
+    if guard:
+        return guard
     # Authorize against the caller's VISIBLE library, not the raw table: a user
     # with the (global) delete role but a language/tag/custom-column visibility
     # restriction must not be able to enumerate and delete a book they cannot
@@ -519,10 +532,9 @@ def delete_format(book_id, fmt):
     The shared core re-checks the role, performs the sole visibility-scoped
     lookup, and stages storage deletion reversibly across the metadata commit.
     """
-    if not current_user.is_authenticated or current_user.is_anonymous:
-        return _err("unauthorized", "You must be signed in", 401)
-    if not current_user.role_delete_books():
-        return _err("forbidden", "You are not allowed to delete books", 403)
+    guard = _require_book_delete()
+    if guard:
+        return guard
     return _delete_api_response(delete_book_from_table(book_id, fmt.upper(), True))
 
 

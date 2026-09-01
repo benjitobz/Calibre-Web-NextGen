@@ -21,7 +21,7 @@ import type { CustomColumn, CustomColumnValue, EntityRef, DeliveryDevice } from 
 import { ApiError, resourceUrl, resourceSrcSet } from '../lib/api';
 import { useT } from '../lib/i18n';
 import { getPrimaryReadTarget } from '../lib/readerTarget';
-import { canDownloadBooks, canReadBooks } from '../lib/permissions';
+import { canDeleteBooks, canDownloadBooks, canReadBooks } from '../lib/permissions';
 import styles from './BookDetail.module.css';
 import { useCardActionsHidden } from '../lib/useCardActionsHidden';
 import { BookUserNotices } from '../components/UserNotices';
@@ -372,6 +372,7 @@ export function BookDetail() {
     book.formats.map((f) => f.format),
     canReadBooks(me),
   );
+  const canDelete = canDeleteBooks(me);
 
   // The membership endpoint returns ids only, and both it and the shelf list
   // apply the same server-side visibility filter (own shelves + public ones),
@@ -738,7 +739,7 @@ export function BookDetail() {
                 separated region below renders instead (both share
                 requestDeleteBook, so behaviour is identical). Placed last so
                 the primary actions keep their positions. */}
-            {narrowLayout && me?.role?.delete_books && me?.role?.edit && (
+            {narrowLayout && canDelete && (
               <button
                 type="button"
                 data-testid="book-delete-icon"
@@ -761,7 +762,7 @@ export function BookDetail() {
               INSTEAD of this region (#1828) — neither is ever hidden in the DOM.
               This uses the same delete-and-edit policy as the server;
               this gate and grouping are the discoverability/UX layer. */}
-          {!narrowLayout && me?.role?.delete_books && me?.role?.edit && (
+          {!narrowLayout && canDelete && (
             <section className={styles.dangerZone} data-testid="book-destructive-actions"
               aria-label={t('Delete from the global library')}>
               <button
