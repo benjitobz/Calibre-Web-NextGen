@@ -213,15 +213,17 @@ export function Admin() {
       <div className={styles.header}>
         <Shield size={22} className={styles.headerIcon} />
         <h1 className={styles.title}>{t('User administration')}</h1>
-        <button
-          type="button"
-          className={styles.addBtn}
-          onClick={() => { setShowNew((v) => !v); setBanner(null); }}
-        >
-          <UserPlus size={16} /> {t('New user')}
-        </button>
-        <button type="button" className={styles.addBtn} onClick={migrateAll}
-          disabled={migrateLibraries.isPending}>{t('Set up My Library for all users')}</button>
+        <div className={styles.headerActions}>
+          <button
+            type="button"
+            className={styles.addBtn}
+            onClick={() => { setShowNew((v) => !v); setBanner(null); }}
+          >
+            <UserPlus size={16} /> {t('New user')}
+          </button>
+          <button type="button" className={styles.addBtn} onClick={migrateAll}
+            disabled={migrateLibraries.isPending}>{t('Set up My Library for all users')}</button>
+        </div>
       </div>
 
       <p className={banner ? (banner.ok ? styles.msgOk : styles.msgErr) : undefined} role="status">{banner?.text}</p>

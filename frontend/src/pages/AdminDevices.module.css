@@ -2,9 +2,10 @@
 .back { display: inline-flex; align-items: center; gap: var(--sp-1); margin-bottom: var(--sp-3); color: var(--text-muted); font-size: var(--fs-sm); transition: color var(--dur-fast) var(--ease); }
 .back:hover { color: var(--accent); }
 .heading { display: flex; align-items: center; gap: var(--sp-3); margin-bottom: var(--sp-4); }
-.heading > svg { color: var(--accent); width: 26px; height: 26px; }
+/* Same page-header idiom as User administration: 22px accent icon, display h1. */
+.heading > svg { color: var(--accent); width: 22px; height: 22px; }
 .heading h1, .card h2, .card h3, .card p { margin: 0; }
-.heading h1 { font-size: var(--fs-xl); }
+.heading h1 { font-family: var(--font-display); font-size: var(--fs-xl); }
 .countLine { margin: 0 0 var(--sp-3); color: var(--text-muted); font-size: var(--fs-sm); }
 
 .list { display: grid; grid-template-columns: repeat(auto-fit, minmax(min(340px, 100%), 1fr)); gap: var(--sp-4); margin: 0; padding: 0; }

@@ -4,11 +4,28 @@
   padding: var(--sp-6) var(--sp-5);
 }
 
+/* Same mobile gutters as the other settings pages (Devices, DeviceDetail). */
+@media (max-width: 600px) {
+  .container { padding: var(--sp-4) var(--sp-3); }
+}
+
 .header {
   display: flex;
   align-items: center;
+  flex-wrap: wrap;
   gap: var(--sp-3);
   margin-bottom: var(--sp-5);
+}
+
+/* One action group absorbing the free space, not an auto margin per button —
+   two auto margins split the space and stranded "New user" mid-page, and on
+   narrow viewports crushed the second button into a one-word-per-line column. */
+.headerActions {
+  margin-left: auto;
+  display: flex;
+  align-items: center;
+  flex-wrap: wrap;
+  gap: var(--sp-2);
 }
 
 .headerIcon { color: var(--accent); }
@@ -20,7 +37,6 @@
 }
 
 .addBtn {
-  margin-left: auto;
   display: inline-flex;
   align-items: center;
   gap: var(--sp-2);
@@ -117,12 +133,25 @@
   padding: var(--sp-4);
 }
 
-.libraryMode { margin: var(--sp-4) 0 0; padding: var(--sp-3) 0 0; border: 0; border-top: 1px solid var(--border); }
-.libraryMode legend { color: var(--text); font-weight: var(--fw-semi); padding-right: var(--sp-2); }
+.libraryMode { margin: var(--sp-4) 0 0; padding: 0; border: 0; }
+/* The separator rule lives on the legend, not the fieldset border. Punched into
+   the fieldset's border-top it only became visible AFTER the legend text, at a
+   different inset than the card's other separators (e.g. .roles); drawn on a
+   full-width legend it starts at the same content edge. */
+.libraryMode legend {
+  width: 100%;
+  padding-top: var(--sp-3);
+  border-top: 1px solid var(--border);
+  color: var(--text);
+  font-weight: var(--fw-semi);
+}
 .libraryMode label { display: flex; align-items: flex-start; gap: var(--sp-2); margin-top: var(--sp-2); }
 .libraryMode label span { display: flex; flex-direction: column; gap: 2px; }
 .libraryMode small { color: var(--text-muted); }
-.modeWarning { color: var(--warning, var(--accent-text)); font-size: var(--fs-sm); margin-top: var(--sp-2); }
+/* Explanatory prose aligns with the option TEXT (radio 16px + gap), not the
+   control edge, so it keeps the indentation rhythm of the block above it. */
+.libraryMode .settingsHint { margin: var(--sp-2) 0 0 calc(16px + var(--sp-2)); }
+.modeWarning { color: var(--warning, var(--accent-text)); font-size: var(--fs-sm); margin: var(--sp-2) 0 0 calc(16px + var(--sp-2)); }
 .libraryAddForm {
   display: flex;
   align-items: end;
@@ -194,8 +223,9 @@
   display: inline-flex;
   align-items: center;
   justify-content: center;
-  width: 34px;
-  height: 34px;
+  /* Same 32px square as .resetBtn next to it — one icon-button size per row. */
+  width: 32px;
+  height: 32px;
   border-radius: var(--r-md);
   color: var(--text-muted);
   transition: color var(--dur-fast) var(--ease), background var(--dur-fast) var(--ease);
