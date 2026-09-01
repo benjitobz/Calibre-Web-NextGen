@@ -7,9 +7,9 @@
     "#2104"
   ],
   "resolution": {
-    "commit": "",
+    "commit": "d5d784765f",
     "date": "2026-09-01",
-    "note": "Docker startup now uses /health; the API client waits under a 30-second default bound for a CSRF-bearing /login page, posts credentials once, and verifies /api/v1/me. Missing-token readiness and rejected-credential failures now have distinct diagnostics. Mocked regression tests cover delayed token, timeout, and HTTP 401/403; the current image authenticated successfully in the real Docker lane.",
+    "note": "Shipped in #2116 (squash of d78322e810): /health readiness + bounded CSRF-token gate with two distinct diagnoses; real-container run OBSERVED.",
     "release": ""
   },
   "severity": "correctness",
