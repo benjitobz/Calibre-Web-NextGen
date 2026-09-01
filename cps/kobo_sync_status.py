@@ -445,7 +445,7 @@ def record_book_deletion(book_id, book_uuid, session=None):
 
 
 # Select all entries of current book in kobo_synced_books table, which are from current user and delete them
-def remove_synced_book(book_id, all=False, session=None):
+def remove_synced_book(book_id, all=False, session=None, commit=True):
     s = session if session is not None else ub.session
     if not all:
         user = ub.KoboSyncedBooks.user_id == current_user.id
@@ -460,23 +460,26 @@ def remove_synced_book(book_id, all=False, session=None):
     ).filter(device_filter).delete(synchronize_session=False)
     s.query(ub.KoboSyncedBooks).filter(
         ub.KoboSyncedBooks.book_id == book_id).filter(user).delete()
-    if session is None:
-        ub.session_commit()
-    else:
-        ub.session_commit(_session=session)
+    if commit:
+        if session is None:
+            ub.session_commit()
+        else:
+            ub.session_commit(_session=session)
 
 
-def change_archived_books(book_id, state=None, message=None):
-    archived_book = ub.session.query(ub.ArchivedBook).filter(and_(ub.ArchivedBook.user_id == int(current_user.id),
-                                                                  ub.ArchivedBook.book_id == book_id)).first()
+def change_archived_books(book_id, state=None, message=None, session=None, commit=True):
+    s = session if session is not None else ub.session
+    archived_book = s.query(ub.ArchivedBook).filter(and_(ub.ArchivedBook.user_id == int(current_user.id),
+                                                         ub.ArchivedBook.book_id == book_id)).first()
     if not archived_book:
         archived_book = ub.ArchivedBook(user_id=current_user.id, book_id=book_id)
 
     archived_book.is_archived = state if state else not archived_book.is_archived
     archived_book.last_modified = datetime.now(timezone.utc)        # toDo. Check utc timestamp
 
-    ub.session.merge(archived_book)
-    ub.session_commit(message)
+    s.merge(archived_book)
+    if commit:
+        ub.session_commit(message, _session=s)
     return archived_book.is_archived
 
 

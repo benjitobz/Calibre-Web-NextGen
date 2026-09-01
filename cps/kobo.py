@@ -2287,7 +2287,8 @@ def HandleTagCreate():
     items_unknown_to_calibre = add_items_to_shelf(items, shelf)
     if items_unknown_to_calibre:
         log.debug("Received request to add unknown books to a collection. Silently ignoring items.")
-    ub.session_commit()
+    if ub.session_commit() is False:
+        return abort(503)
     return make_response(jsonify(str(shelf.uuid)), 201)
 
 
@@ -2313,8 +2314,10 @@ def HandleTagUpdate(tag_id):
         return redirect_or_proxy_request()
 
     if request.method == "DELETE":
-        if not shelf_lib.delete_shelf_helper(shelf):
+        if not shelf_lib.check_shelf_edit_permissions(shelf):
             abort(401, description="Error deleting Shelf")
+        if not shelf_lib.delete_shelf_helper(shelf):
+            return abort(503)
     else:
         name = None
         try:
@@ -2326,7 +2329,8 @@ def HandleTagUpdate(tag_id):
 
         shelf.name = name
         ub.session.merge(shelf)
-        ub.session_commit()
+        if ub.session_commit() is False:
+            return abort(503)
     return make_response(' ', 200)
 
 
@@ -2385,7 +2389,8 @@ def HandleTagAddItem(tag_id):
         log.debug("Received request to add an unknown book to a collection. Silently ignoring item.")
 
     ub.session.merge(shelf)
-    ub.session_commit()
+    if ub.session_commit() is False:
+        return abort(503)
     return make_response('', 201)
 
 
@@ -2438,7 +2443,8 @@ def HandleTagRemoveItem(tag_id):
             shelf.books.filter(ub.BookShelf.book_id == book.id).delete()
         except KeyError:
             items_unknown_to_calibre.append(item)
-    ub.session_commit()
+    if ub.session_commit() is False:
+        return abort(503)
 
     if items_unknown_to_calibre:
         log.debug("Received request to remove an unknown book to a collecition. Silently ignoring item.")
@@ -3097,9 +3103,14 @@ def HandleBookDeletionRequest(book_uuid):
         pass
     # Otherwise, archive the book if the user has permission to see archived books.
     elif current_user.check_visibility(32768):
-        kobo_sync_status.change_archived_books(book_id, True)
+        kobo_sync_status.change_archived_books(book_id, True, commit=False)
 
-    kobo_sync_status.remove_synced_book(book_id)
+    # The archive marker and delivery-ledger removal describe one device
+    # action. Stage both and let this answer-bearing route own the single
+    # checked commit, so neither a partial write nor a rollback earns a 204.
+    kobo_sync_status.remove_synced_book(book_id, commit=False)
+    if ub.session_commit() is False:
+        return abort(503)
     return "", 204
 
 
