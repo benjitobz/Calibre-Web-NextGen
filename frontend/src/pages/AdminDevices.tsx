@@ -55,7 +55,7 @@ export function AdminDevices() {
   // grouped, and directly under the page h1 when a single account fills the page.
   const DeviceTitle = groups.length > 1 ? 'h3' : 'h2';
   return (
-    <main className={styles.container}>
+    <div className={styles.container}>
       <Link href="/admin" className={styles.back}>
         <ChevronLeft size={16} aria-hidden="true" focusable={false} /> {t('Admin')}
       </Link>
@@ -132,6 +132,6 @@ export function AdminDevices() {
           )}
         </>
       )}
-    </main>
+    </div>
   );
 }

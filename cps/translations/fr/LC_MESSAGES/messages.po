@@ -4693,6 +4693,10 @@ msgid "Admin group"
 msgstr "Groupe administrateur"
 
 #: cps/spa_strings.py
+msgid "Admin navigation"
+msgstr "Navigation d’administration"
+
+#: cps/spa_strings.py
 msgid "Advanced"
 msgstr "Avancé"
 
@@ -4981,6 +4985,10 @@ msgid "Choose your theme"
 msgstr "Choisir votre thème"
 
 #: cps/spa_strings.py
+msgid "Classic"
+msgstr "Classique"
+
+#: cps/spa_strings.py
 msgid "Clear default"
 msgstr "Effacer la valeur par défaut"
 
@@ -5023,6 +5031,10 @@ msgstr "Confortable"
 #: cps/spa_strings.py
 msgid "Compact"
 msgstr "Compact"
+
+#: cps/spa_strings.py
+msgid "Configuration"
+msgstr "Configuration"
 
 #: cps/spa_strings.py
 msgid "Configured"
@@ -6552,6 +6564,10 @@ msgstr "Mot de passe (laisser vide pour conserver)"
 msgid "Paused after a problem"
 msgstr "En pause après un problème"
 
+#: cps/spa_strings.py
+msgid "People & devices"
+msgstr "Personnes et appareils"
+
 #: cps/spa_strings.py cps/templates/cover_picker.html
 msgid ""
 "Pick a cover from any source we support, paste a URL, upload a file, or use "
@@ -7011,6 +7027,10 @@ msgstr "Annonce du serveur (visible par tous les utilisateurs)"
 #: cps/spa_strings.py
 msgid "Server host"
 msgstr "Hôte du serveur"
+
+#: cps/spa_strings.py
+msgid "Server tools"
+msgstr "Outils serveur"
 
 #: cps/spa_strings.py
 msgid "Service account (DN)"

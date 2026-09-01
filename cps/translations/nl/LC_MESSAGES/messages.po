@@ -4568,6 +4568,10 @@ msgid "Admin group"
 msgstr "Beheerdersgroep"
 
 #: cps/spa_strings.py
+msgid "Admin navigation"
+msgstr "Beheernavigatie"
+
+#: cps/spa_strings.py
 msgid "Advanced"
 msgstr "Geavanceerd"
 
@@ -4856,6 +4860,10 @@ msgid "Choose your theme"
 msgstr "Kies je thema"
 
 #: cps/spa_strings.py
+msgid "Classic"
+msgstr "Klassiek"
+
+#: cps/spa_strings.py
 msgid "Clear default"
 msgstr "Standaard wissen"
 
@@ -4898,6 +4906,10 @@ msgstr "Comfortabel"
 #: cps/spa_strings.py
 msgid "Compact"
 msgstr "Compact"
+
+#: cps/spa_strings.py
+msgid "Configuration"
+msgstr "Configuratie"
 
 #: cps/spa_strings.py
 msgid "Configured"
@@ -6414,6 +6426,10 @@ msgstr "Wachtwoord (laat leeg om te behouden)"
 msgid "Paused after a problem"
 msgstr "Gepauzeerd na een probleem"
 
+#: cps/spa_strings.py
+msgid "People & devices"
+msgstr "Mensen en apparaten"
+
 #: cps/spa_strings.py cps/templates/cover_picker.html
 msgid ""
 "Pick a cover from any source we support, paste a URL, upload a file, or use "
@@ -6870,6 +6886,10 @@ msgstr "Serveraankondiging (getoond aan alle gebruikers)"
 #: cps/spa_strings.py
 msgid "Server host"
 msgstr "Server host"
+
+#: cps/spa_strings.py
+msgid "Server tools"
+msgstr "Serverhulpmiddelen"
 
 #: cps/spa_strings.py
 msgid "Service account (DN)"

@@ -4,6 +4,10 @@
   padding: var(--sp-6) var(--sp-5);
 }
 
+.anchorSection {
+  scroll-margin-top: calc(var(--topbar-h) + var(--sp-4));
+}
+
 /* Same mobile gutters as the other settings pages (Devices, DeviceDetail). */
 @media (max-width: 600px) {
   .container { padding: var(--sp-4) var(--sp-3); }

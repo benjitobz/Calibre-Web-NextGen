@@ -1,6 +1,5 @@
 import { useState } from 'react';
-import { Link } from 'wouter';
-import { Shield, Trash2, Mail, UserPlus, ChevronRight, Settings, Database, Server, Clock, FileText, Sliders, BarChart3, Files, Lock, RefreshCw, KeyRound } from 'lucide-react';
+import { Shield, Trash2, Mail, UserPlus, Settings, Lock, RefreshCw, KeyRound } from 'lucide-react';
 import { useEffect } from 'react';
 import {
   useAdminUsers, useUpdateAdminUser, useDeleteAdminUser, useCreateAdminUser, useMe,
@@ -14,30 +13,10 @@ import type { SecurityConfig, SecurityUpdate } from '../lib/queries';
 import { SpinnerCentered } from '../components/Spinner';
 import { EmptyState } from '../components/EmptyState';
 import type { AdminUser } from '../lib/api';
-import { ApiError, resourceUrl } from '../lib/api';
+import { ApiError } from '../lib/api';
 import { useT } from '../lib/i18n';
 import { THEMES, DEFAULT_THEME } from '../lib/themes';
 import styles from './Admin.module.css';
-
-// Remaining legacy server-configuration pages — these are the deep, rarely-touched
-// infrastructure surfaces (DB path, ingest/convert internals, scheduled tasks)
-// that are not part of the day-to-day user/auth flows. Login/authentication
-// security (LDAP/OAuth/SSL/reverse-proxy) and SMTP are rebuilt natively below.
-const SERVER_SETTINGS: { href: string; label: string; icon: typeof Settings; spa?: boolean }[] = [
-  { href: '/admin/devices', label: 'Device administration', icon: Server, spa: true },
-  { href: '/admin/view', label: 'Full user table & restrictions', icon: Shield },
-  { href: '/admin/config', label: 'Basic configuration', icon: Settings },
-  { href: '/admin/viewconfig', label: 'UI / display configuration', icon: Sliders },
-  { href: '/admin/dbconfig', label: 'Database & library path', icon: Database },
-  { href: '/admin/scheduledtasks', label: 'Scheduled tasks', icon: Clock },
-  { href: '/cwa-settings', label: 'CWA settings (ingest/convert)', icon: Server },
-  { href: '/cwa-stats-show', label: 'Statistics dashboard', icon: BarChart3 },
-  { href: '/admin/logfile', label: 'Logs', icon: FileText },
-  // #1048 — this row used to link to /duplicates, i.e. the exact page the
-  // sidebar already opens. From the admin panel the useful destination is the
-  // duplicate-detection *configuration*, so it deep-links to that section.
-  { href: '/cwa-settings#duplicate-detection', label: 'Duplicate detection settings', icon: Files },
-];
 
 // Default-role checkboxes auto-granted to new OAuth users. Keys MUST match
 // _OAUTH_DEFAULT_ROLE_BITS in cps/api/admin_security.py.
@@ -83,9 +62,9 @@ export function Admin() {
   if (isLoading) return <SpinnerCentered size={40} />;
   if (error || !data) {
     return (
-      <main className={styles.container}>
+      <div className={styles.container}>
         <EmptyState message={error instanceof Error ? error.message : t('Could not load users.')} />
-      </main>
+      </div>
     );
   }
 
@@ -209,9 +188,9 @@ export function Admin() {
   };
 
   return (
-    <main className={styles.container}>
+    <div id="user-administration" className={`${styles.container} ${styles.anchorSection}`}>
       <div className={styles.header}>
-        <Shield size={22} className={styles.headerIcon} />
+        <Shield size={22} className={styles.headerIcon} aria-hidden="true" focusable={false} />
         <h1 className={styles.title}>{t('User administration')}</h1>
         <div className={styles.headerActions}>
           <button
@@ -219,7 +198,7 @@ export function Admin() {
             className={styles.addBtn}
             onClick={() => { setShowNew((v) => !v); setBanner(null); }}
           >
-            <UserPlus size={16} /> {t('New user')}
+            <UserPlus size={16} aria-hidden="true" focusable={false} /> {t('New user')}
           </button>
           <button type="button" className={styles.addBtn} onClick={migrateAll}
             disabled={migrateLibraries.isPending}>{t('Set up My Library for all users')}</button>
@@ -280,7 +259,7 @@ export function Admin() {
                     {isSelf && <span className={styles.youBadge}>{t('you')}</span>}
                   </p>
                   {user.email && (
-                    <p className={styles.email}><Mail size={12} /> {user.email}</p>
+                    <p className={styles.email}><Mail size={12} aria-hidden="true" focusable={false} /> {user.email}</p>
                   )}
                 </div>
                 {!isSelf && !user.is_guest && (
@@ -369,31 +348,7 @@ export function Admin() {
       <AdminConfigForm />
       <MailConfigForm />
       <SecurityConfigForm />
-
-      <div className={styles.settingsHead}>
-        <Settings size={18} className={styles.headerIcon} />
-        <h2 className={styles.settingsTitle}>{t('More server configuration')}</h2>
-      </div>
-      <p className={styles.settingsHint}>
-        {t('Pages marked below open in the classic view. Changes there apply to the whole server.')}
-      </p>
-      <div className={styles.settingsGrid}>
-        {/* Same-tab on purpose: these are in-app pages, not external sites (#738). */}
-        {SERVER_SETTINGS.map(({ href, label, icon: Icon, spa }) => {
-          const content = <>
-            <Icon size={18} className={styles.settingsIcon} aria-hidden="true" focusable={false} />
-            <span className={styles.settingsLabel}>
-              <span>{t(label)}</span>
-              {!spa && <small>{t('Opens in classic view')}</small>}
-            </span>
-            <ChevronRight size={13} className={styles.settingsExt} aria-hidden="true" focusable={false} />
-          </>;
-          return spa
-            ? <Link key={href} href={href} className={styles.settingsCard}>{content}</Link>
-            : <a key={href} href={resourceUrl(href)} className={styles.settingsCard}>{content}</a>;
-        })}
-      </div>
-    </main>
+    </div>
   );
 }
 
@@ -434,7 +389,7 @@ function AdminConfigForm() {
   };
 
   return (
-    <form className={styles.newForm} onSubmit={onSubmit}>
+    <form id="library-settings" className={`${styles.newForm} ${styles.anchorSection}`} onSubmit={onSubmit}>
       <div className={styles.settingsHead} style={{ marginTop: 0 }}>
         <Settings size={18} className={styles.headerIcon} />
         <h2 className={styles.settingsTitle}>{t('Library settings')}</h2>
@@ -533,7 +488,7 @@ function MailConfigForm() {
   };
 
   return (
-    <form className={styles.newForm} onSubmit={onSubmit}>
+    <form id="email-settings" className={`${styles.newForm} ${styles.anchorSection}`} onSubmit={onSubmit}>
       <div className={styles.settingsHead} style={{ marginTop: 0 }}>
         <Mail size={18} className={styles.headerIcon} />
         <h2 className={styles.settingsTitle}>{t('Email (SMTP) server')}</h2>
@@ -657,7 +612,7 @@ function SecurityConfigForm() {
   };
 
   return (
-    <form className={styles.newForm} onSubmit={onSubmit}>
+    <form id="security-settings" className={`${styles.newForm} ${styles.anchorSection}`} onSubmit={onSubmit}>
       <div className={styles.settingsHead} style={{ marginTop: 0 }}>
         <Lock size={18} className={styles.headerIcon} />
         <h2 className={styles.settingsTitle}>{t('Authentication & security')}</h2>
