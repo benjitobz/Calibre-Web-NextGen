@@ -4514,10 +4514,6 @@ msgid "Back to library"
 msgstr "返回書庫"
 
 #: cps/spa_strings.py
-msgid "Back to the classic view"
-msgstr "返回經典視圖"
-
-#: cps/spa_strings.py
 msgid "Base DN"
 msgstr ""
 

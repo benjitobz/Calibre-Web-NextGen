@@ -647,15 +647,9 @@ test.describe('My Library', () => {
     await removeMembership(page, missingBook.id);
 
     try {
-      // This matrix cell deliberately opts out of the SPA. Set and exercise
-      // the real preference cookie directly so a feedback-popup URL cannot
-      // change unrelated tests as an incidental side effect.
-      await page.context().addCookies([{
-        name: 'cwng_prefer_classic',
-        value: '1',
-        url: new URL(page.url()).origin,
-      }]);
-      await page.goto('/', { waitUntil: 'domcontentloaded' });
+      // This matrix cell deliberately enters the real session-scoped Classic
+      // fallback before exercising its direct routes.
+      await page.goto('/?cwng_feedback=newui', { waitUntil: 'domcontentloaded' });
       await expect.poll(() => new URL(page.url()).pathname).toBe('/');
       await expect(page.locator('#my-library-intro')).toContainText('New: My Library');
       await expect(page.getByRole('link', { name: 'Global Library' })).toHaveAttribute('href', '/global-library');
@@ -677,7 +671,7 @@ test.describe('My Library', () => {
       await expect(addButton).toHaveCount(0);
     } finally {
       await addMembership(page, missingBook.id).catch(() => undefined);
-      await page.context().clearCookies({ name: 'cwng_prefer_classic' });
+      await page.goto('/app/?cwng_switch=spa').catch(() => undefined);
     }
   });
 });

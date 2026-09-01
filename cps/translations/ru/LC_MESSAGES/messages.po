@@ -4689,10 +4689,6 @@ msgid "Back to library"
 msgstr "Вернуться в библиотеку"
 
 #: cps/spa_strings.py
-msgid "Back to the classic view"
-msgstr "Вернуться к классическому виду"
-
-#: cps/spa_strings.py
 msgid "Base DN"
 msgstr "Base DN"
 
