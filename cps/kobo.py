@@ -2628,11 +2628,11 @@ def HandleStateRequest(book_uuid):
             lm_str = request_reading_state.get("LastModified")
             request_lm = parse_kobo_timestamp(lm_str)
             g.kobo_reading_state_lm = request_lm
-            if request_lm is None:
-                # ``None`` is an observation rejection, not permission to
-                # manufacture an ordering clock. Keep the parent's last
-                # accepted clock so the before_flush hook does not replace it
-                # with server ``now`` while the position itself is preserved.
+            if not device_positions.timestamp_is_newer(
+                    request_lm, kobo_reading_state.last_modified):
+                # The ORM hook also touches the parent for accepted statistics
+                # and status writes. Give it a monotonic clock even when the
+                # device's observation is missing or trails the stored row.
                 g.kobo_reading_state_lm = getattr(
                     kobo_reading_state, "last_modified", None)
 
@@ -2648,43 +2648,45 @@ def HandleStateRequest(book_uuid):
                     content_source_progress_percent=request_bookmark.get(
                         "ContentSourceProgressPercent",
                     ),
-                    location_value=location.get("Value") if location else None,
-                    location_type=location.get("Type") if location else None,
-                    location_source=location.get("Source") if location else None,
+                    location_value=location["Value"] if location else None,
+                    location_type=location["Type"] if location else None,
+                    location_source=location["Source"] if location else None,
                     client_modified_at=request_lm,
                 )
 
-                stored_progress = current_bookmark.progress_percent
+                bookmark_outcome = device_positions.advance_kobo_bookmark(
+                    current_bookmark,
+                    incoming_progress,
+                    content_source_progress_percent=request_bookmark.get(
+                        "ContentSourceProgressPercent",
+                    ),
+                    content_source_supplied=(
+                        "ContentSourceProgressPercent" in request_bookmark
+                    ),
+                    location_value=location["Value"] if location else None,
+                    location_type=location["Type"] if location else None,
+                    location_source=location["Source"] if location else None,
+                    location_supplied=bool(location),
+                    incoming_clock=request_lm,
+                    clock_accepts=True,
+                    equal_accepts=True,
+                    preserve_clock_when_missing=True,
+                    block_lower_at_or_below=(
+                        KOB0_COVER_RESET_PROGRESS_EPSILON
+                        if rehydrate_pending else None
+                    ),
+                    session=ub.session,
+                )
+                resolved_bookmark_accepted = bookmark_outcome.accepted
                 cover_reset_suppressed = bool(
-                    rehydrate_pending
+                    not bookmark_outcome.accepted
+                    and rehydrate_pending
                     and incoming_progress is not None
-                    and stored_progress is not None
-                    and incoming_progress < stored_progress
-                    and incoming_progress
-                    <= KOB0_COVER_RESET_PROGRESS_EPSILON
+                    and incoming_progress <= KOB0_COVER_RESET_PROGRESS_EPSILON
+                    and bookmark_outcome.percentage is not None
+                    and bookmark_outcome.percentage > incoming_progress
                 )
-                resolved_bookmark_accepted = (
-                    not cover_reset_suppressed
-                    and device_positions.resolved_position_accepts(
-                        incoming_progress=incoming_progress,
-                        stored_progress=stored_progress,
-                        incoming_clock=request_lm,
-                        stored_clock=current_bookmark.last_modified,
-                    )
-                )
-                if resolved_bookmark_accepted:
-                    if incoming_progress is not None:
-                        current_bookmark.progress_percent = incoming_progress
-                    if "ContentSourceProgressPercent" in request_bookmark:
-                        current_bookmark.content_source_progress_percent = (
-                            request_bookmark["ContentSourceProgressPercent"]
-                        )
-                    if location:
-                        current_bookmark.location_value = location["Value"]
-                        current_bookmark.location_type = location["Type"]
-                        current_bookmark.location_source = location["Source"]
-                    _apply_kobo_last_modified(current_bookmark, request_lm)
-                elif cover_reset_suppressed:
+                if cover_reset_suppressed:
                     log.info(
                         "Kobo cover reset suppressed for device %s book %s "
                         "(rehydrate_pending=%s): %.2f%% < %.2f%%",
@@ -2692,7 +2694,7 @@ def HandleStateRequest(book_uuid):
                         book.id,
                         rehydrate_pending,
                         incoming_progress,
-                        stored_progress,
+                        bookmark_outcome.percentage,
                     )
                 update_results_response["CurrentBookmarkResult"] = {"Result": "Success"}
 
@@ -2731,13 +2733,14 @@ def HandleStateRequest(book_uuid):
 
         if resolved_bookmark_accepted:
             if request_bookmark and request_bookmark.get("ProgressPercent") is not None:
+                accepted_progress = bookmark_outcome.percentage
                 push_reading_state_to_hardcover(
-                    current_user, book, request_bookmark["ProgressPercent"],
+                    current_user, book, accepted_progress,
                 )
                 share_kobo_progress_with_koreader(
                     current_user.id,
                     book.id,
-                    request_bookmark["ProgressPercent"],
+                    accepted_progress,
                 )
 
         ub.session.merge(kobo_reading_state)
