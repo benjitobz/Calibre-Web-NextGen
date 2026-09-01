@@ -2655,9 +2655,6 @@ def HandleStateRequest(book_uuid):
                 )
 
                 stored_progress = current_bookmark.progress_percent
-                incoming_is_newer = device_positions.timestamp_is_newer(
-                    request_lm, current_bookmark.last_modified,
-                )
                 cover_reset_suppressed = bool(
                     rehydrate_pending
                     and incoming_progress is not None
@@ -2666,14 +2663,13 @@ def HandleStateRequest(book_uuid):
                     and incoming_progress
                     <= KOB0_COVER_RESET_PROGRESS_EPSILON
                 )
-                resolved_bookmark_accepted = not cover_reset_suppressed and (
-                    incoming_is_newer
-                    or (
-                        incoming_progress is not None
-                        and (
-                            stored_progress is None
-                            or incoming_progress >= stored_progress
-                        )
+                resolved_bookmark_accepted = (
+                    not cover_reset_suppressed
+                    and device_positions.resolved_position_accepts(
+                        incoming_progress=incoming_progress,
+                        stored_progress=stored_progress,
+                        incoming_clock=request_lm,
+                        stored_clock=current_bookmark.last_modified,
                     )
                 )
                 if resolved_bookmark_accepted:

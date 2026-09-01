@@ -45,7 +45,8 @@ from typing import Dict, Optional, Any, Tuple
 from urllib.parse import quote
 
 from ...services import SyncToken as SyncToken, hardcover
-from ...services import device_capabilities, device_delivery
+from ...services import (device_capabilities, device_delivery,
+                         device_reading_position as device_positions)
 from ...kobo import push_reading_state_to_hardcover
 
 from flask import Blueprint, request, jsonify, send_from_directory
@@ -583,12 +584,10 @@ def update_book_read_status(user, book_id: int, percentage: float) -> None:
 
         book_read.last_modified = datetime.now(timezone.utc)
 
-        # Keep the independent book-detail/UI carrier in lockstep with the
-        # accepted KOSync position, including legacy ReadBook rows that have no
-        # KoboReadingState yet (#627).
+        # Complete the independent book-detail/UI carrier, including legacy
+        # ReadBook rows that have no KoboReadingState yet (#627). Its position
+        # is resolved below after both ReadBook branches converge.
         bookmark = _ensure_visible_reading_state(book_read, user_id, book_id)
-        bookmark.progress_percent = percentage
-        bookmark.last_modified = datetime.now(timezone.utc)
 
     else:
         # Create new ReadBook record
@@ -610,11 +609,33 @@ def update_book_read_status(user, book_id: int, percentage: float) -> None:
         # Create the same complete visible state graph as the existing-row
         # path. Keeping one constructor prevents the two branches drifting.
         bookmark = _ensure_visible_reading_state(book_read, user_id, book_id)
-        bookmark.progress_percent = percentage
 
         ub.session.add(book_read)
         log.info(f"User {user_id} book {book_id} created with status {new_status} "
                 f"(progress: {percentage:.1f}%)")
+
+    # KOSync and KoboBookmark are independent carriers. Reuse the resolved
+    # bookmark's clock/furthest arbiter rather than assuming that acceptance by
+    # KOSync also permits this cross-carrier write. KOReader supplies no
+    # trustworthy source observation clock; its row timestamp is server receipt
+    # time. Passing no incoming clock therefore selects the arbiter's furthest
+    # leg: an honest forward position crosses to Kobo, while a same-device
+    # rewind remains valid in KOSync but cannot drag the Kobo-visible frontier
+    # backwards. An explicit mark-unread/reset remains the action that clears
+    # every carrier for a deliberate restart.
+    stored_percentage = bookmark.progress_percent
+    if device_positions.resolved_position_accepts(
+        incoming_progress=percentage,
+        stored_progress=stored_percentage,
+    ):
+        bookmark.progress_percent = percentage
+        bookmark.last_modified = datetime.now(timezone.utc)
+    else:
+        log.info(
+            "Preserved furthest Kobo bookmark during KOSync mirror: "
+            "user=%s, book=%s, incoming=%.2f%%, stored=%.2f%%",
+            user_id, book_id, percentage, stored_percentage,
+        )
 
     # Merge the record (caller commits)
     ub.session.merge(book_read)

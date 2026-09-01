@@ -45,6 +45,27 @@ def timestamp_is_newer(candidate, current):
     return candidate > current
 
 
+def resolved_position_accepts(
+    *, incoming_progress, stored_progress, incoming_clock=None, stored_clock=None
+):
+    """Apply the resolved-carrier clock/furthest arbitration policy.
+
+    A source observation replaces the resolved bookmark when its trustworthy
+    source clock is newer, or when its portable percentage is equal/further.
+    Callers without a comparable source clock pass ``None`` and therefore use
+    the furthest leg only. In particular, a KOSync receipt timestamp is a
+    server clock, not the KOReader observation clock, so it must not authorize
+    a cross-carrier rewind merely because the request arrived later.
+    """
+    return timestamp_is_newer(incoming_clock, stored_clock) or (
+        incoming_progress is not None
+        and (
+            stored_progress is None
+            or incoming_progress >= stored_progress
+        )
+    )
+
+
 def stage_position(
     *,
     device_id,
