@@ -5918,6 +5918,10 @@ msgid "Hide device library"
 msgstr "Masquer la bibliothèque de l’appareil"
 
 #: cps/spa_strings.py
+msgid "Hide device details"
+msgstr "Masquer les détails de l’appareil"
+
+#: cps/spa_strings.py
 msgid "Hide fields"
 msgstr "Masquer les champs"
 
@@ -7236,6 +7240,10 @@ msgid "Show annotations assigned to this device"
 msgstr "Afficher les annotations attribuées à cet appareil"
 
 #: cps/spa_strings.py
+msgid "Show device details"
+msgstr "Afficher les détails de l’appareil"
+
+#: cps/spa_strings.py
 msgid "Show books in language"
 msgstr "Afficher les livres dans la langue"
 
@@ -7933,6 +7941,11 @@ msgstr "{n} attribués à {name}."
 #, python-brace-format
 msgid "{n} books in latest inventory"
 msgstr "{n} livres dans le dernier inventaire"
+
+#: cps/spa_strings.py
+#, python-brace-format
+msgid "{seeded} of {total} books seeded"
+msgstr "{seeded} livres initialisés sur {total}"
 
 #: cps/spa_strings.py
 #, python-brace-format

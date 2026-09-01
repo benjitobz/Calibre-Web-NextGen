@@ -5534,6 +5534,10 @@ msgid "Hide device library"
 msgstr ""
 
 #: cps/spa_strings.py
+msgid "Hide device details"
+msgstr ""
+
+#: cps/spa_strings.py
 msgid "Hide fields"
 msgstr ""
 
@@ -6796,6 +6800,10 @@ msgid "Show annotations assigned to this device"
 msgstr ""
 
 #: cps/spa_strings.py
+msgid "Show device details"
+msgstr ""
+
+#: cps/spa_strings.py
 msgid "Show books in language"
 msgstr ""
 
@@ -7447,6 +7455,11 @@ msgstr ""
 #: cps/spa_strings.py
 #, python-brace-format
 msgid "{n} books in latest inventory"
+msgstr ""
+
+#: cps/spa_strings.py
+#, python-brace-format
+msgid "{seeded} of {total} books seeded"
 msgstr ""
 
 #: cps/spa_strings.py
@@ -13621,4 +13634,3 @@ msgstr ""
 #: cps/templates/user_table.html
 msgid "Show Read/Unread Section"
 msgstr ""
-

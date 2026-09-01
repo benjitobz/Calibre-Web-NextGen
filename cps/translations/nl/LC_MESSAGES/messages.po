@@ -5790,6 +5790,10 @@ msgid "Hide device library"
 msgstr "Apparaatbibliotheek verbergen"
 
 #: cps/spa_strings.py
+msgid "Hide device details"
+msgstr "Apparaatgegevens verbergen"
+
+#: cps/spa_strings.py
 msgid "Hide fields"
 msgstr "Velden verbergen"
 
@@ -7092,6 +7096,10 @@ msgid "Show annotations assigned to this device"
 msgstr "Toon annotaties die aan dit apparaat zijn toegewezen"
 
 #: cps/spa_strings.py
+msgid "Show device details"
+msgstr "Apparaatgegevens tonen"
+
+#: cps/spa_strings.py
 msgid "Show books in language"
 msgstr "Boeken in taal tonen"
 
@@ -7786,6 +7794,11 @@ msgstr "{n} toegewezen aan {name}."
 #, python-brace-format
 msgid "{n} books in latest inventory"
 msgstr "{n} boeken in de nieuwste inventaris"
+
+#: cps/spa_strings.py
+#, python-brace-format
+msgid "{seeded} of {total} books seeded"
+msgstr "{seeded} van {total} boeken geïnitialiseerd"
 
 #: cps/spa_strings.py
 #, python-brace-format
