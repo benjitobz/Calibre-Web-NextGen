@@ -2,7 +2,7 @@
   position: sticky;
   top: var(--topbar-h);
   width: 240px;
-  height: calc(100vh - var(--topbar-h));
+  height: var(--context-sidebar-available-height, calc(100dvh - var(--topbar-h)));
   flex: 0 0 240px;
   box-sizing: border-box;
   background: var(--surface-1);
@@ -17,15 +17,16 @@
   overflow-x: hidden;
   overflow-y: auto;
   overscroll-behavior: contain;
+  scrollbar-gutter: stable;
   background: var(--surface-1);
-  padding: 0 var(--sp-3) var(--sp-4);
+  padding: 0 var(--sp-2) var(--sp-3);
 }
 
 .topControls {
   position: sticky;
   top: 0;
   z-index: 1;
-  padding: var(--sp-4) 0 var(--sp-3);
+  padding: var(--sp-3) 0 var(--sp-2);
   background: var(--surface-1);
   border-bottom: 1px solid var(--border);
 }
@@ -39,13 +40,13 @@
 .itemActive {
   display: flex;
   align-items: center;
-  gap: var(--sp-3);
-  min-height: 40px;
+  gap: var(--sp-2);
+  min-height: 34px;
   box-sizing: border-box;
-  padding: var(--sp-2) var(--sp-3);
+  padding: var(--sp-1) var(--sp-2);
   border-radius: var(--r-md);
   color: var(--text-muted);
-  font-size: var(--fs-base);
+  font-size: var(--fs-sm);
   font-weight: var(--fw-medium);
   line-height: var(--lh-snug);
   transition: background var(--dur-fast) var(--ease), color var(--dur-fast) var(--ease);
@@ -69,8 +70,8 @@
 .groups {
   display: flex;
   flex-direction: column;
-  gap: var(--sp-4);
-  padding-top: var(--sp-4);
+  gap: var(--sp-3);
+  padding-top: var(--sp-3);
 }
 
 .group {
@@ -78,8 +79,8 @@
 }
 
 .groupLabel {
-  margin: 0 0 var(--sp-1);
-  padding: 0 var(--sp-3);
+  margin: 0 0 2px;
+  padding: 0 var(--sp-2);
   color: var(--text-faint);
   font-family: var(--font-body);
   font-size: var(--fs-xs);
@@ -92,7 +93,7 @@
 .list {
   display: flex;
   flex-direction: column;
-  gap: 2px;
+  gap: 1px;
 }
 
 .icon {
@@ -102,6 +103,9 @@
 .itemLabel {
   min-width: 0;
   flex: 1 1 auto;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
 }
 
 .classic {
@@ -153,6 +157,7 @@
     box-shadow: var(--elev-3);
     transition: transform var(--dur-base) var(--ease-out);
     -webkit-overflow-scrolling: touch;
+    scrollbar-gutter: auto;
   }
 
   .nav {

@@ -4725,8 +4725,8 @@ msgid "Base DN"
 msgstr "DN base"
 
 #: cps/spa_strings.py
-msgid "Basic configuration"
-msgstr "Configuración básica"
+msgid "Basic settings"
+msgstr ""
 
 #: cps/spa_strings.py
 msgid "Beta"
@@ -4800,8 +4800,8 @@ msgid "CA certificate path"
 msgstr "Ruta del certificado CA"
 
 #: cps/spa_strings.py
-msgid "CWA settings (ingest/convert)"
-msgstr "Configuración de CWA (ingesta/conversión)"
+msgid "CWA settings"
+msgstr ""
 
 #: cps/spa_strings.py
 msgid "Can upload books"
@@ -5229,8 +5229,8 @@ msgid "Custom columns"
 msgstr "Columnas personalizadas"
 
 #: cps/spa_strings.py
-msgid "Database & library path"
-msgstr "Ruta de la base de datos y la biblioteca"
+msgid "Database path"
+msgstr ""
 
 #: cps/spa_strings.py cps/templates/detail.html
 msgid "Date added"
@@ -5396,6 +5396,10 @@ msgid "Device: {name}"
 msgstr ""
 
 #: cps/spa_strings.py
+msgid "Devices"
+msgstr ""
+
+#: cps/spa_strings.py
 msgid "Devices appear here after their first sync."
 msgstr ""
 
@@ -5423,6 +5427,10 @@ msgstr "Descartar"
 #: cps/spa_strings.py
 msgid "Dismiss this group"
 msgstr "Descartar este grupo"
+
+#: cps/spa_strings.py cps/templates/readcbr.html
+msgid "Display"
+msgstr "Visualización"
 
 #: cps/spa_strings.py
 msgid "Documentation"
@@ -5452,10 +5460,6 @@ msgstr "Duplicar"
 #: cps/spa_strings.py
 msgid "Duplicate books"
 msgstr "Libros duplicados"
-
-#: cps/spa_strings.py
-msgid "Duplicate detection settings"
-msgstr "Configuración de detección de duplicados"
 
 #: cps/spa_strings.py
 msgid ""
@@ -5538,6 +5542,10 @@ msgstr "Claim de correo electrónico"
 #: cps/spa_strings.py
 msgid "Email me a reset"
 msgstr "Enviarme un restablecimiento por correo"
+
+#: cps/spa_strings.py
+msgid "Email server"
+msgstr ""
 
 #: cps/spa_strings.py
 msgid "Email settings saved."
@@ -5677,10 +5685,6 @@ msgstr "Dirección de origen"
 #: cps/spa_strings.py
 msgid "Full screen"
 msgstr ""
-
-#: cps/spa_strings.py
-msgid "Full user table & restrictions"
-msgstr "Tabla completa de usuarios y restricciones"
 
 #: cps/spa_strings.py
 msgid "Generate a new link"
@@ -6897,6 +6901,10 @@ msgid "Searching…"
 msgstr "Buscando…"
 
 #: cps/spa_strings.py
+msgid "Security"
+msgstr ""
+
+#: cps/spa_strings.py
 msgid "Security settings saved."
 msgstr "Configuración de seguridad guardada."
 
@@ -7175,11 +7183,6 @@ msgstr "Empezado a leer"
 msgid "Starting scan…"
 msgstr "Iniciando escaneo…"
 
-# "Last-Translator: victorhck <victorhck@mailbox.org>\n"
-#: cps/spa_strings.py
-msgid "Statistics dashboard"
-msgstr "Panel de estadísticas"
-
 #: cps/spa_strings.py cps/templates/tasks.html
 msgid "Status"
 msgstr "Estado"
@@ -7365,10 +7368,6 @@ msgstr ""
 msgid "Two-way sync preference saved."
 msgstr ""
 
-#: cps/spa_strings.py
-msgid "UI / display configuration"
-msgstr "Configuración de interfaz / visualización"
-
 #: cps/spa_strings.py cps/templates/book_table.html
 msgid "Unarchive"
 msgstr "Desarchivar"
@@ -7459,6 +7458,10 @@ msgid "User object filter"
 msgstr "Filtro de objeto de usuario"
 
 #: cps/spa_strings.py
+msgid "User restrictions"
+msgstr ""
+
+#: cps/spa_strings.py
 msgid "Userinfo URL"
 msgstr "URL de información de usuario"
 
@@ -7471,6 +7474,10 @@ msgstr "Nombre de usuario"
 #: cps/spa_strings.py
 msgid "Username claim"
 msgstr "Claim de nombre de usuario"
+
+#: cps/spa_strings.py
+msgid "Users"
+msgstr ""
 
 #: cps/spa_strings.py
 msgid "Versions"
@@ -13491,10 +13498,6 @@ msgid "Flip Image"
 msgstr "Voltear imagen"
 
 #: cps/templates/readcbr.html
-msgid "Display"
-msgstr "Visualización"
-
-#: cps/templates/readcbr.html
 msgid "Single Page"
 msgstr "Página Única"
 
@@ -14497,6 +14500,28 @@ msgstr "Exponer las estanterías seleccionadas en OPDS"
 #: cps/templates/user_table.html
 msgid "Show Read/Unread Section"
 msgstr "Mostrar Selección Leidos/No Leidos"
+
+#~ msgid "Basic configuration"
+#~ msgstr "Configuración básica"
+
+#~ msgid "CWA settings (ingest/convert)"
+#~ msgstr "Configuración de CWA (ingesta/conversión)"
+
+#~ msgid "Database & library path"
+#~ msgstr "Ruta de la base de datos y la biblioteca"
+
+#~ msgid "Duplicate detection settings"
+#~ msgstr "Configuración de detección de duplicados"
+
+#~ msgid "Full user table & restrictions"
+#~ msgstr "Tabla completa de usuarios y restricciones"
+
+# "Last-Translator: victorhck <victorhck@mailbox.org>\n"
+#~ msgid "Statistics dashboard"
+#~ msgstr "Panel de estadísticas"
+
+#~ msgid "UI / display configuration"
+#~ msgstr "Configuración de interfaz / visualización"
 
 #~ msgid "More server configuration"
 #~ msgstr "Más configuración del servidor"

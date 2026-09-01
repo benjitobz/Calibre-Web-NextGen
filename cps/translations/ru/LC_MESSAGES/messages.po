@@ -743,8 +743,8 @@ msgid ""
 "https://your-domain.com)"
 msgstr ""
 "В поле «Хост перенаправления OAuth» не следует указывать путь. Используйте "
-"только базовый URL (например, [https://your-domain.com](https://your-domain."
-"com))"
+"только базовый URL (например, [https://your-domain.com](https://your-"
+"domain.com))"
 
 #: cps/admin.py
 msgid "Password length has to be between 1 and 40"
@@ -4697,8 +4697,8 @@ msgid "Base DN"
 msgstr "Base DN"
 
 #: cps/spa_strings.py
-msgid "Basic configuration"
-msgstr "Основные настройки"
+msgid "Basic settings"
+msgstr ""
 
 #: cps/spa_strings.py
 msgid "Beta"
@@ -4772,8 +4772,8 @@ msgid "CA certificate path"
 msgstr "Путь к CA-сертификату"
 
 #: cps/spa_strings.py
-msgid "CWA settings (ingest/convert)"
-msgstr "Настройки CWA (импорт/конвертация)"
+msgid "CWA settings"
+msgstr ""
 
 #: cps/spa_strings.py
 msgid "Can upload books"
@@ -5201,8 +5201,8 @@ msgid "Custom columns"
 msgstr "Пользовательские колонки"
 
 #: cps/spa_strings.py
-msgid "Database & library path"
-msgstr "База данных и путь к библиотеке"
+msgid "Database path"
+msgstr ""
 
 #: cps/spa_strings.py cps/templates/detail.html
 msgid "Date added"
@@ -5368,6 +5368,10 @@ msgid "Device: {name}"
 msgstr "Устройство: {name}"
 
 #: cps/spa_strings.py
+msgid "Devices"
+msgstr ""
+
+#: cps/spa_strings.py
 msgid "Devices appear here after their first sync."
 msgstr "Устройства появятся здесь после первой синхронизации."
 
@@ -5395,6 +5399,10 @@ msgstr "Скрыть"
 #: cps/spa_strings.py
 msgid "Dismiss this group"
 msgstr "Пропустить эту группу"
+
+#: cps/spa_strings.py cps/templates/readcbr.html
+msgid "Display"
+msgstr "Отображение"
 
 #: cps/spa_strings.py
 msgid "Documentation"
@@ -5424,10 +5432,6 @@ msgstr "Дубликат"
 #: cps/spa_strings.py
 msgid "Duplicate books"
 msgstr "Дубликаты книг"
-
-#: cps/spa_strings.py
-msgid "Duplicate detection settings"
-msgstr "Настройки поиска дубликатов"
 
 #: cps/spa_strings.py
 msgid ""
@@ -5512,6 +5516,10 @@ msgstr "Атрибут email (Claim)"
 #: cps/spa_strings.py
 msgid "Email me a reset"
 msgstr "Отправить мне письмо для сброса"
+
+#: cps/spa_strings.py
+msgid "Email server"
+msgstr ""
 
 #: cps/spa_strings.py
 msgid "Email settings saved."
@@ -5652,10 +5660,6 @@ msgstr "Адрес отправителя"
 #: cps/spa_strings.py
 msgid "Full screen"
 msgstr "Полноэкранный режим"
-
-#: cps/spa_strings.py
-msgid "Full user table & restrictions"
-msgstr "Полная таблица пользователей и ограничений"
 
 #: cps/spa_strings.py
 msgid "Generate a new link"
@@ -6894,6 +6898,10 @@ msgid "Searching…"
 msgstr "Поиск…"
 
 #: cps/spa_strings.py
+msgid "Security"
+msgstr ""
+
+#: cps/spa_strings.py
 msgid "Security settings saved."
 msgstr "Настройки безопасности сохранены."
 
@@ -7176,10 +7184,6 @@ msgstr "Начато чтение"
 msgid "Starting scan…"
 msgstr "Запуск поиска…"
 
-#: cps/spa_strings.py
-msgid "Statistics dashboard"
-msgstr "Панель статистики"
-
 #: cps/spa_strings.py cps/templates/tasks.html
 msgid "Status"
 msgstr "Статус"
@@ -7368,10 +7372,6 @@ msgstr "Двусторонняя синхронизация активна"
 msgid "Two-way sync preference saved."
 msgstr "Настройка двусторонней синхронизации сохранена."
 
-#: cps/spa_strings.py
-msgid "UI / display configuration"
-msgstr "Настройки интерфейса и отображения"
-
 #: cps/spa_strings.py cps/templates/book_table.html
 msgid "Unarchive"
 msgstr "Разархивировать"
@@ -7461,6 +7461,10 @@ msgid "User object filter"
 msgstr "Фильтр объектов пользователей"
 
 #: cps/spa_strings.py
+msgid "User restrictions"
+msgstr ""
+
+#: cps/spa_strings.py
 msgid "Userinfo URL"
 msgstr "URL информации о пользователе"
 
@@ -7473,6 +7477,10 @@ msgstr "Имя пользователя"
 #: cps/spa_strings.py
 msgid "Username claim"
 msgstr "Атрибут имени пользователя (Claim)"
+
+#: cps/spa_strings.py
+msgid "Users"
+msgstr "Список пользователей"
 
 #: cps/spa_strings.py
 msgid "Versions"
@@ -10019,9 +10027,9 @@ msgid ""
 msgstr ""
 "Необязательно. Без ключа для Google Books действует ограничение около 1000 "
 "запросов на IP-адрес в день, которое легко исчерпать на общих серверах "
-"(ошибка HTTP 429). Бесплатный ключ можно получить на [https://console.cloud."
-"google.com](https://console.cloud.google.com) — включите «Books API» и "
-"создайте API-ключ."
+"(ошибка HTTP 429). Бесплатный ключ можно получить на [https://"
+"console.cloud.google.com](https://console.cloud.google.com) — включите "
+"«Books API» и создайте API-ключ."
 
 #: cps/templates/config_edit.html
 msgid "Allow Reverse Proxy Authentication"
@@ -11021,9 +11029,9 @@ msgid ""
 "\">kindle-epub-fix.netlify.app</a> tool made by <a href=\"https://github.com/"
 "innocenat\">innocenat</a>."
 msgstr ""
-"Этот инструмент был адаптирован из утилиты <a href=\"https://kindle-epub-fix."
-"netlify.app/\">kindle-epub-fix.netlify.app</a>, созданной <a href=\"https://"
-"github.com/innocenat\">innocenat</a>."
+"Этот инструмент был адаптирован из утилиты <a href=\"https://kindle-epub-"
+"fix.netlify.app/\">kindle-epub-fix.netlify.app</a>, созданной <a "
+"href=\"https://github.com/innocenat\">innocenat</a>."
 
 #: cps/templates/cwa_settings.html
 msgid "Enable KOReader Sync (NextGen Plugin)"
@@ -11046,9 +11054,9 @@ msgid ""
 "container after disabling."
 msgstr ""
 "Примечание: Включение этой опции запускает службу фонового вычисления "
-"контрольных сумм при старте, что может временно заблокировать файл metadata."
-"db. Чтобы остановить запущенный процесс, отключите опцию и перезапустите "
-"контейнер."
+"контрольных сумм при старте, что может временно заблокировать файл "
+"metadata.db. Чтобы остановить запущенный процесс, отключите опцию и "
+"перезапустите контейнер."
 
 #: cps/templates/cwa_settings.html
 msgid "Enable Aggressive EPUB Fixer Mode (riskier)"
@@ -13511,10 +13519,6 @@ msgid "Flip Image"
 msgstr "Отразить изображение"
 
 #: cps/templates/readcbr.html
-msgid "Display"
-msgstr "Отображение"
-
-#: cps/templates/readcbr.html
 msgid "Single Page"
 msgstr "Одна страница"
 
@@ -14524,6 +14528,27 @@ msgstr "Показывать выбранные полки в OPDS"
 msgid "Show Read/Unread Section"
 msgstr "Показать раздел прочитанного/непрочитанного"
 
+#~ msgid "Basic configuration"
+#~ msgstr "Основные настройки"
+
+#~ msgid "CWA settings (ingest/convert)"
+#~ msgstr "Настройки CWA (импорт/конвертация)"
+
+#~ msgid "Database & library path"
+#~ msgstr "База данных и путь к библиотеке"
+
+#~ msgid "Duplicate detection settings"
+#~ msgstr "Настройки поиска дубликатов"
+
+#~ msgid "Full user table & restrictions"
+#~ msgstr "Полная таблица пользователей и ограничений"
+
+#~ msgid "Statistics dashboard"
+#~ msgstr "Панель статистики"
+
+#~ msgid "UI / display configuration"
+#~ msgstr "Настройки интерфейса и отображения"
+
 #~ msgid "Kobo setup"
 #~ msgstr "Настройка Kobo"
 
@@ -14911,9 +14936,9 @@ msgstr "Показать раздел прочитанного/непрочит�
 #~ "metadata.db при запуске. Если найдена только одна библиотека, она "
 #~ "монтируется автоматически; если найдено несколько, по умолчанию будет "
 #~ "смонтирована самая большая, а если ни одной нет, будет автоматически "
-#~ "создана и смонтирована новая. Для подробностей, <a href=\"https://github."
-#~ "com/crocodilestick/Calibre-Web-Automated/wiki/Configuration#database-"
-#~ "configuration\">см. здесь</a>!"
+#~ "создана и смонтирована новая. Для подробностей, <a href=\"https://"
+#~ "github.com/crocodilestick/Calibre-Web-Automated/wiki/"
+#~ "Configuration#database-configuration\">см. здесь</a>!"
 
 #~ msgid ""
 #~ "Therefore, when configuring your docker-compose file for CWA, <b>DO NOT "
@@ -15293,9 +15318,6 @@ msgstr "Показать раздел прочитанного/непрочит�
 #, fuzzy
 #~ msgid "Repeat for confirmation"
 #~ msgstr "Дополнительный Настройки"
-
-#~ msgid "Users"
-#~ msgstr "Список пользователей"
 
 #~ msgid "Click the cover to load metadata to the form"
 #~ msgstr "Нажмите на обложку, чтобы получить метаданные"

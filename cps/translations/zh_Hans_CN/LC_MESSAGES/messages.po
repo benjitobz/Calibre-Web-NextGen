@@ -4558,7 +4558,7 @@ msgid "Base DN"
 msgstr ""
 
 #: cps/spa_strings.py
-msgid "Basic configuration"
+msgid "Basic settings"
 msgstr ""
 
 #: cps/spa_strings.py
@@ -4630,7 +4630,7 @@ msgid "CA certificate path"
 msgstr ""
 
 #: cps/spa_strings.py
-msgid "CWA settings (ingest/convert)"
+msgid "CWA settings"
 msgstr ""
 
 #: cps/spa_strings.py
@@ -5059,7 +5059,7 @@ msgid "Custom columns"
 msgstr ""
 
 #: cps/spa_strings.py
-msgid "Database & library path"
+msgid "Database path"
 msgstr ""
 
 #: cps/spa_strings.py cps/templates/detail.html
@@ -5222,6 +5222,10 @@ msgid "Device: {name}"
 msgstr ""
 
 #: cps/spa_strings.py
+msgid "Devices"
+msgstr ""
+
+#: cps/spa_strings.py
 msgid "Devices appear here after their first sync."
 msgstr ""
 
@@ -5250,6 +5254,10 @@ msgstr "忽略"
 msgid "Dismiss this group"
 msgstr ""
 
+#: cps/spa_strings.py cps/templates/readcbr.html
+msgid "Display"
+msgstr "显示"
+
 #: cps/spa_strings.py
 msgid "Documentation"
 msgstr ""
@@ -5277,10 +5285,6 @@ msgstr ""
 
 #: cps/spa_strings.py
 msgid "Duplicate books"
-msgstr ""
-
-#: cps/spa_strings.py
-msgid "Duplicate detection settings"
 msgstr ""
 
 #: cps/spa_strings.py
@@ -5361,6 +5365,10 @@ msgstr ""
 
 #: cps/spa_strings.py
 msgid "Email me a reset"
+msgstr ""
+
+#: cps/spa_strings.py
+msgid "Email server"
 msgstr ""
 
 #: cps/spa_strings.py
@@ -5498,10 +5506,6 @@ msgstr ""
 
 #: cps/spa_strings.py
 msgid "Full screen"
-msgstr ""
-
-#: cps/spa_strings.py
-msgid "Full user table & restrictions"
 msgstr ""
 
 #: cps/spa_strings.py
@@ -6706,6 +6710,10 @@ msgid "Searching…"
 msgstr ""
 
 #: cps/spa_strings.py
+msgid "Security"
+msgstr ""
+
+#: cps/spa_strings.py
 msgid "Security settings saved."
 msgstr ""
 
@@ -6982,10 +6990,6 @@ msgstr ""
 msgid "Starting scan…"
 msgstr ""
 
-#: cps/spa_strings.py
-msgid "Statistics dashboard"
-msgstr ""
-
 #: cps/spa_strings.py cps/templates/tasks.html
 msgid "Status"
 msgstr "任务状态"
@@ -7167,10 +7171,6 @@ msgstr ""
 msgid "Two-way sync preference saved."
 msgstr ""
 
-#: cps/spa_strings.py
-msgid "UI / display configuration"
-msgstr ""
-
 #: cps/spa_strings.py cps/templates/book_table.html
 msgid "Unarchive"
 msgstr ""
@@ -7258,6 +7258,10 @@ msgid "User object filter"
 msgstr ""
 
 #: cps/spa_strings.py
+msgid "User restrictions"
+msgstr ""
+
+#: cps/spa_strings.py
 msgid "Userinfo URL"
 msgstr ""
 
@@ -7270,6 +7274,10 @@ msgstr "用户名"
 #: cps/spa_strings.py
 msgid "Username claim"
 msgstr ""
+
+#: cps/spa_strings.py
+msgid "Users"
+msgstr "用户列表"
 
 #: cps/spa_strings.py
 msgid "Versions"
@@ -10659,8 +10667,8 @@ msgid ""
 "innocenat\">innocenat</a>."
 msgstr ""
 "此工具改编自 <a href=\"https://github.com/innocenat\">innocenat</a> 制作的 "
-"<a href=\"https://kindle-epub-fix.netlify.app/\">kindle-epub-fix.netlify."
-"app</a> 工具。"
+"<a href=\"https://kindle-epub-fix.netlify.app/\">kindle-epub-"
+"fix.netlify.app</a> 工具。"
 
 #: cps/templates/cwa_settings.html
 msgid "Enable KOReader Sync (NextGen Plugin)"
@@ -10679,8 +10687,8 @@ msgid ""
 "temporarily lock metadata.db. To stop a running backfill, restart the "
 "container after disabling."
 msgstr ""
-"注意：启用此功能会在启动时启动校验和回填服务，该服务可能会暂时锁定 metadata."
-"db。要停止正在运行的回填，请在禁用后重新启动容器。"
+"注意：启用此功能会在启动时启动校验和回填服务，该服务可能会暂时锁定 "
+"metadata.db。要停止正在运行的回填，请在禁用后重新启动容器。"
 
 #: cps/templates/cwa_settings.html
 msgid "Enable Aggressive EPUB Fixer Mode (riskier)"
@@ -11544,8 +11552,8 @@ msgid ""
 "users with edit rights will see a badge on the Duplicates sidebar button and "
 "a notification popup when they login."
 msgstr ""
-"检测到未解决的重复项时显示弹出通知。管理员和具有编辑权限的用户在登录时，将"
-"在“重复项”侧边栏按钮上看到一个徽章，并会看到一个弹出通知。"
+"检测到未解决的重复项时显示弹出通知。管理员和具有编辑权限的用户在登录时，将在"
+"“重复项”侧边栏按钮上看到一个徽章，并会看到一个弹出通知。"
 
 #: cps/templates/cwa_settings.html
 #, fuzzy
@@ -13061,10 +13069,6 @@ msgid "Flip Image"
 msgstr "翻转图片"
 
 #: cps/templates/readcbr.html
-msgid "Display"
-msgstr "显示"
-
-#: cps/templates/readcbr.html
 msgid "Single Page"
 msgstr "单页"
 
@@ -14458,9 +14462,6 @@ msgstr "显示已读、未读栏目"
 #, fuzzy
 #~ msgid "Value must be an iterable."
 #~ msgstr "值必须为 true 或 false"
-
-#~ msgid "Users"
-#~ msgstr "用户列表"
 
 #~ msgid "Click the cover to load metadata to the form"
 #~ msgstr "单击封面将元数据加载到表单"

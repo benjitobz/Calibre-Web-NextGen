@@ -4703,8 +4703,8 @@ msgid "Base DN"
 msgstr "Podstawowa DN"
 
 #: cps/spa_strings.py
-msgid "Basic configuration"
-msgstr "Podstawowa konfiguracja"
+msgid "Basic settings"
+msgstr ""
 
 #: cps/spa_strings.py
 msgid "Beta"
@@ -4778,8 +4778,8 @@ msgid "CA certificate path"
 msgstr "Ścieżka certyfikatu CA"
 
 #: cps/spa_strings.py
-msgid "CWA settings (ingest/convert)"
-msgstr "Ustawienia CWA (import/konwersja)"
+msgid "CWA settings"
+msgstr ""
 
 #: cps/spa_strings.py
 msgid "Can upload books"
@@ -5209,8 +5209,8 @@ msgid "Custom columns"
 msgstr "Niestandardowe kolumny"
 
 #: cps/spa_strings.py
-msgid "Database & library path"
-msgstr "Ścieżka bazy danych i biblioteki"
+msgid "Database path"
+msgstr ""
 
 #: cps/spa_strings.py cps/templates/detail.html
 msgid "Date added"
@@ -5376,6 +5376,10 @@ msgid "Device: {name}"
 msgstr ""
 
 #: cps/spa_strings.py
+msgid "Devices"
+msgstr ""
+
+#: cps/spa_strings.py
 msgid "Devices appear here after their first sync."
 msgstr ""
 
@@ -5403,6 +5407,10 @@ msgstr "Odrzuć"
 #: cps/spa_strings.py
 msgid "Dismiss this group"
 msgstr "Odrzuć tę grupę"
+
+#: cps/spa_strings.py cps/templates/readcbr.html
+msgid "Display"
+msgstr "Wyświetlanie"
 
 #: cps/spa_strings.py
 msgid "Documentation"
@@ -5433,10 +5441,6 @@ msgstr "Duplikat"
 #: cps/spa_strings.py
 msgid "Duplicate books"
 msgstr "Zduplikowane książki"
-
-#: cps/spa_strings.py
-msgid "Duplicate detection settings"
-msgstr "Ustawienia wykrywania duplikatów"
 
 #: cps/spa_strings.py
 msgid ""
@@ -5519,6 +5523,10 @@ msgstr "Roszczenie (claim) e-mail"
 #: cps/spa_strings.py
 msgid "Email me a reset"
 msgstr "Wyślij mi link resetujący"
+
+#: cps/spa_strings.py
+msgid "Email server"
+msgstr ""
 
 #: cps/spa_strings.py
 msgid "Email settings saved."
@@ -5658,10 +5666,6 @@ msgstr "Adres nadawcy"
 #: cps/spa_strings.py
 msgid "Full screen"
 msgstr ""
-
-#: cps/spa_strings.py
-msgid "Full user table & restrictions"
-msgstr "Pełna tabela użytkowników i ograniczenia"
 
 #: cps/spa_strings.py
 msgid "Generate a new link"
@@ -6881,6 +6885,10 @@ msgid "Searching…"
 msgstr "Wyszukiwanie…"
 
 #: cps/spa_strings.py
+msgid "Security"
+msgstr ""
+
+#: cps/spa_strings.py
 msgid "Security settings saved."
 msgstr "Ustawienia bezpieczeństwa zapisane."
 
@@ -7160,10 +7168,6 @@ msgstr "Rozpoczęto czytanie"
 msgid "Starting scan…"
 msgstr "Rozpoczynanie skanowania…"
 
-#: cps/spa_strings.py
-msgid "Statistics dashboard"
-msgstr "Panel statystyk"
-
 #: cps/spa_strings.py cps/templates/tasks.html
 msgid "Status"
 msgstr "Status"
@@ -7347,10 +7351,6 @@ msgstr ""
 msgid "Two-way sync preference saved."
 msgstr ""
 
-#: cps/spa_strings.py
-msgid "UI / display configuration"
-msgstr "Konfiguracja interfejsu / wyświetlania"
-
 #: cps/spa_strings.py cps/templates/book_table.html
 msgid "Unarchive"
 msgstr "Przywróć z archiwum"
@@ -7440,6 +7440,10 @@ msgid "User object filter"
 msgstr "Filtr obiektu użytkownika"
 
 #: cps/spa_strings.py
+msgid "User restrictions"
+msgstr ""
+
+#: cps/spa_strings.py
 msgid "Userinfo URL"
 msgstr "Adres URL informacji o użytkowniku"
 
@@ -7452,6 +7456,10 @@ msgstr "Nazwa użytkownika"
 #: cps/spa_strings.py
 msgid "Username claim"
 msgstr "Roszczenie (claim) nazwy użytkownika"
+
+#: cps/spa_strings.py
+msgid "Users"
+msgstr "Lista użytkowników"
 
 #: cps/spa_strings.py
 msgid "Versions"
@@ -11480,8 +11488,8 @@ msgid ""
 "Add these two services to your docker-compose file and run \"docker compose "
 "up -d\". After that you stay up to date automatically — no button to press."
 msgstr ""
-"Dodaj te dwie usługi do pliku docker-compose i uruchom \"docker compose up -"
-"d\". Od tej pory aktualizacje odbywają się automatycznie — bez klikania "
+"Dodaj te dwie usługi do pliku docker-compose i uruchom \"docker compose up "
+"-d\". Od tej pory aktualizacje odbywają się automatycznie — bez klikania "
 "żadnego przycisku."
 
 #: cps/templates/cwa_settings.html cps/templates/update_now_modal.html
@@ -13411,10 +13419,6 @@ msgid "Flip Image"
 msgstr "Odwórć obraz"
 
 #: cps/templates/readcbr.html
-msgid "Display"
-msgstr "Wyświetlanie"
-
-#: cps/templates/readcbr.html
 msgid "Single Page"
 msgstr "Pojedyncza strona"
 
@@ -14411,6 +14415,27 @@ msgstr "Udostępniaj wybrane półki przez OPDS"
 msgid "Show Read/Unread Section"
 msgstr "Pokaż sekcję przeczytane/nieprzeczytane"
 
+#~ msgid "Basic configuration"
+#~ msgstr "Podstawowa konfiguracja"
+
+#~ msgid "CWA settings (ingest/convert)"
+#~ msgstr "Ustawienia CWA (import/konwersja)"
+
+#~ msgid "Database & library path"
+#~ msgstr "Ścieżka bazy danych i biblioteki"
+
+#~ msgid "Duplicate detection settings"
+#~ msgstr "Ustawienia wykrywania duplikatów"
+
+#~ msgid "Full user table & restrictions"
+#~ msgstr "Pełna tabela użytkowników i ograniczenia"
+
+#~ msgid "Statistics dashboard"
+#~ msgstr "Panel statystyk"
+
+#~ msgid "UI / display configuration"
+#~ msgstr "Konfiguracja interfejsu / wyświetlania"
+
 #~ msgid "More server configuration"
 #~ msgstr "Więcej konfiguracji serwera"
 
@@ -15012,9 +15037,6 @@ msgstr "Pokaż sekcję przeczytane/nieprzeczytane"
 #, fuzzy
 #~ msgid "Value must be an iterable."
 #~ msgstr "Wartość musi być prawdziwa lub fałszywa"
-
-#~ msgid "Users"
-#~ msgstr "Lista użytkowników"
 
 #~ msgid "Click the cover to load metadata to the form"
 #~ msgstr "Kliknij okładkę, aby załadować metadane do formularza"

@@ -2469,8 +2469,8 @@ msgstr "Δημιούργησε ένα Ράφι"
 #, fuzzy
 msgid "Sorry you are not allowed to edit this shelf"
 msgstr ""
-"Συγγνώμη αλλά δεν σου επιτρέπεται η αφαίρεση ενός βιβλίου από αυτό το ράφι: "
-"%(sname)s"
+"Συγγνώμη αλλά δεν σου επιτρέπεται η αφαίρεση ενός βιβλίου από αυτό το ράφι: %"
+"(sname)s"
 
 #: cps/shelf.py
 msgid "Edit a shelf"
@@ -4622,7 +4622,7 @@ msgid "Base DN"
 msgstr ""
 
 #: cps/spa_strings.py
-msgid "Basic configuration"
+msgid "Basic settings"
 msgstr ""
 
 #: cps/spa_strings.py
@@ -4694,7 +4694,7 @@ msgid "CA certificate path"
 msgstr ""
 
 #: cps/spa_strings.py
-msgid "CWA settings (ingest/convert)"
+msgid "CWA settings"
 msgstr ""
 
 #: cps/spa_strings.py
@@ -5123,7 +5123,7 @@ msgid "Custom columns"
 msgstr ""
 
 #: cps/spa_strings.py
-msgid "Database & library path"
+msgid "Database path"
 msgstr ""
 
 #: cps/spa_strings.py cps/templates/detail.html
@@ -5286,6 +5286,10 @@ msgid "Device: {name}"
 msgstr ""
 
 #: cps/spa_strings.py
+msgid "Devices"
+msgstr ""
+
+#: cps/spa_strings.py
 msgid "Devices appear here after their first sync."
 msgstr ""
 
@@ -5312,6 +5316,10 @@ msgstr ""
 
 #: cps/spa_strings.py
 msgid "Dismiss this group"
+msgstr ""
+
+#: cps/spa_strings.py cps/templates/readcbr.html
+msgid "Display"
 msgstr ""
 
 #: cps/spa_strings.py
@@ -5341,10 +5349,6 @@ msgstr ""
 
 #: cps/spa_strings.py
 msgid "Duplicate books"
-msgstr ""
-
-#: cps/spa_strings.py
-msgid "Duplicate detection settings"
 msgstr ""
 
 #: cps/spa_strings.py
@@ -5425,6 +5429,10 @@ msgstr ""
 
 #: cps/spa_strings.py
 msgid "Email me a reset"
+msgstr ""
+
+#: cps/spa_strings.py
+msgid "Email server"
 msgstr ""
 
 #: cps/spa_strings.py
@@ -5562,10 +5570,6 @@ msgstr ""
 
 #: cps/spa_strings.py
 msgid "Full screen"
-msgstr ""
-
-#: cps/spa_strings.py
-msgid "Full user table & restrictions"
 msgstr ""
 
 #: cps/spa_strings.py
@@ -6770,6 +6774,10 @@ msgid "Searching…"
 msgstr ""
 
 #: cps/spa_strings.py
+msgid "Security"
+msgstr ""
+
+#: cps/spa_strings.py
 msgid "Security settings saved."
 msgstr ""
 
@@ -7046,10 +7054,6 @@ msgstr ""
 msgid "Starting scan…"
 msgstr ""
 
-#: cps/spa_strings.py
-msgid "Statistics dashboard"
-msgstr ""
-
 #: cps/spa_strings.py cps/templates/tasks.html
 msgid "Status"
 msgstr "Κατάσταση"
@@ -7231,10 +7235,6 @@ msgstr ""
 msgid "Two-way sync preference saved."
 msgstr ""
 
-#: cps/spa_strings.py
-msgid "UI / display configuration"
-msgstr ""
-
 #: cps/spa_strings.py cps/templates/book_table.html
 msgid "Unarchive"
 msgstr ""
@@ -7322,6 +7322,10 @@ msgid "User object filter"
 msgstr ""
 
 #: cps/spa_strings.py
+msgid "User restrictions"
+msgstr ""
+
+#: cps/spa_strings.py
 msgid "Userinfo URL"
 msgstr ""
 
@@ -7334,6 +7338,10 @@ msgstr "Όνομα Χρήστη"
 #: cps/spa_strings.py
 msgid "Username claim"
 msgstr ""
+
+#: cps/spa_strings.py
+msgid "Users"
+msgstr "Χρήστες"
 
 #: cps/spa_strings.py
 msgid "Versions"
@@ -13084,10 +13092,6 @@ msgid "Flip Image"
 msgstr "Γύρισμα Σελίδας"
 
 #: cps/templates/readcbr.html
-msgid "Display"
-msgstr ""
-
-#: cps/templates/readcbr.html
 #, fuzzy
 msgid "Single Page"
 msgstr "Σελίδα διαχειριστή"
@@ -14256,9 +14260,6 @@ msgstr "Προβολή επιλογών σειράς"
 #, fuzzy
 #~ msgid "Repeat for confirmation"
 #~ msgstr "Διαμόρφωση Λειτουργίας"
-
-#~ msgid "Users"
-#~ msgstr "Χρήστες"
 
 #~ msgid "Click the cover to load metadata to the form"
 #~ msgstr "Κάνε κλικ στο εξώφυλλο για φόρτωση μεταδεδομένων στη φόρμα"

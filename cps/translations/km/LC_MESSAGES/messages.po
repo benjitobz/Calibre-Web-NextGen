@@ -4551,7 +4551,7 @@ msgid "Base DN"
 msgstr ""
 
 #: cps/spa_strings.py
-msgid "Basic configuration"
+msgid "Basic settings"
 msgstr ""
 
 #: cps/spa_strings.py
@@ -4623,7 +4623,7 @@ msgid "CA certificate path"
 msgstr ""
 
 #: cps/spa_strings.py
-msgid "CWA settings (ingest/convert)"
+msgid "CWA settings"
 msgstr ""
 
 #: cps/spa_strings.py
@@ -5052,7 +5052,7 @@ msgid "Custom columns"
 msgstr ""
 
 #: cps/spa_strings.py
-msgid "Database & library path"
+msgid "Database path"
 msgstr ""
 
 #: cps/spa_strings.py cps/templates/detail.html
@@ -5215,6 +5215,10 @@ msgid "Device: {name}"
 msgstr ""
 
 #: cps/spa_strings.py
+msgid "Devices"
+msgstr ""
+
+#: cps/spa_strings.py
 msgid "Devices appear here after their first sync."
 msgstr ""
 
@@ -5241,6 +5245,10 @@ msgstr ""
 
 #: cps/spa_strings.py
 msgid "Dismiss this group"
+msgstr ""
+
+#: cps/spa_strings.py cps/templates/readcbr.html
+msgid "Display"
 msgstr ""
 
 #: cps/spa_strings.py
@@ -5270,10 +5278,6 @@ msgstr ""
 
 #: cps/spa_strings.py
 msgid "Duplicate books"
-msgstr ""
-
-#: cps/spa_strings.py
-msgid "Duplicate detection settings"
 msgstr ""
 
 #: cps/spa_strings.py
@@ -5354,6 +5358,10 @@ msgstr ""
 
 #: cps/spa_strings.py
 msgid "Email me a reset"
+msgstr ""
+
+#: cps/spa_strings.py
+msgid "Email server"
 msgstr ""
 
 #: cps/spa_strings.py
@@ -5491,10 +5499,6 @@ msgstr ""
 
 #: cps/spa_strings.py
 msgid "Full screen"
-msgstr ""
-
-#: cps/spa_strings.py
-msgid "Full user table & restrictions"
 msgstr ""
 
 #: cps/spa_strings.py
@@ -6699,6 +6703,10 @@ msgid "Searching…"
 msgstr ""
 
 #: cps/spa_strings.py
+msgid "Security"
+msgstr ""
+
+#: cps/spa_strings.py
 msgid "Security settings saved."
 msgstr ""
 
@@ -6975,10 +6983,6 @@ msgstr ""
 msgid "Starting scan…"
 msgstr ""
 
-#: cps/spa_strings.py
-msgid "Statistics dashboard"
-msgstr ""
-
 #: cps/spa_strings.py cps/templates/tasks.html
 msgid "Status"
 msgstr "ស្ថានភាព"
@@ -7160,10 +7164,6 @@ msgstr ""
 msgid "Two-way sync preference saved."
 msgstr ""
 
-#: cps/spa_strings.py
-msgid "UI / display configuration"
-msgstr ""
-
 #: cps/spa_strings.py cps/templates/book_table.html
 msgid "Unarchive"
 msgstr ""
@@ -7251,6 +7251,10 @@ msgid "User object filter"
 msgstr ""
 
 #: cps/spa_strings.py
+msgid "User restrictions"
+msgstr ""
+
+#: cps/spa_strings.py
 msgid "Userinfo URL"
 msgstr ""
 
@@ -7262,6 +7266,10 @@ msgstr "ឈ្មោះហៅក្រៅ"
 
 #: cps/spa_strings.py
 msgid "Username claim"
+msgstr ""
+
+#: cps/spa_strings.py
+msgid "Users"
 msgstr ""
 
 #: cps/spa_strings.py
@@ -12945,10 +12953,6 @@ msgstr ""
 
 #: cps/templates/readcbr.html
 msgid "Flip Image"
-msgstr ""
-
-#: cps/templates/readcbr.html
-msgid "Display"
 msgstr ""
 
 #: cps/templates/readcbr.html

@@ -4612,7 +4612,7 @@ msgid "Base DN"
 msgstr ""
 
 #: cps/spa_strings.py
-msgid "Basic configuration"
+msgid "Basic settings"
 msgstr ""
 
 #: cps/spa_strings.py
@@ -4684,7 +4684,7 @@ msgid "CA certificate path"
 msgstr ""
 
 #: cps/spa_strings.py
-msgid "CWA settings (ingest/convert)"
+msgid "CWA settings"
 msgstr ""
 
 #: cps/spa_strings.py
@@ -5113,7 +5113,7 @@ msgid "Custom columns"
 msgstr ""
 
 #: cps/spa_strings.py
-msgid "Database & library path"
+msgid "Database path"
 msgstr ""
 
 #: cps/spa_strings.py cps/templates/detail.html
@@ -5276,6 +5276,10 @@ msgid "Device: {name}"
 msgstr ""
 
 #: cps/spa_strings.py
+msgid "Devices"
+msgstr ""
+
+#: cps/spa_strings.py
 msgid "Devices appear here after their first sync."
 msgstr ""
 
@@ -5304,6 +5308,10 @@ msgstr ""
 msgid "Dismiss this group"
 msgstr ""
 
+#: cps/spa_strings.py cps/templates/readcbr.html
+msgid "Display"
+msgstr "Visualizzazione"
+
 #: cps/spa_strings.py
 msgid "Documentation"
 msgstr ""
@@ -5331,10 +5339,6 @@ msgstr ""
 
 #: cps/spa_strings.py
 msgid "Duplicate books"
-msgstr ""
-
-#: cps/spa_strings.py
-msgid "Duplicate detection settings"
 msgstr ""
 
 #: cps/spa_strings.py
@@ -5415,6 +5419,10 @@ msgstr ""
 
 #: cps/spa_strings.py
 msgid "Email me a reset"
+msgstr ""
+
+#: cps/spa_strings.py
+msgid "Email server"
 msgstr ""
 
 #: cps/spa_strings.py
@@ -5552,10 +5560,6 @@ msgstr ""
 
 #: cps/spa_strings.py
 msgid "Full screen"
-msgstr ""
-
-#: cps/spa_strings.py
-msgid "Full user table & restrictions"
 msgstr ""
 
 #: cps/spa_strings.py
@@ -6760,6 +6764,10 @@ msgid "Searching…"
 msgstr ""
 
 #: cps/spa_strings.py
+msgid "Security"
+msgstr ""
+
+#: cps/spa_strings.py
 msgid "Security settings saved."
 msgstr ""
 
@@ -7036,10 +7044,6 @@ msgstr ""
 msgid "Starting scan…"
 msgstr ""
 
-#: cps/spa_strings.py
-msgid "Statistics dashboard"
-msgstr ""
-
 #: cps/spa_strings.py cps/templates/tasks.html
 msgid "Status"
 msgstr "Stato"
@@ -7221,10 +7225,6 @@ msgstr ""
 msgid "Two-way sync preference saved."
 msgstr ""
 
-#: cps/spa_strings.py
-msgid "UI / display configuration"
-msgstr ""
-
 #: cps/spa_strings.py cps/templates/book_table.html
 msgid "Unarchive"
 msgstr "Rimuovi dall'archivio"
@@ -7312,6 +7312,10 @@ msgid "User object filter"
 msgstr ""
 
 #: cps/spa_strings.py
+msgid "User restrictions"
+msgstr ""
+
+#: cps/spa_strings.py
 msgid "Userinfo URL"
 msgstr ""
 
@@ -7324,6 +7328,10 @@ msgstr "Nome utente"
 #: cps/spa_strings.py
 msgid "Username claim"
 msgstr ""
+
+#: cps/spa_strings.py
+msgid "Users"
+msgstr "Utenti"
 
 #: cps/spa_strings.py
 msgid "Versions"
@@ -13058,10 +13066,6 @@ msgid "Flip Image"
 msgstr "Capovolgi immagine"
 
 #: cps/templates/readcbr.html
-msgid "Display"
-msgstr "Visualizzazione"
-
-#: cps/templates/readcbr.html
 msgid "Single Page"
 msgstr "Pagina singola"
 
@@ -14677,9 +14681,6 @@ msgstr "Mostra sezione Libri letti e Libri da leggere"
 #, fuzzy
 #~ msgid "Value must be an iterable."
 #~ msgstr "Il valore deve essere vero o falso"
-
-#~ msgid "Users"
-#~ msgstr "Utenti"
 
 #~ msgid "Click the cover to load metadata to the form"
 #~ msgstr "Fai clic sulla copertina per caricare i metadati nel modulo"

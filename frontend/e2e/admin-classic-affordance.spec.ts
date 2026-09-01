@@ -18,7 +18,7 @@ test('advanced server links disclose the intentional classic-view transition (#9
   // This assertion was left pointing at the old row when that shipped, so the
   // spec has been red ever since — invisible because E2E does not gate PRs
   // (#953). Updated to the row that actually exists.
-  const duplicates = adminNav.getByRole('link', { name: /Duplicate detection settings/ });
+  const duplicates = adminNav.getByRole('link', { name: /Duplicates/ });
   await expect(duplicates).toHaveAttribute('href', /cwa-settings#duplicate-detection$/);
   await expect(duplicates).toContainText('Opens in classic view');
 });
