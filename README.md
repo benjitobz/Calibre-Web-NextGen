@@ -748,6 +748,7 @@ The interface ships with the locales below. Completion is auto-refreshed on ever
 | Language | Completion | Strings | Fuzzy |
 |---|---|---:|---:|
 | English (source) | 100% | source | — |
+| Italian (`it`) | `████████████████████` 100% | 3113/3113 | 0 |
 | Russian (`ru`) | `██████████████████░░` 90% | 2817/3113 | 0 |
 | Spanish (`es`) | `█████████████████░░░` 84% | 2613/3113 | 0 |
 | French (`fr`) | `█████████████████░░░` 83% | 2590/3113 | 125 |
@@ -760,7 +761,6 @@ The interface ships with the locales below. Completion is auto-refreshed on ever
 | Japanese (`ja`) | `████████░░░░░░░░░░░░` 42% | 1313/3113 | 244 |
 | Slovenian (`sl`) | `████████░░░░░░░░░░░░` 39% | 1206/3113 | 313 |
 | Chinese (Simplified, China) (`zh_Hans_CN`) | `████████░░░░░░░░░░░░` 38% | 1169/3113 | 343 |
-| Italian (`it`) | `██████░░░░░░░░░░░░░░` 30% | 951/3113 | 266 |
 | Korean (`ko`) | `██████░░░░░░░░░░░░░░` 30% | 942/3113 | 266 |
 | Arabic (`ar`) | `█████░░░░░░░░░░░░░░░` 25% | 787/3113 | 281 |
 | Slovak (`sk`) | `█████░░░░░░░░░░░░░░░` 24% | 747/3113 | 308 |
