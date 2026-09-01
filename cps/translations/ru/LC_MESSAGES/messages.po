@@ -5752,6 +5752,10 @@ msgid "Hide device library"
 msgstr ""
 
 #: cps/spa_strings.py
+msgid "Hide device details"
+msgstr ""
+
+#: cps/spa_strings.py
 msgid "Hide fields"
 msgstr "Скрыть поля"
 
@@ -7052,6 +7056,10 @@ msgid "Show annotations assigned to this device"
 msgstr ""
 
 #: cps/spa_strings.py
+msgid "Show device details"
+msgstr ""
+
+#: cps/spa_strings.py
 msgid "Show books in language"
 msgstr "Показывать книги на языке"
 
@@ -7771,6 +7779,11 @@ msgid ""
 msgstr ""
 "На этом устройстве сделано {n} выделений и заметок. Они не удаляются. "
 "История их происхождения сохраняется."
+
+#: cps/spa_strings.py
+#, python-brace-format
+msgid "{seeded} of {total} books seeded"
+msgstr ""
 
 #: cps/spa_strings.py
 #, python-brace-format

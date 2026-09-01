@@ -7944,11 +7944,6 @@ msgstr "{n} livres dans le dernier inventaire"
 
 #: cps/spa_strings.py
 #, python-brace-format
-msgid "{seeded} of {total} books seeded"
-msgstr "{seeded} livres initialisés sur {total}"
-
-#: cps/spa_strings.py
-#, python-brace-format
 msgid "{n} devices · {m} active"
 msgstr "{n} appareils · {m} actifs"
 
@@ -7983,6 +7978,11 @@ msgid ""
 msgstr ""
 "{n} surlignages et notes ont été créés sur cet appareil. Ils ne sont pas "
 "supprimés. Leur historique d'origine est conservé."
+
+#: cps/spa_strings.py
+#, python-brace-format
+msgid "{seeded} of {total} books seeded"
+msgstr "{seeded} livres initialisés sur {total}"
 
 #: cps/spa_strings.py
 #, python-brace-format

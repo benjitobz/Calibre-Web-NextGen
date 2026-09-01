@@ -7797,11 +7797,6 @@ msgstr "{n} boeken in de nieuwste inventaris"
 
 #: cps/spa_strings.py
 #, python-brace-format
-msgid "{seeded} of {total} books seeded"
-msgstr "{seeded} van {total} boeken geïnitialiseerd"
-
-#: cps/spa_strings.py
-#, python-brace-format
 msgid "{n} devices · {m} active"
 msgstr "{n} apparaten · {m} actief"
 
@@ -7836,6 +7831,11 @@ msgid ""
 msgstr ""
 "{n} markeringen en notities zijn op dit apparaat gemaakt. Ze worden niet "
 "verwijderd. Hun herkomstgeschiedenis blijft bewaard."
+
+#: cps/spa_strings.py
+#, python-brace-format
+msgid "{seeded} of {total} books seeded"
+msgstr "{seeded} van {total} boeken geïnitialiseerd"
 
 #: cps/spa_strings.py
 #, python-brace-format

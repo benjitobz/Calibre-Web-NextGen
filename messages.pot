@@ -7459,11 +7459,6 @@ msgstr ""
 
 #: cps/spa_strings.py
 #, python-brace-format
-msgid "{seeded} of {total} books seeded"
-msgstr ""
-
-#: cps/spa_strings.py
-#, python-brace-format
 msgid "{n} devices · {m} active"
 msgstr ""
 
@@ -7494,6 +7489,11 @@ msgstr ""
 msgid ""
 "{n} highlights and notes were made on this device. They are not deleted. "
 "Their origin history is kept."
+msgstr ""
+
+#: cps/spa_strings.py
+#, python-brace-format
+msgid "{seeded} of {total} books seeded"
 msgstr ""
 
 #: cps/spa_strings.py
@@ -13634,3 +13634,4 @@ msgstr ""
 #: cps/templates/user_table.html
 msgid "Show Read/Unread Section"
 msgstr ""
+
