@@ -80,6 +80,16 @@ def end_scheduled_tasks():
             worker.end_task(task.id)
 
 
+def _schedule_metadata_backfill(scheduler, timezone_info):
+    try:
+        from cps.metadata_helper import backfill_missing_metadata
+        scheduler.schedule(func=backfill_missing_metadata,
+                           trigger=IntervalTrigger(minutes=30, timezone=timezone_info),
+                           name="backfill metadata for externally added books")
+    except Exception as e:
+        log.error(f"Failed to schedule the metadata backfill task: {e}")
+
+
 def register_scheduled_tasks(reconnect=True):
     # Reconcile even when APScheduler is unavailable, then reuse the result so
     # normal startup performs one CWA DB read/mirror write rather than two.
@@ -107,6 +117,7 @@ def register_scheduled_tasks(reconnect=True):
             scheduler, timezone_info, configuration=hardcover_configuration
         )
         _schedule_archived_book_cleanup(scheduler, timezone_info)
+        _schedule_metadata_backfill(scheduler, timezone_info)
 
         # Kick-off tasks, if they should currently be running
         if should_task_be_running(start, duration):

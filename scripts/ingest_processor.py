@@ -1199,6 +1199,12 @@ class NewBookProcessor:
         except Exception:
             return []
 
+    def _trusted_added_book_id(self):
+        """The book id calibredb actually reported, or None when it was only guessed."""
+        if self.last_added_book_id is None or getattr(self, 'last_added_ids_are_fallback', False):
+            return None
+        return self.last_added_book_id
+
     def _fallback_last_added_book_id(self) -> None:
         """Fallback to the most recently modified book when calibredb output lacks IDs."""
         if self.last_added_book_id is not None:
@@ -1896,19 +1902,20 @@ class NewBookProcessor:
             gdrive_sync_if_enabled()
 
             # Fetch metadata if enabled, prefer exact book id from calibredb
-            if self.last_added_book_id is not None:
-                self.fetch_metadata_if_enabled(book_id=self.last_added_book_id)
+            trusted_added_id = self._trusted_added_book_id()
+            if trusted_added_id is not None:
+                self.fetch_metadata_if_enabled(book_id=trusted_added_id)
             else:
                 self.fetch_metadata_if_enabled(staged_path.stem)
 
             # Fix paths garbled by calibredb add's ascii_filename() transliteration.
             # Runs after fetch_metadata so any author-name update is already in the DB.
-            if self.last_added_book_id is not None:
-                self._fix_unicode_path(self.last_added_book_id)
+            if trusted_added_id is not None:
+                self._fix_unicode_path(trusted_added_id)
 
             # Trigger auto-send for users who have it enabled
             if self.last_added_book_id is not None:
-                self.trigger_auto_send_if_enabled(book_id=self.last_added_book_id, book_path=book_path)
+                self.trigger_auto_send_if_enabled(book_id=trusted_added_id, book_path=book_path)
             else:
                 self.trigger_auto_send_if_enabled(staged_path.stem, book_path)
 
@@ -2567,7 +2574,11 @@ def main(filepath=None):
             if is_a_book_format(nbp.input_format):
                 print(f"\n[ingest-processor]: No conversion needed for {nbp.filename}, importing now...", flush=True)
                 nbp.add_book_to_library(filepath)
-                nbp.generate_additional_formats(nbp.last_added_book_id, {nbp.input_format})
+                trusted_import_id = nbp._trusted_added_book_id()
+                if trusted_import_id is not None:
+                    nbp.generate_additional_formats(trusted_import_id, {nbp.input_format})
+                else:
+                    print("[ingest-processor] WARN: Skipping additional-format generation; calibredb did not reliably report the imported book id.", flush=True)
             else:
                 _fail_not_a_book_input(nbp, filepath)
         elif nbp.is_supported_audiobook():
@@ -2603,7 +2614,11 @@ def main(filepath=None):
 
                 if convert_successful: # If previous conversion process was successful, remove tmp files and import into library
                     nbp.add_book_to_library(converted_filepath) # type: ignore
-                    nbp.generate_additional_formats(nbp.last_added_book_id, {nbp.target_format})
+                    trusted_convert_id = nbp._trusted_added_book_id()
+                    if trusted_convert_id is not None:
+                        nbp.generate_additional_formats(trusted_convert_id, {nbp.target_format})
+                    else:
+                        print("[ingest-processor] WARN: Skipping additional-format generation; calibredb did not reliably report the imported book id.", flush=True)
 
                     # If the original format should be retained, also add it as an additional format
                     if (
@@ -2614,15 +2629,8 @@ def main(filepath=None):
                         print(f"[ingest-processor]: Retaining original format ({nbp.input_format}) for {nbp.filename}...", flush=True)
                         # Find the book that was just added to get its ID
                         try:
-                            # Prefer the exact id we just added if available
-                            if nbp.last_added_book_id is not None:
-                                target_book_id = nbp.last_added_book_id
-                            else:
-                                with sqlite3.connect(nbp.metadata_db, timeout=30) as con:
-                                    cur = con.cursor()
-                                    cur.execute("SELECT id FROM books ORDER BY timestamp DESC LIMIT 1")
-                                    res = cur.fetchone()
-                                    target_book_id = res[0] if res else None
+                            # Only attach to the id calibredb actually reported; never guess by recency.
+                            target_book_id = nbp._trusted_added_book_id()
 
                             if target_book_id is not None:
                                 if os.path.exists(filepath) and os.path.getsize(filepath) > 0:

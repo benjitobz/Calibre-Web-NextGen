@@ -688,3 +688,81 @@ def _parse_metadata_providers_enabled(raw_value):
         return {}
     except (json.JSONDecodeError, ValueError, TypeError, AttributeError):
         return {}
+
+
+BACKFILL_BATCH_LIMIT = 5
+BACKFILL_RETRY_DAYS = 7
+
+
+def backfill_missing_metadata():
+    """Fetch metadata for library books that have no description.
+
+    The ingest pipeline fetches metadata at import time; books added externally
+    (e.g. by Chaptarr through the content server) never get that pass. This
+    periodic sweep gives them one, honoring the same admin toggle and smart
+    application rules, and remembers attempts so provider misses are retried
+    weekly instead of on every pass.
+    """
+    import os
+    import sqlite3
+    import time
+
+    from cps import config
+
+    try:
+        cwa_db = CWA_DB()
+        cwa_settings = cwa_db.get_cwa_settings()
+        if not cwa_settings.get('auto_metadata_fetch_enabled', False):
+            return 0
+
+        metadata_db = os.path.join(config.config_calibre_dir, 'metadata.db')
+        if not os.path.exists(metadata_db):
+            return 0
+
+        with sqlite3.connect(f"file:{metadata_db}?mode=ro", uri=True, timeout=10) as con:
+            rows = con.execute(
+                "SELECT b.id FROM books b LEFT JOIN comments c ON c.book = b.id "
+                "WHERE c.id IS NULL ORDER BY b.timestamp DESC LIMIT 50").fetchall()
+
+        candidate_ids = [int(r[0]) for r in rows]
+        if not candidate_ids:
+            return 0
+
+        state_dir = getattr(cwa_db, 'db_path', None) or '/config'
+        state_file = os.path.join(state_dir, '.cwa_metadata_backfill.json')
+        try:
+            with open(state_file, 'r', encoding='utf-8') as f:
+                attempts = json.load(f)
+        except Exception:
+            attempts = {}
+
+        now = time.time()
+        fetched = 0
+        processed = 0
+        for book_id in candidate_ids:
+            if processed >= BACKFILL_BATCH_LIMIT:
+                break
+
+            last_attempt = attempts.get(str(book_id))
+            if last_attempt and now - last_attempt < BACKFILL_RETRY_DAYS * 86400:
+                continue
+
+            attempts[str(book_id)] = now
+            processed += 1
+            try:
+                if fetch_and_apply_metadata(book_id):
+                    fetched += 1
+                    log.info(f"[metadata-backfill] Fetched metadata for externally added book {book_id}")
+            except Exception as e:
+                log.warning(f"[metadata-backfill] Fetch failed for book {book_id}: {e}")
+
+        try:
+            with open(state_file, 'w', encoding='utf-8') as f:
+                json.dump(attempts, f)
+        except Exception as e:
+            log.warning(f"[metadata-backfill] Could not persist attempt state: {e}")
+
+        return fetched
+    except Exception as e:
+        log.error(f"[metadata-backfill] Sweep failed: {e}")
+        return 0
