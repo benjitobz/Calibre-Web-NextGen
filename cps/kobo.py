@@ -1181,6 +1181,53 @@ def HandleSyncRequest():
     # the joined-load query twice per sync request.
     books_list = changed_entries.limit(SYNC_ITEM_LIMIT).all()
     log.debug("Kobo Sync: selected to sync: {}".format(len(books_list)))
+
+    # Establish one ordered reading-state frontier before rendering any
+    # entitlements. Reading states can travel either embedded in an entitlement
+    # or as standalone ChangedReadingState commands, but the timestamp-only
+    # token cannot represent holes between those two paths.  In particular, an
+    # out-of-order recent state embedded on page one must not advance the token
+    # past older states that did not fit in the standalone page (F-8cb0c9).
+    #
+    # Only rows in this oldest-first page may be embedded below.  Every row in
+    # the page is then emitted exactly once (embedded or standalone), and the
+    # cursor advances only to the maximum row in this fully-covered frontier.
+    changed_reading_states = ub.session.query(ub.KoboReadingState)
+    log.debug("Kobo Sync: rstate last modified: {}".format(
+        sync_token.reading_state_last_modified))
+    if only_kobo_shelves:
+        changed_reading_states = changed_reading_states.outerjoin(
+            ub.BookShelf,
+            ub.KoboReadingState.book_id == ub.BookShelf.book_id,
+        ).outerjoin(
+            ub.Shelf,
+            ub.Shelf.id == ub.BookShelf.shelf,
+        ).filter(
+            ub.KoboReadingState.last_modified
+            > sync_token.reading_state_last_modified,
+        ).filter(or_(
+            and_(
+                current_user.id == ub.Shelf.user_id,
+                ub.Shelf.kobo_sync.is_(True),
+            ),
+            ub.KoboReadingState.book_id.in_(magic_shelf_book_ids)
+            if magic_shelf_book_ids else False,
+        )).distinct()
+    else:
+        changed_reading_states = changed_reading_states.filter(
+            ub.KoboReadingState.last_modified
+            > sync_token.reading_state_last_modified)
+
+    changed_reading_states = changed_reading_states.filter(
+        ub.KoboReadingState.user_id == current_user.id,
+    ).order_by(ub.KoboReadingState.last_modified)
+    log.debug("Kobo Sync: changed states: {}".format(
+        changed_reading_states.count()))
+    reading_state_page = changed_reading_states.limit(SYNC_ITEM_LIMIT).all()
+    reading_state_page_ids = {
+        reading_state.id for reading_state in reading_state_page
+    }
+
     prior_entitlement_fingerprints = (
         kobo_sync_status.get_device_entitlement_fingerprints(
             requesting_device_id,
@@ -1234,7 +1281,7 @@ def HandleSyncRequest():
             refresh_fingerprint_record = False
 
         if (kobo_reading_state is not None
-                and kobo_reading_state.last_modified > sync_token.reading_state_last_modified):
+                and kobo_reading_state.id in reading_state_page_ids):
             reading_state = get_kobo_reading_state_response(
                 book.Books, kobo_reading_state)
             new_reading_state_last_modified = max(
@@ -1244,10 +1291,9 @@ def HandleSyncRequest():
             reading_state_book_ids_emitted.append(book.Books.id)
             if entitlement_is_unchanged:
                 # Replay suppression applies only to the byte-identical base
-                # entitlement. Reading state has its own cursor and must still
-                # be delivered independently; relying on the paged scan below
-                # can withhold it behind a full page of older states and leave
-                # its cursor unadvanced.
+                # entitlement. A state admitted to this response's ordered
+                # frontier must still be emitted independently even when its
+                # unchanged entitlement envelope is suppressed.
                 sync_results.append({
                     "ChangedReadingState": {"ReadingState": reading_state}
                 })
@@ -1433,36 +1479,12 @@ def HandleSyncRequest():
     # starts the next session with that returned token and drains the next page.
     cont_sync = False
     log.debug("Kobo Sync: remaining books to sync: {}".format(book_count))
-    # generate reading state data
-    changed_reading_states = ub.session.query(ub.KoboReadingState)
-
-    log.debug("Kobo Sync: rstate last modified: {}".format(sync_token.reading_state_last_modified))
-    if only_kobo_shelves:
-        changed_reading_states = changed_reading_states.outerjoin(ub.BookShelf,
-                                                                  ub.KoboReadingState.book_id == ub.BookShelf.book_id)\
-            .outerjoin(ub.Shelf, ub.Shelf.id == ub.BookShelf.shelf)\
-            .filter(ub.KoboReadingState.last_modified > sync_token.reading_state_last_modified)\
-            .filter(or_(
-                and_(
-                    current_user.id == ub.Shelf.user_id,
-                    ub.Shelf.kobo_sync.is_(True),
-                ),
-                ub.KoboReadingState.book_id.in_(magic_shelf_book_ids) if magic_shelf_book_ids else False
-            ))\
-            .distinct()
-    else:
-        changed_reading_states = changed_reading_states.filter(
-            ub.KoboReadingState.last_modified > sync_token.reading_state_last_modified)
-
-    changed_reading_states = changed_reading_states.filter(
-        and_(ub.KoboReadingState.user_id == current_user.id,
-             ub.KoboReadingState.book_id.notin_(reading_state_book_ids_emitted)))\
-        .order_by(ub.KoboReadingState.last_modified)
-    log.debug("Kobo Sync: changed states: {}".format(changed_reading_states.count()))
     # Do not set local continuation for a full reading-state page.  It has the
     # same firmware cursor-pinning semantics as the books signal above; ending
     # the session is what lets the returned reading-state cursor take effect.
-    for kobo_reading_state in changed_reading_states.limit(SYNC_ITEM_LIMIT).all():
+    for kobo_reading_state in reading_state_page:
+        if kobo_reading_state.book_id in reading_state_book_ids_emitted:
+            continue
         book = calibre_db.session.query(db.Books).filter(db.Books.id == kobo_reading_state.book_id).one_or_none()
         if book:
             sync_results.append({

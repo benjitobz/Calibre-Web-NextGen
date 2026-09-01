@@ -1416,10 +1416,10 @@ def test_hard_delete_payload_shape_change_reseeds_without_delivery(
     assert "suppressed_removed=1" in summaries[-1]
 
 
-def test_suppressed_entitlement_emits_newer_reading_state_once_and_advances_cursor(
+def test_suppressed_entitlement_drains_newer_reading_state_after_older_full_page(
     sync_harness, monkeypatch,
 ):
-    """Layer 2 suppression must not suppress or loop reading-state changes."""
+    """Layer 2 suppression preserves the ordered reading-state frontier."""
     from cps import db, kobo, ub
 
     monkeypatch.setattr(
@@ -1434,12 +1434,18 @@ def test_suppressed_entitlement_emits_newer_reading_state_once_and_advances_curs
 
     # Seed the per-device entitlement fingerprint without a reading state.
     assert len(_entitlements(sync_harness.sync())) == 1
+    # This test isolates replay suppression + cursor pagination. The separate
+    # re-download repair channel intentionally has its own delivery semantics.
+    sync_harness.session.query(ub.DeviceReadingPosition).update({
+        ub.DeviceReadingPosition.rehydrate_needed: False,
+    })
+    sync_harness.session.commit()
 
     # Fill the (test-sized) independent reading-state page with an older,
-    # legitimate library state. Before the fix, the suppressed book relied on
-    # that later paged scan; its newer state was therefore withheld until
-    # another sync. Keeping this book out of Data makes it reading-state-only
-    # background, not an additional base entitlement in this regression.
+    # legitimate library state. Keeping this book out of Data makes it
+    # reading-state-only background, not an additional base entitlement in
+    # this regression. The target's newer state must wait for the next ordered
+    # page; embedding it now would move the timestamp cursor past this row.
     background_modified = datetime(2026, 8, 28, 12, 15, 0)
     background_book = db.Books(
         "Background State",
@@ -1519,8 +1525,8 @@ def test_suppressed_entitlement_emits_newer_reading_state_once_and_advances_curs
     sync_harness.session.commit()
     sync_harness.session.expire_all()
 
-    # A valid but stale CWNG token selects the unchanged base entitlement and
-    # the newer reading state together. Layer 2 may suppress only the former.
+    # A valid but stale CWNG token selects the unchanged base entitlement, but
+    # the older background state owns this response's one-row state frontier.
     stale_cwng_token = kobo.SyncToken.SyncToken().build_sync_token()
     changed = sync_harness.sync(stale_cwng_token)
 
@@ -1529,15 +1535,29 @@ def test_suppressed_entitlement_emits_newer_reading_state_once_and_advances_curs
         state for state in _changed_reading_states(changed)
         if state["EntitlementId"] == sync_harness.book.uuid
     ]
-    assert len(target_states) == 1
-    assert target_states[0]["CurrentBookmark"]["ProgressPercent"] == 42
+    assert target_states == []
+    assert [
+        state["EntitlementId"] for state in _changed_reading_states(changed)
+    ] == [background_book.uuid]
 
     advanced_token = kobo.SyncToken.SyncToken.from_headers({
         sync_harness.token_header: changed.headers[sync_harness.token_header],
     })
-    assert advanced_token.reading_state_last_modified == state_modified
+    assert advanced_token.reading_state_last_modified == background_modified
 
-    unchanged = sync_harness.sync(changed.headers[sync_harness.token_header])
+    target_page = sync_harness.sync(changed.headers[sync_harness.token_header])
+    target_states = [
+        state for state in _changed_reading_states(target_page)
+        if state["EntitlementId"] == sync_harness.book.uuid
+    ]
+    assert len(target_states) == 1
+    assert target_states[0]["CurrentBookmark"]["ProgressPercent"] == 42
+    target_token = kobo.SyncToken.SyncToken.from_headers({
+        sync_harness.token_header: target_page.headers[sync_harness.token_header],
+    })
+    assert target_token.reading_state_last_modified == state_modified
+
+    unchanged = sync_harness.sync(target_page.headers[sync_harness.token_header])
     target_states_again = [
         state for state in _changed_reading_states(unchanged)
         if state["EntitlementId"] == sync_harness.book.uuid
