@@ -4535,6 +4535,10 @@ msgid "Add note"
 msgstr "Добавить заметку"
 
 #: cps/spa_strings.py
+msgid "Add or replace this line in the [OneStoreServices] section:"
+msgstr ""
+
+#: cps/spa_strings.py
 msgid "Add to existing"
 msgstr ""
 
@@ -4545,6 +4549,10 @@ msgstr "Добавить в избранное"
 #: cps/spa_strings.py
 msgid "Admin group"
 msgstr "Группа администраторов"
+
+#: cps/spa_strings.py
+msgid "Admin navigation"
+msgstr ""
 
 #: cps/spa_strings.py
 msgid "Advanced"
@@ -4811,8 +4819,18 @@ msgid "Change cover"
 msgstr "Изменить обложку"
 
 #: cps/spa_strings.py
+msgid "Check again"
+msgstr ""
+
+#: cps/spa_strings.py
 msgid "Checking…"
 msgstr "Проверка…"
+
+#: cps/spa_strings.py
+msgid ""
+"Choose Login and sign in with this NextGen account or one of its app "
+"passwords."
+msgstr ""
 
 #: cps/spa_strings.py
 msgid "Choose a cover"
@@ -4833,6 +4851,10 @@ msgstr "Выбрать поля"
 #: cps/spa_strings.py
 msgid "Choose your theme"
 msgstr "Выберите тему оформления"
+
+#: cps/spa_strings.py
+msgid "Classic"
+msgstr ""
 
 #: cps/spa_strings.py
 msgid "Clear default"
@@ -4879,6 +4901,10 @@ msgid "Compact"
 msgstr "Компактно"
 
 #: cps/spa_strings.py
+msgid "Configuration"
+msgstr ""
+
+#: cps/spa_strings.py
 msgid "Configured"
 msgstr "Настроено"
 
@@ -4890,6 +4916,18 @@ msgstr "Подтвердите удаление тега {name}"
 #: cps/spa_strings.py
 msgid "Confirm new password"
 msgstr "Подтвердите новый пароль"
+
+#: cps/spa_strings.py
+msgid ""
+"Connect the Kobo to a computer and open .kobo/Kobo/Kobo eReader.conf in a "
+"text editor."
+msgstr ""
+
+#: cps/spa_strings.py
+msgid ""
+"Connect this account to an e-reader, then sync once to confirm it reached "
+"your library."
+msgstr ""
 
 #: cps/spa_strings.py cps/tasks/convert.py
 msgid "Convert"
@@ -4904,16 +4942,36 @@ msgid "Convert from"
 msgstr "Конвертировать из"
 
 #: cps/spa_strings.py
+msgid "Copied"
+msgstr ""
+
+#: cps/spa_strings.py
 msgid "Copied to clipboard"
 msgstr "Скопировано в буфер обмена"
+
+#: cps/spa_strings.py
+msgid "Copied to clipboard."
+msgstr ""
 
 #: cps/spa_strings.py
 msgid "Copy link"
 msgstr "Скопировать ссылку"
 
 #: cps/spa_strings.py
+msgid "Copy server address"
+msgstr ""
+
+#: cps/spa_strings.py
+msgid "Copy sync URL"
+msgstr ""
+
+#: cps/spa_strings.py
 msgid "Could not assign."
 msgstr "Не удалось назначить."
+
+#: cps/spa_strings.py
+msgid "Could not copy. Select the address and copy it manually."
+msgstr ""
 
 #: cps/spa_strings.py
 msgid "Could not create shelf."
@@ -4930,6 +4988,10 @@ msgstr "Не удалось удалить полку."
 #: cps/spa_strings.py
 msgid "Could not delete tag"
 msgstr "Не удалось удалить тег"
+
+#: cps/spa_strings.py
+msgid "Could not delete the Kobo sync URL."
+msgstr ""
 
 #: cps/spa_strings.py
 msgid "Could not load candidates."
@@ -4950,6 +5012,10 @@ msgstr "Не удалось загрузить читалки."
 #: cps/spa_strings.py
 msgid "Could not load highlights and notes."
 msgstr "Не удалось загрузить выделения и заметки."
+
+#: cps/spa_strings.py
+msgid "Could not load pairing details."
+msgstr ""
 
 #: cps/spa_strings.py
 msgid "Could not load reading positions."
@@ -5042,6 +5108,10 @@ msgstr "Не удалось выполнить поиск по этой книг
 #: cps/spa_strings.py
 msgid "Could not start the duplicate scan."
 msgstr "Не удалось запустить поиск дубликатов."
+
+#: cps/spa_strings.py
+msgid "Could not update pairing details."
+msgstr ""
 
 #: cps/spa_strings.py
 msgid "Could not update shelf."
@@ -5186,6 +5256,10 @@ msgid "Delete shelf \"{name}\"? This cannot be undone."
 msgstr "Удалить полку «{name}»? Это действие нельзя отменить."
 
 #: cps/spa_strings.py
+msgid "Delete sync URL"
+msgstr ""
+
+#: cps/spa_strings.py
 #, python-brace-format
 msgid "Delete tag {name}"
 msgstr "Удалить тег {name}"
@@ -5195,6 +5269,12 @@ msgstr "Удалить тег {name}"
 msgid ""
 "Delete the {fmt} file? The book record, metadata, shelves, and reading state "
 "stay available."
+msgstr ""
+
+#: cps/spa_strings.py
+msgid ""
+"Delete this Kobo sync URL? The current URL will stop working on every paired "
+"Kobo."
 msgstr ""
 
 #: cps/spa_strings.py
@@ -5272,6 +5352,11 @@ msgstr "Устройство переименовано."
 #: cps/spa_strings.py
 msgid "Device restored."
 msgstr "Устройство восстановлено."
+
+#: cps/spa_strings.py
+#, python-brace-format
+msgid "Device seen: {name}, last synced {when}. Pairing is working."
+msgstr ""
 
 #: cps/spa_strings.py
 msgid "Device summary"
@@ -5577,6 +5662,19 @@ msgid "Generate a new link"
 msgstr "Создать новую ссылку"
 
 #: cps/spa_strings.py
+msgid ""
+"Generate a private sync URL for this account. You can delete it at any time."
+msgstr ""
+
+#: cps/spa_strings.py
+msgid "Generate sync URL"
+msgstr ""
+
+#: cps/spa_strings.py
+msgid "Generating…"
+msgstr ""
+
+#: cps/spa_strings.py
 msgid "Give your smart shelf a name."
 msgstr "Введите название для смарт-полки."
 
@@ -5674,13 +5772,13 @@ msgid "Highlights"
 msgstr "Выделения"
 
 #: cps/spa_strings.py
+msgid "Highlights and notes"
+msgstr "Выделения и заметки"
+
+#: cps/spa_strings.py
 #, python-brace-format
 msgid "Highlights, {count} saved annotations"
 msgstr ""
-
-#: cps/spa_strings.py
-msgid "Highlights and notes"
-msgstr "Выделения и заметки"
 
 #: cps/spa_strings.py
 msgid "Hot"
@@ -5728,6 +5826,10 @@ msgid "Imported as"
 msgstr "Импортировано как"
 
 #: cps/spa_strings.py
+msgid "In KOReader, open NextGen Progress Sync and choose Set NextGen Server."
+msgstr ""
+
+#: cps/spa_strings.py
 msgid "In your book"
 msgstr "В вашей книге"
 
@@ -5746,6 +5848,10 @@ msgstr ""
 #: cps/spa_strings.py
 msgid "Included"
 msgstr "Включено"
+
+#: cps/spa_strings.py
+msgid "Install or update the NextGen Sync plugin."
+msgstr ""
 
 #: cps/spa_strings.py
 msgid "Issuer / base URL"
@@ -5768,10 +5874,6 @@ msgstr "KOReader"
 #: cps/spa_strings.py cps/templates/detail.html
 msgid "KOReader Progress"
 msgstr "Прогресс KOReader"
-
-#: cps/progress_syncing/protocols/kosync.py cps/spa_strings.py
-msgid "KOReader Sync Plugin"
-msgstr "Плагин синхронизации KOReader"
 
 #: cps/spa_strings.py
 msgid "Key file path"
@@ -5798,8 +5900,16 @@ msgid "Kobo Libra Color / Libra 2 (1264×1680)"
 msgstr "Kobo Libra Color / Libra 2 (1264×1680)"
 
 #: cps/spa_strings.py
-msgid "Kobo setup"
-msgstr "Настройка Kobo"
+msgid "Kobo sync URL deleted."
+msgstr ""
+
+#: cps/spa_strings.py
+msgid "Kobo sync URL ready."
+msgstr ""
+
+#: cps/spa_strings.py
+msgid "Kobo sync is not enabled on this server."
+msgstr ""
 
 #: cps/spa_strings.py
 msgid "Kobo sync on"
@@ -5876,6 +5986,10 @@ msgid "Loading new Discover picks."
 msgstr "Загрузка новых подборок в «Обзоре»."
 
 #: cps/spa_strings.py
+msgid "Loading pairing details…"
+msgstr ""
+
+#: cps/spa_strings.py
 msgid "Loading reading positions…"
 msgstr ""
 
@@ -5943,11 +6057,6 @@ msgstr "Управление электронными книгами"
 msgid "Manage shelves"
 msgstr "Управление полками"
 
-#: cps/spa_strings.py
-msgid "Manage your Kobo sync URL in the classic account page."
-msgstr ""
-"Управляйте URL для синхронизации Kobo на классической странице аккаунта."
-
 #: cps/spa_strings.py cps/templates/_book_organizer.html
 #: cps/templates/book_table.html
 msgid "Mark as read"
@@ -6014,10 +6123,6 @@ msgid "More cover options (search providers, e-reader preview)"
 msgstr ""
 "Дополнительные параметры обложки (поиск по провайдерам, предпросмотр для "
 "читалки)"
-
-#: cps/spa_strings.py
-msgid "More server configuration"
-msgstr "Дополнительные настройки сервера"
 
 #: cps/spa_strings.py
 msgid "Move down"
@@ -6144,6 +6249,10 @@ msgstr "В этой книге совпадений не найдено."
 #, python-brace-format
 msgid "No matching {items} for \"{query}\"."
 msgstr "В разделе «{items}» нет совпадений по запросу «{query}»."
+
+#: cps/spa_strings.py
+msgid "No new device check-in yet."
+msgstr ""
 
 #: cps/spa_strings.py
 msgid "No pages found in this comic."
@@ -6293,6 +6402,12 @@ msgid "Open Account"
 msgstr "Открыть аккаунт"
 
 #: cps/spa_strings.py
+msgid ""
+"Open NextGen using an address your e-reader can reach before copying these "
+"settings. Localhost only points back to the device itself."
+msgstr ""
+
+#: cps/spa_strings.py
 msgid "Open administration"
 msgstr "Открыть панель администрирования"
 
@@ -6367,12 +6482,12 @@ msgid "Page {page} of {pages}"
 msgstr ""
 
 #: cps/spa_strings.py
-msgid ""
-"Pages marked below open in the classic view. Changes there apply to the "
-"whole server."
+msgid "Pair a Kobo or KOReader"
 msgstr ""
-"Отмеченные ниже страницы открываются в классическом интерфейсе. Внесённые "
-"там изменения применятся ко всему серверу."
+
+#: cps/spa_strings.py
+msgid "Pair an e-reader"
+msgstr ""
 
 #: cps/spa_strings.py
 msgid "Partially seeded books"
@@ -6388,8 +6503,16 @@ msgid "Password (leave blank to keep)"
 msgstr "Пароль (оставьте пустым, чтобы не менять)"
 
 #: cps/spa_strings.py
+msgid "Paste this server address (the plugin adds /kosync itself):"
+msgstr ""
+
+#: cps/spa_strings.py
 msgid "Paused after a problem"
 msgstr "Приостановлено из-за проблемы"
+
+#: cps/spa_strings.py
+msgid "People & devices"
+msgstr ""
 
 #: cps/spa_strings.py cps/templates/cover_picker.html
 msgid ""
@@ -6668,6 +6791,10 @@ msgid "Rows per load"
 msgstr "Строк при подгрузке"
 
 #: cps/spa_strings.py
+msgid "Run a sync from the plugin."
+msgstr ""
+
+#: cps/spa_strings.py
 msgid "Run time"
 msgstr "Время выполнения"
 
@@ -6711,6 +6838,10 @@ msgstr "Сохранить настройки безопасности"
 #: cps/spa_strings.py
 msgid "Save settings"
 msgstr "Сохранить настройки"
+
+#: cps/spa_strings.py
+msgid "Save the file, safely eject the Kobo, then restart it."
+msgstr ""
 
 #: cps/spa_strings.py
 msgid "Saved. Restart the server for the login changes to take effect."
@@ -6850,6 +6981,10 @@ msgid "Server host"
 msgstr "Хост сервера"
 
 #: cps/spa_strings.py
+msgid "Server tools"
+msgstr ""
+
+#: cps/spa_strings.py
 msgid "Service account (DN)"
 msgstr "Сервисный аккаунт (DN)"
 
@@ -6869,10 +7004,6 @@ msgstr ""
 "введите их вручную."
 
 #: cps/spa_strings.py
-msgid "Set up Kobo sync"
-msgstr "Настроить синхронизацию с Kobo"
-
-#: cps/spa_strings.py
 msgid "Set up Kobo sync first — then this preference becomes available."
 msgstr ""
 "Сначала настройте синхронизацию с Kobo — после этого данная настройка станет "
@@ -6885,10 +7016,6 @@ msgstr "Настройка…"
 #: cps/spa_strings.py
 msgid "Settings saved."
 msgstr "Настройки сохранены."
-
-#: cps/spa_strings.py cps/templates/admin.html
-msgid "Setup KOReader Sync"
-msgstr "Настроить синхронизацию KOReader"
 
 #: cps/spa_strings.py
 msgid "Shelf name"
@@ -7049,6 +7176,14 @@ msgstr "Панель статистики"
 msgid "Status"
 msgstr "Статус"
 
+#: cps/spa_strings.py
+msgid "Stock Kobo"
+msgstr ""
+
+#: cps/spa_strings.py
+msgid "Stock Kobo sync URL"
+msgstr ""
+
 #: cps/spa_strings.py cps/templates/config_edit.html
 #: cps/templates/cover_picker.html
 msgid "Stretch to fill — no border, slight distortion"
@@ -7090,6 +7225,10 @@ msgstr "Теги — исключить"
 #: cps/spa_strings.py
 msgid "Tags — include"
 msgstr "Теги — включить"
+
+#: cps/spa_strings.py
+msgid "Tap Sync on the Kobo. Your NextGen books should appear."
+msgstr ""
 
 #: cps/spa_strings.py cps/templates/config_edit.html
 #: cps/templates/cover_picker.html
@@ -7204,6 +7343,10 @@ msgstr "Лучшие по рейтингу"
 #: cps/spa_strings.py
 msgid "Trust authentication header"
 msgstr "Доверять заголовку аутентификации"
+
+#: cps/spa_strings.py cps/templates/cwng_feedback_popup.html
+msgid "Try again"
+msgstr "Попробовать снова"
 
 #: cps/spa_strings.py cps/templates/read.html
 msgid "Two columns"
@@ -7342,6 +7485,10 @@ msgstr "Настройки отображения"
 #: cps/spa_strings.py
 msgid "Viewer"
 msgstr "Читалка"
+
+#: cps/spa_strings.py
+msgid "Waiting for a Kobo or KOReader to sync with this account."
+msgstr ""
 
 #: cps/spa_strings.py
 msgid "Waiting for you to authorise…"
@@ -7659,166 +7806,6 @@ msgstr "← Вернуться ко входу"
 #: cps/spa_strings.py
 msgid "← Library"
 msgstr "← Библиотека"
-
-#: cps/spa_strings.py
-msgid "Add or replace this line in the [OneStoreServices] section:"
-msgstr ""
-
-#: cps/spa_strings.py
-msgid "Check again"
-msgstr ""
-
-#: cps/spa_strings.py
-msgid ""
-"Choose Login and sign in with this NextGen account or one of its app "
-"passwords."
-msgstr ""
-
-#: cps/spa_strings.py
-msgid ""
-"Connect the Kobo to a computer and open .kobo/Kobo/Kobo eReader.conf in a "
-"text editor."
-msgstr ""
-
-#: cps/spa_strings.py
-msgid ""
-"Connect this account to an e-reader, then sync once to confirm it reached "
-"your library."
-msgstr ""
-
-#: cps/spa_strings.py
-msgid "Copied"
-msgstr ""
-
-#: cps/spa_strings.py
-msgid "Copied to clipboard."
-msgstr ""
-
-#: cps/spa_strings.py
-msgid "Copy server address"
-msgstr ""
-
-#: cps/spa_strings.py
-msgid "Copy sync URL"
-msgstr ""
-
-#: cps/spa_strings.py
-msgid "Could not copy. Select the address and copy it manually."
-msgstr ""
-
-#: cps/spa_strings.py
-msgid "Could not delete the Kobo sync URL."
-msgstr ""
-
-#: cps/spa_strings.py
-msgid "Could not load pairing details."
-msgstr ""
-
-#: cps/spa_strings.py
-msgid "Delete sync URL"
-msgstr ""
-
-#: cps/spa_strings.py
-msgid ""
-"Delete this Kobo sync URL? The current URL will stop working on every paired "
-"Kobo."
-msgstr ""
-
-#: cps/spa_strings.py
-#, python-brace-format
-msgid "Device seen: {name}, last synced {when}. Pairing is working."
-msgstr ""
-
-#: cps/spa_strings.py
-msgid ""
-"Generate a private sync URL for this account. You can delete it at any time."
-msgstr ""
-
-#: cps/spa_strings.py
-msgid "Generate sync URL"
-msgstr ""
-
-#: cps/spa_strings.py
-msgid "Generating…"
-msgstr ""
-
-#: cps/spa_strings.py
-msgid "In KOReader, open NextGen Progress Sync and choose Set NextGen Server."
-msgstr ""
-
-#: cps/spa_strings.py
-msgid "Install or update the NextGen Sync plugin."
-msgstr ""
-
-#: cps/spa_strings.py
-msgid "Kobo sync is not enabled on this server."
-msgstr ""
-
-#: cps/spa_strings.py
-msgid "Kobo sync URL deleted."
-msgstr ""
-
-#: cps/spa_strings.py
-msgid "Kobo sync URL ready."
-msgstr ""
-
-#: cps/spa_strings.py
-msgid "Loading pairing details…"
-msgstr ""
-
-#: cps/spa_strings.py
-msgid ""
-"Open NextGen using an address your e-reader can reach before copying these "
-"settings. Localhost only points back to the device itself."
-msgstr ""
-
-#: cps/spa_strings.py
-msgid "Pair a Kobo or KOReader"
-msgstr ""
-
-#: cps/spa_strings.py
-msgid "Pair an e-reader"
-msgstr ""
-
-#: cps/spa_strings.py
-msgid "Paste this server address (the plugin adds /kosync itself):"
-msgstr ""
-
-#: cps/spa_strings.py
-msgid "Run a sync from the plugin."
-msgstr ""
-
-#: cps/spa_strings.py
-msgid "Save the file, safely eject the Kobo, then restart it."
-msgstr ""
-
-#: cps/spa_strings.py
-msgid "Stock Kobo"
-msgstr ""
-
-#: cps/spa_strings.py
-msgid "Stock Kobo sync URL"
-msgstr ""
-
-#: cps/spa_strings.py
-msgid "Tap Sync on the Kobo. Your NextGen books should appear."
-msgstr ""
-
-#: cps/spa_strings.py cps/templates/cwng_feedback_popup.html
-msgid "Try again"
-msgstr "Попробовать снова"
-
-#: cps/spa_strings.py
-msgid "Waiting for a Kobo or KOReader to sync with this account."
-msgstr ""
-
-#: cps/spa_strings.py
-msgid "Could not update pairing details."
-msgstr ""
-
-#: cps/spa_strings.py
-msgid "No new device check-in yet."
-msgstr ""
 
 #: cps/tasks_status.py
 msgid "Waiting"
@@ -8267,6 +8254,10 @@ msgstr "Неверный ID книги."
 #: cps/api/browse.py
 msgid "Tag could not be deleted"
 msgstr "Тег не удалось удалить"
+
+#: cps/progress_syncing/protocols/kosync.py
+msgid "KOReader Sync Plugin"
+msgstr "Плагин синхронизации KOReader"
 
 #: cps/services/gmail.py
 msgid "Found no valid gmail.json file with OAuth information"
@@ -8785,6 +8776,10 @@ msgstr "Показать статистику NextGen"
 #: cps/templates/admin.html
 msgid "Check NextGen Status"
 msgstr "Проверить статус NextGen"
+
+#: cps/templates/admin.html
+msgid "Setup KOReader Sync"
+msgstr "Настроить синхронизацию KOReader"
 
 #: cps/templates/admin.html
 msgid "NextGen Library Conversion Service"
@@ -14515,6 +14510,26 @@ msgstr "Показывать выбранные полки в OPDS"
 #: cps/templates/user_table.html
 msgid "Show Read/Unread Section"
 msgstr "Показать раздел прочитанного/непрочитанного"
+
+#~ msgid "Kobo setup"
+#~ msgstr "Настройка Kobo"
+
+#~ msgid "Manage your Kobo sync URL in the classic account page."
+#~ msgstr ""
+#~ "Управляйте URL для синхронизации Kobo на классической странице аккаунта."
+
+#~ msgid "More server configuration"
+#~ msgstr "Дополнительные настройки сервера"
+
+#~ msgid ""
+#~ "Pages marked below open in the classic view. Changes there apply to the "
+#~ "whole server."
+#~ msgstr ""
+#~ "Отмеченные ниже страницы открываются в классическом интерфейсе. Внесённые "
+#~ "там изменения применятся ко всему серверу."
+
+#~ msgid "Set up Kobo sync"
+#~ msgstr "Настроить синхронизацию с Kobo"
 
 #~ msgid "HTML is allowed and sanitized on display."
 #~ msgstr ""
