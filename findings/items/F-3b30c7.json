@@ -8,9 +8,9 @@
     "#1956"
   ],
   "resolution": {
-    "commit": "",
+    "commit": "76d43c61f9",
     "date": "2026-09-01",
-    "note": "Fixed in the containing commit: image classification now follows .dockerignore with explicit out-of-context build inputs; PR consumers archive the base commit's policy; exact 29cc301acd and Moby-pattern regressions cover the behavior.",
+    "note": "Shipped in #2110 (squash of 5a243c47a5): classifier derives from .dockerignore with explicit out-of-context inputs; PR consumers archive the base policy.",
     "release": ""
   },
   "severity": "perf",
