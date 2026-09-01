@@ -867,12 +867,14 @@ def _repo_touching(repo: Path, paths: list[str]) -> tuple[str, str]:
     classifier = repo / "scripts" / "ci_path_classification.py"
     classifier.parent.mkdir(parents=True, exist_ok=True)
     shutil.copy2(REPO_ROOT / "scripts" / "ci_path_classification.py", classifier)
+    shutil.copy2(REPO_ROOT / ".dockerignore", repo / ".dockerignore")
     package = repo / "cps" / "__init__.py"
     package.parent.mkdir(parents=True, exist_ok=True)
     package.write_text("", encoding="utf-8")
     _git(repo, "add", "seed.txt")
     _git(repo, "add", "cps/__init__.py")
     _git(repo, "add", "scripts/ci_path_classification.py")
+    _git(repo, "add", ".dockerignore")
     _git(repo, "commit", "-m", "base")
     base = _git(repo, "rev-parse", "HEAD").stdout.strip()
 

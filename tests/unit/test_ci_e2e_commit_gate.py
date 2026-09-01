@@ -139,7 +139,11 @@ def test_pr_classification_executes_the_base_copy_in_both_consumers():
         assert 'classifier_ref="$BASE_SHA"' in text, workflow.name
         assert 'classifier_ref="$HEAD_SHA"' not in text
         assert "frontend=true\\nbuild=true\\nconcurrency=true\\nimage=true" in text
-        assert 'git archive "$classifier_ref" cps scripts/ci_path_classification.py' in text
+        assert 'git cat-file -e "$classifier_ref:.dockerignore"' in text
+        assert (
+            'git archive "$classifier_ref" cps .dockerignore '
+            'scripts/ci_path_classification.py' in text
+        )
         assert 'python3 "$classifier_root/scripts/ci_path_classification.py"' in text
         assert "| python3 scripts/ci_path_classification.py --github-output" not in text
 
@@ -221,6 +225,12 @@ def _commit(repo: Path, message: str, path: str, content: str) -> str:
         text=True,
     )
     return _git(repo, "rev-parse", "HEAD")
+
+
+def _stage_alias_test_dockerignore(repo: Path) -> None:
+    """Give history fixtures the same SSOT the production classifier requires."""
+    (repo / ".dockerignore").write_text("docs\n", encoding="utf-8")
+    _git(repo, "add", ".dockerignore")
 
 
 class _ActionsApi:
@@ -336,6 +346,7 @@ def _run_alias(
 
 def test_neutral_alias_requires_the_newest_relevant_ancestor_and_matching_dev(tmp_path):
     _git(tmp_path, "init", "-q")
+    _stage_alias_test_dockerignore(tmp_path)
     source = _commit(tmp_path, "backend", "cps/web.py", "WRITE = 1\n")
     subject = _commit(tmp_path, "docs", "docs/usage.md", "docs\n")
 
@@ -352,6 +363,7 @@ def test_neutral_alias_requires_the_newest_relevant_ancestor_and_matching_dev(tm
 
 def test_neutral_alias_rejects_an_intervening_image_relevant_commit(tmp_path):
     _git(tmp_path, "init", "-q")
+    _stage_alias_test_dockerignore(tmp_path)
     old_source = _commit(tmp_path, "old backend", "cps/web.py", "WRITE = 1\n")
     _commit(tmp_path, "middle docs", "docs/one.md", "one\n")
     new_source = _commit(tmp_path, "new backend", "cps/kobo.py", "WRITE = 2\n")
@@ -480,6 +492,7 @@ def test_resolver_polls_only_while_producer_runs_then_returns_digest(tmp_path):
 
 def test_alias_waits_for_live_source_producer_then_preserves_digest_invariants(tmp_path):
     _git(tmp_path, "init", "-q")
+    _stage_alias_test_dockerignore(tmp_path)
     source = _commit(tmp_path, "backend", "cps/web.py", "WRITE = 1\n")
     subject = _commit(tmp_path, "docs", "docs/usage.md", "docs\n")
     responses = [
@@ -502,6 +515,7 @@ def test_alias_waits_for_live_source_producer_then_preserves_digest_invariants(t
 
 def test_alias_stops_when_source_producer_has_failed(tmp_path):
     _git(tmp_path, "init", "-q")
+    _stage_alias_test_dockerignore(tmp_path)
     source = _commit(tmp_path, "backend", "cps/web.py", "WRITE = 1\n")
     subject = _commit(tmp_path, "docs", "docs/usage.md", "docs\n")
     responses = [{"status": "completed", "conclusion": "failure"}]
