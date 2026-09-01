@@ -264,7 +264,7 @@ test.describe('My Library', () => {
       })).toBeVisible();
 
       await secondaryPage.goto('/app/account');
-      await expect(secondaryPage.getByRole('radio', { name: /My selection/ })).toBeChecked();
+      await expect(secondaryPage.getByRole('radio', { name: /My Library/ })).toBeChecked();
       await expectNoSeriousAxeViolations(secondaryPage);
       const wholeLibraryConfirm = secondaryPage.waitForEvent('dialog').then(async (dialog) => {
         expect(dialog.message()).toContain('Your selection is kept exactly as you left it');
@@ -272,16 +272,16 @@ test.describe('My Library', () => {
       });
       await Promise.all([
         wholeLibraryConfirm,
-        secondaryPage.getByRole('radio', { name: /The whole library/ }).click(),
+        secondaryPage.getByRole('radio', { name: /The global library/ }).click(),
       ]);
-      await expect(secondaryPage.getByRole('radio', { name: /The whole library/ })).toBeChecked();
+      await expect(secondaryPage.getByRole('radio', { name: /The global library/ })).toBeChecked();
       const selectionConfirm = secondaryPage.waitForEvent('dialog').then(async (dialog) => {
         expect(dialog.message()).toContain('Your library goes back to the books you had chosen');
         await dialog.accept();
       });
       await Promise.all([
         selectionConfirm,
-        secondaryPage.getByRole('radio', { name: /My selection/ }).click(),
+        secondaryPage.getByRole('radio', { name: /My Library/ }).click(),
       ]);
       await secondaryPage.goto('/app');
       await expect(secondaryPage.getByTestId('catalog-grid').getByRole('link', {
@@ -301,13 +301,13 @@ test.describe('My Library', () => {
     await setManagedMode(adminPage, secondaryUser.id, 'personal_library');
     const page = secondaryUser.page;
     await page.goto('/app');
-    const introduction = page.getByText('New: your own library');
+    const introduction = page.getByText('New: My Library');
     await expect(introduction).toBeVisible();
     await page.getByRole('button', { name: 'Dismiss library introduction' }).click();
     await expect(introduction).toHaveCount(0);
     const freshPage = await secondaryUser.context.newPage();
     await freshPage.goto('/app');
-    await expect(freshPage.getByText('New: your own library')).toHaveCount(0);
+    await expect(freshPage.getByText('New: My Library')).toHaveCount(0);
     await freshPage.close();
   });
 
@@ -612,8 +612,8 @@ test.describe('My Library', () => {
 
     await expect(page.getByRole('heading', { name: 'Your library is empty' })).toBeVisible();
     await expect(page.getByText(
-      'Nothing is missing — the whole library is still on the server. '
-      + 'What you see here is your own selection. Add books from the global library; '
+      'Nothing is missing — the global library is still on the server. '
+      + 'What you see here is your selection in My Library. Add books from the global library; '
       + 'they appear here and on your e-reader.',
       { exact: true },
     )).toBeVisible();
@@ -657,7 +657,7 @@ test.describe('My Library', () => {
       }]);
       await page.goto('/', { waitUntil: 'domcontentloaded' });
       await expect.poll(() => new URL(page.url()).pathname).toBe('/');
-      await expect(page.locator('#my-library-intro')).toContainText('New: your own library');
+      await expect(page.locator('#my-library-intro')).toContainText('New: My Library');
       await expect(page.getByRole('link', { name: 'Global Library' })).toHaveAttribute('href', '/global-library');
 
       await page.goto(`/book/${ownedBook.id}`);

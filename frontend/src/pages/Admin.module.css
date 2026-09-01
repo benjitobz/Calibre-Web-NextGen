@@ -137,7 +137,7 @@
   padding: var(--sp-4);
 }
 
-.libraryMode { margin: var(--sp-4) 0 0; padding: 0; border: 0; }
+.libraryMode { margin: var(--sp-4) 0 0; padding: 0; border: 0; position: relative; }
 /* The separator rule lives on the legend, not the fieldset border. Punched into
    the fieldset's border-top it only became visible AFTER the legend text, at a
    different inset than the card's other separators (e.g. .roles); drawn on a
@@ -149,13 +149,76 @@
   color: var(--text);
   font-weight: var(--fw-semi);
 }
-.libraryMode label { display: flex; align-items: flex-start; gap: var(--sp-2); margin-top: var(--sp-2); }
-.libraryMode label span { display: flex; flex-direction: column; gap: 2px; }
-.libraryMode small { color: var(--text-muted); }
-/* Explanatory prose aligns with the option TEXT (radio 16px + gap), not the
-   control edge, so it keeps the indentation rhythm of the block above it. */
-.libraryMode .settingsHint { margin: var(--sp-2) 0 0 calc(16px + var(--sp-2)); }
-.modeWarning { color: var(--warning, var(--accent-text)); font-size: var(--fs-sm); margin: var(--sp-2) 0 0 calc(16px + var(--sp-2)); }
+.legendRow {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: var(--sp-2);
+}
+/* The "how switching works" toggle sits at the right end of the legend row. */
+.infoToggle {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 28px;
+  height: 28px;
+  flex: none;
+  border-radius: var(--r-md);
+  color: var(--text-muted);
+  transition: color var(--dur-fast) var(--ease), background var(--dur-fast) var(--ease);
+}
+.infoToggle:hover { color: var(--accent); background: var(--accent-soft); }
+.infoToggle:focus-visible { outline: 2px solid var(--accent-ring, var(--accent)); outline-offset: 2px; }
+
+/* Two option cards, same checked-tint idiom as Account's .scopeOption, laid
+   out side by side when the card is wide enough. */
+.modeOptions {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(min(240px, 100%), 1fr));
+  gap: var(--sp-2);
+  margin-top: var(--sp-2);
+}
+.modeOption {
+  display: flex;
+  align-items: flex-start;
+  gap: var(--sp-2);
+  min-height: 44px; /* touch target */
+  padding: var(--sp-2) var(--sp-3);
+  border: 1px solid var(--border);
+  border-radius: var(--r-md);
+  background: var(--surface-0, var(--bg));
+  cursor: pointer;
+  user-select: none;
+  transition: border-color var(--dur-fast) var(--ease), background var(--dur-fast) var(--ease);
+}
+.modeOption:hover { border-color: var(--border-strong); }
+.modeOption:has(input:checked) {
+  border-color: var(--accent);
+  background: var(--accent-soft);
+}
+.modeOption input {
+  accent-color: var(--accent);
+  width: 16px;
+  height: 16px;
+  margin-top: var(--sp-1);
+  cursor: pointer;
+  flex: none;
+}
+.modeText { display: flex; flex-direction: column; gap: 2px; }
+.modeText strong { color: var(--text); font-size: var(--fs-sm); }
+.modeText small { color: var(--text-muted); font-size: var(--fs-sm); }
+/* The explanation is collapsed behind .infoToggle; when open it sits flush
+   with the option cards' content edge. */
+.libraryMode .settingsHint { margin: var(--sp-2) 0 0; }
+.modeWarning {
+  display: flex;
+  align-items: flex-start;
+  gap: var(--sp-2);
+  color: var(--warning, var(--accent-text));
+  font-size: var(--fs-sm);
+  margin: var(--sp-2) 0 0;
+}
+.modeWarning svg { flex: none; margin-top: 2px; }
 .libraryAddForm {
   display: flex;
   align-items: end;

@@ -14233,6 +14233,96 @@ msgstr "Synchroniseer geselecteerde boekenplanken met Kobo"
 msgid "Show Read/Unread Section"
 msgstr "Toon gelezen/niet gelezen selectie"
 
+msgid "New Feature!"
+msgstr "Nieuwe functie!"
+
+msgid "Organize your library, your way. Checkout books from the Global Library to bring them into My Library."
+msgstr "Organiseer je bibliotheek op jouw manier. Kies boeken uit de Globale bibliotheek om ze in Mijn bibliotheek te zetten."
+
+msgid "Instead of forcing all of your books on friends, they can pick which ones they want!"
+msgstr "In plaats van al je boeken aan vrienden op te dringen, kunnen ze zelf kiezen welke ze willen!"
+
+msgid "Data hoarder? This will help users organize their accounts!"
+msgstr "Dataverzamelaar? Dit helpt gebruikers hun accounts te organiseren!"
+
+msgid "You're probably a long time user of calibre-web. Please let us know your feedback on this, why or why not this works with your flow."
+msgstr "Je gebruikt calibre-web waarschijnlijk al heel lang. Laat ons weten wat je ervan vindt: waarom dit wel of niet past bij jouw manier van werken."
+
+msgid "Try My Library"
+msgstr "Mijn bibliotheek proberen"
+
+msgid "Please give this a try, you can easily undo later."
+msgstr "Probeer het gerust, je kunt het later eenvoudig ongedaan maken."
+
+msgid "Explore the changes, you can always undo later."
+msgstr "Verken de wijzigingen, je kunt het later altijd ongedaan maken."
+
+msgid "Dismiss introduction"
+msgstr "Introductie sluiten"
+
+msgid "Undoing…"
+msgstr "Ongedaan maken…"
+
+msgid "Could not complete the action."
+msgstr "De actie kon niet worden voltooid."
+
+msgid "My Library is now on for {accounts} accounts."
+msgstr "Mijn bibliotheek is nu actief voor {accounts} accounts."
+
+msgid "My Library is on for {accounts} accounts; {errors} accounts failed."
+msgstr "Mijn bibliotheek is actief voor {accounts} accounts; bij {errors} accounts is het mislukt."
+
+msgid "Restored the previous library mode for {accounts} accounts."
+msgstr "De vorige bibliotheekmodus is hersteld voor {accounts} accounts."
+
+msgid "The global library"
+msgstr "De globale bibliotheek"
+
+msgid "How switching between the global library and My Library works"
+msgstr "Hoe schakelen tussen de globale bibliotheek en Mijn bibliotheek werkt"
+
+msgid "Show {name} the global library again? Their selection is kept but no longer used, and their e-reader syncs the global library at the next update."
+msgstr "De globale bibliotheek weer tonen aan {name}? De selectie blijft bewaard maar wordt niet meer gebruikt, en de e-reader synchroniseert de globale bibliotheek bij de volgende update."
+
+msgid "Switch {name} back to My Library? Their chosen books are restored."
+msgstr "Mijn bibliotheek weer inschakelen voor {name}? De gekozen boeken worden hersteld."
+
+msgid "Give {name} My Library? It starts as a copy of everything they can see now — nothing changes for them yet."
+msgstr "Mijn bibliotheek geven aan {name}? Het begint als een kopie van alles wat dit account nu kan zien — er verandert nog niets."
+
+msgid "{name} sees the global library again."
+msgstr "{name} ziet weer de globale bibliotheek."
+
+msgid "{name} now uses My Library."
+msgstr "{name} gebruikt nu Mijn bibliotheek."
+
+msgid "Switching a user to My Library first fills it with everything they can see now, so nothing changes for them until they remove books themselves. Switching back keeps the selection intact but unused."
+msgstr "Als je een gebruiker overschakelt naar Mijn bibliotheek, wordt deze eerst gevuld met alles wat dat account nu kan zien, dus er verandert niets totdat die gebruiker zelf boeken verwijdert. Terugschakelen bewaart de selectie, maar gebruikt die niet."
+
+msgid "Show the global library again? Your selection is kept exactly as you left it — switch back any time and it is still there. At its next update, your e-reader syncs the global library."
+msgstr "De globale bibliotheek weer tonen? Je selectie blijft precies zoals je hem achterliet — schakel gerust terug, hij blijft bewaard. Bij de volgende update synchroniseert je e-reader de globale bibliotheek."
+
+msgid "Switch back to My Library? Your library goes back to the books you had chosen — nothing was lost while you saw everything. At its next update, your e-reader returns to your selection."
+msgstr "Terug naar Mijn bibliotheek? Je bibliotheek gaat terug naar de boeken die je had gekozen — er is niets verloren gegaan terwijl je alles zag. Bij de volgende update keert je e-reader terug naar je selectie."
+
+msgid "Start My Library? It begins as everything you can see now, so nothing changes until you remove books yourself. Your e-reader keeps the same books at its next update."
+msgstr "Mijn bibliotheek starten? Het begint met alles wat je nu kunt zien, dus er verandert niets totdat je zelf boeken verwijdert. Je e-reader behoudt dezelfde boeken bij de volgende update."
+
+msgid "You now see the global library."
+msgstr "Je ziet nu de globale bibliotheek."
+
+msgid "New: My Library"
+msgstr "Nieuw: Mijn bibliotheek"
+
+msgid "The library is shared and holds every book once — what you keep is My Library. Nothing you had is gone. Every book, new arrivals included, is under Global Library in the menu."
+msgstr "De bibliotheek is gedeeld en bevat elk boek maar één keer — wat je bewaart is Mijn bibliotheek. Niets dat je had is weg. Elk boek, ook nieuwe aanwinsten, vind je onder Globale bibliotheek in het menu."
+
+msgid "The library is shared and holds every book once — what you keep is My Library. Nothing you had is gone. Your administrator manages what enters it."
+msgstr "De bibliotheek is gedeeld en bevat elk boek maar één keer — wat je bewaart is Mijn bibliotheek. Niets dat je had is weg. Je beheerder beheert wat erin komt."
+
+msgid "Nothing is missing — the global library is still on the server. What you see here is your selection in My Library. Add books from the global library; they appear here and on your e-reader."
+msgstr "Er ontbreekt niets — de globale bibliotheek staat nog steeds op de server. Wat je hier ziet is je selectie in Mijn bibliotheek. Voeg boeken toe vanuit de globale bibliotheek; ze verschijnen hier en op je e-reader."
+
 #~ msgid "Basic configuration"
 #~ msgstr "Basisconfiguratie"
 

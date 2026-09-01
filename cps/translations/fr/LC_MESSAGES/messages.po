@@ -14573,6 +14573,96 @@ msgstr "Synchroniser les étagères sélectionnées avec Kobo"
 msgid "Show Read/Unread Section"
 msgstr "Afficher la section Lu / Non lu"
 
+msgid "New Feature!"
+msgstr "Nouveauté !"
+
+msgid "Organize your library, your way. Checkout books from the Global Library to bring them into My Library."
+msgstr "Organisez votre bibliothèque à votre façon. Choisissez des livres dans la Bibliothèque globale pour les ajouter à Ma bibliothèque."
+
+msgid "Instead of forcing all of your books on friends, they can pick which ones they want!"
+msgstr "Au lieu d'imposer tous vos livres à vos amis, ils peuvent choisir ceux qu'ils veulent !"
+
+msgid "Data hoarder? This will help users organize their accounts!"
+msgstr "Vous accumulez les données ? Cette fonction aide les utilisateurs à organiser leurs comptes !"
+
+msgid "You're probably a long time user of calibre-web. Please let us know your feedback on this, why or why not this works with your flow."
+msgstr "Vous utilisez probablement calibre-web depuis longtemps. Dites-nous ce que vous en pensez : pourquoi cette approche convient ou non à votre façon de faire."
+
+msgid "Try My Library"
+msgstr "Essayer Ma bibliothèque"
+
+msgid "Please give this a try, you can easily undo later."
+msgstr "Essayez, vous pourrez facilement annuler plus tard."
+
+msgid "Explore the changes, you can always undo later."
+msgstr "Explorez les changements : vous pouvez toujours annuler plus tard."
+
+msgid "Dismiss introduction"
+msgstr "Fermer l'introduction"
+
+msgid "Undoing…"
+msgstr "Annulation…"
+
+msgid "Could not complete the action."
+msgstr "L'action n'a pas abouti."
+
+msgid "My Library is now on for {accounts} accounts."
+msgstr "Ma bibliothèque est maintenant active pour {accounts} comptes."
+
+msgid "My Library is on for {accounts} accounts; {errors} accounts failed."
+msgstr "Ma bibliothèque est active pour {accounts} comptes ; {errors} comptes ont échoué."
+
+msgid "Restored the previous library mode for {accounts} accounts."
+msgstr "Le mode de bibliothèque précédent a été restauré pour {accounts} comptes."
+
+msgid "The global library"
+msgstr "La bibliothèque globale"
+
+msgid "How switching between the global library and My Library works"
+msgstr "Comment fonctionne le basculement entre la bibliothèque globale et Ma bibliothèque"
+
+msgid "Show {name} the global library again? Their selection is kept but no longer used, and their e-reader syncs the global library at the next update."
+msgstr "Afficher à nouveau la bibliothèque globale à {name} ? Sa sélection est conservée mais n'est plus utilisée, et sa liseuse synchronisera la bibliothèque globale à la prochaine mise à jour."
+
+msgid "Switch {name} back to My Library? Their chosen books are restored."
+msgstr "Repasser {name} à Ma bibliothèque ? Ses livres choisis sont restaurés."
+
+msgid "Give {name} My Library? It starts as a copy of everything they can see now — nothing changes for them yet."
+msgstr "Donner Ma bibliothèque à {name} ? Elle commence comme une copie de tout ce que ce compte peut voir — rien ne change pour lui pour l'instant."
+
+msgid "{name} sees the global library again."
+msgstr "{name} voit à nouveau la bibliothèque globale."
+
+msgid "{name} now uses My Library."
+msgstr "{name} utilise désormais Ma bibliothèque."
+
+msgid "Switching a user to My Library first fills it with everything they can see now, so nothing changes for them until they remove books themselves. Switching back keeps the selection intact but unused."
+msgstr "Basculer un utilisateur vers Ma bibliothèque la remplit d'abord avec tout ce qu'il peut voir actuellement, donc rien ne change pour lui tant qu'il ne retire pas de livres lui-même. Revenir en arrière conserve la sélection intacte mais inutilisée."
+
+msgid "Show the global library again? Your selection is kept exactly as you left it — switch back any time and it is still there. At its next update, your e-reader syncs the global library."
+msgstr "Afficher à nouveau la bibliothèque globale ? Votre sélection est conservée exactement comme vous l'avez laissée — revenez quand vous voulez, elle est toujours là. À la prochaine mise à jour, votre liseuse synchronise la bibliothèque globale."
+
+msgid "Switch back to My Library? Your library goes back to the books you had chosen — nothing was lost while you saw everything. At its next update, your e-reader returns to your selection."
+msgstr "Revenir à Ma bibliothèque ? Votre bibliothèque retrouve les livres que vous aviez choisis — rien n'a été perdu pendant que vous voyiez tout. À la prochaine mise à jour, votre liseuse retrouve votre sélection."
+
+msgid "Start My Library? It begins as everything you can see now, so nothing changes until you remove books yourself. Your e-reader keeps the same books at its next update."
+msgstr "Démarrer Ma bibliothèque ? Elle commence avec tout ce que vous pouvez voir actuellement, donc rien ne change tant que vous ne retirez pas de livres vous-même. Votre liseuse garde les mêmes livres à la prochaine mise à jour."
+
+msgid "You now see the global library."
+msgstr "Vous voyez maintenant la bibliothèque globale."
+
+msgid "New: My Library"
+msgstr "Nouveau : Ma bibliothèque"
+
+msgid "The library is shared and holds every book once — what you keep is My Library. Nothing you had is gone. Every book, new arrivals included, is under Global Library in the menu."
+msgstr "La bibliothèque est partagée et ne contient chaque livre qu'une seule fois — ce que vous gardez, c'est Ma bibliothèque. Rien de ce que vous aviez n'a disparu. Chaque livre, nouveautés comprises, se trouve sous Bibliothèque globale dans le menu."
+
+msgid "The library is shared and holds every book once — what you keep is My Library. Nothing you had is gone. Your administrator manages what enters it."
+msgstr "La bibliothèque est partagée et ne contient chaque livre qu'une seule fois — ce que vous gardez, c'est Ma bibliothèque. Rien de ce que vous aviez n'a disparu. Votre administrateur gère ce qui y entre."
+
+msgid "Nothing is missing — the global library is still on the server. What you see here is your selection in My Library. Add books from the global library; they appear here and on your e-reader."
+msgstr "Rien ne manque — la bibliothèque globale est toujours sur le serveur. Ce que vous voyez ici est votre sélection dans Ma bibliothèque. Ajoutez des livres depuis la bibliothèque globale ; ils apparaissent ici et sur votre liseuse."
+
 #~ msgid "Basic configuration"
 #~ msgstr "Configuration de base"
 
