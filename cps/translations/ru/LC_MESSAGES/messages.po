@@ -743,8 +743,8 @@ msgid ""
 "https://your-domain.com)"
 msgstr ""
 "В поле «Хост перенаправления OAuth» не следует указывать путь. Используйте "
-"только базовый URL (например, [https://your-domain.com](https://your-"
-"domain.com))"
+"только базовый URL (например, [https://your-domain.com](https://your-domain."
+"com))"
 
 #: cps/admin.py
 msgid "Password length has to be between 1 and 40"
@@ -2278,7 +2278,8 @@ msgstr ""
 "прежде чем можно будет выполнять быструю проверку после импорта и изменения "
 "метаданных. "
 
-#: cps/render_template.py cps/spa_strings.py
+#: cps/render_template.py cps/spa_strings.py cps/templates/user_edit.html
+#: cps/templates/user_table.html
 msgid "My Library"
 msgstr ""
 
@@ -2975,11 +2976,11 @@ msgstr ""
 msgid "Library scope"
 msgstr ""
 
-#: cps/spa_strings.py cps/templates/user_edit.html
+#: cps/spa_strings.py
 msgid "My selection"
 msgstr ""
 
-#: cps/spa_strings.py cps/templates/index.html
+#: cps/spa_strings.py
 msgid "New: your own library"
 msgstr ""
 
@@ -2993,7 +2994,7 @@ msgid ""
 "highlights, notes and reading progress are kept."
 msgstr ""
 
-#: cps/spa_strings.py cps/templates/index.html
+#: cps/spa_strings.py
 msgid ""
 "Nothing is missing — the whole library is still on the server. What you see "
 "here is your own selection. Add books from the global library; they appear "
@@ -3014,8 +3015,7 @@ msgid ""
 "time."
 msgstr ""
 
-#: cps/spa_strings.py cps/templates/user_edit.html
-#: cps/templates/user_table.html
+#: cps/spa_strings.py
 msgid "Own selection"
 msgstr ""
 
@@ -3102,21 +3102,21 @@ msgid ""
 "Switch {name} back to their own selection? Their chosen books are restored."
 msgstr ""
 
-#: cps/spa_strings.py cps/templates/user_edit.html
+#: cps/spa_strings.py
 msgid ""
 "Switching a user to their own selection first fills it with everything they "
 "can see now, so nothing changes for them until they remove books themselves. "
 "Switching back keeps the selection intact but unused."
 msgstr ""
 
-#: cps/spa_strings.py cps/templates/index.html
+#: cps/spa_strings.py
 msgid ""
 "The library is shared and holds every book once — what you keep is your own "
 "selection. Nothing you had is gone. Every book, new arrivals included, is "
 "under Global Library in the menu."
 msgstr ""
 
-#: cps/spa_strings.py cps/templates/index.html
+#: cps/spa_strings.py
 msgid ""
 "The library is shared and holds every book once — what you keep is your own "
 "selection. Nothing you had is gone. Your administrator manages what enters "
@@ -3138,7 +3138,7 @@ msgstr ""
 msgid "The whole archive. Add books to your library from here."
 msgstr ""
 
-#: cps/spa_strings.py cps/templates/user_edit.html
+#: cps/spa_strings.py
 msgid "The whole library"
 msgstr ""
 
@@ -4970,6 +4970,10 @@ msgid "Could not assign."
 msgstr "Не удалось назначить."
 
 #: cps/spa_strings.py
+msgid "Could not complete the action."
+msgstr ""
+
+#: cps/spa_strings.py
 msgid "Could not copy. Select the address and copy it manually."
 msgstr ""
 
@@ -5201,6 +5205,10 @@ msgid "Custom columns"
 msgstr "Пользовательские колонки"
 
 #: cps/spa_strings.py
+msgid "Data hoarder? This will help users organize their accounts!"
+msgstr ""
+
+#: cps/spa_strings.py
 msgid "Database path"
 msgstr ""
 
@@ -5397,6 +5405,10 @@ msgid "Dismiss"
 msgstr "Скрыть"
 
 #: cps/spa_strings.py
+msgid "Dismiss introduction"
+msgstr ""
+
+#: cps/spa_strings.py
 msgid "Dismiss this group"
 msgstr "Пропустить эту группу"
 
@@ -5561,6 +5573,10 @@ msgid "Expires in"
 msgstr "Истекает через"
 
 #: cps/spa_strings.py
+msgid "Explore the changes, you can always undo later."
+msgstr ""
+
+#: cps/spa_strings.py
 msgid "Export"
 msgstr "Экспорт"
 
@@ -5683,6 +5699,13 @@ msgid "Give your smart shelf a name."
 msgstr "Введите название для смарт-полки."
 
 #: cps/spa_strings.py
+#, python-brace-format
+msgid ""
+"Give {name} My Library? It starts as a copy of everything they can see now — "
+"nothing changes for them yet."
+msgstr ""
+
+#: cps/spa_strings.py
 msgid "Go to this highlight"
 msgstr "Перейти к этому выделению"
 
@@ -5752,11 +5775,11 @@ msgid "Hide Discover section"
 msgstr "Скрыть раздел «Обзор»"
 
 #: cps/spa_strings.py
-msgid "Hide device library"
+msgid "Hide device details"
 msgstr ""
 
 #: cps/spa_strings.py
-msgid "Hide device details"
+msgid "Hide device library"
 msgstr ""
 
 #: cps/spa_strings.py
@@ -5798,6 +5821,10 @@ msgstr "Популярное — Самые скачиваемые"
 
 #: cps/spa_strings.py
 msgid "How should multi-value fields be applied?"
+msgstr ""
+
+#: cps/spa_strings.py
+msgid "How switching between the global library and My Library works"
 msgstr ""
 
 #: cps/spa_strings.py
@@ -5859,6 +5886,12 @@ msgstr "Включено"
 
 #: cps/spa_strings.py
 msgid "Install or update the NextGen Sync plugin."
+msgstr ""
+
+#: cps/spa_strings.py
+msgid ""
+"Instead of forcing all of your books on friends, they can pick which ones "
+"they want!"
 msgstr ""
 
 #: cps/spa_strings.py
@@ -6141,6 +6174,16 @@ msgid "Move up"
 msgstr "Переместить вверх"
 
 #: cps/spa_strings.py
+#, python-brace-format
+msgid "My Library is now on for {accounts} accounts."
+msgstr ""
+
+#: cps/spa_strings.py
+#, python-brace-format
+msgid "My Library is on for {accounts} accounts; {errors} accounts failed."
+msgstr ""
+
+#: cps/spa_strings.py
 msgid "My account"
 msgstr "Мой аккаунт"
 
@@ -6159,6 +6202,10 @@ msgstr "Никогда"
 #: cps/spa_strings.py cps/templates/cover_picker.html
 msgid "New"
 msgstr "Новый"
+
+#: cps/spa_strings.py
+msgid "New Feature!"
+msgstr ""
 
 #: cps/spa_strings.py
 msgid ""
@@ -6189,6 +6236,10 @@ msgstr "Новая смарт-полка"
 #: cps/spa_strings.py
 msgid "New user"
 msgstr "Новый пользователь"
+
+#: cps/spa_strings.py cps/templates/index.html
+msgid "New: My Library"
+msgstr ""
 
 #: cps/spa_strings.py
 msgid "Newest"
@@ -6355,6 +6406,13 @@ msgstr ""
 msgid "Nothing in this category yet."
 msgstr ""
 
+#: cps/spa_strings.py cps/templates/index.html
+msgid ""
+"Nothing is missing — the global library is still on the server. What you see "
+"here is your selection in My Library. Add books from the global library; "
+"they appear here and on your e-reader."
+msgstr ""
+
 #: cps/spa_strings.py
 msgid "Nothing to preview yet."
 msgstr ""
@@ -6468,6 +6526,12 @@ msgstr ""
 "настраивается и проверяется — её реальное состояние отображается здесь."
 
 #: cps/spa_strings.py
+msgid ""
+"Organize your library, your way. Checkout books from the Global Library to "
+"bring them into My Library."
+msgstr ""
+
+#: cps/spa_strings.py
 msgid "PDF reader"
 msgstr "PDF-читалка"
 
@@ -6548,6 +6612,10 @@ msgstr ""
 #: cps/spa_strings.py
 msgid "Pink"
 msgstr "Розовый"
+
+#: cps/spa_strings.py
+msgid "Please give this a try, you can easily undo later."
+msgstr ""
 
 #: cps/spa_strings.py cps/templates/admin.html
 msgid "Port"
@@ -6776,6 +6844,11 @@ msgid ""
 msgstr ""
 "Сбросить пароль для пользователя {name}? Текущий пароль перестанет работать, "
 "а новый будет отправлен по электронной почте."
+
+#: cps/spa_strings.py
+#, python-brace-format
+msgid "Restored the previous library mode for {accounts} accounts."
+msgstr ""
 
 #: cps/spa_strings.py
 msgid "Retry"
@@ -7064,12 +7137,12 @@ msgid "Show annotations assigned to this device"
 msgstr ""
 
 #: cps/spa_strings.py
-msgid "Show device details"
-msgstr ""
-
-#: cps/spa_strings.py
 msgid "Show books in language"
 msgstr "Показывать книги на языке"
+
+#: cps/spa_strings.py
+msgid "Show device details"
+msgstr ""
 
 #: cps/spa_strings.py
 msgid "Show e-reader previews on each candidate"
@@ -7086,6 +7159,20 @@ msgstr "Показать скрытые книги"
 #: cps/spa_strings.py
 msgid "Show password"
 msgstr "Показать пароль"
+
+#: cps/spa_strings.py
+msgid ""
+"Show the global library again? Your selection is kept exactly as you left it "
+"— switch back any time and it is still there. At its next update, your e-"
+"reader syncs the global library."
+msgstr ""
+
+#: cps/spa_strings.py
+#, python-brace-format
+msgid ""
+"Show {name} the global library again? Their selection is kept but no longer "
+"used, and their e-reader syncs the global library at the next update."
+msgstr ""
 
 #: cps/spa_strings.py
 #, python-brace-format
@@ -7173,6 +7260,13 @@ msgid "Source details"
 msgstr "Сведения об источнике"
 
 #: cps/spa_strings.py
+msgid ""
+"Start My Library? It begins as everything you can see now, so nothing "
+"changes until you remove books yourself. Your e-reader keeps the same books "
+"at its next update."
+msgstr ""
+
+#: cps/spa_strings.py
 msgid "Start the only OAuth provider automatically"
 msgstr "Автоматически запускать единственного провайдера OAuth"
 
@@ -7208,6 +7302,25 @@ msgstr ""
 #: cps/spa_strings.py
 msgid "Support on Ko-fi →"
 msgstr "Поддержать на Ko-fi →"
+
+#: cps/spa_strings.py
+msgid ""
+"Switch back to My Library? Your library goes back to the books you had "
+"chosen — nothing was lost while you saw everything. At its next update, your "
+"e-reader returns to your selection."
+msgstr ""
+
+#: cps/spa_strings.py
+#, python-brace-format
+msgid "Switch {name} back to My Library? Their chosen books are restored."
+msgstr ""
+
+#: cps/spa_strings.py cps/templates/user_edit.html
+msgid ""
+"Switching a user to My Library first fills it with everything they can see "
+"now, so nothing changes for them until they remove books themselves. "
+"Switching back keeps the selection intact but unused."
+msgstr ""
 
 #: cps/spa_strings.py
 msgid "Sync only my selected shelves"
@@ -7269,6 +7382,23 @@ msgstr "По этому URL нет подходящего изображения
 msgid ""
 "The book record, metadata, shelves, and reading state stay available. If "
 "this is the last format, you can add a replacement later."
+msgstr ""
+
+#: cps/spa_strings.py cps/templates/user_edit.html
+msgid "The global library"
+msgstr ""
+
+#: cps/spa_strings.py cps/templates/index.html
+msgid ""
+"The library is shared and holds every book once — what you keep is My "
+"Library. Nothing you had is gone. Every book, new arrivals included, is "
+"under Global Library in the menu."
+msgstr ""
+
+#: cps/spa_strings.py cps/templates/index.html
+msgid ""
+"The library is shared and holds every book once — what you keep is My "
+"Library. Nothing you had is gone. Your administrator manages what enters it."
 msgstr ""
 
 #: cps/spa_strings.py
@@ -7356,6 +7486,10 @@ msgstr "Лучшие по рейтингу"
 msgid "Trust authentication header"
 msgstr "Доверять заголовку аутентификации"
 
+#: cps/spa_strings.py
+msgid "Try My Library"
+msgstr ""
+
 #: cps/spa_strings.py cps/templates/cwng_feedback_popup.html
 msgid "Try again"
 msgstr "Попробовать снова"
@@ -7379,6 +7513,10 @@ msgstr "Разархивировать"
 #: cps/spa_strings.py
 msgid "Undo"
 msgstr "Отменить"
+
+#: cps/spa_strings.py
+msgid "Undoing…"
+msgstr ""
 
 #: cps/spa_strings.py
 msgid "Unhide"
@@ -7584,6 +7722,12 @@ msgstr "Написать заметку…"
 
 #: cps/spa_strings.py
 msgid ""
+"You're probably a long time user of calibre-web. Please let us know your "
+"feedback on this, why or why not this works with your flow."
+msgstr ""
+
+#: cps/spa_strings.py
+msgid ""
 "Your Kobo is still set to sync your whole library, so marking this shelf "
 "does nothing on its own. Switch your account to shelf-only syncing to make "
 "it take effect."
@@ -7733,8 +7877,18 @@ msgstr ""
 
 #: cps/spa_strings.py
 #, python-brace-format
+msgid "{name} now uses My Library."
+msgstr ""
+
+#: cps/spa_strings.py
+#, python-brace-format
 msgid "{name} removed."
 msgstr "Устройство {name} удалено."
+
+#: cps/spa_strings.py
+#, python-brace-format
+msgid "{name} sees the global library again."
+msgstr ""
 
 #: cps/spa_strings.py
 #, python-brace-format
@@ -7790,11 +7944,6 @@ msgstr ""
 
 #: cps/spa_strings.py
 #, python-brace-format
-msgid "{seeded} of {total} books seeded"
-msgstr ""
-
-#: cps/spa_strings.py
-#, python-brace-format
 msgid "{ok} of {total} assigned to {name}."
 msgstr "{ok} из {total} назначено устройству {name}."
 
@@ -7806,6 +7955,11 @@ msgstr "Получен ответ {ok} из {total} источников"
 #: cps/spa_strings.py
 #, python-brace-format
 msgid "{percent}% read"
+msgstr ""
+
+#: cps/spa_strings.py
+#, python-brace-format
+msgid "{seeded} of {total} books seeded"
 msgstr ""
 
 #: cps/spa_strings.py
@@ -10027,9 +10181,9 @@ msgid ""
 msgstr ""
 "Необязательно. Без ключа для Google Books действует ограничение около 1000 "
 "запросов на IP-адрес в день, которое легко исчерпать на общих серверах "
-"(ошибка HTTP 429). Бесплатный ключ можно получить на [https://"
-"console.cloud.google.com](https://console.cloud.google.com) — включите "
-"«Books API» и создайте API-ключ."
+"(ошибка HTTP 429). Бесплатный ключ можно получить на [https://console.cloud."
+"google.com](https://console.cloud.google.com) — включите «Books API» и "
+"создайте API-ключ."
 
 #: cps/templates/config_edit.html
 msgid "Allow Reverse Proxy Authentication"
@@ -11029,9 +11183,9 @@ msgid ""
 "\">kindle-epub-fix.netlify.app</a> tool made by <a href=\"https://github.com/"
 "innocenat\">innocenat</a>."
 msgstr ""
-"Этот инструмент был адаптирован из утилиты <a href=\"https://kindle-epub-"
-"fix.netlify.app/\">kindle-epub-fix.netlify.app</a>, созданной <a "
-"href=\"https://github.com/innocenat\">innocenat</a>."
+"Этот инструмент был адаптирован из утилиты <a href=\"https://kindle-epub-fix."
+"netlify.app/\">kindle-epub-fix.netlify.app</a>, созданной <a href=\"https://"
+"github.com/innocenat\">innocenat</a>."
 
 #: cps/templates/cwa_settings.html
 msgid "Enable KOReader Sync (NextGen Plugin)"
@@ -11054,9 +11208,9 @@ msgid ""
 "container after disabling."
 msgstr ""
 "Примечание: Включение этой опции запускает службу фонового вычисления "
-"контрольных сумм при старте, что может временно заблокировать файл "
-"metadata.db. Чтобы остановить запущенный процесс, отключите опцию и "
-"перезапустите контейнер."
+"контрольных сумм при старте, что может временно заблокировать файл metadata."
+"db. Чтобы остановить запущенный процесс, отключите опцию и перезапустите "
+"контейнер."
 
 #: cps/templates/cwa_settings.html
 msgid "Enable Aggressive EPUB Fixer Mode (riskier)"
@@ -14936,9 +15090,9 @@ msgstr "Показать раздел прочитанного/непрочит�
 #~ "metadata.db при запуске. Если найдена только одна библиотека, она "
 #~ "монтируется автоматически; если найдено несколько, по умолчанию будет "
 #~ "смонтирована самая большая, а если ни одной нет, будет автоматически "
-#~ "создана и смонтирована новая. Для подробностей, <a href=\"https://"
-#~ "github.com/crocodilestick/Calibre-Web-Automated/wiki/"
-#~ "Configuration#database-configuration\">см. здесь</a>!"
+#~ "создана и смонтирована новая. Для подробностей, <a href=\"https://github."
+#~ "com/crocodilestick/Calibre-Web-Automated/wiki/Configuration#database-"
+#~ "configuration\">см. здесь</a>!"
 
 #~ msgid ""
 #~ "Therefore, when configuring your docker-compose file for CWA, <b>DO NOT "

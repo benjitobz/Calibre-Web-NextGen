@@ -2231,7 +2231,8 @@ msgid ""
 "can run after imports and metadata changes. "
 msgstr ""
 
-#: cps/render_template.py cps/spa_strings.py
+#: cps/render_template.py cps/spa_strings.py cps/templates/user_edit.html
+#: cps/templates/user_table.html
 msgid "My Library"
 msgstr ""
 
@@ -2939,11 +2940,11 @@ msgstr ""
 msgid "Library scope"
 msgstr ""
 
-#: cps/spa_strings.py cps/templates/user_edit.html
+#: cps/spa_strings.py
 msgid "My selection"
 msgstr ""
 
-#: cps/spa_strings.py cps/templates/index.html
+#: cps/spa_strings.py
 msgid "New: your own library"
 msgstr ""
 
@@ -2957,7 +2958,7 @@ msgid ""
 "highlights, notes and reading progress are kept."
 msgstr ""
 
-#: cps/spa_strings.py cps/templates/index.html
+#: cps/spa_strings.py
 msgid ""
 "Nothing is missing — the whole library is still on the server. What you see "
 "here is your own selection. Add books from the global library; they appear "
@@ -2978,8 +2979,7 @@ msgid ""
 "time."
 msgstr ""
 
-#: cps/spa_strings.py cps/templates/user_edit.html
-#: cps/templates/user_table.html
+#: cps/spa_strings.py
 msgid "Own selection"
 msgstr ""
 
@@ -3066,21 +3066,21 @@ msgid ""
 "Switch {name} back to their own selection? Their chosen books are restored."
 msgstr ""
 
-#: cps/spa_strings.py cps/templates/user_edit.html
+#: cps/spa_strings.py
 msgid ""
 "Switching a user to their own selection first fills it with everything they "
 "can see now, so nothing changes for them until they remove books themselves. "
 "Switching back keeps the selection intact but unused."
 msgstr ""
 
-#: cps/spa_strings.py cps/templates/index.html
+#: cps/spa_strings.py
 msgid ""
 "The library is shared and holds every book once — what you keep is your own "
 "selection. Nothing you had is gone. Every book, new arrivals included, is "
 "under Global Library in the menu."
 msgstr ""
 
-#: cps/spa_strings.py cps/templates/index.html
+#: cps/spa_strings.py
 msgid ""
 "The library is shared and holds every book once — what you keep is your own "
 "selection. Nothing you had is gone. Your administrator manages what enters "
@@ -3102,7 +3102,7 @@ msgstr ""
 msgid "The whole archive. Add books to your library from here."
 msgstr ""
 
-#: cps/spa_strings.py cps/templates/user_edit.html
+#: cps/spa_strings.py
 msgid "The whole library"
 msgstr ""
 
@@ -4905,6 +4905,10 @@ msgid "Could not assign."
 msgstr ""
 
 #: cps/spa_strings.py
+msgid "Could not complete the action."
+msgstr ""
+
+#: cps/spa_strings.py
 msgid "Could not copy. Select the address and copy it manually."
 msgstr ""
 
@@ -5136,6 +5140,10 @@ msgid "Custom columns"
 msgstr ""
 
 #: cps/spa_strings.py
+msgid "Data hoarder? This will help users organize their accounts!"
+msgstr ""
+
+#: cps/spa_strings.py
 msgid "Database path"
 msgstr ""
 
@@ -5328,6 +5336,10 @@ msgid "Dismiss"
 msgstr ""
 
 #: cps/spa_strings.py
+msgid "Dismiss introduction"
+msgstr ""
+
+#: cps/spa_strings.py
 msgid "Dismiss this group"
 msgstr ""
 
@@ -5486,6 +5498,10 @@ msgid "Expires in"
 msgstr ""
 
 #: cps/spa_strings.py
+msgid "Explore the changes, you can always undo later."
+msgstr ""
+
+#: cps/spa_strings.py
 msgid "Export"
 msgstr ""
 
@@ -5607,6 +5623,13 @@ msgid "Give your smart shelf a name."
 msgstr ""
 
 #: cps/spa_strings.py
+#, python-brace-format
+msgid ""
+"Give {name} My Library? It starts as a copy of everything they can see now — "
+"nothing changes for them yet."
+msgstr ""
+
+#: cps/spa_strings.py
 msgid "Go to this highlight"
 msgstr ""
 
@@ -5676,11 +5699,11 @@ msgid "Hide Discover section"
 msgstr ""
 
 #: cps/spa_strings.py
-msgid "Hide device library"
+msgid "Hide device details"
 msgstr ""
 
 #: cps/spa_strings.py
-msgid "Hide device details"
+msgid "Hide device library"
 msgstr ""
 
 #: cps/spa_strings.py
@@ -5722,6 +5745,10 @@ msgstr ""
 
 #: cps/spa_strings.py
 msgid "How should multi-value fields be applied?"
+msgstr ""
+
+#: cps/spa_strings.py
+msgid "How switching between the global library and My Library works"
 msgstr ""
 
 #: cps/spa_strings.py
@@ -5781,6 +5808,12 @@ msgstr ""
 
 #: cps/spa_strings.py
 msgid "Install or update the NextGen Sync plugin."
+msgstr ""
+
+#: cps/spa_strings.py
+msgid ""
+"Instead of forcing all of your books on friends, they can pick which ones "
+"they want!"
 msgstr ""
 
 #: cps/spa_strings.py
@@ -6059,6 +6092,16 @@ msgid "Move up"
 msgstr ""
 
 #: cps/spa_strings.py
+#, python-brace-format
+msgid "My Library is now on for {accounts} accounts."
+msgstr ""
+
+#: cps/spa_strings.py
+#, python-brace-format
+msgid "My Library is on for {accounts} accounts; {errors} accounts failed."
+msgstr ""
+
+#: cps/spa_strings.py
 msgid "My account"
 msgstr ""
 
@@ -6076,6 +6119,10 @@ msgstr ""
 
 #: cps/spa_strings.py cps/templates/cover_picker.html
 msgid "New"
+msgstr ""
+
+#: cps/spa_strings.py
+msgid "New Feature!"
 msgstr ""
 
 #: cps/spa_strings.py
@@ -6106,6 +6153,10 @@ msgstr ""
 
 #: cps/spa_strings.py
 msgid "New user"
+msgstr ""
+
+#: cps/spa_strings.py cps/templates/index.html
+msgid "New: My Library"
 msgstr ""
 
 #: cps/spa_strings.py
@@ -6269,6 +6320,13 @@ msgstr ""
 msgid "Nothing in this category yet."
 msgstr ""
 
+#: cps/spa_strings.py cps/templates/index.html
+msgid ""
+"Nothing is missing — the global library is still on the server. What you see "
+"here is your selection in My Library. Add books from the global library; "
+"they appear here and on your e-reader."
+msgstr ""
+
 #: cps/spa_strings.py
 msgid "Nothing to preview yet."
 msgstr ""
@@ -6370,6 +6428,12 @@ msgid ""
 msgstr ""
 
 #: cps/spa_strings.py
+msgid ""
+"Organize your library, your way. Checkout books from the Global Library to "
+"bring them into My Library."
+msgstr ""
+
+#: cps/spa_strings.py
 msgid "PDF reader"
 msgstr ""
 
@@ -6445,6 +6509,10 @@ msgstr ""
 
 #: cps/spa_strings.py
 msgid "Pink"
+msgstr ""
+
+#: cps/spa_strings.py
+msgid "Please give this a try, you can easily undo later."
 msgstr ""
 
 #: cps/spa_strings.py cps/templates/admin.html
@@ -6668,6 +6736,11 @@ msgstr ""
 msgid ""
 "Reset password for {name}? Their current password will stop working and a "
 "replacement will be emailed."
+msgstr ""
+
+#: cps/spa_strings.py
+#, python-brace-format
+msgid "Restored the previous library mode for {accounts} accounts."
 msgstr ""
 
 #: cps/spa_strings.py
@@ -6949,11 +7022,11 @@ msgid "Show annotations assigned to this device"
 msgstr ""
 
 #: cps/spa_strings.py
-msgid "Show device details"
+msgid "Show books in language"
 msgstr ""
 
 #: cps/spa_strings.py
-msgid "Show books in language"
+msgid "Show device details"
 msgstr ""
 
 #: cps/spa_strings.py
@@ -6970,6 +7043,20 @@ msgstr ""
 
 #: cps/spa_strings.py
 msgid "Show password"
+msgstr ""
+
+#: cps/spa_strings.py
+msgid ""
+"Show the global library again? Your selection is kept exactly as you left it "
+"— switch back any time and it is still there. At its next update, your e-"
+"reader syncs the global library."
+msgstr ""
+
+#: cps/spa_strings.py
+#, python-brace-format
+msgid ""
+"Show {name} the global library again? Their selection is kept but no longer "
+"used, and their e-reader syncs the global library at the next update."
 msgstr ""
 
 #: cps/spa_strings.py
@@ -7056,6 +7143,13 @@ msgid "Source details"
 msgstr ""
 
 #: cps/spa_strings.py
+msgid ""
+"Start My Library? It begins as everything you can see now, so nothing "
+"changes until you remove books yourself. Your e-reader keeps the same books "
+"at its next update."
+msgstr ""
+
+#: cps/spa_strings.py
 msgid "Start the only OAuth provider automatically"
 msgstr ""
 
@@ -7091,6 +7185,25 @@ msgstr ""
 #: cps/spa_strings.py
 msgid "Support on Ko-fi →"
 msgstr "Apoiar no Ko-fi →"
+
+#: cps/spa_strings.py
+msgid ""
+"Switch back to My Library? Your library goes back to the books you had "
+"chosen — nothing was lost while you saw everything. At its next update, your "
+"e-reader returns to your selection."
+msgstr ""
+
+#: cps/spa_strings.py
+#, python-brace-format
+msgid "Switch {name} back to My Library? Their chosen books are restored."
+msgstr ""
+
+#: cps/spa_strings.py cps/templates/user_edit.html
+msgid ""
+"Switching a user to My Library first fills it with everything they can see "
+"now, so nothing changes for them until they remove books themselves. "
+"Switching back keeps the selection intact but unused."
+msgstr ""
 
 #: cps/spa_strings.py
 msgid "Sync only my selected shelves"
@@ -7152,6 +7265,23 @@ msgstr ""
 msgid ""
 "The book record, metadata, shelves, and reading state stay available. If "
 "this is the last format, you can add a replacement later."
+msgstr ""
+
+#: cps/spa_strings.py cps/templates/user_edit.html
+msgid "The global library"
+msgstr ""
+
+#: cps/spa_strings.py cps/templates/index.html
+msgid ""
+"The library is shared and holds every book once — what you keep is My "
+"Library. Nothing you had is gone. Every book, new arrivals included, is "
+"under Global Library in the menu."
+msgstr ""
+
+#: cps/spa_strings.py cps/templates/index.html
+msgid ""
+"The library is shared and holds every book once — what you keep is My "
+"Library. Nothing you had is gone. Your administrator manages what enters it."
 msgstr ""
 
 #: cps/spa_strings.py
@@ -7232,6 +7362,10 @@ msgstr ""
 msgid "Trust authentication header"
 msgstr ""
 
+#: cps/spa_strings.py
+msgid "Try My Library"
+msgstr ""
+
 #: cps/spa_strings.py cps/templates/cwng_feedback_popup.html
 msgid "Try again"
 msgstr ""
@@ -7254,6 +7388,10 @@ msgstr ""
 
 #: cps/spa_strings.py
 msgid "Undo"
+msgstr ""
+
+#: cps/spa_strings.py
+msgid "Undoing…"
 msgstr ""
 
 #: cps/spa_strings.py
@@ -7444,6 +7582,12 @@ msgstr ""
 
 #: cps/spa_strings.py
 msgid ""
+"You're probably a long time user of calibre-web. Please let us know your "
+"feedback on this, why or why not this works with your flow."
+msgstr ""
+
+#: cps/spa_strings.py
+msgid ""
 "Your Kobo is still set to sync your whole library, so marking this shelf "
 "does nothing on its own. Switch your account to shelf-only syncing to make "
 "it take effect."
@@ -7588,7 +7732,17 @@ msgstr ""
 
 #: cps/spa_strings.py
 #, python-brace-format
+msgid "{name} now uses My Library."
+msgstr ""
+
+#: cps/spa_strings.py
+#, python-brace-format
 msgid "{name} removed."
+msgstr ""
+
+#: cps/spa_strings.py
+#, python-brace-format
+msgid "{name} sees the global library again."
 msgstr ""
 
 #: cps/spa_strings.py
@@ -7641,11 +7795,6 @@ msgstr ""
 
 #: cps/spa_strings.py
 #, python-brace-format
-msgid "{seeded} of {total} books seeded"
-msgstr ""
-
-#: cps/spa_strings.py
-#, python-brace-format
 msgid "{ok} of {total} assigned to {name}."
 msgstr ""
 
@@ -7657,6 +7806,11 @@ msgstr ""
 #: cps/spa_strings.py
 #, python-brace-format
 msgid "{percent}% read"
+msgstr ""
+
+#: cps/spa_strings.py
+#, python-brace-format
+msgid "{seeded} of {total} books seeded"
 msgstr ""
 
 #: cps/spa_strings.py
