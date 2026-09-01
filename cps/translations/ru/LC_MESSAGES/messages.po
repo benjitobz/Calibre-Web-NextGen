@@ -11583,6 +11583,12 @@ msgstr ""
 
 #: cps/templates/cwa_settings.html
 msgid ""
+"Hardcover auto-fetch is off. Reading-progress and annotation sync are "
+"unaffected."
+msgstr ""
+
+#: cps/templates/cwa_settings.html
+msgid ""
 "Hardcover sync is enabled. The schedule below controls automatic ID fetching."
 msgstr ""
 "Синхронизация с Hardcover включена. Расписание ниже управляет автоматическим "
@@ -11590,11 +11596,16 @@ msgstr ""
 
 #: cps/templates/cwa_settings.html
 msgid ""
-"Hardcover sync is disabled. Enable it once in Basic Configuration or set "
-"HARDCOVER_SYNC_ENABLED=true."
+"Hardcover sync is disabled, and auto-fetch is off. Enable Hardcover sync "
+"separately in Basic Configuration when you want reading-progress or "
+"annotation sync."
 msgstr ""
-"Синхронизация с Hardcover отключена. Включите её один раз в основных "
-"настройках или установите HARDCOVER_SYNC_ENABLED=true."
+
+#: cps/templates/cwa_settings.html
+msgid ""
+"Hardcover sync is disabled, so auto-fetch, reading-progress sync, and "
+"annotation sync are off."
+msgstr ""
 
 #: cps/templates/cwa_settings.html
 msgid ""
@@ -11609,6 +11620,10 @@ msgstr ""
 #: cps/templates/cwa_settings.html
 msgid "Run Schedule:"
 msgstr "Расписание запуска:"
+
+#: cps/templates/cwa_settings.html
+msgid "Never (auto-fetch off)"
+msgstr ""
 
 #: cps/templates/cwa_settings.html
 msgid "How often to automatically run the Hardcover ID fetch task"
@@ -14677,6 +14692,13 @@ msgstr "Показывать выбранные полки в OPDS"
 #: cps/templates/user_table.html
 msgid "Show Read/Unread Section"
 msgstr "Показать раздел прочитанного/непрочитанного"
+
+#~ msgid ""
+#~ "Hardcover sync is disabled. Enable it once in Basic Configuration or set "
+#~ "HARDCOVER_SYNC_ENABLED=true."
+#~ msgstr ""
+#~ "Синхронизация с Hardcover отключена. Включите её один раз в основных "
+#~ "настройках или установите HARDCOVER_SYNC_ENABLED=true."
 
 #~ msgid "Basic configuration"
 #~ msgstr "Основные настройки"
