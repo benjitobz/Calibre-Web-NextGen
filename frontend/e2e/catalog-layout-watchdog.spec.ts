@@ -54,6 +54,24 @@ for (const width of VIEWPORTS) {
     expect(snapshot.latest?.resolvedTracks).toBe(snapshot.latest?.expected);
     expect(snapshot.latest?.acceptedColumns).toBe(snapshot.latest?.expected);
 
+    // The parent grid and React state can both report the right column count
+    // while a virtual row fails to inherit those tracks. In that state every
+    // card in the row is auto-placed into one implicit column, which is the
+    // user-visible one-book-per-row regression this watchdog exists to catch.
+    const firstRowPlacement = await grid.locator('[data-virtual-grid-row]').first().evaluate((row) => {
+      const boxes = Array.from(row.children, (child) => child.getBoundingClientRect());
+      return {
+        count: boxes.length,
+        distinctColumns: new Set(boxes.map(({ left }) => Math.round(left * 10) / 10)).size,
+        distinctRows: new Set(boxes.map(({ top }) => Math.round(top * 10) / 10)).size,
+      };
+    });
+    expect(firstRowPlacement.count, 'the first virtual row should exercise multiple columns')
+      .toBeGreaterThan(1);
+    expect(firstRowPlacement.distinctColumns, JSON.stringify(firstRowPlacement))
+      .toBe(firstRowPlacement.count);
+    expect(firstRowPlacement.distinctRows, JSON.stringify(firstRowPlacement)).toBe(1);
+
     const profile = hostileLoadProfile(testInfo);
     if (profile) {
       expect(hostileEvents.some(({ resourceType }) => resourceType === 'stylesheet'),

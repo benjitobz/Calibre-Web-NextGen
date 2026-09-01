@@ -23,8 +23,10 @@ Env knobs: `E2E_BASE_URL` (default `http://localhost:8086`), `E2E_USER`/`E2E_PAS
 `admin`/`admin123`), `E2E_SUBPATH_URL` (set to the `cwn-nginx-571` rig `http://localhost:8087` to run the
 reverse-proxy project).
 
-The catalog layout watchdog runs once in the normal Chromium lane. Its hostile-load matrix is opt-in so
-the broad suite stays fast: set `E2E_HOSTILE_LOAD=1` and select one or more
+The catalog layout watchdog runs in normal Chromium and WebKit lanes. Besides the parent track/count
+invariant, it checks the first virtual row's rendered card coordinates so an engine can never collapse
+the row to one internal column behind a healthy parent grid. Its hostile-load matrix is opt-in so the
+broad suite stays fast: set `E2E_HOSTILE_LOAD=1` and select one or more
 `hostile-{css-slow,script-slow}-{chromium,webkit}` projects. The profiles delay fulfilled stylesheet and
 JavaScript responses in opposite orders through `page.route`, so the same settling-window reproduction
 works in both engines. CWNG currently uses system fonts and requests no webfont, so this lane makes no
@@ -105,6 +107,7 @@ protecting `cps/api/` added zero historical gate runs in that sample.
 |---|---|---|
 | `setup` | — | logs in once via the real UI, saves session |
 | `catalog-layout-chromium` | 768/1280/1440 + scheduler-gap probe | continuous CSS + accepted-column invariant watchdog without starvation false reds |
+| `catalog-layout-webkit` | 768/1280/1440 | rendered virtual-row placement matches the healthy parent grid in Safari's engine |
 | `hostile-*-{chromium,webkit}` | opt-in staggered CSS/JS arrival | first-load layout convergence under hostile resource order |
 | `desktop` | 1280×800 | full flow + a11y baseline |
 | `mobile` | 375×667 (chromium emulation) | drawer reachability + scroll-lock (#576), no h-overflow (#288) |

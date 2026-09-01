@@ -57,6 +57,12 @@ export default defineConfig({
       use: { ...devices['Desktop Chrome'], viewport: { width: 1280, height: 800 }, storageState: STORAGE },
       dependencies: ['setup'],
     },
+    {
+      name: 'catalog-layout-webkit',
+      testMatch: CATALOG_LAYOUT_SPEC,
+      use: { ...devices['Desktop Safari'], viewport: { width: 1280, height: 800 }, storageState: STORAGE },
+      dependencies: ['setup'],
+    },
 
     // Opt-in hostile-load matrix. Response routing—not CDP throttling—keeps the
     // same deterministic arrival profiles meaningful in Chromium and WebKit.
