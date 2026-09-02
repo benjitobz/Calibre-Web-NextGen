@@ -1533,7 +1533,11 @@ def HandleSyncRequest():
     new_books_last_created = sync_token.books_last_created  # needed to distinguish between new and changed entitlement
     new_reading_state_last_modified = sync_token.reading_state_last_modified
 
-    new_archived_last_modified = datetime.min
+    # Preserve the incoming archive field as the outgoing floor so an empty
+    # pass cannot manufacture an older token. It is only a tombstone
+    # high-watermark when deletion timestamps are monotonic; missing per-device
+    # ledger rows below recover backdated deletions.
+    new_archived_last_modified = sync_token.archive_last_modified
     sync_results = []
     books_to_delete_ids = set()
     rehydrate_positions_emitted = []
@@ -2484,20 +2488,37 @@ def HandleSyncRequest():
     # MITM capture). editbooks.delete_whole_book captures (user_id,
     # book_uuid, deleted_at) into kobo_deleted_book before tearing down
     # the metadata.db row; here we play those tombstones back to each
-    # affected device as an archived ChangedEntitlement and advance
-    # archive_last_modified past the tombstone so the device sees each
-    # one exactly once. Page-cap with SYNC_ITEM_LIMIT so a mass-delete
-    # doesn't blow past the device's sync-response size limit.
-    # Compare against the device's cursor (sync_token.archive_last_modified),
-    # NOT against the local new_archived_last_modified — the latter has
-    # already been rolled forward by any ArchivedBook.last_modified row,
-    # which would mask legitimate tombstones whose deleted_at lies
-    # between sync_token.archive_last_modified and new_archived_last_modified.
+    # affected device as an archived ChangedEntitlement. The timestamp is an
+    # advisory high-watermark; a missing acknowledged row for this physical
+    # device is also delivery work, including after Full Sync clears the
+    # ledger. Page-cap with SYNC_ITEM_LIMIT so a mass reannouncement cannot
+    # exceed the deletion response bound.
+    #
+    # Keep the timestamp arm on the original incoming cursor, NOT the local
+    # new_archived_last_modified. The latter may already have been advanced by
+    # an ArchivedBook row and would mask a legitimate tombstone between those
+    # two values.
     cursor_archive_lm = sync_token.archive_last_modified
+    deletion_recovery_filter = (
+        ub.KoboDeletedBook.deleted_at > cursor_archive_lm
+    )
+    if requesting_device_id:
+        acknowledged_deletion_uuids = select(
+            ub.KoboDeviceDeletedEntitlement.book_uuid,
+        ).where(
+            ub.KoboDeviceDeletedEntitlement.device_id
+            == int(requesting_device_id),
+        )
+        deletion_recovery_filter = or_(
+            deletion_recovery_filter,
+            ~ub.KoboDeletedBook.book_uuid.in_(
+                acknowledged_deletion_uuids,
+            ),
+        )
     pending_deletions = (
         ub.session.query(ub.KoboDeletedBook)
         .filter(ub.KoboDeletedBook.user_id == current_user.id)
-        .filter(ub.KoboDeletedBook.deleted_at > cursor_archive_lm)
+        .filter(deletion_recovery_filter)
         .order_by(
             ub.KoboDeletedBook.deleted_at,
             ub.KoboDeletedBook.book_uuid,
@@ -2600,7 +2621,7 @@ def HandleSyncRequest():
                         )
                 sync_results.append({"ChangedEntitlement": entitlement})
                 deletion_delivery_slots += 1
-                if replay_suppression_enabled and requesting_device_id:
+                if requesting_device_id:
                     deleted_fingerprint_updates[book_uuid] = fingerprint
                     deleted_change_basis_updates[book_uuid] = \
                         deleted_change_basis

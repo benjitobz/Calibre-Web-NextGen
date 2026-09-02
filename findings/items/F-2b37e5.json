@@ -1,0 +1,20 @@
+{
+  "area": "kobo",
+  "body": "OBSERVED in cps/kobo.py and a real-handler regression: each request initialized its outgoing archive cursor to datetime.min, advanced it only for archive rows and tombstones inspected in that request, then unconditionally serialized it. With no ArchivedBook rows and five acknowledged deletion tombstones, one request advanced the cursor through all five deletions and the next empty pass reset it to datetime.min. Repeating the returned tokens reproduced an exact latest/epoch alternation. This is the server-side producer of the partial-token condition whose entitlement replay risk is mitigated by F-e0843b and #2131.\n\nOBSERVED fix: the outgoing archive field now starts at the incoming value, so an empty pass cannot move it backward. The timestamp arm still compares against the original incoming value, while a missing acknowledged tombstone row for the physical device independently admits backdated deletions. Real-handler regressions prove at-least-once delivery: an unseen deletion below the timestamp high-watermark is re-offered until its pending response is acknowledged, then is absent from subsequent responses unless Full Sync clears that reader's deletion ledger. A 101-row missing-ledger frontier drains as bounded pages of 100 then one. #2131 same-reader fingerprint suppression remains enabled and unchanged.\n\nASSUMED: the repeated live-instance alternation reported during investigation has this exact code cause. The handler sequence reproduces its token and tombstone pattern, but this change was not exercised against a physical reader in this implementation pass.",
+  "created": "2026-09-02",
+  "id": "F-2b37e5",
+  "refs": [
+    "F-e0843b",
+    "#2131"
+  ],
+  "resolution": {
+    "commit": "fed3abe70f",
+    "date": "2026-09-02",
+    "note": "Preserve the incoming archive field as the outgoing floor; select tombstones by the original timestamp or a missing physical-device acknowledgment; retain the bounded deletion page cap.",
+    "release": ""
+  },
+  "severity": "data-integrity",
+  "source": "audit",
+  "status": "resolved",
+  "title": "Kobo archive cursor regresses on empty archive passes"
+}
