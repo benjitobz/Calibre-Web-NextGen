@@ -4829,10 +4829,13 @@ msgstr "Путь к файлу сертификата"
 msgid "Certificate path"
 msgstr "Путь к сертификату"
 
-#: cps/spa_strings.py cps/templates/book_edit.html
-#: cps/templates/cover_picker.html cps/templates/detail.html
-msgid "Change cover"
-msgstr "Изменить обложку"
+#: cps/spa_strings.py
+msgid "Change library cover"
+msgstr ""
+
+#: cps/spa_strings.py
+msgid "Change my cover"
+msgstr ""
 
 #: cps/spa_strings.py
 msgid "Check again"
@@ -6873,6 +6876,10 @@ msgid "Restored the previous library mode for {accounts} accounts."
 msgstr ""
 
 #: cps/spa_strings.py
+msgid "Restoring…"
+msgstr ""
+
+#: cps/spa_strings.py
 msgid "Retry"
 msgstr "Повторить попытку"
 
@@ -7597,6 +7604,14 @@ msgid "Uploading is not available for your account on this server."
 msgstr "Загрузка недоступна для вашего аккаунта на этом сервере."
 
 #: cps/spa_strings.py
+msgid "Use my own cover"
+msgstr ""
+
+#: cps/spa_strings.py
+msgid "Use the library cover"
+msgstr ""
+
+#: cps/spa_strings.py
 msgid ""
 "Use these to connect OPDS readers or KOReader sync without your main "
 "password."
@@ -7765,6 +7780,23 @@ msgstr "Ваша библиотека"
 #: cps/spa_strings.py
 msgid "Your browser cannot play this audio format."
 msgstr "Ваш браузер не может воспроизвести этот аудиоформат."
+
+#: cps/spa_strings.py
+msgid ""
+"Your cover appears only to you and on books delivered to your e-readers. The "
+"library cover stays unchanged for everyone else, and administrators manage "
+"it."
+msgstr ""
+
+#: cps/spa_strings.py
+msgid "Your cover was updated."
+msgstr ""
+
+#: cps/spa_strings.py
+msgid ""
+"Your own cover is private to you and your e-reader deliveries. The library "
+"cover stays unchanged for everyone else."
+msgstr ""
 
 #: cps/spa_strings.py
 msgid "Your personal digital library"
@@ -9299,6 +9331,11 @@ msgstr "Удалить"
 #: cps/templates/book_edit.html
 msgid "Add Identifier"
 msgstr "Добавить идентификатор"
+
+#: cps/templates/book_edit.html cps/templates/cover_picker.html
+#: cps/templates/detail.html
+msgid "Change cover"
+msgstr "Изменить обложку"
 
 #: cps/templates/book_edit.html
 msgid ""

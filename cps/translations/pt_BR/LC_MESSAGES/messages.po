@@ -4742,10 +4742,13 @@ msgstr ""
 msgid "Certificate path"
 msgstr ""
 
-#: cps/spa_strings.py cps/templates/book_edit.html
-#: cps/templates/cover_picker.html cps/templates/detail.html
-msgid "Change cover"
-msgstr "Alterar capa"
+#: cps/spa_strings.py
+msgid "Change library cover"
+msgstr ""
+
+#: cps/spa_strings.py
+msgid "Change my cover"
+msgstr ""
 
 #: cps/spa_strings.py
 msgid "Check again"
@@ -6749,6 +6752,10 @@ msgid "Restored the previous library mode for {accounts} accounts."
 msgstr ""
 
 #: cps/spa_strings.py
+msgid "Restoring…"
+msgstr ""
+
+#: cps/spa_strings.py
 msgid "Retry"
 msgstr ""
 
@@ -7457,6 +7464,14 @@ msgid "Uploading is not available for your account on this server."
 msgstr ""
 
 #: cps/spa_strings.py
+msgid "Use my own cover"
+msgstr ""
+
+#: cps/spa_strings.py
+msgid "Use the library cover"
+msgstr ""
+
+#: cps/spa_strings.py
 msgid ""
 "Use these to connect OPDS readers or KOReader sync without your main "
 "password."
@@ -7608,6 +7623,23 @@ msgstr "Sua Biblioteca"
 #: cps/spa_strings.py
 msgid "Your browser cannot play this audio format."
 msgstr "Seu navegador não pode reproduzir este formato de áudio."
+
+#: cps/spa_strings.py
+msgid ""
+"Your cover appears only to you and on books delivered to your e-readers. The "
+"library cover stays unchanged for everyone else, and administrators manage "
+"it."
+msgstr ""
+
+#: cps/spa_strings.py
+msgid "Your cover was updated."
+msgstr ""
+
+#: cps/spa_strings.py
+msgid ""
+"Your own cover is private to you and your e-reader deliveries. The library "
+"cover stays unchanged for everyone else."
+msgstr ""
 
 #: cps/spa_strings.py
 msgid "Your personal digital library"
@@ -9153,6 +9185,11 @@ msgstr "Remover"
 #: cps/templates/book_edit.html
 msgid "Add Identifier"
 msgstr "Adicionar Identificador"
+
+#: cps/templates/book_edit.html cps/templates/cover_picker.html
+#: cps/templates/detail.html
+msgid "Change cover"
+msgstr "Alterar capa"
 
 #: cps/templates/book_edit.html
 msgid ""
