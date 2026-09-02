@@ -3079,6 +3079,110 @@ def test_lost_rehydrate_page_replays_and_clears_only_after_token_ack(
     ).scalar() is False
 
 
+def test_rehydrate_ack_request_echoes_state_after_download_materialization(
+    sync_harness,
+):
+    """A pre-download repair gets one post-download confirmation echo."""
+    from cps import kobo, ub
+
+    modified = datetime(2026, 8, 28, 12, 30, 0)
+    _add_reading_state(sync_harness, modified, progress=80.0)
+    entitlement = sync_harness.sync()
+    cursor_ahead = modified + timedelta(days=1)
+    advanced = kobo.SyncToken.SyncToken.from_headers({
+        sync_harness.token_header:
+            entitlement.headers[sync_harness.token_header],
+    })
+    advanced.reading_state_last_modified = cursor_ahead
+
+    # Firmware can request and acknowledge the repair before it installs the
+    # offered bytes. Keep this page pending so the next real request performs
+    # the acknowledgment inside HandleSyncRequest.
+    pre_download_repair = sync_harness.sync(
+        advanced.build_sync_token(), acknowledge=False,
+    )
+    assert len(_changed_reading_states(pre_download_repair)) == 1
+    assert sync_harness.session.query(
+        ub.DeviceReadingPosition.rehydrate_needed,
+    ).scalar() is True
+
+    # The download itself is device-local and sends no state PUT. Its next
+    # sync presents the repair token; the server clears the latch atomically
+    # and echoes the authoritative state after all entitlements.
+    post_download_sync = sync_harness.sync(
+        pre_download_repair.headers[sync_harness.token_header],
+        acknowledge=False,
+    )
+    states = _changed_reading_states(post_download_sync)
+    assert len(states) == 1
+    assert states[0]["CurrentBookmark"]["ProgressPercent"] == 80
+    assert sync_harness.session.query(
+        ub.DeviceReadingPosition.rehydrate_needed,
+    ).scalar() is False
+
+    # The echo is itself replayable while pending, but acknowledging it does
+    # not create an unbounded repair loop.
+    replay = sync_harness.sync(
+        pre_download_repair.headers[sync_harness.token_header],
+        acknowledge=False,
+    )
+    assert replay.get_data() == post_download_sync.get_data()
+    terminal = sync_harness.sync(
+        post_download_sync.headers[sync_harness.token_header],
+        acknowledge=False,
+    )
+    assert _changed_reading_states(terminal) == []
+
+
+def test_rehydrate_confirmation_echo_failure_is_retryable_and_atomic(
+    sync_harness, monkeypatch,
+):
+    """A failed confirmation echo retains the pending repair for retry."""
+    from cps import kobo, kobo_sync_status, ub
+    from werkzeug.exceptions import ServiceUnavailable
+
+    modified = datetime(2026, 8, 28, 12, 30, 0)
+    _add_reading_state(sync_harness, modified, progress=80.0)
+    entitlement = sync_harness.sync()
+    advanced = kobo.SyncToken.SyncToken.from_headers({
+        sync_harness.token_header:
+            entitlement.headers[sync_harness.token_header],
+    })
+    advanced.reading_state_last_modified = modified + timedelta(days=1)
+    repair = sync_harness.sync(
+        advanced.build_sync_token(), acknowledge=False,
+    )
+    repair_token = repair.headers[sync_harness.token_header]
+    original_renderer = kobo.get_kobo_reading_state_response
+
+    def fail_renderer(*_args, **_kwargs):
+        raise RuntimeError("injected confirmation echo failure")
+
+    monkeypatch.setattr(
+        kobo, "get_kobo_reading_state_response", fail_renderer,
+    )
+    with pytest.raises(ServiceUnavailable) as failed:
+        sync_harness.sync(repair_token, acknowledge=False)
+    assert failed.value.code == 503
+    sync_harness.session.expire_all()
+    assert sync_harness.session.query(
+        ub.DeviceReadingPosition.rehydrate_needed,
+    ).scalar() is True
+    assert kobo_sync_status.get_pending_sync_page(
+        sync_harness.device.id,
+    ) is not None
+
+    monkeypatch.setattr(
+        kobo, "get_kobo_reading_state_response", original_renderer,
+    )
+    retried = sync_harness.sync(repair_token, acknowledge=False)
+    assert retried.status_code == 200
+    assert len(_changed_reading_states(retried)) == 1
+    assert sync_harness.session.query(
+        ub.DeviceReadingPosition.rehydrate_needed,
+    ).scalar() is False
+
+
 @pytest.mark.parametrize(
     "ordering",
     ["download_then_sync", "sync_then_download"],

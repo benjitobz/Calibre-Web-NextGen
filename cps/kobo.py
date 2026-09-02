@@ -248,7 +248,8 @@ def _pending_position_clock(value):
     return value.isoformat(timespec="microseconds")
 
 
-def _acknowledge_pending_page(page, requesting_device_id):
+def _acknowledge_pending_page(
+        page, requesting_device_id, acknowledged_rehydrate_book_ids=None):
     """Promote one response only after its returned token comes back.
 
     No commit happens here.  The acknowledgment and the replacement pending
@@ -327,6 +328,8 @@ def _acknowledge_pending_page(page, requesting_device_id):
                 position.server_modified_at, emitted_clock,
             ):
                 position.rehydrate_needed = False
+                if acknowledged_rehydrate_book_ids is not None:
+                    acknowledged_rehydrate_book_ids.append(position.book_id)
 
         kobo_sync_status.delete_pending_sync_page(requesting_device_id)
         return True
@@ -1277,6 +1280,7 @@ def HandleSyncRequest():
         requesting_device_id,
     )
     acknowledged_pending_page = False
+    acknowledged_rehydrate_book_ids = []
     if (pending_page is not None
             and raw_sync_token == pending_page.outgoing_token):
         # TTL is a garbage-collection bound, not a validity window for direct
@@ -1284,7 +1288,9 @@ def HandleSyncRequest():
         # beyond the TTL, so promote that returned-token acknowledgment before
         # expiry can discard the page's confirmation payload (F-802720).
         if not _acknowledge_pending_page(
-            pending_page, requesting_device_id,
+            pending_page,
+            requesting_device_id,
+            acknowledged_rehydrate_book_ids,
         ):
             return _abort_sync_with_observability(
                 503,
@@ -2234,6 +2240,65 @@ def HandleSyncRequest():
                 })
                 reading_state_book_ids_emitted.append(position.book_id)
             rehydrate_positions_emitted.append(position)
+
+    # Some Nickel versions acknowledge a repair state before materializing a
+    # newly offered download, then recalculate the coarse book percentage as
+    # the downloaded spine is installed. The acknowledging request is the
+    # first server-visible boundary after that installation. Echo each state
+    # cleared by this request once, after entitlement rendering, so the
+    # download-time rewrite is repaired without depending on the opaque state
+    # cursor. The acknowledged page contains at most SYNC_ITEM_LIMIT repair
+    # rows, which bounds this query and response work. Do not consume the echo
+    # when this response re-offers the same book; that entitlement arms a fresh
+    # latch for a later request instead.
+    if acknowledged_rehydrate_book_ids:
+        echo_book_ids = [
+            book_id for book_id in acknowledged_rehydrate_book_ids
+            if book_id not in reading_state_book_ids_emitted
+            and book_id not in rehydrate_book_ids
+        ]
+        if echo_book_ids:
+            try:
+                echo_states = {
+                    state.book_id: state
+                    for state in ub.session.query(ub.KoboReadingState).filter(
+                        ub.KoboReadingState.user_id == current_user.id,
+                        ub.KoboReadingState.book_id.in_(echo_book_ids),
+                    ).all()
+                }
+                for book_id in echo_book_ids:
+                    kobo_reading_state = echo_states.get(book_id)
+                    if kobo_reading_state is None:
+                        continue
+                    book = calibre_db.session.query(db.Books).filter(
+                        db.Books.id == book_id,
+                    ).one_or_none()
+                    if book is None:
+                        continue
+                    sync_results.append({
+                        "ChangedReadingState": {
+                            "ReadingState": get_kobo_reading_state_response(
+                                book, kobo_reading_state,
+                            ),
+                        },
+                    })
+                    reading_state_book_ids_emitted.append(book_id)
+            except Exception:
+                _rollback_after_sync_failure()
+                try:
+                    log.exception(
+                        "Kobo Sync failed "
+                        "reason=rehydrate_confirmation_echo_failed",
+                    )
+                except Exception:  # noqa: BLE001 - preserve retryable 503
+                    pass
+                return _abort_sync_with_observability(
+                    503,
+                    requesting_device_id,
+                    sync_cursor_in,
+                    response_mode="rehydrate_confirmation_echo_failed",
+                    capture_session=capture_session,
+                )
 
     sync_shelves(sync_token, sync_results, only_kobo_shelves)
 
