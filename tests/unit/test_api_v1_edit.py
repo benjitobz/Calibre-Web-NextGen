@@ -165,7 +165,9 @@ def test_delete_book_authorizes_with_visibility_filter():
     with _ctx("/api/v1/books/5/delete"):
         with patch.object(mod, "current_user", _editor()), \
              patch.object(mod, "calibre_db", SimpleNamespace(get_filtered_book=_gfb)), \
-             patch.object(mod, "delete_book_from_table", return_value='{"location":"/"}') as core:
+             patch.object(mod, "delete_book_from_table", return_value=json.dumps([
+                 {}, {"type": "success", "message": "Book Successfully Deleted"},
+             ])) as core:
             resp = inspect.unwrap(mod.delete_book)(5)
     assert resp[1] == 204
     # whole-book delete: book_format="" , json_response=True
@@ -188,14 +190,31 @@ def test_delete_book_returns_cleanup_warning_instead_of_empty_204():
     assert resp.status_code == 200
     assert json.loads(resp.get_data()) == {
         "deleted": True,
+        "status": "warning",
         "warning": {"code": "cleanup_incomplete", "message": "Database row deleted; files remain"},
     }
 
 
 @pytest.mark.unit
-def test_delete_endpoints_translate_core_danger_to_non_2xx():
+@pytest.mark.parametrize("core_result", [
+    # Format staging failure: no row was deleted.
+    json.dumps([{
+        "location": "/edit-book/5",
+        "type": "danger",
+        "format": "",
+        "message": "permission denied",
+    }]),
+    # Database exception after rollback: the core emits the same structured
+    # danger shape, with the exception text as its message.
+    json.dumps([{
+        "location": "/edit-book/5",
+        "type": "danger",
+        "format": "",
+        "message": "database commit failed",
+    }]),
+])
+def test_delete_endpoints_translate_exact_core_danger_shapes_to_non_2xx(core_result):
     from cps.api import edit as mod
-    core_result = json.dumps([{"type": "danger", "message": "permission denied"}])
     for path, call in [
         ("/api/v1/books/5/delete", lambda: inspect.unwrap(mod.delete_book)(5)),
         ("/api/v1/books/5/formats/epub/delete", lambda: inspect.unwrap(mod.delete_format)(5, "epub")),
@@ -207,7 +226,24 @@ def test_delete_endpoints_translate_core_danger_to_non_2xx():
                  patch.object(mod, "delete_book_from_table", return_value=core_result):
                 resp = call()
         assert resp[1] == 500
-        assert json.loads(resp[0].get_data())["error"]["message"] == "permission denied"
+        assert json.loads(resp[0].get_data())["error"]["message"] in {
+            "permission denied", "database commit failed",
+        }
+
+
+@pytest.mark.unit
+@pytest.mark.parametrize("core_result", [None, "", "{}", json.dumps([{}])])
+def test_delete_api_never_treats_a_missing_core_success_as_204(core_result):
+    """Only the exact success shape emitted by render_delete_book_result may
+    become 204. Empty/malformed legacy returns must fail closed."""
+    from cps.api import edit as mod
+    with _ctx("/api/v1/books/5/delete"):
+        with patch.object(mod, "current_user", _editor()), \
+             patch.object(mod.calibre_db, "get_filtered_book", return_value=SimpleNamespace(id=5)), \
+             patch.object(mod, "delete_book_from_table", return_value=core_result):
+            resp = inspect.unwrap(mod.delete_book)(5)
+    assert resp[1] == 500
+    assert json.loads(resp[0].get_data())["error"]["code"] == "delete_failed"
 
 
 @pytest.mark.unit

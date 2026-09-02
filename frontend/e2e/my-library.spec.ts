@@ -578,7 +578,8 @@ test.describe('My Library', () => {
     ]);
     await expect(page.locator('[aria-live="assertive"]')).toHaveText(
       '0 book(s) removed from your library; 1 failed. '
-      + 'The last book cannot be removed unless you can browse the global library.',
+      + 'The last book cannot be removed unless you can browse the global library. '
+      + `Failed: Book ${book.id}. The failed books remain selected; choose the action again to retry.`,
     );
     expect((await currentLibraryBooks(page)).map((item) => item.id)).toEqual([book.id]);
     await expect(page.getByRole('button', { name: `Deselect ${book.title}`, exact: true })).toBeVisible();

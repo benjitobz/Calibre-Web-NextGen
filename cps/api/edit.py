@@ -146,11 +146,19 @@ def _delete_api_response(result):
                    if isinstance(item, dict) and item.get("type") == "danger"), None)
     if danger:
         return _err("delete_failed", str(danger.get("message") or "Deleting the book failed"), 500)
+    success = next((item for item in messages
+                   if isinstance(item, dict) and item.get("type") == "success"), None)
+    # Fail closed: render_delete_book_result always emits an explicit success
+    # entry. Empty, truncated, or otherwise unknown legacy output is not proof
+    # that a delete committed and must never become a false 204.
+    if not success:
+        return _err("delete_failed", "Deleting the book failed", 500)
     warning = next((item for item in messages
                     if isinstance(item, dict) and item.get("type") == "warning"), None)
     if warning:
         return jsonify({
             "deleted": True,
+            "status": "warning",
             "warning": {
                 "code": "cleanup_incomplete",
                 "message": str(warning.get("message") or "File cleanup was incomplete"),

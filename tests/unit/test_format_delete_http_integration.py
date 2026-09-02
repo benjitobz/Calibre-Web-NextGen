@@ -576,6 +576,7 @@ def test_google_drive_cache_delete_failure_reaches_api_cleanup_warning(
     assert response.status_code == 200
     assert response.get_json() == {
         "deleted": True,
+        "status": "warning",
         "warning": {
             "code": "cleanup_incomplete",
             "message": (

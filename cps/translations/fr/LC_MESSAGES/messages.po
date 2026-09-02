@@ -2712,6 +2712,26 @@ msgid "A book must keep at least one format."
 msgstr "Un livre doit conserver au moins un format."
 
 #: cps/spa_strings.py
+#, python-brace-format
+msgid "{succeeded} book(s) permanently deleted; {warnings} deleted with cleanup warnings; {failed} failed."
+msgstr "{succeeded} livre(s) supprimé(s) définitivement ; {warnings} supprimé(s) avec des avertissements de nettoyage ; {failed} échec(s)."
+
+#: cps/spa_strings.py
+#, python-brace-format
+msgid "Cleanup warning for book {id}: {message}"
+msgstr "Avertissement de nettoyage pour le livre {id} : {message}"
+
+#: cps/spa_strings.py
+#, python-brace-format
+msgid "Book {id}: {message}"
+msgstr "Livre {id} : {message}"
+
+#: cps/spa_strings.py
+#, python-brace-format
+msgid "Failed: {failures}. The failed books remain selected; choose the action again to retry."
+msgstr "Échec : {failures}. Les livres en échec restent sélectionnés ; choisissez à nouveau l’action pour réessayer."
+
+#: cps/spa_strings.py
 msgid "Could not delete this format."
 msgstr "Impossible de supprimer ce format."
 

@@ -2603,6 +2603,26 @@ msgid "A book must keep at least one format."
 msgstr "Een boek moet minstens één formaat behouden."
 
 #: cps/spa_strings.py
+#, python-brace-format
+msgid "{succeeded} book(s) permanently deleted; {warnings} deleted with cleanup warnings; {failed} failed."
+msgstr "{succeeded} boek(en) definitief verwijderd; {warnings} verwijderd met opschoningswaarschuwingen; {failed} mislukt."
+
+#: cps/spa_strings.py
+#, python-brace-format
+msgid "Cleanup warning for book {id}: {message}"
+msgstr "Waarschuwing bij het opschonen van boek {id}: {message}"
+
+#: cps/spa_strings.py
+#, python-brace-format
+msgid "Book {id}: {message}"
+msgstr "Boek {id}: {message}"
+
+#: cps/spa_strings.py
+#, python-brace-format
+msgid "Failed: {failures}. The failed books remain selected; choose the action again to retry."
+msgstr "Mislukt: {failures}. De mislukte boeken blijven geselecteerd; kies de actie opnieuw om het nogmaals te proberen."
+
+#: cps/spa_strings.py
 msgid "Could not delete this format."
 msgstr "Kan dit formaat niet verwijderen."
 

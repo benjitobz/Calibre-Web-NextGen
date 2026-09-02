@@ -915,11 +915,21 @@ export function useBulkActions() {
     onSuccess: refresh,
   });
   const deleteBooks = useMutation({
-    mutationFn: (ids: number[]) => settleById(ids, (id) => apiPost(`/api/v1/books/${id}/delete`)),
-    onSuccess: ({ succeededIds }) => {
+    mutationFn: (ids: number[]) => settleById(
+      ids,
+      (id) => apiPost<DeleteResult | undefined>(`/api/v1/books/${id}/delete`),
+      {
+        warningFor: (id, result) => result?.warning
+          ? { id, ...result.warning }
+          : undefined,
+      },
+    ),
+    onSuccess: ({ succeededIds, warningIds }) => {
       // Evict deleted books from every cached catalog snapshot so a later
-      // scroll-restore can't resurrect them as ghost cards (#578).
-      succeededIds.forEach(removeBookFromCache);
+      // scroll-restore can't resurrect them as ghost cards (#578). A cleanup
+      // warning still confirms that the database row is gone; only the files
+      // need administrator attention, so those ids leave the catalog too.
+      [...succeededIds, ...warningIds].forEach(removeBookFromCache);
       refresh();
     },
   });
@@ -1061,6 +1071,7 @@ export function useUpdateMetadata(id: string | number) {
  *  away from the now-deleted book's detail page on success. */
 export interface DeleteResult {
   deleted: true;
+  status?: 'warning';
   warning?: { code: string; message: string };
 }
 
