@@ -451,6 +451,8 @@ def test_library_sync_private_capture_records_exact_response_and_summary_link(
     assert info_summary["counters"]["new"] == 1
     assert info_summary["counters"]["changed"] == 0
     assert info_summary["counters"]["removed"] == 0
+    assert info_summary["counters"]["suppressed_replay"] == 0
+    assert info_summary["counters"]["suppressed_unchanged"] == 0
     summaries = [
         item.getMessage() for item in caplog.records
         if item.getMessage().startswith("Kobo Sync summary:")
@@ -1197,7 +1199,8 @@ def test_interrupted_sync_token_loss_does_not_redeliver_unchanged_entitlement(
     ]
     assert len(summaries) == 2
     assert "entitlements new=0 changed=0 removed=0" in summaries[-1]
-    assert "suppressed_replay=1 suppressed_unchanged=1" in summaries[-1]
+    assert "suppressed_replay=1" in summaries[-1]
+    assert "suppressed_unchanged=1" in summaries[-1]
     assert "replay_suppression enabled=True eligible=True" in summaries[-1]
     assert "cursors in=" in summaries[-1] and " out=" in summaries[-1]
 
@@ -2390,6 +2393,7 @@ def test_two_shelf_rows_reseed_one_book_once_on_declared_transition(
         record.getMessage() for record in caplog.records
         if record.getMessage().startswith("Kobo Sync summary:")
     ]
+    assert "suppressed_replay=1" in summaries[-1]
     assert "suppressed_unchanged=1" in summaries[-1]
     assert "reseeded_shape_change=1" in summaries[-1]
 
@@ -2447,7 +2451,9 @@ def test_hard_delete_entitlements_emit_once_then_suppress_exact_stale_replay(
         if record.getMessage().startswith("Kobo Sync summary:")
     ]
     assert "entitlements new=0 changed=0" in summaries[-1]
-    assert "suppressed_unchanged=3 suppressed_removed=2" in summaries[-1]
+    assert "suppressed_replay=3" in summaries[-1]
+    assert "suppressed_unchanged=1" in summaries[-1]
+    assert "suppressed_removed=2" in summaries[-1]
 
 
 def test_hard_delete_payload_shape_change_reseeds_without_delivery(

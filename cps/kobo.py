@@ -726,6 +726,7 @@ def _sync_observability(
     sync_results,
     *,
     suppressed_replay,
+    suppressed_unchanged,
     suppressed_removed,
     reseeded_shape_change,
     fingerprint_mismatch_reemitted,
@@ -739,6 +740,7 @@ def _sync_observability(
         "changed": counts["changed"],
         "removed": counts["removed"],
         "suppressed_replay": int(suppressed_replay),
+        "suppressed_unchanged": int(suppressed_unchanged),
         "suppressed_removed": int(suppressed_removed),
         "reseeded_shape_change": int(reseeded_shape_change),
         "fingerprint_mismatch_reemitted": int(
@@ -768,6 +770,7 @@ def _empty_sync_observability():
         "changed": 0,
         "removed": 0,
         "suppressed_replay": 0,
+        "suppressed_unchanged": 0,
         "suppressed_removed": 0,
         "reseeded_shape_change": 0,
         "fingerprint_mismatch_reemitted": 0,
@@ -817,7 +820,7 @@ def _log_sync_observability(
             observability.get("changed", 0),
             observability.get("removed", 0),
             observability.get("suppressed_replay", 0),
-            observability.get("suppressed_replay", 0),
+            observability.get("suppressed_unchanged", 0),
             observability.get("suppressed_removed", 0),
             observability.get("fingerprint_mismatch_reemitted", 0),
             _format_reemit_reasons(observability.get("reemit_reasons", {})),
@@ -871,6 +874,7 @@ def _pending_page_observability(page):
         "changed": counts["changed"],
         "removed": counts["removed"],
         "suppressed_replay": 0,
+        "suppressed_unchanged": 0,
         "suppressed_removed": 0,
         "reseeded_shape_change": 0,
         "fingerprint_mismatch_reemitted": 0,
@@ -2477,6 +2481,7 @@ def HandleSyncRequest():
             len(suppressed_unchanged_book_ids)
             + len(suppressed_deleted_entitlement_uuids)
         ),
+        suppressed_unchanged=len(suppressed_unchanged_book_ids),
         suppressed_removed=len(suppressed_deleted_entitlement_uuids),
         reseeded_shape_change=(
             len(reseeded_shape_change_book_ids)

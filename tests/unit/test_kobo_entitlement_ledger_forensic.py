@@ -374,6 +374,7 @@ def test_forensic_no_sync_token_suppresses_exact_same_device_rows(
     }
     assert any(
         "suppressed_replay=19" in message
+        and "suppressed_unchanged=18" in message
         and "suppressed_removed=1" in message
         and "reemit_reasons=none" in message
         and "eligible=True" in message
@@ -435,6 +436,7 @@ def test_partial_token_honours_book_cursor_but_suppresses_same_device_replays(
     }
     assert any(
         "suppressed_replay=26" in message
+        and "suppressed_unchanged=23" in message
         and "suppressed_removed=3" in message
         and "reemit_reasons=none" in message
         and "eligible=True" in message
