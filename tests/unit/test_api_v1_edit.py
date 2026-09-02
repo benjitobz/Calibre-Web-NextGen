@@ -79,6 +79,22 @@ def test_update_metadata_anonymous_401():
 # ── dispatch ─────────────────────────────────────────────────────────────────
 
 @pytest.mark.unit
+def test_editable_book_bypasses_membership_without_bypassing_visibility():
+    from cps.api import edit as mod
+
+    book = SimpleNamespace(id=5)
+    with patch.object(mod.calibre_db, "get_filtered_book", return_value=book) as visible:
+        assert mod._editable_book(5) is book
+
+    visible.assert_called_once_with(
+        5,
+        allow_show_archived=True,
+        allow_show_hidden=True,
+        allow_show_global=True,
+    )
+
+
+@pytest.mark.unit
 def test_update_metadata_calls_core_per_field():
     from cps.api import edit as mod
     fake_book = SimpleNamespace(
@@ -88,7 +104,7 @@ def test_update_metadata_calls_core_per_field():
     success = flask.Response(json.dumps({"success": True}), mimetype="application/json")
     with _ctx("/api/v1/books/5/metadata", body={"title": "New Title", "tags": "a, b"}):
         with patch.object(mod, "current_user", _editor()), \
-             patch.object(mod, "calibre_db", SimpleNamespace(get_book=lambda _id: fake_book,
+             patch.object(mod, "calibre_db", SimpleNamespace(get_filtered_book=lambda *a, **k: fake_book,
                                                     get_cc_columns=lambda *a, **k: [])), \
              patch.object(mod, "edit_book_param", return_value=success) as core, \
              patch.object(mod, "get_locale", return_value="en"):
@@ -153,13 +169,17 @@ def test_delete_book_visibility_scoped_404_does_not_delete():
 
 @pytest.mark.unit
 def test_delete_book_authorizes_with_visibility_filter():
-    """The authorization lookup passes allow_show_archived/hidden so a user's own
-    archived/hidden books stay deletable (a listing exclusion, not access loss)."""
+    """Editors may delete global targets, while common visibility still applies."""
     from cps.api import edit as mod
     seen = {}
 
-    def _gfb(book_id, allow_show_archived=False, allow_show_hidden=False):
-        seen["archived"], seen["hidden"] = allow_show_archived, allow_show_hidden
+    def _gfb(book_id, allow_show_archived=False, allow_show_hidden=False,
+             allow_show_global=False):
+        seen.update(
+            archived=allow_show_archived,
+            hidden=allow_show_hidden,
+            global_library=allow_show_global,
+        )
         return SimpleNamespace(id=book_id)
 
     with _ctx("/api/v1/books/5/delete"):
@@ -172,7 +192,7 @@ def test_delete_book_authorizes_with_visibility_filter():
     assert resp[1] == 204
     # whole-book delete: book_format="" , json_response=True
     assert core.call_args.args[0] == 5 and core.call_args.args[1] == ""
-    assert seen == {"archived": True, "hidden": True}
+    assert seen == {"archived": True, "hidden": True, "global_library": True}
 
 
 @pytest.mark.unit
@@ -269,7 +289,7 @@ def test_update_metadata_collects_field_errors():
                           mimetype="application/json")
     with _ctx("/api/v1/books/5/metadata", body={"languages": "zz"}):
         with patch.object(mod, "current_user", _editor()), \
-             patch.object(mod, "calibre_db", SimpleNamespace(get_book=lambda _id: fake_book,
+             patch.object(mod, "calibre_db", SimpleNamespace(get_filtered_book=lambda *a, **k: fake_book,
                                                     get_cc_columns=lambda *a, **k: [])), \
              patch.object(mod, "edit_book_param", return_value=fail), \
              patch.object(mod, "get_locale", return_value="en"):
@@ -294,7 +314,7 @@ def test_convert_same_format_400():
     from cps.api import edit as mod
     with _ctx("/api/v1/books/5/convert", body={"from": "epub", "to": "epub"}):
         with patch.object(mod, "current_user", _editor()), \
-             patch.object(mod.calibre_db, "get_book", return_value=SimpleNamespace(id=5)):
+             patch.object(mod.calibre_db, "get_filtered_book", return_value=SimpleNamespace(id=5)):
             resp = inspect.unwrap(mod.convert_format)(5)
     assert resp[1] == 400
 
@@ -304,7 +324,7 @@ def test_convert_success_calls_core():
     from cps.api import edit as mod
     with _ctx("/api/v1/books/5/convert", body={"from": "epub", "to": "mobi"}):
         with patch.object(mod, "current_user", _editor()), \
-             patch.object(mod.calibre_db, "get_book", return_value=SimpleNamespace(id=5)), \
+             patch.object(mod.calibre_db, "get_filtered_book", return_value=SimpleNamespace(id=5)), \
              patch.object(mod, "config", SimpleNamespace(get_book_path=lambda: "/books")), \
              patch.object(mod, "get_convert_options", return_value=(["epub"], ["mobi"])), \
              patch.object(mod, "convert_book_format", return_value=None) as core:

@@ -50,7 +50,7 @@ from .constants import COVER_THUMBNAIL_SMALL, COVER_THUMBNAIL_MEDIUM, COVER_THUM
 from .kobo_cover_cache import build_cover_image_id, normalize_cover_uuid
 from .helper import get_download_link
 from .services import SyncToken as SyncToken, hardcover
-from .services import cover_preview, parallel
+from .services import cover_preview, parallel, user_cover
 from .services import device_reading_position as device_positions
 from .fs import FileSystem
 from .web import download_required
@@ -2757,6 +2757,12 @@ def _current_padding_settings():
 def _get_cover_image_id(book):
     base_id = str(book.uuid)
     try:
+        # A personal preference changes only the bytes returned by the
+        # authenticated image endpoint. It must never change BookMetadata:
+        # CoverImageId participates in the entitlement fingerprint, and
+        # changing it makes a held book look like a new/changed entitlement.
+        # HandleInitRequest versions the per-user image URL template instead,
+        # refreshing the image without touching book metadata or device ledgers.
         cover_path = None
         if not config.config_use_google_drive:
             cover_path = os.path.join(config.get_book_path(), book.path, "cover.jpg")
@@ -3623,7 +3629,9 @@ def get_current_bookmark_response(current_bookmark):
     return resp
 
 
-def _serve_padded_cover_if_enabled(book_uuid, resolution):
+def _serve_padded_cover_if_enabled(
+    book_uuid, resolution, *, source=None, cache_identity=None, private=False,
+):
     """Return a Response with the aspect-ratio-padded cover, or None when
     padding is disabled / not applicable / produced an error. Callers fall
     back to the normal helper.get_book_cover_with_uuid path on None.
@@ -3636,20 +3644,22 @@ def _serve_padded_cover_if_enabled(book_uuid, resolution):
     if not settings.enabled or not cover_preview.use_IM:
         return None
 
-    source = helper.get_kobo_cover_source_path(book_uuid, resolution)
+    source = source or helper.get_kobo_cover_source_path(book_uuid, resolution)
     if not source:
         return None
     src_dir, src_filename, src_full = source
 
     try:
-        src_mtime = int(os.path.getmtime(src_full))
+        # Nanoseconds avoid two users sharing a stale padded cache entry when
+        # their personal files are published in the same second.
+        src_mtime = os.stat(src_full).st_mtime_ns
     except OSError:
         return None
 
     cache = FileSystem()
     cache_dir = cache.get_cache_dir(CACHE_TYPE_THUMBNAILS)
     cache_filename = cover_preview.cache_filename_for(
-        book_uuid, resolution, src_mtime, settings,
+        cache_identity or book_uuid, resolution, src_mtime, settings,
     )
 
     target = cover_preview.pad_path_to_cache(
@@ -3661,7 +3671,11 @@ def _serve_padded_cover_if_enabled(book_uuid, resolution):
         return None
 
     log.debug("Kobo Sync: serving padded cover %s", cache_filename)
-    return send_from_directory(cache_dir, cache_filename)
+    response = send_from_directory(cache_dir, cache_filename)
+    if private:
+        response.headers["Cache-Control"] = "private, no-cache"
+        response.vary.add("Cookie")
+    return response
 
 
 @kobo.route("/<book_uuid>/<width>/<height>/<isGreyscale>/image.jpg", defaults={'Quality': ""})
@@ -3669,6 +3683,7 @@ def _serve_padded_cover_if_enabled(book_uuid, resolution):
 @requires_kobo_auth
 def HandleCoverImageRequest(book_uuid, width, height, Quality, isGreyscale):
     book_uuid = _normalize_cover_uuid(book_uuid)
+    user_library.mark_response_user_specific()
     try:
         if int(height) > 1000:
             resolution = COVER_THUMBNAIL_LARGE
@@ -3679,6 +3694,37 @@ def HandleCoverImageRequest(book_uuid, width, height, Quality, isGreyscale):
     except ValueError:
         log.error("Requested height %s of book %s is invalid" % (height, book_uuid))
         resolution = COVER_THUMBNAIL_SMALL
+
+    book = calibre_db.get_book_by_uuid_for_kobo(book_uuid, enforce_policy=True)
+    override = None
+    if book is not None:
+        override = user_cover.override_for_user(
+            getattr(current_user, "id", None), book.id,
+        )
+    if override is not None:
+        personal_path = user_cover.path_for_row(override)
+        personal_source = (
+            os.path.dirname(personal_path),
+            os.path.basename(personal_path),
+            personal_path,
+        )
+        padded_response = _serve_padded_cover_if_enabled(
+            book_uuid,
+            resolution,
+            source=personal_source,
+            # The padding cache truncates filesystem mtimes to seconds. Fold
+            # the immutable preference version into its private namespace so
+            # two rapid replacements cannot reuse the first rendered image.
+            cache_identity="{}-user-{}-{}".format(
+                book_uuid,
+                override.user_id,
+                user_cover.version_token(override),
+            ),
+            private=True,
+        )
+        if padded_response is not None:
+            return padded_response
+        return user_cover.send_override(override)
 
     padded_response = _serve_padded_cover_if_enabled(book_uuid, resolution)
     if padded_response is not None:
@@ -3896,6 +3942,7 @@ def HandleOauthRequest(subpath=None):
 @requires_kobo_auth
 def HandleInitRequest():
     log.info('Init')
+    user_library.mark_response_user_specific()
 
     kobo_resources = None
     if config.config_kobo_proxy:
@@ -3927,6 +3974,17 @@ def HandleInitRequest():
         log.debug("Using fallback Kobo resource definitions")
         kobo_resources = NATIVE_KOBO_RESOURCES()
 
+    # A personal cover is image state, not entitlement state. Version the
+    # authenticated image URL template so Kobo refreshes its image cache after
+    # a set/clear, without changing BookMetadata.CoverImageId or emitting a
+    # New/ChangedEntitlement for a book the device already holds.
+    cover_resource_version = user_cover.kobo_resource_version_for_user(
+        getattr(current_user, "id", None),
+    )
+    cover_resource_query = (
+        {"pc": cover_resource_version} if cover_resource_version else {}
+    )
+
     if not current_app.wsgi_app.is_proxied:
         log.debug('Kobo: Received unproxied request, changed request port to external server port')
         if ':' in request.host and not request.host.endswith(']'):
@@ -3947,14 +4005,16 @@ def HandleInitRequest():
                                                                        width="{Width}",
                                                                        height="{Height}",
                                                                        Quality='{Quality}',
-                                                                       isGreyscale='isGreyscale'))
+                                                                       isGreyscale='isGreyscale',
+                                                                       **cover_resource_query))
         kobo_resources["image_url_template"] = unquote(calibre_web_url +
                                                        url_for("kobo.HandleCoverImageRequest",
                                                                auth_token=kobo_auth.get_auth_token(),
                                                                book_uuid="{ImageId}",
                                                                width="{Width}",
                                                                height="{Height}",
-                                                               isGreyscale='false'))
+                                                               isGreyscale='false',
+                                                               **cover_resource_query))
         # Route reading-services (annotations + reading state) through CWNG
         # whenever Kobo sync is on — not just when Hardcover is enabled.
         # The annotation handler captures a local copy then ALWAYS proxies
@@ -3977,14 +4037,16 @@ def HandleInitRequest():
                                                                        height="{Height}",
                                                                        Quality='{Quality}',
                                                                        isGreyscale='isGreyscale',
-                                                                       _external=True))
+                                                                       _external=True,
+                                                                       **cover_resource_query))
         kobo_resources["image_url_template"] = unquote(url_for("kobo.HandleCoverImageRequest",
                                                                auth_token=kobo_auth.get_auth_token(),
                                                                book_uuid="{ImageId}",
                                                                width="{Width}",
                                                                height="{Height}",
                                                                isGreyscale='false',
-                                                               _external=True))
+                                                               _external=True,
+                                                               **cover_resource_query))
         # See note above — redirect reading-services to CWNG whenever Kobo
         # sync is on so live annotation capture works without Hardcover.
         if config.config_kobo_sync or (config.config_hardcover_annotations_sync and bool(hardcover)):

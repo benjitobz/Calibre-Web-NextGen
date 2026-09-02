@@ -1693,7 +1693,12 @@ def get_visible_book_for_delete(book_id):
     for either surface (or a future caller) to fall back to the raw Books table.
     """
     book = calibre_db.get_filtered_book(
-        book_id, allow_show_archived=True, allow_show_hidden=True
+        book_id,
+        allow_show_archived=True,
+        allow_show_hidden=True,
+        # Global metadata and deletion are library-wide operations. This only
+        # bypasses personal membership; common visibility filters still apply.
+        allow_show_global=bool(current_user.role_edit()),
     )
     if not book:
         abort(404)

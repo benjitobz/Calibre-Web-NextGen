@@ -4974,10 +4974,13 @@ msgstr "Chemin du fichier de certificat"
 msgid "Certificate path"
 msgstr "Chemin du certificat"
 
-#: cps/spa_strings.py cps/templates/book_edit.html
-#: cps/templates/cover_picker.html cps/templates/detail.html
-msgid "Change cover"
-msgstr "Changer la couverture"
+#: cps/spa_strings.py
+msgid "Change library cover"
+msgstr "Modifier la couverture de la bibliothèque"
+
+#: cps/spa_strings.py
+msgid "Change my cover"
+msgstr "Modifier ma couverture"
 
 #: cps/spa_strings.py
 msgid "Check again"
@@ -7071,6 +7074,10 @@ msgstr ""
 "Le mode de bibliothèque précédent a été restauré pour {accounts} comptes."
 
 #: cps/spa_strings.py
+msgid "Restoring…"
+msgstr "Restauration…"
+
+#: cps/spa_strings.py
 msgid "Retry"
 msgstr "Réessayer"
 
@@ -7830,6 +7837,14 @@ msgstr ""
 "Le téléversement n'est pas disponible pour votre compte sur ce serveur."
 
 #: cps/spa_strings.py
+msgid "Use my own cover"
+msgstr "Utiliser ma propre couverture"
+
+#: cps/spa_strings.py
+msgid "Use the library cover"
+msgstr "Utiliser la couverture de la bibliothèque"
+
+#: cps/spa_strings.py
 msgid ""
 "Use these to connect OPDS readers or KOReader sync without your main "
 "password."
@@ -8008,6 +8023,29 @@ msgstr "Votre bibliothèque"
 #: cps/spa_strings.py
 msgid "Your browser cannot play this audio format."
 msgstr "Votre navigateur ne peut pas lire ce format audio."
+
+#: cps/spa_strings.py
+msgid ""
+"Your cover appears only to you and on books delivered to your e-readers. The "
+"library cover stays unchanged for everyone else, and administrators manage "
+"it."
+msgstr ""
+"Votre couverture n’apparaît que pour vous et sur les livres envoyés à vos "
+"liseuses. La couverture de la bibliothèque reste inchangée pour tous les "
+"autres utilisateurs et les administrateurs la gèrent."
+
+#: cps/spa_strings.py
+msgid "Your cover was updated."
+msgstr "Votre couverture a été mise à jour."
+
+#: cps/spa_strings.py
+msgid ""
+"Your own cover is private to you and your e-reader deliveries. The library "
+"cover stays unchanged for everyone else."
+msgstr ""
+"Votre couverture personnelle est privée et s’applique à vos envois vers les "
+"liseuses. La couverture de la bibliothèque reste inchangée pour tous les "
+"autres utilisateurs."
 
 #: cps/spa_strings.py
 msgid "Your personal digital library"
@@ -9559,6 +9597,11 @@ msgstr "Supprimer"
 #: cps/templates/book_edit.html
 msgid "Add Identifier"
 msgstr "Ajouter un identifiant"
+
+#: cps/templates/book_edit.html cps/templates/cover_picker.html
+#: cps/templates/detail.html
+msgid "Change cover"
+msgstr "Changer la couverture"
 
 #: cps/templates/book_edit.html
 msgid ""

@@ -77,6 +77,21 @@ def _require_book_delete():
     return None
 
 
+def _editable_book(book_id):
+    """Resolve an edit target through visibility policy, bypassing membership.
+
+    Metadata is global, so an editor may manage a book reached from Global
+    Library even when it is outside their personal selection. Language, tag,
+    content and other common filters remain enforced by get_filtered_book.
+    """
+    return calibre_db.get_filtered_book(
+        book_id,
+        allow_show_archived=True,
+        allow_show_hidden=True,
+        allow_show_global=True,
+    )
+
+
 def _parse_edit_result(result):
     """edit_book_param returns a JSON Response, an empty string, or a
     ``(message, status)`` tuple. Normalize to ``(ok: bool, message: str)``."""
@@ -361,7 +376,7 @@ def get_metadata(book_id):
     guard = _require_edit()
     if guard:
         return guard
-    book = calibre_db.get_book(book_id)
+    book = _editable_book(book_id)
     if not book:
         return _err("not_found", "Book not found", 404)
     return jsonify(_editable_metadata(book))
@@ -429,7 +444,7 @@ def update_metadata(book_id):
     guard = _require_edit()
     if guard:
         return guard
-    book = calibre_db.get_book(book_id)
+    book = _editable_book(book_id)
     if not book:
         return _err("not_found", "Book not found", 404)
 
@@ -507,7 +522,7 @@ def update_metadata(book_id):
                 errors["identifiers"] = str(exc)
 
     # Re-fetch so the response reflects the committed state.
-    fresh = calibre_db.get_book(book_id)
+    fresh = _editable_book(book_id)
     body = _editable_metadata(fresh) if fresh else {}
     if errors:
         body["errors"] = errors
@@ -525,7 +540,7 @@ def delete_book(book_id):
     # restriction must not be able to enumerate and delete a book they cannot
     # see. allow_show_archived/hidden keep their OWN archived/hidden books
     # deletable (hidden is a listing exclusion, not an access revocation — #319).
-    if not calibre_db.get_filtered_book(book_id, allow_show_archived=True, allow_show_hidden=True):
+    if not _editable_book(book_id):
         return _err("not_found", "Book not found", 404)
     # delete_book_from_table re-checks the role and does the data-safe (DB-first,
     # files-last) whole-book delete + shelf cleanup. book_format="" = whole book.
@@ -553,7 +568,7 @@ def convert_format(book_id):
     guard = _require_edit()
     if guard:
         return guard
-    book = calibre_db.get_book(book_id)
+    book = _editable_book(book_id)
     if not book:
         return _err("not_found", "Book not found", 404)
     data = request.get_json(silent=True) or {}
@@ -589,9 +604,7 @@ def set_cover(book_id):
     # Match the sibling endpoints in this module (and the detail endpoint the
     # edit page is opened from): a user may edit their OWN hidden or archived
     # book, so resolving with strict defaults 404s a page that opened fine.
-    book = calibre_db.get_filtered_book(
-        book_id, allow_show_archived=True, allow_show_hidden=True
-    )
+    book = _editable_book(book_id)
     if not book:
         return _err("not_found", "Book not found", 404)
 

@@ -59,6 +59,16 @@ test('the fixed identity switch never publishes the new account beside old libra
   client.setQueryData(['global-library', 1, 24], {
     items: [{ id: 101, title: 'administrator-only cached book' }], total: 1,
   });
+  client.setQueryData(['book', '101'], {
+    id: 101,
+    title: 'administrator-only cached detail',
+    using_my_cover: true,
+    cover_url: '/api/v1/books/101/my-cover/image?c=1',
+  });
+  client.setQueryData(['cover-state', '101'], {
+    using_my_cover: true,
+    cover_url: '/api/v1/books/101/my-cover/image?c=1',
+  });
   client.setQueryData(['notices', 'all'], { notices: [{ id: 9 }] });
   saveCatalog('catalog:::', {
     resetKey: 'old', page: 1,
@@ -83,6 +93,8 @@ test('the fixed identity switch never publishes the new account beside old libra
   assert.equal(client.getQueryData<Me>(['me'])?.id, secondary.id);
   assert.deepEqual(client.getQueriesData({ queryKey: ['books'] }), []);
   assert.deepEqual(client.getQueriesData({ queryKey: ['global-library'] }), []);
+  assert.deepEqual(client.getQueriesData({ queryKey: ['book'] }), []);
+  assert.deepEqual(client.getQueriesData({ queryKey: ['cover-state'] }), []);
   assert.deepEqual(client.getQueriesData({ queryKey: ['notices'] }), []);
   assert.equal(loadCatalog('catalog:::'), undefined);
 });

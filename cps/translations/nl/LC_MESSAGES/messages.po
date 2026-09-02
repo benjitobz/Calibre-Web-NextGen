@@ -3046,10 +3046,10 @@ msgid ""
 "set up are never reseeded."
 msgstr ""
 "Mijn bibliotheek instellen voor elk niet-anoniem account? Elk account begint "
-"met elk boek dat het op dat moment kan zien, niet alleen boeken die het op een "
-"plank heeft gezet, gelezen of gedownload. Gebruikers kunnen daarna boeken "
-"verwijderen om hun selectie samen te stellen. Accounts die al zijn ingesteld, "
-"worden nooit opnieuw gevuld."
+"met elk boek dat het op dat moment kan zien, niet alleen boeken die het op "
+"een plank heeft gezet, gelezen of gedownload. Gebruikers kunnen daarna "
+"boeken verwijderen om hun selectie samen te stellen. Accounts die al zijn "
+"ingesteld, worden nooit opnieuw gevuld."
 
 #: cps/spa_strings.py
 msgid ""
@@ -4853,10 +4853,13 @@ msgstr "Bestandspad certificaat"
 msgid "Certificate path"
 msgstr "Certificaatpad"
 
-#: cps/spa_strings.py cps/templates/book_edit.html
-#: cps/templates/cover_picker.html cps/templates/detail.html
-msgid "Change cover"
-msgstr "Omslag wijzigen"
+#: cps/spa_strings.py
+msgid "Change library cover"
+msgstr "Bibliotheekomslag wijzigen"
+
+#: cps/spa_strings.py
+msgid "Change my cover"
+msgstr "Mijn omslag wijzigen"
 
 #: cps/spa_strings.py
 msgid "Check again"
@@ -6927,6 +6930,10 @@ msgid "Restored the previous library mode for {accounts} accounts."
 msgstr "De vorige bibliotheekmodus is hersteld voor {accounts} accounts."
 
 #: cps/spa_strings.py
+msgid "Restoring…"
+msgstr "Herstellen…"
+
+#: cps/spa_strings.py
 msgid "Retry"
 msgstr "Opnieuw proberen"
 
@@ -7683,6 +7690,14 @@ msgid "Uploading is not available for your account on this server."
 msgstr "Uploaden is niet beschikbaar voor je account op deze server."
 
 #: cps/spa_strings.py
+msgid "Use my own cover"
+msgstr "Mijn eigen omslag gebruiken"
+
+#: cps/spa_strings.py
+msgid "Use the library cover"
+msgstr "De bibliotheekomslag gebruiken"
+
+#: cps/spa_strings.py
 msgid ""
 "Use these to connect OPDS readers or KOReader sync without your main "
 "password."
@@ -7857,6 +7872,28 @@ msgstr "Jouw bibliotheek"
 #: cps/spa_strings.py
 msgid "Your browser cannot play this audio format."
 msgstr "Jouw browser kan dit audioformaat niet afspelen."
+
+#: cps/spa_strings.py
+msgid ""
+"Your cover appears only to you and on books delivered to your e-readers. The "
+"library cover stays unchanged for everyone else, and administrators manage "
+"it."
+msgstr ""
+"Je omslag is alleen zichtbaar voor jou en op boeken die naar je e-readers "
+"worden verzonden. De bibliotheekomslag blijft voor iedereen ongewijzigd en "
+"wordt door beheerders beheerd."
+
+#: cps/spa_strings.py
+msgid "Your cover was updated."
+msgstr "Je omslag is bijgewerkt."
+
+#: cps/spa_strings.py
+msgid ""
+"Your own cover is private to you and your e-reader deliveries. The library "
+"cover stays unchanged for everyone else."
+msgstr ""
+"Je eigen omslag is alleen voor jou en voor leveringen aan je e-readers. De "
+"bibliotheekomslag blijft voor iedereen ongewijzigd."
 
 #: cps/spa_strings.py
 msgid "Your personal digital library"
@@ -9412,6 +9449,11 @@ msgstr "Verwijderen"
 #: cps/templates/book_edit.html
 msgid "Add Identifier"
 msgstr "Identificator toevoegen"
+
+#: cps/templates/book_edit.html cps/templates/cover_picker.html
+#: cps/templates/detail.html
+msgid "Change cover"
+msgstr "Omslag wijzigen"
 
 #: cps/templates/book_edit.html
 msgid ""

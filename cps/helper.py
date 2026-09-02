@@ -80,6 +80,30 @@ from .embed_helper import do_calibre_export  # noqa: E402
 
 log = logger.create()
 
+# Bound decoded work before Pillow allocates the raster. Encoded-byte limits
+# alone do not protect against tiny, highly compressed decompression bombs.
+MAX_COVER_PIXELS = 25_000_000
+MAX_COVER_DIMENSION = 12_000
+
+
+def validate_cover_dimensions(width, height):
+    """Reject unreasonable cover geometry before any full image decode."""
+    try:
+        width = int(width)
+        height = int(height)
+    except (TypeError, ValueError):
+        raise ValueError("cover dimensions are invalid")
+    if (width < 1 or height < 1
+            or width > MAX_COVER_DIMENSION
+            or height > MAX_COVER_DIMENSION
+            or width * height > MAX_COVER_PIXELS):
+        raise ValueError(
+            "cover dimensions exceed the {} pixel / {}px limits".format(
+                MAX_COVER_PIXELS, MAX_COVER_DIMENSION,
+            )
+        )
+    return width, height
+
 
 def mark_book_modified(book, *, set_dirty=True, unsync=False):
     """Single source of truth for "this book changed".
@@ -357,7 +381,8 @@ def get_convert_options(book):
 
 # Convert existing book entry to new format
 def convert_book_format(book_id, calibre_path, old_book_format, new_book_format, user_id,
-                        ereader_mail=None, subject=None, blocking=False, timeout=120):
+                        ereader_mail=None, subject=None, blocking=False, timeout=120,
+                        cover_user_id=None):
     book = calibre_db.get_book(book_id)
     data = calibre_db.get_book_format(book.id, old_book_format)
     if not data:
@@ -391,7 +416,10 @@ def convert_book_format(book_id, calibre_path, old_book_format, new_book_format,
            link)
     settings['old_book_format'] = old_book_format
     settings['new_book_format'] = new_book_format
-    task = TaskConvert(file_path, book.id, txt, settings, ereader_mail, user_id)
+    task = TaskConvert(
+        file_path, book.id, txt, settings, ereader_mail,
+        user=user_id, cover_user_id=cover_user_id,
+    )
     WorkerThread.add(user_id, task)
     if blocking:
         # Only the context-free Event wait crosses onto the bounded native
@@ -519,12 +547,25 @@ def send_mail(book_id, book_format, convert, ereader_mail, calibrepath, user_id,
     if not book:
         return _("Book not found")
 
+    cover_user_id = None
+    try:
+        if filter_user is not None and not getattr(filter_user, "is_anonymous", False):
+            cover_user_id = int(filter_user.id)
+    except (AttributeError, TypeError, ValueError):
+        pass
+
     if convert == 1:
         # returns None if success, otherwise errormessage
-        return convert_book_format(book_id, calibrepath, 'mobi', book_format.lower(), user_id, ereader_mail, subject)
+        return convert_book_format(
+            book_id, calibrepath, 'mobi', book_format.lower(), user_id,
+            ereader_mail, subject, cover_user_id=cover_user_id,
+        )
     if convert == 2:
         # returns None if success, otherwise errormessage
-        return convert_book_format(book_id, calibrepath, 'azw3', book_format.lower(), user_id, ereader_mail, subject)
+        return convert_book_format(
+            book_id, calibrepath, 'azw3', book_format.lower(), user_id,
+            ereader_mail, subject, cover_user_id=cover_user_id,
+        )
 
     if not subject or not subject.strip():
         subject = _("Send to eReader")
@@ -538,7 +579,8 @@ def send_mail(book_id, book_format, convert, ereader_mail, calibrepath, user_id,
                 email = strip_whitespaces(email)
                 WorkerThread.add(user_id, TaskEmail(subject, book.path, converted_file_name,
                                                     config.get_mail_settings(), email,
-                                                    email_text, get_email_body_text(), book.id))
+                                                    email_text, get_email_body_text(), book.id,
+                                                    cover_user_id=cover_user_id))
             return None
     return _("The requested file could not be read. Maybe wrong permissions?")
 
@@ -1767,7 +1809,23 @@ def get_book_cover(book_id, resolution=None):
     # OWN hidden books — they're shown in the /hidden/stored listing and
     # on the hidden book's detail page (#319 pushback @droM4X). Hidden
     # is a per-user listing exclusion, not an access revocation.
-    book = calibre_db.get_filtered_book(book_id, allow_show_archived=True, allow_show_hidden=True)
+    #
+    # A Global Library card is also allowed to render the book's GLOBAL cover
+    # before the viewer adds that book to My Library.  The list serializer has
+    # always emitted the global ``has_cover`` URL, but this resource lookup used
+    # the membership-scoped default filter and quietly served generic_cover.svg
+    # for non-members.  Keep the bypass tied to the same browse-global role as
+    # the list/detail APIs; knowing a cover URL does not grant archive access.
+    try:
+        allow_show_global = bool(current_user.role_browse_global())
+    except (AttributeError, RuntimeError):
+        allow_show_global = False
+    book = calibre_db.get_filtered_book(
+        book_id,
+        allow_show_archived=True,
+        allow_show_hidden=True,
+        allow_show_global=allow_show_global,
+    )
     return get_book_cover_internal(book, resolution=resolution)
 
 
@@ -2303,6 +2361,7 @@ def _validate_and_normalize_staged_cover(staged_path):
     with PILImage.open(staged_path) as decoded:
         image_format = decoded.format
         width, height = decoded.size
+        validate_cover_dimensions(width, height)
         decoded.load()
         if image_format not in {"JPEG", "PNG", "WEBP", "BMP"} or width < 1 or height < 1:
             raise ValueError("staged cover is not a supported decodable image")
@@ -2430,7 +2489,12 @@ def save_cover(img, book_path):
 def scavenge_staged_cover_files():
     """Log and remove orphan cover stages without attempting publication."""
     roots = []
-    for root in (config.get_book_path(), get_temp_dir()):
+    # Global covers stage beside the Calibre file (or in the temporary Drive
+    # upload directory). Per-user covers use the same StagedCoverWrite
+    # primitive below CONFIG_DIR, so an interrupted personal write needs the
+    # same startup cleanup without ever scanning or changing its live JPEG.
+    personal_cover_root = os.path.join(constants.CONFIG_DIR, "user-covers")
+    for root in (config.get_book_path(), get_temp_dir(), personal_cover_root):
         if root and os.path.isdir(root) and root not in roots:
             roots.append(root)
 
@@ -2438,7 +2502,13 @@ def scavenge_staged_cover_files():
     for root in roots:
         for directory, _subdirs, filenames in os.walk(root):
             for filename in filenames:
-                if not (filename.startswith(".cover.jpg.cwng-") and filename.endswith(".stage")):
+                global_stage = (
+                    filename.startswith(".cover.jpg.cwng-")
+                    and filename.endswith(".stage")
+                )
+                personal_stage = re.fullmatch(
+                    r"\.\d+(?:-\d+)?\.jpg\.cwng-.+\.stage", filename) is not None
+                if not (global_stage or personal_stage):
                     continue
                 staged_path = os.path.join(directory, filename)
                 log.warning(
@@ -2482,7 +2552,7 @@ def save_cover_with_thumbnail_update(img, book_path, book_id=None):
     return save_cover(img, book_path)
 
 
-def do_download_file(book, book_format, client, data, headers):
+def do_download_file(book, book_format, client, data, headers, cover_user_id=None):
     # Fork issue #103 / mirrors janeczku/calibre-web#3274. Validate inputs so a
     # malformed call (None book_format, or a Data row with a NULL `name` because
     # the calibre.db is anomalous) surfaces as a clean 400 with a diagnostic log
@@ -2508,6 +2578,19 @@ def do_download_file(book, book_format, client, data, headers):
     book_name = data.name
     download_name = filename = None
     metadata_was_embedded = False
+    personal_override = None
+    if cover_user_id is None and has_request_context():
+        try:
+            if current_user.is_authenticated and not current_user.is_anonymous:
+                cover_user_id = int(current_user.id)
+        except (AttributeError, TypeError, ValueError):
+            cover_user_id = None
+    if cover_user_id is not None and book_format.lower() in ("epub", "kepub"):
+        try:
+            from .services import user_cover
+            personal_override = user_cover.override_for_user(cover_user_id, book.id)
+        except Exception as ex:
+            log.warning("Could not resolve personal cover for download: %s", ex)
 
     if config.config_use_google_drive:
         # startTime = time.time()
@@ -2538,6 +2621,15 @@ def do_download_file(book, book_format, client, data, headers):
                         filename = os.path.dirname(output)
                         download_name = os.path.splitext(os.path.basename(output))[0]
                         metadata_was_embedded = False
+            elif personal_override is not None:
+                filename = get_temp_dir()
+                os.makedirs(filename, exist_ok=True)
+                download_name = str(uuid4())
+                gd.downloadFile(
+                    book.path,
+                    book_name + "." + book_format,
+                    os.path.join(filename, download_name + "." + book_format),
+                )
             else:
                 return gd.do_gdrive_download(df, headers)
         else:
@@ -2588,6 +2680,24 @@ def do_download_file(book, book_format, client, data, headers):
                         log.error(f'Failed to rename exported file: {e}')
         else:
             download_name = book_name
+
+    if personal_override is not None and filename and download_name:
+        source_path = os.path.join(filename, download_name + "." + book_format)
+        try:
+            from .services import user_cover
+            personal_copy = user_cover.materialize_delivery_copy(
+                cover_user_id, book.id, source_path, book_format,
+            )
+            if personal_copy is not None:
+                if filename == get_temp_dir():
+                    try:
+                        os.remove(source_path)
+                    except OSError as ex:
+                        log.warning("Could not remove intermediate delivery copy %s: %s",
+                                    source_path, ex)
+                filename, download_name = personal_copy
+        except Exception as ex:
+            log.warning("Could not prepare personal-cover download: %s", ex)
 
     # Calculate and store the checksum of the file we actually serve, so
     # KOReader progress sync can map this device's file back to the book.
@@ -2868,7 +2978,16 @@ def get_download_link(book_id, book_format, client):
     headers["Content-Type"] = mimetypes.types_map.get('.' + book_format, "application/octet-stream")
     headers["Content-Disposition"] = "attachment; filename=%s.%s; filename*=UTF-8''%s.%s" % (
         quote(file_name), book_format, quote(file_name), book_format)
-    return do_download_file(book, book_format, client, data1, headers)
+    cover_user_id = None
+    try:
+        if current_user.is_authenticated and not current_user.is_anonymous:
+            cover_user_id = int(current_user.id)
+    except (AttributeError, TypeError, ValueError):
+        pass
+    return do_download_file(
+        book, book_format, client, data1, headers,
+        cover_user_id=cover_user_id,
+    )
 
 
 def clear_cover_thumbnail_cache(book_id):

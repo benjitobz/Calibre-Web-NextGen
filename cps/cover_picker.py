@@ -60,9 +60,28 @@ def edit_required(f):
     return inner
 
 
+def cover_source_required(f):
+    """Allow personal source browsing without granting global cover writes."""
+    @wraps(f)
+    def inner(*args, **kwargs):
+        if request.args.get("scope") == "personal":
+            return f(*args, **kwargs)
+        if current_user.role_edit() or current_user.role_admin():
+            return f(*args, **kwargs)
+        abort(403)
+    return inner
+
+
 def _load_book(book_id: int):
     """Fetch book + 404 if absent. Matches editbooks.py conventions."""
-    book = calibre_db.get_filtered_book(book_id)
+    personal = request.args.get("scope") == "personal"
+    global_editor = bool(current_user.role_edit() or current_user.role_admin())
+    book = calibre_db.get_filtered_book(
+        book_id,
+        allow_show_archived=True,
+        allow_show_hidden=True,
+        allow_show_global=(personal and bool(current_user.role_browse_global())) or global_editor,
+    )
     if not book:
         abort(404)
     return book
@@ -173,7 +192,7 @@ def cover_picker_state(book_id):
 
 @cover_picker.route("/book/<int:book_id>/cover/candidates", methods=["POST"])
 @user_login_required
-@edit_required
+@cover_source_required
 def cover_picker_candidates(book_id):
     """Run the provider pool + cover_booster; return candidate list +
     per-provider status. Same JSON shape pattern as /metadata/search."""
@@ -211,7 +230,7 @@ def cover_picker_candidates(book_id):
 
 @cover_picker.route("/book/<int:book_id>/cover/preview", methods=["POST"])
 @user_login_required
-@edit_required
+@cover_source_required
 def cover_picker_preview(book_id):
     """Validate a URL the user pasted (in the picker URL panel OR the
     inline cover_url field on the edit page). Same code path; the inline
@@ -224,7 +243,7 @@ def cover_picker_preview(book_id):
 
 @cover_picker.route("/book/<int:book_id>/cover/extract", methods=["POST"])
 @user_login_required
-@edit_required
+@cover_source_required
 def cover_picker_extract(book_id):
     """Re-render the embedded-cover candidate as a data URL. Used when
     the picker page wants to refresh just the embedded cover after an
@@ -317,7 +336,7 @@ def cover_picker_lock(book_id):
 
 @cover_picker.route("/book/<int:book_id>/cover/ereader-preview", methods=["POST"])
 @user_login_required
-@edit_required
+@cover_source_required
 def cover_picker_ereader_preview(book_id):
     """Re-render an image through the e-reader cover-padding pipeline and
     return a base64 data URL the picker page can drop straight into an
@@ -514,9 +533,15 @@ def _fetch_url_bytes(url: str) -> Optional[bytes]:
 def _read_current_cover_bytes(book) -> Optional[bytes]:
     """Load the book's on-disk cover.jpg. Returns None if the book has
     no saved cover or the read fails."""
-    if not getattr(book, "has_cover", False):
-        return None
     try:
+        if request.args.get("scope") == "personal":
+            from .services import user_cover
+            override = user_cover.override_for_user(current_user.id, book.id)
+            if override is not None:
+                with open(user_cover.path_for_row(override), "rb") as fh:
+                    return fh.read()
+        if not getattr(book, "has_cover", False):
+            return None
         cover_path = os.path.join(config.config_calibre_dir, book.path, "cover.jpg")
         if not os.path.isfile(cover_path):
             return None

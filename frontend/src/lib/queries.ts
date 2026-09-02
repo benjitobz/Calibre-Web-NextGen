@@ -374,6 +374,19 @@ export function useRemoveFromMyLibrary() {
   });
 }
 
+export function useClearMyCover(bookId: string | number) {
+  const qc = useQueryClient();
+  return useMutation({
+    mutationFn: () => apiDelete(`/api/v1/books/${bookId}/my-cover`),
+    onSuccess: () => {
+      void qc.invalidateQueries({ queryKey: ['book', String(bookId)] });
+      void qc.invalidateQueries({ queryKey: ['books'] });
+      void qc.invalidateQueries({ queryKey: ['global-library'] });
+      void qc.invalidateQueries({ queryKey: ['cover-state', String(bookId)] });
+    },
+  });
+}
+
 export function useUpdateLibraryMode() {
   const qc = useQueryClient();
   return useMutation({
@@ -544,11 +557,12 @@ export function useQueueDeviceDelivery(id: string | number) {
 
 // ── Shelves ──────────────────────────────────────────────────────────────────
 
-export function useShelves() {
+export function useShelves(options?: { enabled?: boolean }) {
   return useQuery<{ items: Shelf[] }>({
     queryKey: ['shelves'],
     queryFn: () => apiGet<{ items: Shelf[] }>('/api/v1/shelves'),
     staleTime: 30000,
+    enabled: options?.enabled ?? true,
   });
 }
 
@@ -566,10 +580,11 @@ export function useShelf(id: string | number | undefined, page = 1) {
 }
 
 /** Shelf ids (among the user's visible shelves) that currently contain a book. */
-export function useBookShelves(bookId: string | number) {
+export function useBookShelves(bookId: string | number, options?: { enabled?: boolean }) {
   return useQuery<{ shelf_ids: number[] }>({
     queryKey: ['book-shelves', String(bookId)],
     queryFn: () => apiGet<{ shelf_ids: number[] }>(`/api/v1/books/${bookId}/shelves`),
+    enabled: options?.enabled ?? true,
   });
 }
 
