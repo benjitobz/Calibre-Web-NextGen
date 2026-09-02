@@ -7,6 +7,7 @@
 # See CONTRIBUTORS for full list of authors.
 
 import base64
+from collections import Counter
 import hashlib
 import logging
 from datetime import datetime, timezone
@@ -31,13 +32,14 @@ from flask import (
     send_from_directory,
     g,
     has_request_context,
+    after_this_request,
 )
 from .cw_login import current_user
 from werkzeug.datastructures import Headers
 from sqlalchemy import String, case, cast, func, literal
 from sqlalchemy.sql.expression import and_, or_
 from sqlalchemy.exc import StatementError
-from sqlalchemy.orm import joinedload
+from sqlalchemy.orm import joinedload, sessionmaker
 from sqlalchemy.sql import select
 import requests
 
@@ -411,6 +413,459 @@ def _sync_cursor_summary(sync_token):
     )
 
 
+_SYNC_CURSOR_LOG_FIELDS = (
+    "books_modified",
+    "books_id",
+    "books_created",
+    "archive_modified",
+    "reading_state_modified",
+    "tags_modified",
+    "magic_shelf_id",
+    "magic_shelf_membership",
+)
+
+
+def _sync_cursor_log_value(cursor_summary):
+    """Serialize a compact, stable cursor vector for one structured log field."""
+    rendered = {}
+    for field, value in zip(_SYNC_CURSOR_LOG_FIELDS, cursor_summary):
+        if isinstance(value, datetime):
+            rendered[field] = value.isoformat()
+        else:
+            rendered[field] = value
+    return json.dumps(rendered, separators=(",", ":"), ensure_ascii=True)
+
+
+def _sync_device_log_id(device_id):
+    """Return a short hashed label without logging a raw device id."""
+    raw_device_id = None
+    if has_request_context():
+        raw_device_id = request.headers.get("x-kobo-deviceid")
+    if raw_device_id:
+        source = "header:" + raw_device_id
+    elif device_id is not None:
+        source = "internal:" + str(device_id)
+    else:
+        return "unknown"
+    return hashlib.sha256(source.encode("utf-8")).hexdigest()[:12]
+
+
+def _begin_sync_exchange_capture(requesting_device_id, raw_sync_token):
+    """Attach the existing private exchange recorder to one library sync."""
+    try:
+        from .services import kobo_exchange_capture
+
+        device_hash = _sync_device_log_id(requesting_device_id)
+        x_kobo_sync = request.headers.get("x-kobo-sync")
+        selected_headers = [
+            # The generic header renderer redacts token-bearing fields. The
+            # exact opaque cursor is retained in sync_exchange below, inside
+            # the same private, bounded envelope.
+            (SyncToken.SyncToken.SYNC_TOKEN_HEADER, raw_sync_token or ""),
+            ("x-cwng-device-hash", device_hash),
+        ]
+        if x_kobo_sync is not None:
+            selected_headers.append(("x-kobo-sync", x_kobo_sync))
+        capture_session = kobo_exchange_capture.begin_capture(
+            exchange="library_sync",
+            method=request.method,
+            path=request.path,
+            query_string=request.query_string,
+            headers=selected_headers,
+            body=request.get_data(cache=True),
+            authentication="authenticated",
+            user_id=getattr(current_user, "id", None),
+        )
+        if capture_session is None:
+            return None
+        capture_session.record_sync_request(
+            incoming_token=raw_sync_token,
+            x_kobo_sync=x_kobo_sync,
+            device_hash=device_hash,
+        )
+
+        @after_this_request
+        def _finish_sync_capture(response):
+            try:
+                capture_session.record_sync_response(
+                    outgoing_token=response.headers.get(
+                        SyncToken.SyncToken.SYNC_TOKEN_HEADER, "",
+                    ),
+                )
+                capture_session.finish(
+                    status=response.status_code,
+                    headers=response.headers.items(),
+                    body=response.get_data(),
+                )
+            except Exception:
+                # Diagnostics are never part of the sync success contract.
+                log.warning(
+                    "Kobo exchange capture finalizer failed exchange=library_sync",
+                    exc_info=True,
+                )
+            return response
+
+        return capture_session
+    except Exception:
+        log.warning(
+            "Kobo exchange capture could not attach exchange=library_sync",
+            exc_info=True,
+        )
+        return None
+
+
+def _sync_entitlement_counts(sync_results):
+    """Count final wire entitlements, including proxied store additions."""
+    counts = {"new": 0, "changed": 0, "removed": 0}
+    for item in sync_results:
+        if not isinstance(item, dict):
+            continue
+        if "NewEntitlement" in item:
+            counts["new"] += 1
+            entitlement = item.get("NewEntitlement")
+        elif "ChangedEntitlement" in item:
+            counts["changed"] += 1
+            entitlement = item.get("ChangedEntitlement")
+        else:
+            continue
+        if not isinstance(entitlement, dict):
+            continue
+        book_entitlement = entitlement.get("BookEntitlement")
+        if (isinstance(book_entitlement, dict)
+                and book_entitlement.get("IsRemoved") is True):
+            counts["removed"] += 1
+    return counts
+
+
+def _entitlement_reemit_reason(
+    record, fingerprint, change_basis, *, eligible, is_cwng_token, prefix,
+):
+    """Classify why a ledger-known entitlement was not replay-suppressed."""
+    if record.fingerprint != fingerprint:
+        if record.change_basis is None:
+            detail = "fingerprint_mismatch_missing_basis"
+        elif change_basis is not None and record.change_basis == change_basis:
+            detail = "fingerprint_mismatch_same_basis"
+        else:
+            detail = "fingerprint_mismatch_basis_changed"
+    elif not is_cwng_token:
+        detail = "non_cwng_reset"
+    elif not eligible:
+        detail = "replay_suppression_disabled"
+    else:
+        detail = "replay_not_suppressed"
+    return prefix + detail
+
+
+def _observe_entitlement_reemit(
+    reasons,
+    record,
+    fingerprint,
+    change_basis,
+    *,
+    eligible,
+    is_cwng_token,
+    prefix,
+):
+    """Record diagnostic-only re-emission detail without affecting sync."""
+    try:
+        reasons[_entitlement_reemit_reason(
+            record,
+            fingerprint,
+            change_basis,
+            eligible=eligible,
+            is_cwng_token=is_cwng_token,
+            prefix=prefix,
+        )] += 1
+        return int(record.fingerprint != fingerprint)
+    except Exception:
+        log.warning(
+            "Kobo Sync observability failed reason=reason_classification_failed",
+            exc_info=True,
+        )
+        return 0
+
+
+def _observe_live_scope_removal(reasons, record, entitlement):
+    """Record the explicit removal reason behind the fail-open boundary."""
+    try:
+        reasons["live_scope_removal"] += 1
+        return int(
+            record.fingerprint != _entitlement_fingerprint(entitlement)
+        )
+    except Exception:
+        log.warning(
+            "Kobo Sync observability failed reason=reason_classification_failed",
+            exc_info=True,
+        )
+        return 0
+
+
+def _diagnostic_ledger_lookup(loader, device_id, identities, *, scope):
+    """Read diagnostic-only ledger state without sharing request rollback.
+
+    Production's file-backed SQLite database receives a separate read session.
+    SQLAlchemy cannot open an independent connection to the harness's in-memory
+    SQLite database, so tests use a read-only SAVEPOINT whose rollback cannot
+    discard caller-owned acknowledgment work.
+    """
+    if not device_id or not identities:
+        return {}
+
+    owned_session = None
+    try:
+        bind = ub.session.get_bind()
+        database = getattr(getattr(bind, "url", None), "database", None)
+        in_memory_sqlite = (
+            getattr(getattr(bind, "dialect", None), "name", None) == "sqlite"
+            and database in {None, "", ":memory:"}
+        )
+        if in_memory_sqlite:
+            with ub.begin_contained_nested(ub.session):
+                return loader(
+                    device_id, identities, _session=ub.session,
+                )
+
+        owned_session = sessionmaker(bind=bind)()
+        return loader(device_id, identities, _session=owned_session)
+    except Exception:
+        log.warning(
+            "Kobo Sync observability failed "
+            "reason=diagnostic_ledger_read_failed scope=%s",
+            scope,
+            exc_info=True,
+        )
+        return {}
+    finally:
+        if owned_session is not None:
+            try:
+                owned_session.close()
+            except Exception:
+                log.warning(
+                    "Kobo Sync observability failed "
+                    "reason=diagnostic_ledger_reader_close_failed scope=%s",
+                    scope,
+                    exc_info=True,
+                )
+
+
+def _sync_observability(
+    sync_results,
+    *,
+    suppressed_replay,
+    suppressed_removed,
+    reseeded_shape_change,
+    fingerprint_mismatch_reemitted,
+    reemit_reasons,
+    replay_suppression_enabled,
+    replay_suppression_eligible,
+):
+    counts = _sync_entitlement_counts(sync_results)
+    return {
+        "new": counts["new"],
+        "changed": counts["changed"],
+        "removed": counts["removed"],
+        "suppressed_replay": int(suppressed_replay),
+        "suppressed_removed": int(suppressed_removed),
+        "reseeded_shape_change": int(reseeded_shape_change),
+        "fingerprint_mismatch_reemitted": int(
+            fingerprint_mismatch_reemitted,
+        ),
+        "reemit_reasons": dict(sorted(reemit_reasons.items())),
+        "replay_suppression_enabled": bool(replay_suppression_enabled),
+        "replay_suppression_eligible": bool(replay_suppression_eligible),
+    }
+
+
+def _sync_observability_fail_open(sync_results, **kwargs):
+    try:
+        return _sync_observability(sync_results, **kwargs)
+    except Exception:
+        log.warning(
+            "Kobo Sync observability failed reason=counter_build_failed",
+            exc_info=True,
+        )
+        return _empty_sync_observability()
+
+
+def _empty_sync_observability():
+    """Counters for an error response produced before entitlement rendering."""
+    return {
+        "new": 0,
+        "changed": 0,
+        "removed": 0,
+        "suppressed_replay": 0,
+        "suppressed_removed": 0,
+        "reseeded_shape_change": 0,
+        "fingerprint_mismatch_reemitted": 0,
+        "reemit_reasons": {},
+        "replay_suppression_enabled": False,
+        "replay_suppression_eligible": False,
+    }
+
+
+def _format_reemit_reasons(reasons):
+    if not reasons:
+        return "none"
+    return ",".join(
+        "{}:{}".format(reason, count)
+        for reason, count in sorted(reasons.items())
+    )
+
+
+def _log_sync_observability(
+    requesting_device_id,
+    incoming_cursor,
+    outgoing_cursor,
+    observability,
+    *,
+    response_mode,
+    capture_session=None,
+):
+    """Emit the PII-free one-line incident record for one response attempt."""
+    incoming_cursor_log = None
+    outgoing_cursor_log = None
+    try:
+        capture_id = getattr(capture_session, "capture_id", "none")
+        incoming_cursor_log = _sync_cursor_log_value(incoming_cursor)
+        outgoing_cursor_log = _sync_cursor_log_value(outgoing_cursor)
+        log.info(
+            "Kobo Sync summary: device=%s capture_id=%s response_mode=%s "
+            "entitlements new=%d changed=%d removed=%d "
+            "suppressed_replay=%d suppressed_unchanged=%d "
+            "suppressed_removed=%d fingerprint_mismatch_reemitted=%d "
+            "reemit_reasons=%s reseeded_shape_change=%d "
+            "replay_suppression enabled=%s eligible=%s "
+            "cursors in=%s out=%s",
+            _sync_device_log_id(requesting_device_id),
+            capture_id,
+            response_mode,
+            observability.get("new", 0),
+            observability.get("changed", 0),
+            observability.get("removed", 0),
+            observability.get("suppressed_replay", 0),
+            observability.get("suppressed_replay", 0),
+            observability.get("suppressed_removed", 0),
+            observability.get("fingerprint_mismatch_reemitted", 0),
+            _format_reemit_reasons(observability.get("reemit_reasons", {})),
+            observability.get("reseeded_shape_change", 0),
+            observability.get("replay_suppression_enabled", False),
+            observability.get("replay_suppression_eligible", False),
+            incoming_cursor_log,
+            outgoing_cursor_log,
+        )
+    except Exception:
+        log.warning(
+            "Kobo Sync observability failed reason=summary_emission_failed",
+            exc_info=True,
+        )
+
+    if (capture_session is not None
+            and incoming_cursor_log is not None
+            and outgoing_cursor_log is not None):
+        try:
+            capture_session.record_sync_info_summary(
+                response_mode=response_mode,
+                incoming_cursor=incoming_cursor_log,
+                outgoing_cursor=outgoing_cursor_log,
+                counters=observability,
+            )
+        except Exception:
+            log.warning(
+                "Kobo Sync observability failed "
+                "reason=capture_summary_record_failed",
+                exc_info=True,
+            )
+
+
+def _pending_page_observability(page):
+    """Read stored diagnostics, with a response-body fallback for old rows."""
+    try:
+        confirmation = json.loads(page.confirmation_json or "{}")
+        observability = confirmation.get("observability")
+        if isinstance(observability, dict):
+            return observability
+    except (TypeError, ValueError):
+        pass
+
+    try:
+        sync_results = json.loads(page.response_body or "[]")
+    except (TypeError, ValueError):
+        sync_results = []
+    counts = _sync_entitlement_counts(sync_results)
+    return {
+        "new": counts["new"],
+        "changed": counts["changed"],
+        "removed": counts["removed"],
+        "suppressed_replay": 0,
+        "suppressed_removed": 0,
+        "reseeded_shape_change": 0,
+        "fingerprint_mismatch_reemitted": 0,
+        "reemit_reasons": {},
+        "replay_suppression_enabled": False,
+        "replay_suppression_eligible": False,
+    }
+
+
+def _log_pending_page_observability(
+    page, requesting_device_id, incoming_cursor, capture_session=None,
+):
+    try:
+        outgoing = SyncToken.SyncToken.from_headers({
+            SyncToken.SyncToken.SYNC_TOKEN_HEADER: page.outgoing_token,
+        })
+        _log_sync_observability(
+            requesting_device_id,
+            incoming_cursor,
+            _sync_cursor_summary(outgoing),
+            _pending_page_observability(page),
+            response_mode="pending_replay",
+            capture_session=capture_session,
+        )
+    except Exception:
+        log.warning(
+            "Kobo Sync observability failed reason=summary_emission_failed",
+            exc_info=True,
+        )
+
+
+def _serialize_pending_confirmation(confirmation):
+    """Keep optional counters from invalidating an otherwise valid page."""
+    try:
+        return json.dumps(confirmation, separators=(",", ":"))
+    except Exception:
+        log.warning(
+            "Kobo Sync observability failed "
+            "reason=pending_observability_serialization_failed",
+            exc_info=True,
+        )
+        confirmation_without_observability = dict(confirmation)
+        confirmation_without_observability.pop("observability", None)
+        return json.dumps(
+            confirmation_without_observability, separators=(",", ":"),
+        )
+
+
+def _abort_sync_with_observability(
+    status,
+    requesting_device_id,
+    incoming_cursor,
+    *,
+    response_mode,
+    capture_session,
+):
+    """Log and link a sync failure that has no entitlement response body."""
+    _log_sync_observability(
+        requesting_device_id,
+        incoming_cursor,
+        incoming_cursor,
+        _empty_sync_observability(),
+        response_mode=response_mode,
+        capture_session=capture_session,
+    )
+    return abort(status)
+
+
 def normalized_books_last_modified(value):
     """Return a UTC, fixed-width SQL key for calibre's mixed timestamp text.
 
@@ -707,16 +1162,25 @@ def get_magic_shelf_membership_added_at(user_id):
 @requires_kobo_auth
 # @download_required
 def HandleSyncRequest():
-    if not current_user.role_download():
-        log.info("Users need download permissions for syncing library to Kobo reader")
-        return abort(403)
-
     raw_sync_token = request.headers.get(
         SyncToken.SyncToken.SYNC_TOKEN_HEADER, "",
     )
     sync_token = SyncToken.SyncToken.from_headers(request.headers)
     sync_cursor_in = _sync_cursor_summary(sync_token)
     requesting_device_id = getattr(g, "annotation_origin_device_id", None)
+    capture_session = _begin_sync_exchange_capture(
+        requesting_device_id, raw_sync_token,
+    )
+    if not current_user.role_download():
+        log.info("Users need download permissions for syncing library to Kobo reader")
+        return _abort_sync_with_observability(
+            403,
+            requesting_device_id,
+            sync_cursor_in,
+            response_mode="download_forbidden",
+            capture_session=capture_session,
+        )
+
     pending_page = kobo_sync_status.get_pending_sync_page(
         requesting_device_id,
     )
@@ -730,7 +1194,13 @@ def HandleSyncRequest():
         if not _acknowledge_pending_page(
             pending_page, requesting_device_id,
         ):
-            return abort(503)
+            return _abort_sync_with_observability(
+                503,
+                requesting_device_id,
+                sync_cursor_in,
+                response_mode="pending_ack_failed",
+                capture_session=capture_session,
+            )
         acknowledged_pending_page = True
         pending_page = None
 
@@ -742,7 +1212,13 @@ def HandleSyncRequest():
     if (pruned_pending_pages
             and not acknowledged_pending_page
             and ub.session_commit() is False):
-        return abort(503)
+        return _abort_sync_with_observability(
+            503,
+            requesting_device_id,
+            sync_cursor_in,
+            response_mode="pending_prune_commit_failed",
+            capture_session=capture_session,
+        )
     if not acknowledged_pending_page:
         # Pruning may have removed the row loaded for the pre-prune ack lookup.
         pending_page = kobo_sync_status.get_pending_sync_page(
@@ -752,10 +1228,20 @@ def HandleSyncRequest():
         if pending_page.incoming_token_hash == _sync_token_hash(raw_sync_token):
             replay = _pending_response(pending_page)
             if replay is None:
-                return abort(503)
+                return _abort_sync_with_observability(
+                    503,
+                    requesting_device_id,
+                    sync_cursor_in,
+                    response_mode="pending_response_corrupt",
+                    capture_session=capture_session,
+                )
             log.info(
                 "Kobo Sync: replaying unacknowledged page for device %s",
                 requesting_device_id,
+            )
+            _log_pending_page_observability(
+                pending_page, requesting_device_id, sync_cursor_in,
+                capture_session,
             )
             return replay
         if not sync_token.is_cwng_token:
@@ -774,7 +1260,19 @@ def HandleSyncRequest():
                 requesting_device_id,
             )
             replay = _pending_response(pending_page)
-            return replay if replay is not None else abort(503)
+            if replay is None:
+                return _abort_sync_with_observability(
+                    503,
+                    requesting_device_id,
+                    sync_cursor_in,
+                    response_mode="pending_response_corrupt",
+                    capture_session=capture_session,
+                )
+            _log_pending_page_observability(
+                pending_page, requesting_device_id, sync_cursor_in,
+                capture_session,
+            )
+            return replay
     # A server-time fence distinguishes repair work that existed when this
     # request began from work armed by an entitlement/reset in this response.
     # The latter must survive until the next request, after the device has had
@@ -829,24 +1327,44 @@ def HandleSyncRequest():
     sync_results = []
     books_to_delete_ids = set()
     rehydrate_positions_emitted = []
+    fingerprint_mismatch_reemitted = 0
+    reemit_reasons = Counter()
 
     try:
         calibre_db.refresh_for_new_data()
     except Exception:
         log.exception("Kobo Sync: failed to refresh the library database")
-        return abort(503)
+        return _abort_sync_with_observability(
+            503,
+            requesting_device_id,
+            sync_cursor_in,
+            response_mode="library_refresh_failed",
+            capture_session=capture_session,
+        )
 
     # Upgrade bridge: flat delivery markers are user-wide and therefore cannot
     # prove receipt by any physical device. Mark the boundary but leave every
     # uncertain book absent from the confirmed ledger so it is reannounced New.
     if (requesting_device_id
             and not _seed_existing_device_entitlement_ledgers(current_user.id)):
-        return abort(503)
+        return _abort_sync_with_observability(
+            503,
+            requesting_device_id,
+            sync_cursor_in,
+            response_mode="ledger_seed_failed",
+            capture_session=capture_session,
+        )
     # Pre-ack rows prove only a committed server emission. Clear them once
     # before they can hide an uncertain book from the recovery arm below.
     if (requesting_device_id
             and not _migrate_device_entitlement_classification(current_user.id)):
-        return abort(503)
+        return _abort_sync_with_observability(
+            503,
+            requesting_device_id,
+            sync_cursor_in,
+            response_mode="ledger_migration_failed",
+            capture_session=capture_session,
+        )
 
 
     # Magic-shelf book IDs + membership timestamp are computed for BOTH sync
@@ -919,6 +1437,12 @@ def HandleSyncRequest():
 
             if books_to_delete_ids:
                 log.info(f"Kobo Sync: Found {len(books_to_delete_ids)} books to remove from device for user {current_user.name}")
+                known_removal_fingerprints = _diagnostic_ledger_lookup(
+                    kobo_sync_status.get_device_entitlement_fingerprints,
+                    requesting_device_id,
+                    books_to_delete_ids,
+                    scope="live_scope_removal",
+                )
 
                 # Go through the “To be deleted” list
                 for book_id in books_to_delete_ids:
@@ -930,6 +1454,14 @@ def HandleSyncRequest():
                             "BookMetadata": get_metadata(book),
                         }
                         sync_results.append({"ChangedEntitlement": entitlement})
+                        known_record = known_removal_fingerprints.get(book_id)
+                        if known_record is not None:
+                            fingerprint_mismatch_reemitted += \
+                                _observe_live_scope_removal(
+                                    reemit_reasons,
+                                    known_record,
+                                    entitlement,
+                                )
 
         except Exception as e:
             log.error(f"Kobo Sync: Error during deletion logic: {e}")
@@ -1246,12 +1778,21 @@ def HandleSyncRequest():
         reading_state.id for reading_state in reading_state_page
     }
 
-    prior_entitlement_fingerprints = (
-        kobo_sync_status.get_device_entitlement_fingerprints(
+    if requesting_device_id and sync_token.is_cwng_token:
+        known_entitlement_fingerprints = \
+            kobo_sync_status.get_device_entitlement_fingerprints(
             requesting_device_id,
             [book.Books.id for book in books_list],
         )
-        if requesting_device_id and sync_token.is_cwng_token else {}
+    else:
+        known_entitlement_fingerprints = _diagnostic_ledger_lookup(
+            kobo_sync_status.get_device_entitlement_fingerprints,
+            requesting_device_id,
+            [book.Books.id for book in books_list],
+            scope="live_non_cwng_reset",
+        )
+    prior_entitlement_fingerprints = (
+        known_entitlement_fingerprints if sync_token.is_cwng_token else {}
     )
     entitlement_fingerprint_updates = {}
     entitlement_change_basis_updates = {}
@@ -1330,6 +1871,17 @@ def HandleSyncRequest():
                 entitlement_change_basis_updates[book.Books.id] = \
                     entitlement_change_basis
         else:
+            known_record = known_entitlement_fingerprints.get(book.Books.id)
+            if known_record is not None:
+                fingerprint_mismatch_reemitted += _observe_entitlement_reemit(
+                    reemit_reasons,
+                    known_record,
+                    entitlement_fingerprint,
+                    entitlement_change_basis,
+                    eligible=replay_suppression_eligible,
+                    is_cwng_token=sync_token.is_cwng_token,
+                    prefix="live_",
+                )
             if book.Books.id not in prior_entitlement_fingerprints:
                 sync_results.append({"NewEntitlement": entitlement})
             else:
@@ -1649,12 +2201,21 @@ def HandleSyncRequest():
         .limit(SYNC_ITEM_LIMIT)
         .all()
     )
-    prior_deleted_fingerprints = (
-        kobo_sync_status.get_device_deleted_entitlement_fingerprints(
+    if replay_suppression_eligible:
+        known_deleted_fingerprints = \
+            kobo_sync_status.get_device_deleted_entitlement_fingerprints(
             requesting_device_id,
             [str(tombstone.book_uuid) for tombstone in pending_deletions],
         )
-        if replay_suppression_eligible else {}
+    else:
+        known_deleted_fingerprints = _diagnostic_ledger_lookup(
+            kobo_sync_status.get_device_deleted_entitlement_fingerprints,
+            requesting_device_id,
+            [str(tombstone.book_uuid) for tombstone in pending_deletions],
+            scope="removed_non_suppressing",
+        )
+    prior_deleted_fingerprints = (
+        known_deleted_fingerprints if sync_token.is_cwng_token else {}
     )
     deleted_fingerprint_updates = {}
     deleted_change_basis_updates = {}
@@ -1667,7 +2228,7 @@ def HandleSyncRequest():
         }
         fingerprint = (
             _entitlement_fingerprint(entitlement)
-            if replay_suppression_enabled and requesting_device_id else None
+            if requesting_device_id else None
         )
         deleted_change_basis = _deleted_entitlement_change_basis(
             tombstone.deleted_at,
@@ -1694,6 +2255,17 @@ def HandleSyncRequest():
                 deleted_fingerprint_updates[book_uuid] = fingerprint
                 deleted_change_basis_updates[book_uuid] = deleted_change_basis
         else:
+            known_record = known_deleted_fingerprints.get(book_uuid)
+            if known_record is not None:
+                fingerprint_mismatch_reemitted += _observe_entitlement_reemit(
+                    reemit_reasons,
+                    known_record,
+                    fingerprint,
+                    deleted_change_basis,
+                    eligible=replay_suppression_eligible,
+                    is_cwng_token=sync_token.is_cwng_token,
+                    prefix="removed_",
+                )
             sync_results.append({"ChangedEntitlement": entitlement})
             if replay_suppression_enabled and requesting_device_id:
                 deleted_fingerprint_updates[book_uuid] = fingerprint
@@ -1726,33 +2298,28 @@ def HandleSyncRequest():
     sync_token.archive_last_modified = new_archived_last_modified
     sync_token.reading_state_last_modified = new_reading_state_last_modified
 
-    new_entitlement_count = sum("NewEntitlement" in item for item in sync_results)
-    changed_entitlement_count = sum("ChangedEntitlement" in item for item in sync_results)
-    log.debug(
-        "Kobo Sync summary: device=%s entitlements new=%d changed=%d "
-        "suppressed_unchanged=%d suppressed_removed=%d "
-        "reseeded_shape_change=%d "
-        "replay_suppression enabled=%s eligible=%s "
-        "cursors in=%s out=%s",
-        requesting_device_id,
-        new_entitlement_count,
-        changed_entitlement_count,
-        len(suppressed_unchanged_book_ids)
-        + len(suppressed_deleted_entitlement_uuids),
-        len(suppressed_deleted_entitlement_uuids),
-        len(reseeded_shape_change_book_ids)
-        + len(reseeded_shape_change_deleted_uuids),
-        replay_suppression_enabled,
-        replay_suppression_eligible,
-        sync_cursor_in,
-        _sync_cursor_summary(sync_token),
-    )
-
     # Even a cursor-identical page needs a distinct acknowledgment token (for
     # example, a DeletedTag-only response).  This nonce is tiny and the device
     # treats the token opaquely; the exact serialized token stays server-side.
     sync_token.delivery_epoch = secrets.token_hex(16)
     response = generate_sync_response(sync_token, sync_results)
+    sync_cursor_out = _sync_cursor_summary(sync_token)
+    observability = _sync_observability_fail_open(
+        sync_results,
+        suppressed_replay=(
+            len(suppressed_unchanged_book_ids)
+            + len(suppressed_deleted_entitlement_uuids)
+        ),
+        suppressed_removed=len(suppressed_deleted_entitlement_uuids),
+        reseeded_shape_change=(
+            len(reseeded_shape_change_book_ids)
+            + len(reseeded_shape_change_deleted_uuids)
+        ),
+        fingerprint_mismatch_reemitted=fingerprint_mismatch_reemitted,
+        reemit_reasons=reemit_reasons,
+        replay_suppression_enabled=replay_suppression_enabled,
+        replay_suppression_eligible=replay_suppression_eligible,
+    )
 
     if requesting_device_id:
         confirmation = {
@@ -1777,6 +2344,7 @@ def HandleSyncRequest():
                 for book_uuid, fingerprint in deleted_fingerprint_updates.items()
             },
             "removed_book_ids": sorted(books_to_delete_ids),
+            "observability": observability,
             "rehydrate_positions": [
                 {
                     "id": position.id,
@@ -1802,7 +2370,7 @@ def HandleSyncRequest():
             response.headers[SyncToken.SyncToken.SYNC_TOKEN_HEADER],
             response.get_data(as_text=True),
             json.dumps(stored_headers, separators=(",", ":")),
-            json.dumps(confirmation, separators=(",", ":")),
+            _serialize_pending_confirmation(confirmation),
         )
     else:
         # Authenticated production requests resolve a physical device. Keep the
@@ -1817,7 +2385,23 @@ def HandleSyncRequest():
     # delivery state was promoted at the beginning of this request (when its
     # predecessor token was presented) and lands atomically with this page.
     if ub.session_commit() is False:
+        _log_sync_observability(
+            requesting_device_id,
+            sync_cursor_in,
+            sync_cursor_out,
+            observability,
+            response_mode="commit_failed",
+            capture_session=capture_session,
+        )
         return abort(503)
+    _log_sync_observability(
+        requesting_device_id,
+        sync_cursor_in,
+        sync_cursor_out,
+        observability,
+        response_mode="new_page",
+        capture_session=capture_session,
+    )
     return response
 
 
