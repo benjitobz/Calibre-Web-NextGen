@@ -1419,6 +1419,10 @@ msgstr "식별자는 대소문자 구분 없어 덮어씁니다."
 msgid "'%(langname)s' is not a valid language"
 msgstr "'%(langname)s'은(는) 올바른 언어가 아닙니다."
 
+#: cps/editbooks.py cps/helper.py
+msgid "Cover-file is not a valid image file, or could not be stored"
+msgstr "표지 파일이 올바른 이미지 파일이 아니거나 저장할 수 없습니다."
+
 #: cps/editbooks.py
 msgid "Metadata successfully updated"
 msgstr "메타데이터가 업데이트되었습니다."
@@ -1701,10 +1705,6 @@ msgid "Cover image exceeds maximum size of %(size)s MB"
 msgstr ""
 
 #: cps/helper.py
-msgid "Cover-file is not a valid image file, or could not be stored"
-msgstr "표지 파일이 올바른 이미지 파일이 아니거나 저장할 수 없습니다."
-
-#: cps/helper.py
 msgid "Cover Format Error"
 msgstr "표지 형식 오류입니다."
 
@@ -1717,18 +1717,6 @@ msgstr "표지 업로드를 위해 로컬 호스트나 로컬 네트워크에 �
 #: cps/helper.py
 msgid "Failed to create path for cover"
 msgstr "표지 경로 생성에 실패했습니다."
-
-#: cps/helper.py
-msgid "Only jpg/jpeg/png/webp/bmp files are supported as coverfile"
-msgstr "jpg/jpeg/png/webp/bmp 형식만 지원합니다."
-
-#: cps/helper.py
-msgid "Invalid cover file content"
-msgstr "올바르지 않은 표지 파일입니다."
-
-#: cps/helper.py
-msgid "Only jpg/jpeg files are supported as coverfile"
-msgstr "표지 파일은 jpg/jpeg 형식만 지원합니다."
 
 #: cps/helper.py cps/spa_strings.py
 msgid "Cover"
@@ -14069,6 +14057,15 @@ msgstr "선택한 서재 Kobo 동기화"
 #: cps/templates/user_table.html
 msgid "Show Read/Unread Section"
 msgstr "읽음/읽지 않음 표시"
+
+#~ msgid "Only jpg/jpeg/png/webp/bmp files are supported as coverfile"
+#~ msgstr "jpg/jpeg/png/webp/bmp 형식만 지원합니다."
+
+#~ msgid "Invalid cover file content"
+#~ msgstr "올바르지 않은 표지 파일입니다."
+
+#~ msgid "Only jpg/jpeg files are supported as coverfile"
+#~ msgstr "표지 파일은 jpg/jpeg 형식만 지원합니다."
 
 #, python-format
 #~ msgid "%(book_id)s is a invalid Book Id. Could not be added to Shelf"

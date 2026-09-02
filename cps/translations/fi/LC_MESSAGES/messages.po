@@ -1431,6 +1431,10 @@ msgstr ""
 msgid "'%(langname)s' is not a valid language"
 msgstr "%(langname)s ei ole kelvollinen kieli"
 
+#: cps/editbooks.py cps/helper.py
+msgid "Cover-file is not a valid image file, or could not be stored"
+msgstr ""
+
 #: cps/editbooks.py
 msgid "Metadata successfully updated"
 msgstr "Metadata päivitetty onnistuneesti"
@@ -1717,10 +1721,6 @@ msgid "Cover image exceeds maximum size of %(size)s MB"
 msgstr ""
 
 #: cps/helper.py
-msgid "Cover-file is not a valid image file, or could not be stored"
-msgstr ""
-
-#: cps/helper.py
 msgid "Cover Format Error"
 msgstr ""
 
@@ -1732,18 +1732,6 @@ msgstr ""
 
 #: cps/helper.py
 msgid "Failed to create path for cover"
-msgstr ""
-
-#: cps/helper.py
-msgid "Only jpg/jpeg/png/webp/bmp files are supported as coverfile"
-msgstr ""
-
-#: cps/helper.py
-msgid "Invalid cover file content"
-msgstr ""
-
-#: cps/helper.py
-msgid "Only jpg/jpeg files are supported as coverfile"
 msgstr ""
 
 #: cps/helper.py cps/spa_strings.py

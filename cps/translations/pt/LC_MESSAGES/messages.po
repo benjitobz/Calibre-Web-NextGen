@@ -1478,6 +1478,12 @@ msgstr ""
 msgid "'%(langname)s' is not a valid language"
 msgstr "%(langname)s não é um idioma válido"
 
+#: cps/editbooks.py cps/helper.py
+msgid "Cover-file is not a valid image file, or could not be stored"
+msgstr ""
+"O ficheiro de capa não é um ficheiro de imagem válido, ou não foi possível "
+"ser armazenado"
+
 #: cps/editbooks.py
 msgid "Metadata successfully updated"
 msgstr "Metadados atualizados com sucesso"
@@ -1772,12 +1778,6 @@ msgid "Cover image exceeds maximum size of %(size)s MB"
 msgstr ""
 
 #: cps/helper.py
-msgid "Cover-file is not a valid image file, or could not be stored"
-msgstr ""
-"O ficheiro de capa não é um ficheiro de imagem válido, ou não foi possível "
-"ser armazenado"
-
-#: cps/helper.py
 msgid "Cover Format Error"
 msgstr "Erro de formato da capa"
 
@@ -1792,19 +1792,6 @@ msgstr ""
 #: cps/helper.py
 msgid "Failed to create path for cover"
 msgstr "Falha em criar um caminho para a capa"
-
-#: cps/helper.py
-msgid "Only jpg/jpeg/png/webp/bmp files are supported as coverfile"
-msgstr ""
-"Apenas ficheiros jpg/jpeg/png/webp/bmp são suportados como ficheiros de capa"
-
-#: cps/helper.py
-msgid "Invalid cover file content"
-msgstr "Conteúdo do ficheiro de capa inválido"
-
-#: cps/helper.py
-msgid "Only jpg/jpeg files are supported as coverfile"
-msgstr "Apenas ficheiros jpg/jpeg são suportados como ficheiros de capa"
 
 #: cps/helper.py cps/spa_strings.py
 msgid "Cover"
@@ -14246,6 +14233,17 @@ msgstr "Sincronizar com Kobo as estantes selecionadas"
 #, fuzzy
 msgid "Show Read/Unread Section"
 msgstr "Mostrar secção de lidos/não lidos"
+
+#~ msgid "Only jpg/jpeg/png/webp/bmp files are supported as coverfile"
+#~ msgstr ""
+#~ "Apenas ficheiros jpg/jpeg/png/webp/bmp são suportados como ficheiros de "
+#~ "capa"
+
+#~ msgid "Invalid cover file content"
+#~ msgstr "Conteúdo do ficheiro de capa inválido"
+
+#~ msgid "Only jpg/jpeg files are supported as coverfile"
+#~ msgstr "Apenas ficheiros jpg/jpeg são suportados como ficheiros de capa"
 
 #, python-format
 #~ msgid "Generated %(count)s cover thumbnails"

@@ -1486,6 +1486,10 @@ msgstr ""
 msgid "'%(langname)s' is not a valid language"
 msgstr "%(langname)s nem érvényes nyelv"
 
+#: cps/editbooks.py cps/helper.py
+msgid "Cover-file is not a valid image file, or could not be stored"
+msgstr "A borítófájl nem érvényes képfájl, vagy nem tárolható"
+
 #: cps/editbooks.py
 msgid "Metadata successfully updated"
 msgstr "A metaadatok sikeresen frissültek"
@@ -1779,10 +1783,6 @@ msgid "Cover image exceeds maximum size of %(size)s MB"
 msgstr "Borítókép meghaladja a maximum %(size)s MB méretet"
 
 #: cps/helper.py
-msgid "Cover-file is not a valid image file, or could not be stored"
-msgstr "A borítófájl nem érvényes képfájl, vagy nem tárolható"
-
-#: cps/helper.py
 msgid "Cover Format Error"
 msgstr "Borító formátum hiba"
 
@@ -1797,18 +1797,6 @@ msgstr ""
 #: cps/helper.py
 msgid "Failed to create path for cover"
 msgstr "A borító útvonalának létrehozása sikertelen"
-
-#: cps/helper.py
-msgid "Only jpg/jpeg/png/webp/bmp files are supported as coverfile"
-msgstr "Csak jpg/jpeg/png/webp/bmp fájlok támogatottak borítófájlként"
-
-#: cps/helper.py
-msgid "Invalid cover file content"
-msgstr "Hibás borítófájl"
-
-#: cps/helper.py
-msgid "Only jpg/jpeg files are supported as coverfile"
-msgstr "Csak jpg/jpeg fájlok támogatottak borítófájlként"
 
 #: cps/helper.py cps/spa_strings.py
 msgid "Cover"
@@ -14345,6 +14333,15 @@ msgstr "Kiválasztott polcok szinkronizációja Kobo eszközzel"
 #: cps/templates/user_table.html
 msgid "Show Read/Unread Section"
 msgstr "Olvasott/olvasatlan mutatása"
+
+#~ msgid "Only jpg/jpeg/png/webp/bmp files are supported as coverfile"
+#~ msgstr "Csak jpg/jpeg/png/webp/bmp fájlok támogatottak borítófájlként"
+
+#~ msgid "Invalid cover file content"
+#~ msgstr "Hibás borítófájl"
+
+#~ msgid "Only jpg/jpeg files are supported as coverfile"
+#~ msgstr "Csak jpg/jpeg fájlok támogatottak borítófájlként"
 
 #, python-format
 #~ msgid "%(book_id)s is a invalid Book Id. Could not be added to Shelf"

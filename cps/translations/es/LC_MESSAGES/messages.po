@@ -1527,6 +1527,10 @@ msgstr ""
 msgid "'%(langname)s' is not a valid language"
 msgstr "'%(langname)s' no es un idioma válido"
 
+#: cps/editbooks.py cps/helper.py
+msgid "Cover-file is not a valid image file, or could not be stored"
+msgstr "El archivo de la portada no es una imágen válida o no se pudo guardar"
+
 #: cps/editbooks.py
 msgid "Metadata successfully updated"
 msgstr "Metadatos actualizados con éxito"
@@ -1826,10 +1830,6 @@ msgid "Cover image exceeds maximum size of %(size)s MB"
 msgstr "La imagen de portada supera el tamaño máximo de %(size)s MB"
 
 #: cps/helper.py
-msgid "Cover-file is not a valid image file, or could not be stored"
-msgstr "El archivo de la portada no es una imágen válida o no se pudo guardar"
-
-#: cps/helper.py
 msgid "Cover Format Error"
 msgstr "Error en el formato de la portada"
 
@@ -1843,18 +1843,6 @@ msgstr ""
 #: cps/helper.py
 msgid "Failed to create path for cover"
 msgstr "Error al crear una ruta para la portada"
-
-#: cps/helper.py
-msgid "Only jpg/jpeg/png/webp/bmp files are supported as coverfile"
-msgstr "Sólo se admiten como portada los archivos jpg/jpeg/png/webp/bmp"
-
-#: cps/helper.py
-msgid "Invalid cover file content"
-msgstr "Contenido del archivo de portada no válido"
-
-#: cps/helper.py
-msgid "Only jpg/jpeg files are supported as coverfile"
-msgstr "Sólo se admiten los archivos jpg/jpeg como portada"
 
 #: cps/helper.py cps/spa_strings.py
 msgid "Cover"
@@ -14665,6 +14653,15 @@ msgstr "Exponer las estanterías seleccionadas en OPDS"
 #: cps/templates/user_table.html
 msgid "Show Read/Unread Section"
 msgstr "Mostrar Selección Leidos/No Leidos"
+
+#~ msgid "Only jpg/jpeg/png/webp/bmp files are supported as coverfile"
+#~ msgstr "Sólo se admiten como portada los archivos jpg/jpeg/png/webp/bmp"
+
+#~ msgid "Invalid cover file content"
+#~ msgstr "Contenido del archivo de portada no válido"
+
+#~ msgid "Only jpg/jpeg files are supported as coverfile"
+#~ msgstr "Sólo se admiten los archivos jpg/jpeg como portada"
 
 #~ msgid ""
 #~ "Hardcover sync is disabled. Enable it once in Basic Configuration or set "

@@ -1496,6 +1496,12 @@ msgstr ""
 msgid "'%(langname)s' is not a valid language"
 msgstr "'%(langname)s' ni veljaven jezik"
 
+#: cps/editbooks.py cps/helper.py
+msgid "Cover-file is not a valid image file, or could not be stored"
+msgstr ""
+"Datoteka naslovnice ni veljavna slikovna datoteka ali je ni bilo mogoče "
+"shraniti"
+
 #: cps/editbooks.py
 msgid "Metadata successfully updated"
 msgstr "Metapodatki so bili uspešno posodobljeni"
@@ -1788,12 +1794,6 @@ msgid "Cover image exceeds maximum size of %(size)s MB"
 msgstr ""
 
 #: cps/helper.py
-msgid "Cover-file is not a valid image file, or could not be stored"
-msgstr ""
-"Datoteka naslovnice ni veljavna slikovna datoteka ali je ni bilo mogoče "
-"shraniti"
-
-#: cps/helper.py
 msgid "Cover Format Error"
 msgstr "Napaka vrste naslovnice"
 
@@ -1808,18 +1808,6 @@ msgstr ""
 #: cps/helper.py
 msgid "Failed to create path for cover"
 msgstr "Nisem uspel ustvariti poti za naslovnice"
-
-#: cps/helper.py
-msgid "Only jpg/jpeg/png/webp/bmp files are supported as coverfile"
-msgstr "Za datoteke naslovnic so podprte samo datoteke jpg/jpeg/png/webp/bmp"
-
-#: cps/helper.py
-msgid "Invalid cover file content"
-msgstr "Nepravilna vsebina datoteke z naslovnico"
-
-#: cps/helper.py
-msgid "Only jpg/jpeg files are supported as coverfile"
-msgstr "Samo datoteke jpg/jpeg so podprte kot datoteke naslovnic"
 
 #: cps/helper.py cps/spa_strings.py
 msgid "Cover"
@@ -14412,6 +14400,16 @@ msgstr "Usklajevanje izbrane police s Kobo"
 #: cps/templates/user_table.html
 msgid "Show Read/Unread Section"
 msgstr "Prikaži razdelek Prebrano/neprebrano"
+
+#~ msgid "Only jpg/jpeg/png/webp/bmp files are supported as coverfile"
+#~ msgstr ""
+#~ "Za datoteke naslovnic so podprte samo datoteke jpg/jpeg/png/webp/bmp"
+
+#~ msgid "Invalid cover file content"
+#~ msgstr "Nepravilna vsebina datoteke z naslovnico"
+
+#~ msgid "Only jpg/jpeg files are supported as coverfile"
+#~ msgstr "Samo datoteke jpg/jpeg so podprte kot datoteke naslovnic"
 
 #, python-format
 #~ msgid "%(book_id)s is a invalid Book Id. Could not be added to Shelf"

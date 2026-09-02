@@ -1515,6 +1515,11 @@ msgstr ""
 msgid "'%(langname)s' is not a valid language"
 msgstr "Язык '%(langname)s' не поддерживается"
 
+#: cps/editbooks.py cps/helper.py
+msgid "Cover-file is not a valid image file, or could not be stored"
+msgstr ""
+"Файл обложки не является допустимым изображением или не может быть сохранён"
+
 #: cps/editbooks.py
 msgid "Metadata successfully updated"
 msgstr "Метаданные успешно обновлены"
@@ -1805,11 +1810,6 @@ msgid "Cover image exceeds maximum size of %(size)s MB"
 msgstr "Изображение обложки превышает максимальный размер %(size)s МБ"
 
 #: cps/helper.py
-msgid "Cover-file is not a valid image file, or could not be stored"
-msgstr ""
-"Файл обложки не является допустимым изображением или не может быть сохранён"
-
-#: cps/helper.py
 msgid "Cover Format Error"
 msgstr "Ошибка формата обложки"
 
@@ -1824,18 +1824,6 @@ msgstr ""
 #: cps/helper.py
 msgid "Failed to create path for cover"
 msgstr "Не удалось создать путь для обложки"
-
-#: cps/helper.py
-msgid "Only jpg/jpeg/png/webp/bmp files are supported as coverfile"
-msgstr "Только файлы jpg/jpeg/png/webp/bmp поддерживаются в качестве обложки"
-
-#: cps/helper.py
-msgid "Invalid cover file content"
-msgstr "Неверное содержимое файла обложки"
-
-#: cps/helper.py
-msgid "Only jpg/jpeg files are supported as coverfile"
-msgstr "Только файлы jpg/jpeg поддерживаются в качестве обложки"
 
 #: cps/helper.py cps/spa_strings.py
 msgid "Cover"
@@ -14692,6 +14680,16 @@ msgstr "Показывать выбранные полки в OPDS"
 #: cps/templates/user_table.html
 msgid "Show Read/Unread Section"
 msgstr "Показать раздел прочитанного/непрочитанного"
+
+#~ msgid "Only jpg/jpeg/png/webp/bmp files are supported as coverfile"
+#~ msgstr ""
+#~ "Только файлы jpg/jpeg/png/webp/bmp поддерживаются в качестве обложки"
+
+#~ msgid "Invalid cover file content"
+#~ msgstr "Неверное содержимое файла обложки"
+
+#~ msgid "Only jpg/jpeg files are supported as coverfile"
+#~ msgstr "Только файлы jpg/jpeg поддерживаются в качестве обложки"
 
 #~ msgid ""
 #~ "Hardcover sync is disabled. Enable it once in Basic Configuration or set "

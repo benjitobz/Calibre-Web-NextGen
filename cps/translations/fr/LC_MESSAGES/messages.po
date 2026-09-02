@@ -1545,6 +1545,12 @@ msgstr ""
 msgid "'%(langname)s' is not a valid language"
 msgstr "%(langname)s n'est pas une langue valide"
 
+#: cps/editbooks.py cps/helper.py
+msgid "Cover-file is not a valid image file, or could not be stored"
+msgstr ""
+"Le fichier couverture n'est pas un fichier image valide, ou ne peut pas être "
+"stocké"
+
 #: cps/editbooks.py
 msgid "Metadata successfully updated"
 msgstr "Les métadonnées ont bien été mises à jour"
@@ -1844,12 +1850,6 @@ msgid "Cover image exceeds maximum size of %(size)s MB"
 msgstr "La couverture dépasse la taille maximale de %(size)s Mo"
 
 #: cps/helper.py
-msgid "Cover-file is not a valid image file, or could not be stored"
-msgstr ""
-"Le fichier couverture n'est pas un fichier image valide, ou ne peut pas être "
-"stocké"
-
-#: cps/helper.py
 msgid "Cover Format Error"
 msgstr "Erreur de format de couverture"
 
@@ -1864,20 +1864,6 @@ msgstr ""
 #: cps/helper.py
 msgid "Failed to create path for cover"
 msgstr "Impossible de créer le chemin pour la couverture"
-
-#: cps/helper.py
-msgid "Only jpg/jpeg/png/webp/bmp files are supported as coverfile"
-msgstr ""
-"Seuls les fichiers jpg/jpeg/png/webp/bmp sont supportés comme fichier de "
-"couverture"
-
-#: cps/helper.py
-msgid "Invalid cover file content"
-msgstr "Contenu du fichier de couverture invalide"
-
-#: cps/helper.py
-msgid "Only jpg/jpeg files are supported as coverfile"
-msgstr "Seuls les fichiers jpg/jpeg sont supportés comme fichier de couverture"
 
 #: cps/helper.py cps/spa_strings.py
 msgid "Cover"
@@ -14782,6 +14768,18 @@ msgstr "Synchroniser les étagères sélectionnées avec Kobo"
 #: cps/templates/user_table.html
 msgid "Show Read/Unread Section"
 msgstr "Afficher la section Lu / Non lu"
+
+#~ msgid "Only jpg/jpeg/png/webp/bmp files are supported as coverfile"
+#~ msgstr ""
+#~ "Seuls les fichiers jpg/jpeg/png/webp/bmp sont supportés comme fichier de "
+#~ "couverture"
+
+#~ msgid "Invalid cover file content"
+#~ msgstr "Contenu du fichier de couverture invalide"
+
+#~ msgid "Only jpg/jpeg files are supported as coverfile"
+#~ msgstr ""
+#~ "Seuls les fichiers jpg/jpeg sont supportés comme fichier de couverture"
 
 #~ msgid "You now see the global library."
 #~ msgstr "Vous voyez maintenant la bibliothèque globale."

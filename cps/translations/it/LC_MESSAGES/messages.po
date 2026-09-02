@@ -1520,6 +1520,12 @@ msgstr ""
 msgid "'%(langname)s' is not a valid language"
 msgstr "%(langname)s non è una lingua valida"
 
+#: cps/editbooks.py cps/helper.py
+msgid "Cover-file is not a valid image file, or could not be stored"
+msgstr ""
+"Il file della copertina non è in un formato di immagine valido o non può "
+"essere salvato"
+
 #: cps/editbooks.py
 msgid "Metadata successfully updated"
 msgstr "Metadati aggiornati correttamente"
@@ -1816,12 +1822,6 @@ msgid "Cover image exceeds maximum size of %(size)s MB"
 msgstr "L'immagine supera la dimensione massima di %(size)s MB"
 
 #: cps/helper.py
-msgid "Cover-file is not a valid image file, or could not be stored"
-msgstr ""
-"Il file della copertina non è in un formato di immagine valido o non può "
-"essere salvato"
-
-#: cps/helper.py
 msgid "Cover Format Error"
 msgstr "Errore nel formato della copertina"
 
@@ -1836,19 +1836,6 @@ msgstr ""
 #: cps/helper.py
 msgid "Failed to create path for cover"
 msgstr "Impossibile creare il percorso per la copertina"
-
-#: cps/helper.py
-msgid "Only jpg/jpeg/png/webp/bmp files are supported as coverfile"
-msgstr ""
-"Solo i file jpg/jpeg/png/webp/bmp sono supportati come file di copertina"
-
-#: cps/helper.py
-msgid "Invalid cover file content"
-msgstr "Contenuto del file di copertina non valido"
-
-#: cps/helper.py
-msgid "Only jpg/jpeg files are supported as coverfile"
-msgstr "Solo i file jpg/jpeg sono supportati come file di copertina"
 
 #: cps/helper.py cps/spa_strings.py
 msgid "Cover"
@@ -14988,6 +14975,16 @@ msgstr "Sincronizza gli scaffali selezionati con OPDS"
 #: cps/templates/user_table.html
 msgid "Show Read/Unread Section"
 msgstr "Mostra sezione Libri letti e Libri da leggere"
+
+#~ msgid "Only jpg/jpeg/png/webp/bmp files are supported as coverfile"
+#~ msgstr ""
+#~ "Solo i file jpg/jpeg/png/webp/bmp sono supportati come file di copertina"
+
+#~ msgid "Invalid cover file content"
+#~ msgstr "Contenuto del file di copertina non valido"
+
+#~ msgid "Only jpg/jpeg files are supported as coverfile"
+#~ msgstr "Solo i file jpg/jpeg sono supportati come file di copertina"
 
 #~ msgid ""
 #~ "Hardcover sync is disabled. Enable it once in Basic Configuration or set "

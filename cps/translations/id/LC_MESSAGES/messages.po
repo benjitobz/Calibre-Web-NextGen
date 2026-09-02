@@ -1456,6 +1456,11 @@ msgstr "IDは大文字小文字を区別しません。元のIDを上書きし�
 msgid "'%(langname)s' is not a valid language"
 msgstr "'%(langname)s' bukan bahasa yang valid"
 
+#: cps/editbooks.py cps/helper.py
+msgid "Cover-file is not a valid image file, or could not be stored"
+msgstr ""
+"Berkas sampul bukan berkas gambar yang valid, atau tidak dapat disimpan"
+
 #: cps/editbooks.py
 msgid "Metadata successfully updated"
 msgstr "Metadata berhasil diperbarui"
@@ -1750,11 +1755,6 @@ msgid "Cover image exceeds maximum size of %(size)s MB"
 msgstr ""
 
 #: cps/helper.py
-msgid "Cover-file is not a valid image file, or could not be stored"
-msgstr ""
-"Berkas sampul bukan berkas gambar yang valid, atau tidak dapat disimpan"
-
-#: cps/helper.py
 msgid "Cover Format Error"
 msgstr "Kesalahan Format Sampul"
 
@@ -1769,18 +1769,6 @@ msgstr ""
 #: cps/helper.py
 msgid "Failed to create path for cover"
 msgstr "Gagal membuat jalur untuk sampul"
-
-#: cps/helper.py
-msgid "Only jpg/jpeg/png/webp/bmp files are supported as coverfile"
-msgstr "Hanya berkas jpg/jpeg/png/webp/bmp yang didukung sebagai berkas sampul"
-
-#: cps/helper.py
-msgid "Invalid cover file content"
-msgstr "Konten berkas sampul tidak valid"
-
-#: cps/helper.py
-msgid "Only jpg/jpeg files are supported as coverfile"
-msgstr "Hanya berkas jpg/jpeg yang didukung sebagai berkas sampul"
 
 #: cps/helper.py cps/spa_strings.py
 msgid "Cover"
@@ -14180,6 +14168,16 @@ msgstr "Sinkronkan Rak yang dipilih dengan Kob"
 #, fuzzy
 msgid "Show Read/Unread Section"
 msgstr "Tampilkan pilihan baca/belum dibaca"
+
+#~ msgid "Only jpg/jpeg/png/webp/bmp files are supported as coverfile"
+#~ msgstr ""
+#~ "Hanya berkas jpg/jpeg/png/webp/bmp yang didukung sebagai berkas sampul"
+
+#~ msgid "Invalid cover file content"
+#~ msgstr "Konten berkas sampul tidak valid"
+
+#~ msgid "Only jpg/jpeg files are supported as coverfile"
+#~ msgstr "Hanya berkas jpg/jpeg yang didukung sebagai berkas sampul"
 
 #, python-format
 #~ msgid "Generated %(count)s cover thumbnails"

@@ -1433,6 +1433,10 @@ msgstr "标识符不区分大小写，覆盖旧标识符"
 msgid "'%(langname)s' is not a valid language"
 msgstr "'%(langname)s' 不是一种有效语言"
 
+#: cps/editbooks.py cps/helper.py
+msgid "Cover-file is not a valid image file, or could not be stored"
+msgstr "封面文件不是有效的图片文件，或者无法存储它"
+
 #: cps/editbooks.py
 msgid "Metadata successfully updated"
 msgstr "已成功更新元数据"
@@ -1709,10 +1713,6 @@ msgid "Cover image exceeds maximum size of %(size)s MB"
 msgstr "封面图片超过最大尺寸限制 %(size)s MB"
 
 #: cps/helper.py
-msgid "Cover-file is not a valid image file, or could not be stored"
-msgstr "封面文件不是有效的图片文件，或者无法存储它"
-
-#: cps/helper.py
 msgid "Cover Format Error"
 msgstr "封面格式出错"
 
@@ -1725,18 +1725,6 @@ msgstr "您没有访问本地主机或本地网络进行封面上传"
 #: cps/helper.py
 msgid "Failed to create path for cover"
 msgstr "创建封面路径失败"
-
-#: cps/helper.py
-msgid "Only jpg/jpeg/png/webp/bmp files are supported as coverfile"
-msgstr "封面文件只支持 jpg、jpeg、png、webp、bmp 文件"
-
-#: cps/helper.py
-msgid "Invalid cover file content"
-msgstr "封面文件内容无效"
-
-#: cps/helper.py
-msgid "Only jpg/jpeg files are supported as coverfile"
-msgstr "仅将 jpg、jpeg 文件作为封面文件"
 
 #: cps/helper.py cps/spa_strings.py
 msgid "Cover"
@@ -14213,6 +14201,15 @@ msgstr "同步所选书架到 Kobo"
 #: cps/templates/user_table.html
 msgid "Show Read/Unread Section"
 msgstr "显示已读、未读栏目"
+
+#~ msgid "Only jpg/jpeg/png/webp/bmp files are supported as coverfile"
+#~ msgstr "封面文件只支持 jpg、jpeg、png、webp、bmp 文件"
+
+#~ msgid "Invalid cover file content"
+#~ msgstr "封面文件内容无效"
+
+#~ msgid "Only jpg/jpeg files are supported as coverfile"
+#~ msgstr "仅将 jpg、jpeg 文件作为封面文件"
 
 #, python-format
 #~ msgid "%(book_id)s is a invalid Book Id. Could not be added to Shelf"

@@ -1466,6 +1466,12 @@ msgstr ""
 msgid "'%(langname)s' is not a valid language"
 msgstr "%(langname)s δεν είναι μια έγκυρη γλώσσα"
 
+#: cps/editbooks.py cps/helper.py
+msgid "Cover-file is not a valid image file, or could not be stored"
+msgstr ""
+"Το αρχείο φόντου δεν είναι ένα έγκυρο αρχείο εικόνας, ή δεν μπόρεσε να "
+"αποθηκευτεί"
+
 #: cps/editbooks.py
 msgid "Metadata successfully updated"
 msgstr "Τα μεταδεδομένα ενημερώθηκαν επιτυχώς"
@@ -1758,12 +1764,6 @@ msgid "Cover image exceeds maximum size of %(size)s MB"
 msgstr ""
 
 #: cps/helper.py
-msgid "Cover-file is not a valid image file, or could not be stored"
-msgstr ""
-"Το αρχείο φόντου δεν είναι ένα έγκυρο αρχείο εικόνας, ή δεν μπόρεσε να "
-"αποθηκευτεί"
-
-#: cps/helper.py
 msgid "Cover Format Error"
 msgstr "Σφάλμα Μορφής Φόντου"
 
@@ -1776,18 +1776,6 @@ msgstr ""
 #: cps/helper.py
 msgid "Failed to create path for cover"
 msgstr "Αποτυχία δημιουργίας πορείας για φόντο"
-
-#: cps/helper.py
-msgid "Only jpg/jpeg/png/webp/bmp files are supported as coverfile"
-msgstr ""
-
-#: cps/helper.py
-msgid "Invalid cover file content"
-msgstr ""
-
-#: cps/helper.py
-msgid "Only jpg/jpeg files are supported as coverfile"
-msgstr "Μόνο jpg/jpeg αρχεία υποστηρίζονται ως αρχεία φόντου"
 
 #: cps/helper.py cps/spa_strings.py
 msgid "Cover"
@@ -14244,6 +14232,9 @@ msgstr ""
 #, fuzzy
 msgid "Show Read/Unread Section"
 msgstr "Προβολή επιλογών σειράς"
+
+#~ msgid "Only jpg/jpeg files are supported as coverfile"
+#~ msgstr "Μόνο jpg/jpeg αρχεία υποστηρίζονται ως αρχεία φόντου"
 
 #, fuzzy
 #~ msgid "New interface available"

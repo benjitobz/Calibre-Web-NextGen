@@ -1444,6 +1444,10 @@ msgstr "المعرفات ليست حساسة لحالة الأحرف، مما ي
 msgid "'%(langname)s' is not a valid language"
 msgstr "'%(langname)s' ليست لغة صالحة"
 
+#: cps/editbooks.py cps/helper.py
+msgid "Cover-file is not a valid image file, or could not be stored"
+msgstr "ملف الغلاف ليس ملف صورة صالحًا، أو لا يمكن تخزينه"
+
 #: cps/editbooks.py
 msgid "Metadata successfully updated"
 msgstr "تم تحديث البيانات الوصفية بنجاح"
@@ -1732,10 +1736,6 @@ msgid "Cover image exceeds maximum size of %(size)s MB"
 msgstr ""
 
 #: cps/helper.py
-msgid "Cover-file is not a valid image file, or could not be stored"
-msgstr "ملف الغلاف ليس ملف صورة صالحًا، أو لا يمكن تخزينه"
-
-#: cps/helper.py
 msgid "Cover Format Error"
 msgstr "خطأ في تنسيق الغلاف"
 
@@ -1748,18 +1748,6 @@ msgstr "لا يُسمح لك بالوصول إلى localhost أو الشبكة �
 #: cps/helper.py
 msgid "Failed to create path for cover"
 msgstr "فشل في إنشاء مسار الغلاف"
-
-#: cps/helper.py
-msgid "Only jpg/jpeg/png/webp/bmp files are supported as coverfile"
-msgstr "ملفات jpg/jpeg/png/webp/bmp فقط مدعومة كملفات غلاف"
-
-#: cps/helper.py
-msgid "Invalid cover file content"
-msgstr "محتوى ملف الغلاف غير صالح"
-
-#: cps/helper.py
-msgid "Only jpg/jpeg files are supported as coverfile"
-msgstr "ملفات jpg/jpeg فقط مدعومة كملفات غلاف"
 
 #: cps/helper.py cps/spa_strings.py
 msgid "Cover"
@@ -14085,6 +14073,15 @@ msgstr "مزامنة الرفوف المختارة مع Kobo"
 #: cps/templates/user_table.html
 msgid "Show Read/Unread Section"
 msgstr "إظهار قسم المقروء/غير المقروء"
+
+#~ msgid "Only jpg/jpeg/png/webp/bmp files are supported as coverfile"
+#~ msgstr "ملفات jpg/jpeg/png/webp/bmp فقط مدعومة كملفات غلاف"
+
+#~ msgid "Invalid cover file content"
+#~ msgstr "محتوى ملف الغلاف غير صالح"
+
+#~ msgid "Only jpg/jpeg files are supported as coverfile"
+#~ msgstr "ملفات jpg/jpeg فقط مدعومة كملفات غلاف"
 
 #, python-format
 #~ msgid "%(book_id)s is a invalid Book Id. Could not be added to Shelf"

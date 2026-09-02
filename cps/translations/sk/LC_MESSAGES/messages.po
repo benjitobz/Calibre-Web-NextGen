@@ -1457,6 +1457,10 @@ msgstr ""
 msgid "'%(langname)s' is not a valid language"
 msgstr "'%(langname)s' nie je platný jazyk"
 
+#: cps/editbooks.py cps/helper.py
+msgid "Cover-file is not a valid image file, or could not be stored"
+msgstr "Súbor obálky knihy nie je platný súbor s obrázkom alebo nie je uložený"
+
 #: cps/editbooks.py
 msgid "Metadata successfully updated"
 msgstr "Metadáta boli úspešne aktualizované"
@@ -1746,10 +1750,6 @@ msgid "Cover image exceeds maximum size of %(size)s MB"
 msgstr ""
 
 #: cps/helper.py
-msgid "Cover-file is not a valid image file, or could not be stored"
-msgstr "Súbor obálky knihy nie je platný súbor s obrázkom alebo nie je uložený"
-
-#: cps/helper.py
 msgid "Cover Format Error"
 msgstr "Chyba formátu obálky knihy"
 
@@ -1764,18 +1764,6 @@ msgstr ""
 #: cps/helper.py
 msgid "Failed to create path for cover"
 msgstr "Vytváranie cesty k obálke knihy zlyhalo"
-
-#: cps/helper.py
-msgid "Only jpg/jpeg/png/webp/bmp files are supported as coverfile"
-msgstr "Ako súbor obálky knihy sú podporované iba súbory jpg/jpeg/png/webp/bmp"
-
-#: cps/helper.py
-msgid "Invalid cover file content"
-msgstr "Neplatný obsah súboru obalky knihy"
-
-#: cps/helper.py
-msgid "Only jpg/jpeg files are supported as coverfile"
-msgstr "Ako súbor obálky knihy sú podporované iba súbory jpg/jpeg"
 
 #: cps/helper.py cps/spa_strings.py
 msgid "Cover"
@@ -14147,6 +14135,16 @@ msgstr "Synchronizovať vybrané police s Kobo"
 #: cps/templates/user_table.html
 msgid "Show Read/Unread Section"
 msgstr "Zobraziť sekciu Prečítané/Neprečítané"
+
+#~ msgid "Only jpg/jpeg/png/webp/bmp files are supported as coverfile"
+#~ msgstr ""
+#~ "Ako súbor obálky knihy sú podporované iba súbory jpg/jpeg/png/webp/bmp"
+
+#~ msgid "Invalid cover file content"
+#~ msgstr "Neplatný obsah súboru obalky knihy"
+
+#~ msgid "Only jpg/jpeg files are supported as coverfile"
+#~ msgstr "Ako súbor obálky knihy sú podporované iba súbory jpg/jpeg"
 
 #, python-format
 #~ msgid "Generated %(count)s cover thumbnails"

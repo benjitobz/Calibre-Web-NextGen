@@ -1502,6 +1502,11 @@ msgstr ""
 msgid "'%(langname)s' is not a valid language"
 msgstr "'%(langname)s' nie jest prawidłowym językiem"
 
+#: cps/editbooks.py cps/helper.py
+msgid "Cover-file is not a valid image file, or could not be stored"
+msgstr ""
+"Plik okładki nie jest poprawnym plikiem obrazu lub nie mógł zostać zapisany"
+
 #: cps/editbooks.py
 msgid "Metadata successfully updated"
 msgstr "Metadane zostały pomyślnie zaktualizowane"
@@ -1802,11 +1807,6 @@ msgid "Cover image exceeds maximum size of %(size)s MB"
 msgstr "Obraz okładki przekracza maksymalny rozmiar %(size)s MB"
 
 #: cps/helper.py
-msgid "Cover-file is not a valid image file, or could not be stored"
-msgstr ""
-"Plik okładki nie jest poprawnym plikiem obrazu lub nie mógł zostać zapisany"
-
-#: cps/helper.py
 msgid "Cover Format Error"
 msgstr "Błędny format okładki"
 
@@ -1821,18 +1821,6 @@ msgstr ""
 #: cps/helper.py
 msgid "Failed to create path for cover"
 msgstr "Nie udało się utworzyć ścieżki dla okładki"
-
-#: cps/helper.py
-msgid "Only jpg/jpeg/png/webp/bmp files are supported as coverfile"
-msgstr "Jako plik okładki obsługiwane są tylko pliki jpg/jpeg/png/webp/bmp"
-
-#: cps/helper.py
-msgid "Invalid cover file content"
-msgstr "Nieprawidłowa zawartość pliku okładki"
-
-#: cps/helper.py
-msgid "Only jpg/jpeg files are supported as coverfile"
-msgstr "Jako plik okładki dopuszczalne są jedynie pliki jpg/jpeg"
 
 #: cps/helper.py cps/spa_strings.py
 msgid "Cover"
@@ -14579,6 +14567,15 @@ msgstr "Udostępniaj wybrane półki przez OPDS"
 #: cps/templates/user_table.html
 msgid "Show Read/Unread Section"
 msgstr "Pokaż sekcję przeczytane/nieprzeczytane"
+
+#~ msgid "Only jpg/jpeg/png/webp/bmp files are supported as coverfile"
+#~ msgstr "Jako plik okładki obsługiwane są tylko pliki jpg/jpeg/png/webp/bmp"
+
+#~ msgid "Invalid cover file content"
+#~ msgstr "Nieprawidłowa zawartość pliku okładki"
+
+#~ msgid "Only jpg/jpeg files are supported as coverfile"
+#~ msgstr "Jako plik okładki dopuszczalne są jedynie pliki jpg/jpeg"
 
 #~ msgid ""
 #~ "Hardcover sync is disabled. Enable it once in Basic Configuration or set "

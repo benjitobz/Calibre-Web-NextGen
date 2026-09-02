@@ -1437,6 +1437,10 @@ msgstr ""
 msgid "'%(langname)s' is not a valid language"
 msgstr "%(langname)s není platným jazykem"
 
+#: cps/editbooks.py cps/helper.py
+msgid "Cover-file is not a valid image file, or could not be stored"
+msgstr "Soubor obalu není platný, nebo nelze uložit"
+
 #: cps/editbooks.py
 msgid "Metadata successfully updated"
 msgstr "Metadata úspěšně aktualizována"
@@ -1723,10 +1727,6 @@ msgid "Cover image exceeds maximum size of %(size)s MB"
 msgstr ""
 
 #: cps/helper.py
-msgid "Cover-file is not a valid image file, or could not be stored"
-msgstr "Soubor obalu není platný, nebo nelze uložit"
-
-#: cps/helper.py
 msgid "Cover Format Error"
 msgstr "Chyba formátu obalu"
 
@@ -1739,18 +1739,6 @@ msgstr ""
 #: cps/helper.py
 msgid "Failed to create path for cover"
 msgstr "Vytvoření cesty obalu selhalo"
-
-#: cps/helper.py
-msgid "Only jpg/jpeg/png/webp/bmp files are supported as coverfile"
-msgstr ""
-
-#: cps/helper.py
-msgid "Invalid cover file content"
-msgstr ""
-
-#: cps/helper.py
-msgid "Only jpg/jpeg files are supported as coverfile"
-msgstr "Pouze jpg/jpeg jsou podporované soubory pro obal"
 
 #: cps/helper.py cps/spa_strings.py
 msgid "Cover"
@@ -14177,6 +14165,9 @@ msgstr ""
 #, fuzzy
 msgid "Show Read/Unread Section"
 msgstr "Zobrazit výběr sérií"
+
+#~ msgid "Only jpg/jpeg files are supported as coverfile"
+#~ msgstr "Pouze jpg/jpeg jsou podporované soubory pro obal"
 
 #, fuzzy
 #~ msgid "New interface available"

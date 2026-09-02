@@ -1454,6 +1454,10 @@ msgstr ""
 msgid "'%(langname)s' is not a valid language"
 msgstr "'%(langname)s' er ikke et gyldig språk"
 
+#: cps/editbooks.py cps/helper.py
+msgid "Cover-file is not a valid image file, or could not be stored"
+msgstr "Cover-filen er ikke en gyldig bildefil, eller kunne ikke lagres"
+
 #: cps/editbooks.py
 msgid "Metadata successfully updated"
 msgstr "Metadata ble oppdatert"
@@ -1750,10 +1754,6 @@ msgid "Cover image exceeds maximum size of %(size)s MB"
 msgstr ""
 
 #: cps/helper.py
-msgid "Cover-file is not a valid image file, or could not be stored"
-msgstr "Cover-filen er ikke en gyldig bildefil, eller kunne ikke lagres"
-
-#: cps/helper.py
 msgid "Cover Format Error"
 msgstr "Omslagsformatfeil"
 
@@ -1768,18 +1768,6 @@ msgstr ""
 #: cps/helper.py
 msgid "Failed to create path for cover"
 msgstr "Kunne ikke opprette bane for dekning"
-
-#: cps/helper.py
-msgid "Only jpg/jpeg/png/webp/bmp files are supported as coverfile"
-msgstr "Bare jpg/jpeg/png/webp/bmp-filer støttes som coverfile"
-
-#: cps/helper.py
-msgid "Invalid cover file content"
-msgstr "Ugyldig omslagsfilinnhold"
-
-#: cps/helper.py
-msgid "Only jpg/jpeg files are supported as coverfile"
-msgstr "Bare jpg/jpeg-filer støttes som coverfile"
 
 #: cps/helper.py cps/spa_strings.py
 msgid "Cover"
@@ -14228,6 +14216,15 @@ msgstr ""
 #, fuzzy
 msgid "Show Read/Unread Section"
 msgstr "Vis serieutvalg"
+
+#~ msgid "Only jpg/jpeg/png/webp/bmp files are supported as coverfile"
+#~ msgstr "Bare jpg/jpeg/png/webp/bmp-filer støttes som coverfile"
+
+#~ msgid "Invalid cover file content"
+#~ msgstr "Ugyldig omslagsfilinnhold"
+
+#~ msgid "Only jpg/jpeg files are supported as coverfile"
+#~ msgstr "Bare jpg/jpeg-filer støttes som coverfile"
 
 #, python-format
 #~ msgid "Generated %(count)s cover thumbnails"

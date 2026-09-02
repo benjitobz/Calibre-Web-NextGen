@@ -1469,6 +1469,10 @@ msgstr ""
 msgid "'%(langname)s' is not a valid language"
 msgstr "%(langname)s is geen geldige taal"
 
+#: cps/editbooks.py cps/helper.py
+msgid "Cover-file is not a valid image file, or could not be stored"
+msgstr "Omslag-bestand is geen afbeelding of kon niet opgeslagen worden"
+
 #: cps/editbooks.py
 msgid "Metadata successfully updated"
 msgstr "De metagegevens zijn bijgewerkt"
@@ -1757,10 +1761,6 @@ msgid "Cover image exceeds maximum size of %(size)s MB"
 msgstr ""
 
 #: cps/helper.py
-msgid "Cover-file is not a valid image file, or could not be stored"
-msgstr "Omslag-bestand is geen afbeelding of kon niet opgeslagen worden"
-
-#: cps/helper.py
 msgid "Cover Format Error"
 msgstr "Onjuist omslagformaat"
 
@@ -1775,18 +1775,6 @@ msgstr ""
 #: cps/helper.py
 msgid "Failed to create path for cover"
 msgstr "Locatie aanmaken voor omslag mislukt"
-
-#: cps/helper.py
-msgid "Only jpg/jpeg/png/webp/bmp files are supported as coverfile"
-msgstr "Alleen jpg/jpeg/png/webp/bmp bestanden worden ondersteund als omslag"
-
-#: cps/helper.py
-msgid "Invalid cover file content"
-msgstr "Ongeldig omslagbestand"
-
-#: cps/helper.py
-msgid "Only jpg/jpeg files are supported as coverfile"
-msgstr "Alleen jpg/jpeg bestanden zijn toegestaan als omslag"
 
 #: cps/helper.py cps/spa_strings.py
 msgid "Cover"
@@ -14436,6 +14424,16 @@ msgstr "Synchroniseer geselecteerde boekenplanken met Kobo"
 #, fuzzy
 msgid "Show Read/Unread Section"
 msgstr "Toon gelezen/niet gelezen selectie"
+
+#~ msgid "Only jpg/jpeg/png/webp/bmp files are supported as coverfile"
+#~ msgstr ""
+#~ "Alleen jpg/jpeg/png/webp/bmp bestanden worden ondersteund als omslag"
+
+#~ msgid "Invalid cover file content"
+#~ msgstr "Ongeldig omslagbestand"
+
+#~ msgid "Only jpg/jpeg files are supported as coverfile"
+#~ msgstr "Alleen jpg/jpeg bestanden zijn toegestaan als omslag"
 
 #~ msgid "You now see the global library."
 #~ msgstr "Je ziet nu de globale bibliotheek."

@@ -1496,6 +1496,10 @@ msgstr ""
 msgid "'%(langname)s' is not a valid language"
 msgstr "'%(langname)s' ist keine gültige Sprache"
 
+#: cps/editbooks.py cps/helper.py
+msgid "Cover-file is not a valid image file, or could not be stored"
+msgstr "Coverdatei ist keine gültige Bilddatei, kann nicht gespeichert werden"
+
 #: cps/editbooks.py
 msgid "Metadata successfully updated"
 msgstr "Metadaten wurden erfolgreich aktualisiert"
@@ -1796,10 +1800,6 @@ msgid "Cover image exceeds maximum size of %(size)s MB"
 msgstr "Cover Bild ist zu groß %(size)s MB"
 
 #: cps/helper.py
-msgid "Cover-file is not a valid image file, or could not be stored"
-msgstr "Coverdatei ist keine gültige Bilddatei, kann nicht gespeichert werden"
-
-#: cps/helper.py
 msgid "Cover Format Error"
 msgstr "Coverdatei fehlerhaft"
 
@@ -1813,18 +1813,6 @@ msgstr ""
 #: cps/helper.py
 msgid "Failed to create path for cover"
 msgstr "Fehler beim Erzeugen des Ordners für die Coverdatei"
-
-#: cps/helper.py
-msgid "Only jpg/jpeg/png/webp/bmp files are supported as coverfile"
-msgstr "Nur jpg/jpeg/png/webp/bmp-Dateien werden als Cover unterstützt"
-
-#: cps/helper.py
-msgid "Invalid cover file content"
-msgstr "Ungültiger Coverdatei-Inhalt"
-
-#: cps/helper.py
-msgid "Only jpg/jpeg files are supported as coverfile"
-msgstr "Nur jpg/jpeg-Dateien werden als Cover unterstützt"
 
 #: cps/helper.py cps/spa_strings.py
 msgid "Cover"
@@ -14336,6 +14324,15 @@ msgstr "Ausgewählte Regale für OPDS freigeben"
 #: cps/templates/user_table.html
 msgid "Show Read/Unread Section"
 msgstr "Zeige Gelesen/Ungelesen-Abschnitt"
+
+#~ msgid "Only jpg/jpeg/png/webp/bmp files are supported as coverfile"
+#~ msgstr "Nur jpg/jpeg/png/webp/bmp-Dateien werden als Cover unterstützt"
+
+#~ msgid "Invalid cover file content"
+#~ msgstr "Ungültiger Coverdatei-Inhalt"
+
+#~ msgid "Only jpg/jpeg files are supported as coverfile"
+#~ msgstr "Nur jpg/jpeg-Dateien werden als Cover unterstützt"
 
 #~ msgid "Basic configuration"
 #~ msgstr "Grundkonfiguration"

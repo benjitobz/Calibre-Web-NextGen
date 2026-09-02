@@ -1457,6 +1457,10 @@ msgstr "IDは大文字小文字を区別しません。元のIDを上書きし�
 msgid "'%(langname)s' is not a valid language"
 msgstr "'%(langname)s' は有効な言語ではありません"
 
+#: cps/editbooks.py cps/helper.py
+msgid "Cover-file is not a valid image file, or could not be stored"
+msgstr "表紙ファイルが有効な画像ファイルでないか、または保存できませんでした"
+
 #: cps/editbooks.py
 msgid "Metadata successfully updated"
 msgstr "メタデータを更新しました"
@@ -1755,10 +1759,6 @@ msgid "Cover image exceeds maximum size of %(size)s MB"
 msgstr "表紙画像が最大サイズ%(size)s MBを超えています"
 
 #: cps/helper.py
-msgid "Cover-file is not a valid image file, or could not be stored"
-msgstr "表紙ファイルが有効な画像ファイルでないか、または保存できませんでした"
-
-#: cps/helper.py
 msgid "Cover Format Error"
 msgstr "表紙形式エラー"
 
@@ -1774,18 +1774,6 @@ msgstr ""
 #: cps/helper.py
 msgid "Failed to create path for cover"
 msgstr "表紙ファイルの作成に失敗しました"
-
-#: cps/helper.py
-msgid "Only jpg/jpeg/png/webp/bmp files are supported as coverfile"
-msgstr "表紙ファイルは jpg/jpeg/png/webp/bmp のみ対応しています"
-
-#: cps/helper.py
-msgid "Invalid cover file content"
-msgstr "表紙ファイルの内容が無効です"
-
-#: cps/helper.py
-msgid "Only jpg/jpeg files are supported as coverfile"
-msgstr "表紙ファイルは jpg/jpeg のみ対応しています"
 
 #: cps/helper.py cps/spa_strings.py
 msgid "Cover"
@@ -14314,6 +14302,15 @@ msgstr "選択した本棚をKoboと同期"
 #: cps/templates/user_table.html
 msgid "Show Read/Unread Section"
 msgstr "既読/未読セクションを表示"
+
+#~ msgid "Only jpg/jpeg/png/webp/bmp files are supported as coverfile"
+#~ msgstr "表紙ファイルは jpg/jpeg/png/webp/bmp のみ対応しています"
+
+#~ msgid "Invalid cover file content"
+#~ msgstr "表紙ファイルの内容が無効です"
+
+#~ msgid "Only jpg/jpeg files are supported as coverfile"
+#~ msgstr "表紙ファイルは jpg/jpeg のみ対応しています"
 
 #, python-format
 #~ msgid "%(book_id)s is a invalid Book Id. Could not be added to Shelf"
