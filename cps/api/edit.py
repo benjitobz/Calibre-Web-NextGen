@@ -600,15 +600,15 @@ def set_cover(book_id):
         )
 
     if request.files.get("file"):
-        ok, message = save_cover(request.files["file"], book.path)
+        staged_cover, message = save_cover(request.files["file"], book.path)
     else:
         data = request.get_json(silent=True) or {}
         url = (data.get("url") or "").strip()
         if not url:
             return _err("invalid_request", "Provide an image file or a cover URL", 400)
-        ok, message = save_cover_from_url(url, book.path)
+        staged_cover, message = save_cover_from_url(url, book.path)
 
-    if not ok:
+    if not staged_cover:
         return _err("cover_failed", str(message), 400)
 
     # A new cover IS a book change and has to be recorded as one. Writing
@@ -628,25 +628,42 @@ def set_cover(book_id):
     # raises — and adopting it here would turn a working cover upload into a 500
     # on exactly those installs. Recorded as a finding rather than papered over;
     # the fix belongs in the lock's path resolution, not in this caller.
+    previous_has_cover = book.has_cover
+    previous_last_modified = book.last_modified
     try:
         book.has_cover = 1
         mark_book_modified(book)
         calibre_db.session.commit()
     except Exception as exc:
-        # The bytes are already on disk — save_cover writes the library file
-        # before anything touches the database — so this is a PARTIALLY APPLIED
-        # change: the library file has changed, while has_cover/last_modified/
-        # Kobo state still describe the old cover. Which of the two a client
-        # then sees depends on the book: for a replacement, a fresh fetch gets
-        # the new image under the old version token; for a book that had no
-        # cover, the rolled-back has_cover=0 makes the route answer with the
-        # placeholder even though the file exists. Reporting success would hide
-        # either, so the caller is told the save failed and can retry.
         log.error("set_cover: failed to record cover change for book %s: %s", book_id, exc)
+        staged_cover.discard()
         try:
             calibre_db.session.rollback()
         except Exception:
             pass
+        book.has_cover = previous_has_cover
+        book.last_modified = previous_last_modified
+        return _err("cover_failed", "Cover save failed", 500)
+
+    published, publish_error = staged_cover.publish()
+    if not published:
+        staged_cover.discard()
+        book.has_cover = previous_has_cover
+        book.last_modified = previous_last_modified
+        try:
+            calibre_db.session.commit()
+        except Exception as compensation_exc:
+            log.error(
+                "set_cover: metadata compensation failed for book %s after "
+                "publish failure %s: %s",
+                book_id,
+                publish_error,
+                compensation_exc,
+            )
+            try:
+                calibre_db.session.rollback()
+            except Exception:
+                pass
         return _err("cover_failed", "Cover save failed", 500)
 
     # Post-commit housekeeping, mirroring cover_picker's apply path. Runs AFTER

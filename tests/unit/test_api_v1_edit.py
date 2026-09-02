@@ -430,6 +430,13 @@ def _cover_book():
     return SimpleNamespace(id=5, path="p", has_cover=0, last_modified=None)
 
 
+def _staged_cover():
+    staged = MagicMock()
+    staged.publish.return_value = (True, None)
+    staged.discard.return_value = (True, None)
+    return staged
+
+
 @pytest.mark.unit
 def test_set_cover_from_url_calls_core_and_returns_cover_url():
     from cps.api import edit as mod
@@ -440,7 +447,7 @@ def test_set_cover_from_url_calls_core_and_returns_cover_url():
              patch.object(mod, "mark_book_modified"), \
              patch.object(mod, "log_metadata_change"), \
              patch.object(mod, "replace_cover_thumbnail_cache"), \
-             patch.object(mod, "save_cover_from_url", return_value=(True, "ok")) as core:
+             patch.object(mod, "save_cover_from_url", return_value=(_staged_cover(), "ok")) as core:
             resp = inspect.unwrap(mod.set_cover)(5)
     body = json.loads(resp.get_data())
     assert body["ok"] is True
@@ -472,7 +479,7 @@ def test_set_cover_records_the_change_so_every_cover_url_rebusts():
              patch.object(mod, "log_metadata_change") as logged, \
              patch.object(mod, "replace_cover_thumbnail_cache") as thumbs, \
              patch("cps.kobo_sync_status.remove_synced_book") as unsync, \
-             patch.object(mod, "save_cover_from_url", return_value=(True, "ok")):
+             patch.object(mod, "save_cover_from_url", return_value=(_staged_cover(), "ok")):
             resp = inspect.unwrap(mod.set_cover)(5)
     assert json.loads(resp.get_data())["ok"] is True
     assert book.has_cover == 1
@@ -488,8 +495,8 @@ def test_set_cover_records_the_change_so_every_cover_url_rebusts():
 
 @pytest.mark.unit
 def test_set_cover_reports_failure_when_the_change_cannot_be_recorded():
-    """The bytes are on disk but nothing else can see them — never report
-    success, or the UI shows "saved" for a change no other surface will have."""
+    """The bytes are staged, then discarded when metadata cannot be recorded;
+    never report success for a cover that was not published."""
     from cps.api import edit as mod
     session = MagicMock()
     session.commit.side_effect = RuntimeError("db gone")
@@ -500,7 +507,7 @@ def test_set_cover_reports_failure_when_the_change_cannot_be_recorded():
              patch.object(mod, "mark_book_modified"), \
              patch.object(mod, "log_metadata_change"), \
              patch.object(mod, "replace_cover_thumbnail_cache"), \
-             patch.object(mod, "save_cover_from_url", return_value=(True, "ok")):
+             patch.object(mod, "save_cover_from_url", return_value=(_staged_cover(), "ok")):
             resp = inspect.unwrap(mod.set_cover)(5)
     assert resp[1] == 500
     session.rollback.assert_called_once()
