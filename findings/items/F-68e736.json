@@ -6,8 +6,14 @@
   "refs": [
     "#2118"
   ],
+  "resolution": {
+    "commit": "522cd58087",
+    "date": "2026-09-02",
+    "note": "Wall-clock bound replaced in #2123",
+    "release": ""
+  },
   "severity": "test",
   "source": "audit",
-  "status": "open",
+  "status": "resolved",
   "title": "test_request_path_does_not_wait_for_a_slow_remote is a wall-clock assertion that flakes on loaded runners (0.69 s vs 0.4 s bound; blocking would take 1.2 s)"
 }
