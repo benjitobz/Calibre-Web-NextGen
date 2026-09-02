@@ -2607,6 +2607,30 @@ msgid "A book must keep at least one format."
 msgstr ""
 
 #: cps/spa_strings.py
+#, python-brace-format
+msgid ""
+"{succeeded} book(s) permanently deleted; {warnings} deleted with cleanup "
+"warnings; {failed} failed."
+msgstr ""
+
+#: cps/spa_strings.py
+#, python-brace-format
+msgid "Cleanup warning for book {id}: {message}"
+msgstr ""
+
+#: cps/spa_strings.py
+#, python-brace-format
+msgid "Book {id}: {message}"
+msgstr ""
+
+#: cps/spa_strings.py
+#, python-brace-format
+msgid ""
+"Failed: {failures}. The failed books remain selected; choose the action "
+"again to retry."
+msgstr ""
+
+#: cps/spa_strings.py
 msgid "Could not delete this format."
 msgstr ""
 
@@ -10885,8 +10909,8 @@ msgid ""
 "innocenat\">innocenat</a>."
 msgstr ""
 "このツールは<a href=\"https://github.com/innocenat\">innocenat</a>氏が作成し"
-"た<a href=\"https://kindle-epub-fix.netlify.app/\">kindle-epub-"
-"fix.netlify.app</a>ツールから移植されました。"
+"た<a href=\"https://kindle-epub-fix.netlify.app/\">kindle-epub-fix.netlify."
+"app</a>ツールから移植されました。"
 
 #: cps/templates/cwa_settings.html
 msgid "Enable KOReader Sync (NextGen Plugin)"
