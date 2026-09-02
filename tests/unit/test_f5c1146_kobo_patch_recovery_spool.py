@@ -623,18 +623,15 @@ def test_cross_process_lock_contention_fails_open_without_waiting(monkeypatch, t
     ready_parent.recv()
 
     result = []
-    elapsed = []
     finished = threading.Event()
 
     def _stage():
-        started = time.monotonic()
         try:
             result.append(spool.stage_patch(
                 raw_body=RAW_PATCH, entitlement_id=BOOK_UUID,
                 user_id=7, origin_device_id=None,
             ))
         finally:
-            elapsed.append(time.monotonic() - started)
             finished.set()
 
     caller = threading.Thread(target=_stage, daemon=True)
@@ -652,7 +649,6 @@ def test_cross_process_lock_contention_fails_open_without_waiting(monkeypatch, t
         f"request for at least {grace:.1f}s"
     )
     assert spool.REQUEST_IO_TIMEOUT_SECONDS == 1.0
-    assert elapsed[0] < grace
     assert result == [None]
     deadline = time.monotonic() + 2
     while not list(root.glob("patch-*.json.gz")) and time.monotonic() < deadline:
@@ -819,25 +815,23 @@ def test_timed_out_stage_finishes_and_does_not_poison_its_successor(
     slow_body = b'{"updatedAnnotations":[{"id":"slow-body"}]}'
     next_body = b'{"updatedAnnotations":[{"id":"next-body"}]}'
 
-    started = time.monotonic()
     first = spool.stage_patch(
         raw_body=slow_body, entitlement_id="book-slow",
         user_id=7, origin_device_id=None,
     )
-    first_elapsed = time.monotonic() - started
     assert first_started.is_set()
 
-    started = time.monotonic()
     second = spool.stage_patch(
         raw_body=next_body, entitlement_id="book-next",
         user_id=7, origin_device_id=None,
     )
-    second_elapsed = time.monotonic() - started
+    assert not workers_finished["book-slow"].is_set(), (
+        "the request waited for the timed-out storage worker to finish"
+    )
     release_first.set()
 
     assert first is None
     assert second is None or second.spool_id
-    assert first_elapsed < 1.5 and second_elapsed < 1.5
     assert workers_finished["book-slow"].wait(2)
     assert workers_finished["book-next"].wait(2)
     bodies = {record["body"] for _path, record in _records(spool, root)}
@@ -852,25 +846,36 @@ def test_timed_out_stage_finishes_and_does_not_poison_its_successor(
 def test_pending_spool_work_is_bounded(monkeypatch, tmp_path):
     """Two pending operations cannot grow into an unbounded memory queue."""
     spool, root = _root(monkeypatch, tmp_path)
+    real_slots = spool._REQUEST_IO_SLOTS
+    acquire_calls = []
+
+    class RecordingSlots:
+        def acquire(self, *args, **kwargs):
+            acquire_calls.append((args, kwargs))
+            return real_slots.acquire(*args, **kwargs)
+
+        def release(self):
+            return real_slots.release()
+
+    monkeypatch.setattr(spool, "_REQUEST_IO_SLOTS", RecordingSlots())
     acquired = []
     try:
         for _index in range(spool.MAX_PENDING_IO_OPERATIONS):
             permit = spool._REQUEST_IO_SLOTS.acquire(blocking=False)
             acquired.append(permit)
             assert permit
-        started = time.monotonic()
+        setup_acquires = len(acquire_calls)
         ticket = spool.stage_patch(
             raw_body=RAW_PATCH, entitlement_id=BOOK_UUID,
             user_id=7, origin_device_id=None,
         )
-        elapsed = time.monotonic() - started
     finally:
         for permit in acquired:
             if permit:
                 spool._REQUEST_IO_SLOTS.release()
 
     assert ticket is None
-    assert elapsed < 0.05
+    assert acquire_calls[setup_acquires:] == [((), {"blocking": False})]
     assert not root.exists()
 
 
@@ -878,6 +883,15 @@ def test_pending_spool_work_is_bounded(monkeypatch, tmp_path):
 def test_outcome_rewrite_cannot_grow_spool_past_total_byte_bound(monkeypatch, tmp_path):
     """The cap applies after status rewrites, not only after initial staging."""
     spool, _root_path = _root(monkeypatch, tmp_path)
+    blocking_operations = []
+
+    def _run_storage_inline(function, *args):
+        # This test owns the blocking quota-rewrite primitive, not the request
+        # deadline or hub threadpool exercised by their dedicated tests above.
+        blocking_operations.append(function)
+        return function(*args)
+
+    monkeypatch.setattr(spool, "_run_off_hub_bounded", _run_storage_inline)
     ticket = spool.stage_patch(
         raw_body=bytes(range(256)) * 16, entitlement_id=BOOK_UUID,
         user_id=7, origin_device_id=None,
@@ -897,6 +911,10 @@ def test_outcome_rewrite_cannot_grow_spool_past_total_byte_bound(monkeypatch, tm
 
     ticket.mark_dispatch_outcome("dispatch_exception")
 
+    assert blocking_operations == [
+        spool._write_or_reuse_record,
+        spool._mark_dispatch_outcome_blocking,
+    ]
     assert ticket.path.stat().st_size <= spool.MAX_TOTAL_BYTES
 
 
