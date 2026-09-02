@@ -220,6 +220,19 @@ def _rollback_after_sync_failure():
         pass
 
 
+def _mark_pending_page_reset_staged(staged):
+    """Track the narrow request window that owns a non-CWNG page reset."""
+    if has_request_context():
+        g.kobo_pending_page_reset_staged = bool(staged)
+
+
+def _pending_page_reset_is_staged():
+    return bool(
+        has_request_context()
+        and getattr(g, "kobo_pending_page_reset_staged", False)
+    )
+
+
 def _pending_response(page):
     """Recreate a previously committed response without touching live state."""
     try:
@@ -315,6 +328,19 @@ def _acknowledge_pending_page(
                 ub.KoboSyncedBooks.user_id == current_user.id,
                 ub.KoboSyncedBooks.book_id.in_(removed_book_ids),
             ).delete(synchronize_session=False)
+            # Once the device acknowledges that an entitlement is gone, its
+            # device-specific repair journal is no longer meaningful. In
+            # particular, a partial-token reset may have re-armed an
+            # unconfirmed position echo before the removal was calculated.
+            # The authoritative user reading state remains separate, and a
+            # future entitlement acknowledgment recreates this device row.
+            ub.session.query(ub.DeviceReadingPosition).filter(
+                ub.DeviceReadingPosition.device_id
+                == int(requesting_device_id),
+                ub.DeviceReadingPosition.book_id.in_(removed_book_ids),
+            ).delete(
+                synchronize_session=False,
+            )
 
         for emitted in confirmation.get("rehydrate_positions", []):
             position = ub.session.query(ub.DeviceReadingPosition).filter_by(
@@ -341,6 +367,47 @@ def _acknowledge_pending_page(
                 requesting_device_id,
             )
         except Exception:  # noqa: BLE001 - the caller's 503 must not depend on logging
+            pass
+        return False
+
+
+def _reset_pending_page_for_non_cwng_token(page, requesting_device_id):
+    """Abandon a serial page without losing its unconfirmed state echo.
+
+    A partial, malformed, or store token cannot prove that the device received
+    the exact pending page, so its entitlement confirmation must remain
+    unpromoted. Entitlements have their acknowledged fingerprint recovery
+    path, and ordinary repair pages retain their still-armed position latches.
+    A confirmation echo is different: acknowledging its predecessor already
+    cleared the latch. Re-arm only those echoed book IDs before discarding the
+    page so the reset request can regenerate the state through the normal
+    bounded rehydrate path.
+
+    The re-arm and pending-page deletion remain staged in the caller's
+    transaction. The request boundary rolls them back on both explicit aborts
+    and exceptions that escape later query/render work. A successful request
+    clears that boundary only after its checked commit durably replaces the
+    page.
+    """
+    try:
+        confirmation = json.loads(page.confirmation_json or "{}")
+        confirmation_echo_book_ids = confirmation.get(
+            "confirmation_echo_book_ids", [],
+        )
+        device_positions.mark_rehydrate_needed(
+            requesting_device_id, confirmation_echo_book_ids,
+        )
+        kobo_sync_status.delete_pending_sync_page(requesting_device_id)
+        _mark_pending_page_reset_staged(True)
+        return True
+    except Exception:
+        _rollback_after_sync_failure()
+        try:
+            log.exception(
+                "Kobo Sync: failed to reset pending page for device %s",
+                requesting_device_id,
+            )
+        except Exception:  # noqa: BLE001 - preserve retryable 503
             pass
         return False
 
@@ -938,11 +1005,15 @@ def _abort_sync_with_observability(
 ):
     """Log and link a sync failure that has no entitlement response body.
 
-    The observability record is best-effort: this boundary exists so the
-    intended retryable status always reaches the device, even when the
-    logging backend itself is failing (a second ``log.warning`` inside the
-    summary fallback would otherwise escape as an HTTP 500).
+    First discard every staged sync-state mutation so a failure after pending
+    page acknowledgment/reset cannot leave the request half-applied. The
+    observability record is best-effort: this boundary exists so the intended
+    status always reaches the device, even when the logging backend itself is
+    failing (a second ``log.warning`` inside the summary fallback would
+    otherwise escape as an HTTP 500).
     """
+    _rollback_after_sync_failure()
+    _mark_pending_page_reset_staged(False)
     try:
         _log_sync_observability(
             requesting_device_id,
@@ -1250,7 +1321,34 @@ def get_magic_shelf_membership_added_at(user_id):
     return max_created_at
 
 
-@kobo.route("/v1/library/sync")
+def _run_sync_with_pending_page_reset_boundary(handler):
+    """Contain failures only while this request owns a staged page reset.
+
+    Most unexpected handler exceptions retain Flask's established HTTP 500
+    behavior. Once a non-CWNG token has staged a pending-page reset, however,
+    letting an exception escape would expose those uncommitted mutations to
+    the next request because the user-database session has no teardown
+    rollback. Log that exception, restore the old page and latch, and return
+    the same retryable 503 used by checked sync-generation failures.
+    """
+    _mark_pending_page_reset_staged(False)
+    try:
+        return handler()
+    except Exception:
+        if not _pending_page_reset_is_staged():
+            raise
+        _rollback_after_sync_failure()
+        _mark_pending_page_reset_staged(False)
+        try:
+            log.exception(
+                "Kobo Sync failed "
+                "reason=pending_page_reset_response_generation_failed",
+            )
+        except Exception:  # noqa: BLE001 - preserve retryable 503
+            pass
+        return abort(503)
+
+
 @requires_kobo_auth
 # @download_required
 def HandleSyncRequest():
@@ -1345,8 +1443,18 @@ def HandleSyncRequest():
         if not sync_token.is_cwng_token:
             # An official-store/malformed token is a reset boundary.  The old
             # response remains unconfirmed, but it must not block a fresh
-            # device from starting a new serial page chain.
-            kobo_sync_status.delete_pending_sync_page(requesting_device_id)
+            # device from starting a new serial page chain. Preserve any
+            # confirmation echo whose predecessor acknowledgment already
+            # cleared its repair latch before abandoning the page.
+            if not _reset_pending_page_for_non_cwng_token(
+                    pending_page, requesting_device_id):
+                return _abort_sync_with_observability(
+                    503,
+                    requesting_device_id,
+                    sync_cursor_in,
+                    response_mode="pending_reset_failed",
+                    capture_session=capture_session,
+                )
         else:
             # One physical Kobo presents tokens serially. A different valid
             # CWNG token is not acknowledgment evidence and cannot safely
@@ -1429,6 +1537,7 @@ def HandleSyncRequest():
     sync_results = []
     books_to_delete_ids = set()
     rehydrate_positions_emitted = []
+    confirmation_echo_book_ids = []
     fingerprint_mismatch_reemitted = 0
     reemit_reasons = Counter()
 
@@ -2219,9 +2328,14 @@ def HandleSyncRequest():
             )
             .order_by(ub.DeviceReadingPosition.book_id)
         )
-        if rehydrate_book_ids:
+        excluded_rehydrate_book_ids = (
+            set(rehydrate_book_ids) | set(books_to_delete_ids)
+        )
+        if excluded_rehydrate_book_ids:
             pending_rehydrates = pending_rehydrates.filter(
-                ub.DeviceReadingPosition.book_id.notin_(rehydrate_book_ids),
+                ub.DeviceReadingPosition.book_id.notin_(
+                    excluded_rehydrate_book_ids,
+                ),
             )
         pending_rehydrates = pending_rehydrates.limit(SYNC_ITEM_LIMIT).all()
         for position, kobo_reading_state in pending_rehydrates:
@@ -2256,6 +2370,7 @@ def HandleSyncRequest():
             book_id for book_id in acknowledged_rehydrate_book_ids
             if book_id not in reading_state_book_ids_emitted
             and book_id not in rehydrate_book_ids
+            and book_id not in books_to_delete_ids
         ]
         if echo_book_ids:
             try:
@@ -2283,6 +2398,7 @@ def HandleSyncRequest():
                         },
                     })
                     reading_state_book_ids_emitted.append(book_id)
+                    confirmation_echo_book_ids.append(book_id)
             except Exception:
                 _rollback_after_sync_failure()
                 try:
@@ -2591,6 +2707,9 @@ def HandleSyncRequest():
                 }
                 for position in rehydrate_positions_emitted
             ],
+            "confirmation_echo_book_ids": sorted(
+                set(confirmation_echo_book_ids),
+            ),
         }
         stored_headers = {
             header_name: header_value
@@ -2631,6 +2750,7 @@ def HandleSyncRequest():
             outgoing_cursor=sync_cursor_out,
             observability=observability,
         )
+    _mark_pending_page_reset_staged(False)
     _log_sync_observability(
         requesting_device_id,
         sync_cursor_in,
@@ -2640,6 +2760,17 @@ def HandleSyncRequest():
         capture_session=capture_session,
     )
     return response
+
+
+def _dispatch_sync_request():
+    return _run_sync_with_pending_page_reset_boundary(HandleSyncRequest)
+
+
+kobo.add_url_rule(
+    "/v1/library/sync",
+    endpoint="HandleSyncRequest",
+    view_func=_dispatch_sync_request,
+)
 
 
 def generate_sync_response(sync_token, sync_results):

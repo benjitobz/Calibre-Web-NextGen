@@ -302,7 +302,9 @@ def sync_harness(monkeypatch):
         # The production auth decorator resolves this before entering the
         # handler. Keep that boundary while exercising Flask's real dispatch.
         g.annotation_origin_device_id = device.id
-        return kobo.HandleSyncRequest.__wrapped__()
+        return kobo._run_sync_with_pending_page_reset_boundary(
+            kobo.HandleSyncRequest.__wrapped__,
+        )
 
     app.add_url_rule(
         "/v1/library/sync",
