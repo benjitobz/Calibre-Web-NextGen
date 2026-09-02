@@ -462,8 +462,8 @@ msgid ""
 "LDAP CACertificate, Certificate or Key Location is not Valid, Please Enter "
 "Correct Path"
 msgstr ""
-"Der angegebene Speicherort für LDAP-CA-Zertifikat, -Zertifikat oder -"
-"Schlüsseldatei ist falsch,Bitte den korrekten Pfad eingeben."
+"Der angegebene Speicherort für LDAP-CA-Zertifikat, -Zertifikat oder "
+"-Schlüsseldatei ist falsch,Bitte den korrekten Pfad eingeben."
 
 #: cps/admin.py cps/templates/admin.html
 msgid "Add New User"
@@ -3048,6 +3048,14 @@ msgstr ""
 
 #: cps/spa_strings.py
 msgid ""
+"Set up My Library for every non-anonymous account? Each account starts with "
+"every book it can currently see—not only books it has shelved, read, or "
+"downloaded. Users can curate from there by removing books. Accounts already "
+"set up are never reseeded."
+msgstr ""
+
+#: cps/spa_strings.py
+msgid ""
 "Set up My Library for every non-anonymous user? Each account switches to its "
 "own selection after it is filled with everything that account can currently "
 "see. Anonymous accounts such as Guest are left unchanged; use their per-user "
@@ -5443,6 +5451,12 @@ msgstr "E-Reader Vorschau"
 #: cps/spa_strings.py
 msgid "E-readers"
 msgstr "E-Reader"
+
+#: cps/spa_strings.py
+msgid ""
+"Each account starts with every book it can currently see—not only books it "
+"has shelved, read, or downloaded."
+msgstr ""
 
 #: cps/spa_strings.py
 msgid "Each type (isbn, amazon, google, doi…) may appear once."
@@ -14612,9 +14626,9 @@ msgstr "Zeige Gelesen/Ungelesen-Abschnitt"
 #~ "        <a href=\"https://github.com/crocodilestick/Calibre-Web-Automated/"
 #~ "wiki/Configuration#database-configuration\">see here</a>!"
 #~ msgstr ""
-#~ "CWA ist so konfiguriert, dass es deine Calibre-Datenbank (<code>metadata."
-#~ "db</code>-Datei) irgendwo in dem Pfad <code>/calibre-library</code> "
-#~ "sucht.\n"
+#~ "CWA ist so konfiguriert, dass es deine Calibre-Datenbank "
+#~ "(<code>metadata.db</code>-Datei) irgendwo in dem Pfad <code>/calibre-"
+#~ "library</code> sucht.\n"
 #~ "        CWA durchsucht automatisch das Verzeichnis, das du auf <code>/"
 #~ "calibre-library</code> in der docker-compose-Datei verbunden hast, um "
 #~ "eine existierende Calibre-\n"

@@ -3023,6 +3023,14 @@ msgstr ""
 
 #: cps/spa_strings.py
 msgid ""
+"Set up My Library for every non-anonymous account? Each account starts with "
+"every book it can currently see—not only books it has shelved, read, or "
+"downloaded. Users can curate from there by removing books. Accounts already "
+"set up are never reseeded."
+msgstr ""
+
+#: cps/spa_strings.py
+msgid ""
 "Set up My Library for every non-anonymous user? Each account switches to its "
 "own selection after it is filled with everything that account can currently "
 "see. Anonymous accounts such as Guest are left unchanged; use their per-user "
@@ -5391,6 +5399,12 @@ msgstr ""
 
 #: cps/spa_strings.py
 msgid "E-readers"
+msgstr ""
+
+#: cps/spa_strings.py
+msgid ""
+"Each account starts with every book it can currently see—not only books it "
+"has shelved, read, or downloaded."
 msgstr ""
 
 #: cps/spa_strings.py
@@ -10944,8 +10958,8 @@ msgid ""
 "\">kindle-epub-fix.netlify.app</a> tool made by <a href=\"https://github.com/"
 "innocenat\">innocenat</a>."
 msgstr ""
-"To orodje je bilo prilagojeno po orodju <a href=\"https://kindle-epub-fix."
-"netlify.app/\">kindle-epub-fix.netlify.app</a>, ki ga je izdelal <a "
+"To orodje je bilo prilagojeno po orodju <a href=\"https://kindle-epub-"
+"fix.netlify.app/\">kindle-epub-fix.netlify.app</a>, ki ga je izdelal <a "
 "href=\"https://github.com/innocenat\">innocenat</a>."
 
 #: cps/templates/cwa_settings.html

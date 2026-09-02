@@ -6,6 +6,7 @@ import {
   getMetadataProviders, setMetadataProviderActive,
 } from './api';
 import { removeBookFromCache, applyBookEditToCache } from './scrollCache';
+import { replaceCachedIdentity } from './identityCache';
 import { settleByBatch, settleById, type BulkFailureDetail } from './bulkResults';
 import { createEntityListQueryOptions } from './entityListQueryOptions';
 import { dismissNoticeIdsInBatches } from './noticeDismissal';
@@ -127,47 +128,22 @@ export function useUpdateNamedPreferences() {
   });
 }
 
-/** Queries whose response body depends on *who* is asking, and so must not
- *  survive an identity change that happens without a page load. Today that is
- *  /about, which withholds component versions from non-admins (#1287).
- *
- *  Cancel first, then remove: an in-flight request issued under the previous
- *  identity would otherwise land after the switch and repopulate the cache with
- *  the wrong identity's answer. */
-async function dropIdentityScopedQueries(queryClient: QueryClient) {
-  for (const key of ['about', 'books', 'book', 'global-library', 'account', 'shelves', 'shelf']) {
-    await queryClient.cancelQueries({ queryKey: [key] });
-    queryClient.removeQueries({ queryKey: [key] });
-  }
-}
-
 export function useLogin() {
   const queryClient = useQueryClient();
   return useMutation({
     mutationFn: (vars: { username: string; password: string; remember?: boolean }) =>
       apiPost<Me>('/api/v1/auth/login', vars, { auth: 'public' }),
-    onSuccess: (data) => {
-      // Seeding the me-cache flips the app to the authenticated tree straight
-      // away, so protected calls can fire before the invalidation below has
-      // refetched /auth/me. Note the identity from the payload we are seeding
-      // with, or a session that dies inside that window looks to the classifier
-      // like a guest who was never signed in and escapes the expiry path
-      // (#824/#1067) that #1074 narrowed.
+    onSuccess: async (data) => {
+      // Note the identity from the login response before publishing it. If the
+      // session dies during the cache transition, the expiry classifier must
+      // still know a real session was acquired (#824/#1067/#1074).
       noteSessionIdentity(!!data.role?.anonymous);
-      queryClient.setQueryData(['me'], data);
+      // Keep /me null until all outgoing-account queries and the separate
+      // catalogue scroll cache are gone. Publishing the incoming user first
+      // let the authenticated tree render old, unscoped My Library data while
+      // an unawaited root-by-root purge caught up.
+      await replaceCachedIdentity(queryClient, data);
       void queryClient.invalidateQueries({ queryKey: ['me'] });
-      // Signing in here does not reload the page, so anything cached under the
-      // previous identity survives. /about is one of those now — the server
-      // withholds versions from non-admins (#1287), so a guest's empty map
-      // would otherwise stick for staleTime and hide the section from the admin
-      // who just signed in. Logging out is a full navigation, so that direction
-      // clears itself.
-      //
-      // Cancel before dropping, rather than invalidating: invalidation only
-      // refetches *active* queries, so a guest request still in flight when
-      // login lands would resolve afterwards, write its empty map and clear the
-      // stale flag — leaving the admin with a fresh-looking wrong answer.
-      void dropIdentityScopedQueries(queryClient);
     },
   });
 }
@@ -200,15 +176,12 @@ export function useMagicLinkPoll() {
   return useMutation({
     mutationFn: (token: string) =>
       apiPost<MagicLinkPoll>('/api/v1/auth/magic-link/poll', { token }, { auth: 'public' }),
-    onSuccess: (data) => {
+    onSuccess: async (data) => {
       if (data.status === 'success') {
-        // Same seeding window as useLogin above — record the identity we are
-        // seeding with so an expiry during it is still classified as a loss.
+        // Same ordered identity boundary as password login.
         noteSessionIdentity(!!data.user.role?.anonymous);
-        queryClient.setQueryData(['me'], data.user);
+        await replaceCachedIdentity(queryClient, data.user);
         void queryClient.invalidateQueries({ queryKey: ['me'] });
-        // Same in-place identity switch as useLogin — drop the guest's /about.
-        void dropIdentityScopedQueries(queryClient);
       }
     },
   });
