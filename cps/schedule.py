@@ -90,6 +90,16 @@ def _schedule_metadata_backfill(scheduler, timezone_info):
         log.error(f"Failed to schedule the metadata backfill task: {e}")
 
 
+def _schedule_cover_embed(scheduler, timezone_info):
+    try:
+        from cps.cover_embed_sync import sync_embedded_covers
+        scheduler.schedule(func=sync_embedded_covers,
+                           trigger=IntervalTrigger(minutes=20, timezone=timezone_info),
+                           name="embed canonical covers into all book formats")
+    except Exception as e:
+        log.error(f"Failed to schedule the cover embed task: {e}")
+
+
 def register_scheduled_tasks(reconnect=True):
     # Reconcile even when APScheduler is unavailable, then reuse the result so
     # normal startup performs one CWA DB read/mirror write rather than two.
@@ -118,6 +128,7 @@ def register_scheduled_tasks(reconnect=True):
         )
         _schedule_archived_book_cleanup(scheduler, timezone_info)
         _schedule_metadata_backfill(scheduler, timezone_info)
+        _schedule_cover_embed(scheduler, timezone_info)
 
         # Kick-off tasks, if they should currently be running
         if should_task_be_running(start, duration):
