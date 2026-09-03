@@ -14,6 +14,8 @@ import os
 import subprocess
 
 from cps import config, logger
+from cps.cover_dedup import dedupe_cover_pages
+from cps.cover_normalize import normalize_cover
 
 log = logger.create()
 
@@ -61,6 +63,39 @@ def _reconvert_cover(target_path, cover_path):
     return False
 
 
+def _rebuild_siblings_from_epub(epub_path, sibling_paths, cover_path):
+    """Regenerate Kindle formats from a cleaned epub. The duplicate cover page
+    lives in every format, and only the epub can be edited in place, so the
+    siblings are re-derived from it."""
+    rebuilt = 0
+
+    for target in sibling_paths:
+        ext = os.path.splitext(target)[1]
+        tmp_out = os.path.splitext(target)[0] + ".coverdedup" + ext
+
+        try:
+            result = subprocess.run(
+                ["ebook-convert", epub_path, tmp_out, "--cover", cover_path],
+                capture_output=True,
+                timeout=POLISH_TIMEOUT_SECONDS * 3,
+            )
+            if result.returncode == 0 and os.path.exists(tmp_out) and os.path.getsize(tmp_out) > 1024:
+                os.replace(tmp_out, target)
+                rebuilt += 1
+            else:
+                log.warning("Cover-page rebuild failed for %s: %s", target, result.stderr.decode("utf-8", "ignore")[:200])
+        except Exception as exc:
+            log.warning("Cover-page rebuild error for %s: %s", target, exc)
+        finally:
+            if os.path.exists(tmp_out):
+                try:
+                    os.remove(tmp_out)
+                except Exception:
+                    pass
+
+    return rebuilt
+
+
 def sync_embedded_covers():
     import sqlite3
 
@@ -99,6 +134,10 @@ def sync_embedded_covers():
             if not os.path.exists(cover):
                 continue
 
+            # Uniform canvas first: the embedded copies below should carry the
+            # same normalized cover the library grid shows.
+            normalize_cover(cover)
+
             cover_mtime = os.path.getmtime(cover)
             key = str(book_id)
 
@@ -115,6 +154,21 @@ def sync_embedded_covers():
             if not files:
                 state[key] = cover_mtime
                 continue
+
+            # Some source books ship a second full-page cover image as ordinary
+            # front matter. Swapping the designated cover leaves that page
+            # showing the old art, so the reader displays two different covers.
+            epubs = [f for f in files if f.lower().endswith(".epub")]
+            siblings = [f for f in files if not f.lower().endswith(".epub")]
+
+            for epub in epubs:
+                try:
+                    if dedupe_cover_pages(epub):
+                        log.info("Removed a duplicate cover page from %s", epub)
+                        if siblings:
+                            _rebuild_siblings_from_epub(epub, siblings, cover)
+                except Exception as exc:
+                    log.warning("Cover-page dedupe failed for %s: %s", epub, exc)
 
             editable_ok = True
             for path in files:
