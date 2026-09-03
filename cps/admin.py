@@ -2953,6 +2953,8 @@ def _configuration_update_helper():
             _config_checkbox(to_save, "config_hardcover_sync")
         _config_checkbox(to_save, "config_hardcover_annotations_sync")
         _config_string(to_save, "config_hardcover_token")
+        _config_string(to_save, "config_chaptarr_url")
+        _config_string(to_save, "config_chaptarr_api_key")
 
         # Google Books API key (lifts the anonymous quota of 1k req/IP/day to
         # the project's authenticated quota, default 100k/day). Optional.

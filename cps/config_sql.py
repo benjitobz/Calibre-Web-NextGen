@@ -143,6 +143,8 @@ class _Settings(_Base):
     config_use_goodreads = Column(Boolean, default=False)
     config_goodreads_api_key = Column(String)
     config_hardcover_token = Column(String)
+    config_chaptarr_url = Column(String)
+    config_chaptarr_api_key = Column(String)
     config_google_books_api_key = Column(String)
     config_comicvine_api_key = Column(String)
     

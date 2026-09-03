@@ -159,6 +159,13 @@ PROVIDER_KEY_REGISTRY = {
         "signup": "https://hardcover.app/account/api",
         "help":   "Free Hardcover account; click 'API Tokens' on your profile page.",
     },
+    "chaptarr": {
+        "name":   "Chaptarr",
+        "config": "config_chaptarr_api_key",
+        "signup": "",
+        "help":   "Your Chaptarr API key, from Settings -> General in Chaptarr. "
+                  "Set the Chaptarr URL alongside it under Admin -> Edit Basic Configuration.",
+    },
     "google": {
         "name":   "Google Books",
         "config": "config_google_books_api_key",
