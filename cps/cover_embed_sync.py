@@ -22,6 +22,45 @@ POLISH_TIMEOUT_SECONDS = 120
 _FORMATS = ("epub", "azw3", "mobi", "kepub")
 
 
+def _reconvert_cover(target_path, cover_path):
+    """Regenerate a non-editable format (old MOBI) from a sibling so it carries
+    the canonical cover. Converts the book's epub/azw3 to the target format with
+    --cover, replacing the file in place. Returns True on success."""
+    base, ext = os.path.splitext(target_path)
+    book_dir = os.path.dirname(target_path)
+
+    source = None
+    for cand_ext in (".epub", ".azw3"):
+        matches = glob.glob(os.path.join(book_dir, "*" + cand_ext))
+        if matches:
+            source = matches[0]
+            break
+
+    if not source:
+        return False
+
+    tmp_out = base + ".coversync" + ext
+    try:
+        result = subprocess.run(
+            ["ebook-convert", source, tmp_out, "--cover", cover_path],
+            capture_output=True,
+            timeout=POLISH_TIMEOUT_SECONDS * 3,
+        )
+        if result.returncode == 0 and os.path.exists(tmp_out):
+            os.replace(tmp_out, target_path)
+            return True
+        log.warning("Cover re-convert failed for %s: %s", target_path, result.stderr.decode("utf-8", "ignore")[:200])
+    except Exception as exc:
+        log.warning("Cover re-convert error for %s: %s", target_path, exc)
+    finally:
+        if os.path.exists(tmp_out):
+            try:
+                os.remove(tmp_out)
+            except Exception:
+                pass
+    return False
+
+
 def sync_embedded_covers():
     import sqlite3
 
@@ -77,23 +116,39 @@ def sync_embedded_covers():
                 state[key] = cover_mtime
                 continue
 
-            all_ok = True
+            editable_ok = True
             for path in files:
+                # ebook-polish cannot edit old (non-KF8) MOBI files; regenerate the
+                # cover for those by re-converting from a canonical sibling instead.
+                is_legacy_mobi = path.lower().endswith(".mobi")
+
                 try:
                     result = subprocess.run(
                         ["ebook-polish", "--cover", cover, path, path],
                         capture_output=True,
                         timeout=POLISH_TIMEOUT_SECONDS,
                     )
-                    if result.returncode != 0:
-                        all_ok = False
-                        log.warning("Cover embed failed for %s: %s", path, result.stderr.decode("utf-8", "ignore")[:200])
+                    if result.returncode == 0:
+                        continue
+
+                    err = result.stderr.decode("utf-8", "ignore")
+
+                    if is_legacy_mobi or "KF8" in err or "InvalidMobi" in err:
+                        if not _reconvert_cover(path, cover):
+                            log.info("Cover for non-editable format left as-is: %s", path)
+                        continue
+
+                    editable_ok = False
+                    log.warning("Cover embed failed for %s: %s", path, err[:200])
                 except Exception as exc:
-                    all_ok = False
+                    if is_legacy_mobi:
+                        continue
+                    editable_ok = False
                     log.warning("Cover embed error for %s: %s", path, exc)
 
-            # Only remember success, so a failed book retries next pass.
-            if all_ok:
+            # Record when the editable formats succeeded so we do not re-polish a
+            # book every pass; a genuine failure on an editable format retries.
+            if editable_ok:
                 state[key] = cover_mtime
                 polished_books += 1
 
