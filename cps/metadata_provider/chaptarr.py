@@ -38,6 +38,16 @@ class Chaptarr(Metadata):
 
         return base
 
+    def _public_base(self, base: str) -> str:
+        # The server talks to Chaptarr over the container network, but cover
+        # links are loaded by the browser, which cannot resolve that address.
+        public = (getattr(config, "config_chaptarr_public_url", None) or "").strip().rstrip("/")
+
+        if not public:
+            return base
+
+        return public if "://" in public else "http://" + public
+
     def search(
         self, query: str, generic_cover: str = "", locale: str = "en"
     ) -> Optional[List[MetaRecord]]:
@@ -73,14 +83,14 @@ class Chaptarr(Metadata):
         records = []
 
         for result in results[: self.MAX_RESULTS]:
-            record = self._to_record(result, base, generic_cover)
+            record = self._to_record(result, base, self._public_base(base), generic_cover)
 
             if record:
                 records.append(record)
 
         return records
 
-    def _to_record(self, result: dict, base: str, generic_cover: str) -> Optional[MetaRecord]:
+    def _to_record(self, result: dict, base: str, public_base: str, generic_cover: str) -> Optional[MetaRecord]:
         try:
             title = (result.get("title") or "").strip()
 
@@ -104,13 +114,13 @@ class Chaptarr(Metadata):
                 id=result.get("foreignBookId") or result.get("titleSlug") or title,
                 title=title,
                 authors=[author_name] if author_name else [],
-                url=self._book_url(base, result),
+                url=self._book_url(public_base, result),
                 source=MetaSourceInfo(
                     id=self.__id__,
                     description=Chaptarr.DESCRIPTION,
                     link=Chaptarr.META_URL,
                 ),
-                cover=self._cover(result, edition, base) or generic_cover,
+                cover=self._cover(result, edition, public_base) or generic_cover,
                 description=result.get("overview") or edition.get("overview") or "",
                 series=result.get("seriesTitle") or None,
                 series_index=0,
