@@ -18,7 +18,7 @@ try:
 except Exception:  # pragma: no cover - Pillow ships with the image, but stay safe
     Image = None
 
-_COVERLIKE = re.compile(r'(cover|title)', re.I)
+_COVERLIKE = re.compile(r'cover', re.I)
 
 
 def _phash(data):
@@ -100,8 +100,16 @@ def dedupe_cover_pages(path):
         if not imgs or len(text) >= 40:
             continue
         resolved = [resolve(href, im) for im in imgs]
-        cover_like = bool(_COVERLIKE.search(sid) or _COVERLIKE.search(href)
-                          or any(_COVERLIKE.search(posixpath.basename(r)) for r in resolved))
+
+        # Only a leftover COVER page qualifies. Half-title and title pages are
+        # legitimate front matter that also happen to be a single image, so the
+        # page must actually declare itself a cover -- by name, by epub:type, or
+        # by displaying a cover-named image.
+        cover_like = bool(
+            _COVERLIKE.search(sid)
+            or _COVERLIKE.search(posixpath.basename(href))
+            or _COVERLIKE.search(re.search(r'epub:type=["\']([^"\']*)', page).group(1) if re.search(r'epub:type=["\']([^"\']*)', page) else '')
+            or any(_COVERLIKE.search(posixpath.basename(r)) for r in resolved))
         if not cover_like:
             continue
         differs = True
