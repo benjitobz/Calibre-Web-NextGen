@@ -6177,6 +6177,10 @@ msgstr "E-readers beheren"
 msgid "Manage shelves"
 msgstr "Boekenplanken beheren"
 
+#: cps/spa_strings.py
+msgid "Manual order"
+msgstr "Handmatige volgorde"
+
 #: cps/spa_strings.py cps/templates/_book_organizer.html
 #: cps/templates/book_table.html
 msgid "Mark as read"
@@ -7347,10 +7351,6 @@ msgstr "Er is iets misgegaan"
 #: cps/spa_strings.py cps/templates/cover_picker.html
 msgid "Something went wrong. Try again."
 msgstr "Er is iets misgegaan. Probeer het opnieuw."
-
-#: cps/spa_strings.py
-msgid "Manual order"
-msgstr "Handmatige volgorde"
 
 #: cps/spa_strings.py
 msgid "Sort order"

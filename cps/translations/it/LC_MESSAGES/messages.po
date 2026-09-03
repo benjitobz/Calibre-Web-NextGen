@@ -6262,6 +6262,10 @@ msgstr "Gestisci gli e-reader"
 msgid "Manage shelves"
 msgstr "Gestisci gli scaffali"
 
+#: cps/spa_strings.py
+msgid "Manual order"
+msgstr ""
+
 #: cps/spa_strings.py cps/templates/_book_organizer.html
 #: cps/templates/book_table.html
 msgid "Mark as read"
