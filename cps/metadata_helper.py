@@ -692,17 +692,17 @@ def _parse_metadata_providers_enabled(raw_value):
 
 BACKFILL_BATCH_LIMIT = 5
 BACKFILL_RETRY_DAYS = 7
-BACKFILL_STUB_DESCRIPTION_LENGTH = 300
 
 
 def backfill_missing_metadata():
-    """Fetch metadata for library books that have no description.
+    """Fetch metadata for library books the ingest pipeline never covered.
 
     The ingest pipeline fetches metadata at import time; books added externally
     (e.g. by Chaptarr through the content server) never get that pass. This
     periodic sweep gives them one, honoring the same admin toggle and smart
-    application rules, and remembers attempts so provider misses are retried
-    weekly instead of on every pass.
+    application rules, and remembers attempts so each book is revisited weekly
+    at most. With smart application enabled every book is eligible - the
+    per-field quality comparisons decide what is actually replaced.
     """
     import os
     import sqlite3
@@ -720,19 +720,16 @@ def backfill_missing_metadata():
         if not os.path.exists(metadata_db):
             return 0
 
-        # With smart application on, a stub description ("Book 4 of ...") is as much a
-        # candidate as no description at all - the length comparison in the apply step
-        # decides whether the fetched one actually replaces it.
-        include_stubs = (cwa_settings.get('auto_metadata_smart_application', False)
-                         and cwa_settings.get('auto_metadata_update_description', True))
+        # Smart application promises "replace only what is better", so under it every
+        # book is a candidate and the per-field comparisons in the apply step decide.
+        # Without it the apply step overwrites as-is, so only books with no description
+        # are swept - anything wider would bulldoze the library from the providers.
+        smart = cwa_settings.get('auto_metadata_smart_application', False)
 
         with sqlite3.connect(f"file:{metadata_db}?mode=ro", uri=True, timeout=10) as con:
-            if include_stubs:
+            if smart:
                 rows = con.execute(
-                    "SELECT b.id FROM books b LEFT JOIN comments c ON c.book = b.id "
-                    "WHERE c.id IS NULL OR LENGTH(TRIM(c.text)) < ? "
-                    "ORDER BY b.timestamp DESC LIMIT 50",
-                    (BACKFILL_STUB_DESCRIPTION_LENGTH,)).fetchall()
+                    "SELECT b.id FROM books b ORDER BY b.timestamp DESC").fetchall()
             else:
                 rows = con.execute(
                     "SELECT b.id FROM books b LEFT JOIN comments c ON c.book = b.id "
