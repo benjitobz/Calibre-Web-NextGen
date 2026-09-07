@@ -692,6 +692,7 @@ def _parse_metadata_providers_enabled(raw_value):
 
 BACKFILL_BATCH_LIMIT = 5
 BACKFILL_RETRY_DAYS = 7
+BACKFILL_STUB_DESCRIPTION_LENGTH = 300
 
 
 def backfill_missing_metadata():
@@ -719,10 +720,23 @@ def backfill_missing_metadata():
         if not os.path.exists(metadata_db):
             return 0
 
+        # With smart application on, a stub description ("Book 4 of ...") is as much a
+        # candidate as no description at all - the length comparison in the apply step
+        # decides whether the fetched one actually replaces it.
+        include_stubs = (cwa_settings.get('auto_metadata_smart_application', False)
+                         and cwa_settings.get('auto_metadata_update_description', True))
+
         with sqlite3.connect(f"file:{metadata_db}?mode=ro", uri=True, timeout=10) as con:
-            rows = con.execute(
-                "SELECT b.id FROM books b LEFT JOIN comments c ON c.book = b.id "
-                "WHERE c.id IS NULL ORDER BY b.timestamp DESC LIMIT 50").fetchall()
+            if include_stubs:
+                rows = con.execute(
+                    "SELECT b.id FROM books b LEFT JOIN comments c ON c.book = b.id "
+                    "WHERE c.id IS NULL OR LENGTH(TRIM(c.text)) < ? "
+                    "ORDER BY b.timestamp DESC LIMIT 50",
+                    (BACKFILL_STUB_DESCRIPTION_LENGTH,)).fetchall()
+            else:
+                rows = con.execute(
+                    "SELECT b.id FROM books b LEFT JOIN comments c ON c.book = b.id "
+                    "WHERE c.id IS NULL ORDER BY b.timestamp DESC LIMIT 50").fetchall()
 
         candidate_ids = [int(r[0]) for r in rows]
         if not candidate_ids:
