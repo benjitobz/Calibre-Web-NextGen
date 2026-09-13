@@ -5759,6 +5759,11 @@ msgid "Filter {items}…"
 msgstr "Filtruj: {items}…"
 
 #: cps/spa_strings.py
+#, python-brace-format
+msgid "Follow link: {label}"
+msgstr ""
+
+#: cps/spa_strings.py
 msgid "Font family"
 msgstr "Rodzina czcionek"
 
@@ -5824,6 +5829,10 @@ msgstr "Nadaj nazwę swojej inteligentnej półce."
 msgid ""
 "Give {name} My Library? It starts as a copy of everything they can see now — "
 "nothing changes for them yet."
+msgstr ""
+
+#: cps/spa_strings.py
+msgid "Go to note"
 msgstr ""
 
 #: cps/spa_strings.py
@@ -6517,6 +6526,11 @@ msgstr ""
 
 #: cps/spa_strings.py
 msgid "Note saved"
+msgstr ""
+
+#: cps/spa_strings.py
+#, python-brace-format
+msgid "Note {label}"
 msgstr ""
 
 #: cps/spa_strings.py
@@ -7694,6 +7708,10 @@ msgstr ""
 #: cps/spa_strings.py
 msgid "Untitled"
 msgstr "Bez tytułu"
+
+#: cps/spa_strings.py
+msgid "Untitled link"
+msgstr ""
 
 #: cps/spa_strings.py
 msgid "Update failed."

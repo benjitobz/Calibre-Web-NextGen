@@ -5743,6 +5743,11 @@ msgid "Filter {items}…"
 msgstr "Filtern: {items}…"
 
 #: cps/spa_strings.py
+#, python-brace-format
+msgid "Follow link: {label}"
+msgstr ""
+
+#: cps/spa_strings.py
 msgid "Font family"
 msgstr "Schriftfamilie"
 
@@ -5808,6 +5813,10 @@ msgstr "Gib deinem intelligenten Regal einen Namen."
 msgid ""
 "Give {name} My Library? It starts as a copy of everything they can see now — "
 "nothing changes for them yet."
+msgstr ""
+
+#: cps/spa_strings.py
+msgid "Go to note"
 msgstr ""
 
 #: cps/spa_strings.py
@@ -6498,6 +6507,11 @@ msgstr "Notiz entfernt"
 #: cps/spa_strings.py
 msgid "Note saved"
 msgstr "Notiz gespeichert"
+
+#: cps/spa_strings.py
+#, python-brace-format
+msgid "Note {label}"
+msgstr ""
 
 #: cps/spa_strings.py
 msgid "Notes"
@@ -7657,6 +7671,10 @@ msgstr ""
 
 #: cps/spa_strings.py
 msgid "Untitled"
+msgstr ""
+
+#: cps/spa_strings.py
+msgid "Untitled link"
 msgstr ""
 
 #: cps/spa_strings.py

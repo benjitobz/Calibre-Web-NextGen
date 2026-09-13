@@ -5615,6 +5615,11 @@ msgid "Filter {items}…"
 msgstr ""
 
 #: cps/spa_strings.py
+#, python-brace-format
+msgid "Follow link: {label}"
+msgstr ""
+
+#: cps/spa_strings.py
 msgid "Font family"
 msgstr ""
 
@@ -5680,6 +5685,10 @@ msgstr ""
 msgid ""
 "Give {name} My Library? It starts as a copy of everything they can see now — "
 "nothing changes for them yet."
+msgstr ""
+
+#: cps/spa_strings.py
+msgid "Go to note"
 msgstr ""
 
 #: cps/spa_strings.py
@@ -6369,6 +6378,11 @@ msgstr ""
 
 #: cps/spa_strings.py
 msgid "Note saved"
+msgstr ""
+
+#: cps/spa_strings.py
+#, python-brace-format
+msgid "Note {label}"
 msgstr ""
 
 #: cps/spa_strings.py
@@ -7528,6 +7542,10 @@ msgstr ""
 
 #: cps/spa_strings.py
 msgid "Untitled"
+msgstr ""
+
+#: cps/spa_strings.py
+msgid "Untitled link"
 msgstr ""
 
 #: cps/spa_strings.py

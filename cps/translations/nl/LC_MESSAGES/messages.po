@@ -5800,6 +5800,11 @@ msgid "Filter {items}…"
 msgstr "{items} filteren…"
 
 #: cps/spa_strings.py
+#, python-brace-format
+msgid "Follow link: {label}"
+msgstr "Link volgen: {label}"
+
+#: cps/spa_strings.py
 msgid "Font family"
 msgstr "Lettertypefamilie"
 
@@ -5871,6 +5876,10 @@ msgid ""
 msgstr ""
 "Mijn bibliotheek geven aan {name}? Het begint als een kopie van alles wat "
 "dit account nu kan zien — er verandert nog niets."
+
+#: cps/spa_strings.py
+msgid "Go to note"
+msgstr "Ga naar noot"
 
 #: cps/spa_strings.py
 msgid "Go to this highlight"
@@ -6574,6 +6583,11 @@ msgstr "Notitie verwijderd"
 #: cps/spa_strings.py
 msgid "Note saved"
 msgstr "Notitie opgeslagen"
+
+#: cps/spa_strings.py
+#, python-brace-format
+msgid "Note {label}"
+msgstr "Noot {label}"
 
 #: cps/spa_strings.py
 msgid "Notes"
@@ -7812,6 +7826,10 @@ msgstr "Niet-geïnitialiseerde boeken"
 #: cps/spa_strings.py
 msgid "Untitled"
 msgstr "Zonder titel"
+
+#: cps/spa_strings.py
+msgid "Untitled link"
+msgstr "Link zonder titel"
 
 #: cps/spa_strings.py
 msgid "Update failed."
@@ -14703,21 +14721,6 @@ msgstr "Synchroniseer geselecteerde boekenplanken met Kobo"
 msgid "Show Read/Unread Section"
 msgstr "Toon gelezen/niet gelezen selectie"
 
-#: cps/spa_strings.py
-msgid "Follow link: {label}"
-msgstr "Link volgen: {label}"
-
-#: cps/spa_strings.py
-msgid "Go to note"
-msgstr "Ga naar noot"
-
-#: cps/spa_strings.py
-msgid "Note {label}"
-msgstr "Noot {label}"
-
-#: cps/spa_strings.py
-msgid "Untitled link"
-msgstr "Link zonder titel"
 #, python-brace-format
 #~ msgid "More actions for {title}"
 #~ msgstr "Meer acties voor {title}"

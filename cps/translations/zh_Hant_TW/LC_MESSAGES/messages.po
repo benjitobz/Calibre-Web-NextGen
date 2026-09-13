@@ -5564,6 +5564,11 @@ msgid "Filter {items}…"
 msgstr "篩選 {items}…"
 
 #: cps/spa_strings.py
+#, python-brace-format
+msgid "Follow link: {label}"
+msgstr ""
+
+#: cps/spa_strings.py
 msgid "Font family"
 msgstr "字型"
 
@@ -5629,6 +5634,10 @@ msgstr "為您的智慧書架命名。"
 msgid ""
 "Give {name} My Library? It starts as a copy of everything they can see now — "
 "nothing changes for them yet."
+msgstr ""
+
+#: cps/spa_strings.py
+msgid "Go to note"
 msgstr ""
 
 #: cps/spa_strings.py
@@ -6319,6 +6328,11 @@ msgstr "筆記已移除"
 #: cps/spa_strings.py
 msgid "Note saved"
 msgstr "筆記已儲存"
+
+#: cps/spa_strings.py
+#, python-brace-format
+msgid "Note {label}"
+msgstr ""
 
 #: cps/spa_strings.py
 msgid "Notes"
@@ -7478,6 +7492,10 @@ msgstr "未種子處理的書籍"
 #: cps/spa_strings.py
 msgid "Untitled"
 msgstr "無書名"
+
+#: cps/spa_strings.py
+msgid "Untitled link"
+msgstr ""
 
 #: cps/spa_strings.py
 msgid "Update failed."

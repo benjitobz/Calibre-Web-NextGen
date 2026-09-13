@@ -5888,6 +5888,11 @@ msgid "Filter {items}…"
 msgstr "Filtrar {items}…"
 
 #: cps/spa_strings.py
+#, python-brace-format
+msgid "Follow link: {label}"
+msgstr ""
+
+#: cps/spa_strings.py
 msgid "Font family"
 msgstr "Familia tipográfica"
 
@@ -5958,6 +5963,10 @@ msgid ""
 msgstr ""
 "¿Activar Mi biblioteca para {name}? Empezará como una copia de todo lo que "
 "puede ver ahora; de momento no cambia nada para esa persona."
+
+#: cps/spa_strings.py
+msgid "Go to note"
+msgstr ""
 
 #: cps/spa_strings.py
 msgid "Go to this highlight"
@@ -6658,6 +6667,11 @@ msgstr "Nota eliminada"
 #: cps/spa_strings.py
 msgid "Note saved"
 msgstr "Nota guardada"
+
+#: cps/spa_strings.py
+#, python-brace-format
+msgid "Note {label}"
+msgstr ""
 
 #: cps/spa_strings.py
 msgid "Notes"
@@ -7897,6 +7911,10 @@ msgstr "Libros sin aprovisionar"
 #: cps/spa_strings.py
 msgid "Untitled"
 msgstr "Sin título"
+
+#: cps/spa_strings.py
+msgid "Untitled link"
+msgstr ""
 
 #: cps/spa_strings.py
 msgid "Update failed."

@@ -5822,6 +5822,11 @@ msgid "Filter {items}…"
 msgstr "Filtrera {items}…"
 
 #: cps/spa_strings.py
+#, python-brace-format
+msgid "Follow link: {label}"
+msgstr ""
+
+#: cps/spa_strings.py
 msgid "Font family"
 msgstr "Typsnittsfamilj"
 
@@ -5892,6 +5897,10 @@ msgid ""
 msgstr ""
 "Ge {name} Mitt bibliotek? Det börjar som en kopia av allt som användaren kan "
 "se nu — ingenting ändras för användaren ännu."
+
+#: cps/spa_strings.py
+msgid "Go to note"
+msgstr ""
 
 #: cps/spa_strings.py
 msgid "Go to this highlight"
@@ -6592,6 +6601,11 @@ msgstr "Anteckningen har tagits bort"
 #: cps/spa_strings.py
 msgid "Note saved"
 msgstr "Anteckningen har sparats"
+
+#: cps/spa_strings.py
+#, python-brace-format
+msgid "Note {label}"
+msgstr ""
 
 #: cps/spa_strings.py
 msgid "Notes"
@@ -7820,6 +7834,10 @@ msgstr "Böcker utan påfyllning"
 #: cps/spa_strings.py
 msgid "Untitled"
 msgstr "Utan titel"
+
+#: cps/spa_strings.py
+msgid "Untitled link"
+msgstr ""
 
 #: cps/spa_strings.py
 msgid "Update failed."
