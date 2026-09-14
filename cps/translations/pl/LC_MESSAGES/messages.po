@@ -4847,11 +4847,19 @@ msgid "Add to favorites"
 msgstr "Dodaj do ulubionych"
 
 #: cps/spa_strings.py
+msgid "Add to library"
+msgstr ""
+
+#: cps/spa_strings.py
 msgid "Admin group"
 msgstr "Grupa administratorów"
 
 #: cps/spa_strings.py
 msgid "Admin navigation"
+msgstr ""
+
+#: cps/spa_strings.py
+msgid "Admin only"
 msgstr ""
 
 #: cps/spa_strings.py
@@ -5146,10 +5154,6 @@ msgstr "Ścieżka certyfikatu"
 
 #: cps/spa_strings.py
 msgid "Change library cover"
-msgstr ""
-
-#: cps/spa_strings.py
-msgid "Change my cover"
 msgstr ""
 
 #: cps/spa_strings.py
@@ -5478,6 +5482,10 @@ msgstr "Okładka zablokowana"
 #: cps/spa_strings.py
 msgid "Cover not reachable"
 msgstr "Okładka niedostępna"
+
+#: cps/spa_strings.py
+msgid "Cover scope"
+msgstr ""
 
 #: cps/spa_strings.py
 msgid "Cover size"
@@ -5871,6 +5879,14 @@ msgid "Edit HTML"
 msgstr ""
 
 #: cps/spa_strings.py
+msgid "Edit cover"
+msgstr ""
+
+#: cps/spa_strings.py
+msgid "Edit cover…"
+msgstr ""
+
+#: cps/spa_strings.py
 msgid "Edit custom colours"
 msgstr ""
 
@@ -5980,10 +5996,6 @@ msgstr "Ulubione"
 #: cps/spa_strings.py
 msgid "Favorited"
 msgstr "Dodano do ulubionych"
-
-#: cps/spa_strings.py
-msgid "Fetch"
-msgstr "Pobierz"
 
 #: cps/spa_strings.py
 msgid "Fetch metadata from web"
@@ -6219,11 +6231,6 @@ msgid "Highlights and notes"
 msgstr ""
 
 #: cps/spa_strings.py
-#, python-brace-format
-msgid "Highlights, {count} saved annotations"
-msgstr ""
-
-#: cps/spa_strings.py
 msgid "Hot"
 msgstr "Popularne"
 
@@ -6372,6 +6379,10 @@ msgid "Kobo two-way annotation sync"
 msgstr ""
 
 #: cps/spa_strings.py
+msgid "Kobo two-way sync"
+msgstr ""
+
+#: cps/spa_strings.py
 #, python-brace-format
 msgid "Kobo two-way sync: {state}"
 msgstr ""
@@ -6413,6 +6424,10 @@ msgstr ""
 
 #: cps/spa_strings.py
 msgid "Lettering"
+msgstr ""
+
+#: cps/spa_strings.py
+msgid "Library cover"
 msgstr ""
 
 #: cps/spa_strings.py
@@ -6606,13 +6621,13 @@ msgid "Model"
 msgstr ""
 
 #: cps/spa_strings.py
-#, python-brace-format
-msgid "More actions for {name}"
+msgid "More actions"
 msgstr ""
 
 #: cps/spa_strings.py
-msgid "More cover options (search providers, e-reader preview)"
-msgstr "Więcej opcji okładek (dostawcy wyszukiwania, podgląd na czytniku)"
+#, python-brace-format
+msgid "More actions for {name}"
+msgstr ""
 
 #: cps/spa_strings.py
 msgid "Move down"
@@ -6645,6 +6660,10 @@ msgstr ""
 #: cps/spa_strings.py
 msgid "My account"
 msgstr "Moje konto"
+
+#: cps/spa_strings.py
+msgid "My own cover"
+msgstr ""
 
 #: cps/spa_strings.py
 msgid "My presets"
@@ -6943,6 +6962,10 @@ msgstr ""
 #: cps/spa_strings.py
 msgid "Open classic reader"
 msgstr "Otwórz klasyczny czytnik"
+
+#: cps/spa_strings.py
+msgid "Open cover editor"
+msgstr ""
 
 #: cps/spa_strings.py
 msgid "Open navigation"
@@ -7245,6 +7268,10 @@ msgstr ""
 #: cps/spa_strings.py cps/templates/detail.html
 msgid "Remove from favorites"
 msgstr "Usuń z ulubionych"
+
+#: cps/spa_strings.py
+msgid "Remove from library"
+msgstr ""
 
 #: cps/spa_strings.py cps/templates/detail.html
 msgid "Remove from shelf"
@@ -7924,6 +7951,10 @@ msgstr ""
 msgid "The global library"
 msgstr ""
 
+#: cps/spa_strings.py
+msgid "The library cover is back for you."
+msgstr ""
+
 #: cps/spa_strings.py cps/templates/index.html
 msgid ""
 "The library is shared and holds every book once — what you keep is My "
@@ -8206,6 +8237,15 @@ msgstr "Zobacz"
 
 #: cps/spa_strings.py
 msgid "View device library"
+msgstr ""
+
+#: cps/spa_strings.py
+msgid "View highlights"
+msgstr ""
+
+#: cps/spa_strings.py
+#, python-brace-format
+msgid "View highlights, {count} saved annotations"
 msgstr ""
 
 #: cps/spa_strings.py
@@ -8545,10 +8585,6 @@ msgstr ""
 #, python-brace-format
 msgid "{seeded} of {total} books seeded"
 msgstr ""
-
-#: cps/spa_strings.py
-msgid "…or paste an image URL"
-msgstr "…lub wklej adres URL obrazu"
 
 #: cps/spa_strings.py
 msgid "← Back"
@@ -15234,6 +15270,15 @@ msgstr "Udostępniaj wybrane półki przez OPDS"
 #: cps/templates/user_table.html
 msgid "Show Read/Unread Section"
 msgstr "Pokaż sekcję przeczytane/nieprzeczytane"
+
+#~ msgid "Fetch"
+#~ msgstr "Pobierz"
+
+#~ msgid "More cover options (search providers, e-reader preview)"
+#~ msgstr "Więcej opcji okładek (dostawcy wyszukiwania, podgląd na czytniku)"
+
+#~ msgid "…or paste an image URL"
+#~ msgstr "…lub wklej adres URL obrazu"
 
 #~ msgid "Only jpg/jpeg/png/webp/bmp files are supported as coverfile"
 #~ msgstr "Jako plik okładki obsługiwane są tylko pliki jpg/jpeg/png/webp/bmp"

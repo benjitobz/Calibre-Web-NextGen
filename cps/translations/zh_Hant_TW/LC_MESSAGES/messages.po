@@ -4666,12 +4666,20 @@ msgid "Add to favorites"
 msgstr "添加到收藏"
 
 #: cps/spa_strings.py
+msgid "Add to library"
+msgstr ""
+
+#: cps/spa_strings.py
 msgid "Admin group"
 msgstr "管理員群組"
 
 #: cps/spa_strings.py
 msgid "Admin navigation"
 msgstr "管理導覽"
+
+#: cps/spa_strings.py
+msgid "Admin only"
+msgstr ""
 
 #: cps/spa_strings.py
 msgid "Advanced"
@@ -4963,10 +4971,6 @@ msgstr "憑證路徑"
 #: cps/spa_strings.py
 msgid "Change library cover"
 msgstr "變更書庫封面"
-
-#: cps/spa_strings.py
-msgid "Change my cover"
-msgstr "變更我的封面"
 
 #: cps/spa_strings.py
 msgid "Check again"
@@ -5294,6 +5298,10 @@ msgstr "封面已鎖定"
 #: cps/spa_strings.py
 msgid "Cover not reachable"
 msgstr "封面無法存取"
+
+#: cps/spa_strings.py
+msgid "Cover scope"
+msgstr ""
 
 #: cps/spa_strings.py
 msgid "Cover size"
@@ -5678,6 +5686,14 @@ msgid "Edit HTML"
 msgstr "編輯 HTML"
 
 #: cps/spa_strings.py
+msgid "Edit cover"
+msgstr ""
+
+#: cps/spa_strings.py
+msgid "Edit cover…"
+msgstr ""
+
+#: cps/spa_strings.py
 msgid "Edit custom colours"
 msgstr ""
 
@@ -5787,10 +5803,6 @@ msgstr "最愛"
 #: cps/spa_strings.py
 msgid "Favorited"
 msgstr "已加至最愛"
-
-#: cps/spa_strings.py
-msgid "Fetch"
-msgstr "擷取"
 
 #: cps/spa_strings.py
 msgid "Fetch metadata from web"
@@ -6024,11 +6036,6 @@ msgid "Highlights and notes"
 msgstr "標記和筆記"
 
 #: cps/spa_strings.py
-#, python-brace-format
-msgid "Highlights, {count} saved annotations"
-msgstr "標記，{count} 個已儲存註釋"
-
-#: cps/spa_strings.py
 msgid "Hot"
 msgstr "熱門"
 
@@ -6174,6 +6181,10 @@ msgid "Kobo two-way annotation sync"
 msgstr "Kobo 雙向註釋同步"
 
 #: cps/spa_strings.py
+msgid "Kobo two-way sync"
+msgstr ""
+
+#: cps/spa_strings.py
 #, python-brace-format
 msgid "Kobo two-way sync: {state}"
 msgstr "Kobo 雙向同步：{state}"
@@ -6215,6 +6226,10 @@ msgstr ""
 
 #: cps/spa_strings.py
 msgid "Lettering"
+msgstr ""
+
+#: cps/spa_strings.py
+msgid "Library cover"
 msgstr ""
 
 #: cps/spa_strings.py
@@ -6408,13 +6423,13 @@ msgid "Model"
 msgstr "型號"
 
 #: cps/spa_strings.py
+msgid "More actions"
+msgstr ""
+
+#: cps/spa_strings.py
 #, python-brace-format
 msgid "More actions for {name}"
 msgstr "{name} 更多操作"
-
-#: cps/spa_strings.py
-msgid "More cover options (search providers, e-reader preview)"
-msgstr "更多封面選項（搜尋提供者、電子閱讀器預覽）"
 
 #: cps/spa_strings.py
 msgid "Move down"
@@ -6447,6 +6462,10 @@ msgstr "「我的書庫」已為 {accounts} 個帳戶啟用；{errors} 個帳戶
 #: cps/spa_strings.py
 msgid "My account"
 msgstr "我的帳號"
+
+#: cps/spa_strings.py
+msgid "My own cover"
+msgstr ""
 
 #: cps/spa_strings.py
 msgid "My presets"
@@ -6744,6 +6763,10 @@ msgid "Open classic reader"
 msgstr "開啟經典閱讀器"
 
 #: cps/spa_strings.py
+msgid "Open cover editor"
+msgstr ""
+
+#: cps/spa_strings.py
 msgid "Open navigation"
 msgstr "開啟導覽"
 
@@ -7038,6 +7061,10 @@ msgstr "移除裝置"
 #: cps/spa_strings.py cps/templates/detail.html
 msgid "Remove from favorites"
 msgstr "從最愛中移除"
+
+#: cps/spa_strings.py
+msgid "Remove from library"
+msgstr ""
 
 #: cps/spa_strings.py cps/templates/detail.html
 msgid "Remove from shelf"
@@ -7710,6 +7737,10 @@ msgstr ""
 msgid "The global library"
 msgstr "全域書庫"
 
+#: cps/spa_strings.py
+msgid "The library cover is back for you."
+msgstr ""
+
 #: cps/spa_strings.py cps/templates/index.html
 msgid ""
 "The library is shared and holds every book once — what you keep is My "
@@ -7989,6 +8020,15 @@ msgstr "查看書籍"
 #: cps/spa_strings.py
 msgid "View device library"
 msgstr "檢視裝置書庫"
+
+#: cps/spa_strings.py
+msgid "View highlights"
+msgstr ""
+
+#: cps/spa_strings.py
+#, python-brace-format
+msgid "View highlights, {count} saved annotations"
+msgstr ""
 
 #: cps/spa_strings.py
 msgid "View settings"
@@ -8322,10 +8362,6 @@ msgstr "已讀 {percent}%"
 #, python-brace-format
 msgid "{seeded} of {total} books seeded"
 msgstr "{seeded} / {total} 本書已種子處理"
-
-#: cps/spa_strings.py
-msgid "…or paste an image URL"
-msgstr "…或貼上圖片 URL"
 
 #: cps/spa_strings.py
 msgid "← Back"
@@ -14635,6 +14671,22 @@ msgstr "同步所選書架到 Kobo"
 #, fuzzy
 msgid "Show Read/Unread Section"
 msgstr "顯示已讀/未讀選擇"
+
+#~ msgid "Change my cover"
+#~ msgstr "變更我的封面"
+
+#~ msgid "Fetch"
+#~ msgstr "擷取"
+
+#, python-brace-format
+#~ msgid "Highlights, {count} saved annotations"
+#~ msgstr "標記，{count} 個已儲存註釋"
+
+#~ msgid "More cover options (search providers, e-reader preview)"
+#~ msgstr "更多封面選項（搜尋提供者、電子閱讀器預覽）"
+
+#~ msgid "…or paste an image URL"
+#~ msgstr "…或貼上圖片 URL"
 
 #, python-brace-format
 #~ msgid "More actions for {title}"

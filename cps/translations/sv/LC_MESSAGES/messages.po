@@ -4903,12 +4903,20 @@ msgid "Add to favorites"
 msgstr "Lägg till i favoriter"
 
 #: cps/spa_strings.py
+msgid "Add to library"
+msgstr ""
+
+#: cps/spa_strings.py
 msgid "Admin group"
 msgstr "Administratörsgrupp"
 
 #: cps/spa_strings.py
 msgid "Admin navigation"
 msgstr "Administratörsnavigering"
+
+#: cps/spa_strings.py
+msgid "Admin only"
+msgstr ""
 
 #: cps/spa_strings.py
 msgid "Advanced"
@@ -5202,10 +5210,6 @@ msgstr "Certifikatsökväg"
 #: cps/spa_strings.py
 msgid "Change library cover"
 msgstr "Ändra bibliotekets omslag"
-
-#: cps/spa_strings.py
-msgid "Change my cover"
-msgstr "Ändra mitt omslag"
 
 #: cps/spa_strings.py
 msgid "Check again"
@@ -5539,6 +5543,10 @@ msgstr "Omslaget är låst"
 #: cps/spa_strings.py
 msgid "Cover not reachable"
 msgstr "Omslaget går inte att nå"
+
+#: cps/spa_strings.py
+msgid "Cover scope"
+msgstr ""
 
 #: cps/spa_strings.py
 msgid "Cover size"
@@ -5933,6 +5941,14 @@ msgid "Edit HTML"
 msgstr "Redigera HTML"
 
 #: cps/spa_strings.py
+msgid "Edit cover"
+msgstr ""
+
+#: cps/spa_strings.py
+msgid "Edit cover…"
+msgstr ""
+
+#: cps/spa_strings.py
 msgid "Edit custom colours"
 msgstr ""
 
@@ -6044,10 +6060,6 @@ msgstr "Favorit"
 #: cps/spa_strings.py
 msgid "Favorited"
 msgstr "Favoritmarkerad"
-
-#: cps/spa_strings.py
-msgid "Fetch"
-msgstr "Hämta"
 
 #: cps/spa_strings.py
 msgid "Fetch metadata from web"
@@ -6286,11 +6298,6 @@ msgid "Highlights and notes"
 msgstr "Markeringar och anteckningar"
 
 #: cps/spa_strings.py
-#, python-brace-format
-msgid "Highlights, {count} saved annotations"
-msgstr "Markeringar, {count} sparade anteckningar"
-
-#: cps/spa_strings.py
 msgid "Hot"
 msgstr "Populärt"
 
@@ -6442,6 +6449,10 @@ msgid "Kobo two-way annotation sync"
 msgstr "Tvåvägssynkronisering av Kobo-anteckningar"
 
 #: cps/spa_strings.py
+msgid "Kobo two-way sync"
+msgstr ""
+
+#: cps/spa_strings.py
 #, python-brace-format
 msgid "Kobo two-way sync: {state}"
 msgstr "Kobo-tvåvägssynkronisering: {state}"
@@ -6483,6 +6494,10 @@ msgstr ""
 
 #: cps/spa_strings.py
 msgid "Lettering"
+msgstr ""
+
+#: cps/spa_strings.py
+msgid "Library cover"
 msgstr ""
 
 #: cps/spa_strings.py
@@ -6676,14 +6691,13 @@ msgid "Model"
 msgstr "Modell"
 
 #: cps/spa_strings.py
+msgid "More actions"
+msgstr ""
+
+#: cps/spa_strings.py
 #, python-brace-format
 msgid "More actions for {name}"
 msgstr "Fler åtgärder för {name}"
-
-#: cps/spa_strings.py
-msgid "More cover options (search providers, e-reader preview)"
-msgstr ""
-"Fler omslagsalternativ (sök leverantörer, förhandsvisning på e-boksläsare)"
 
 #: cps/spa_strings.py
 msgid "Move down"
@@ -6718,6 +6732,10 @@ msgstr ""
 #: cps/spa_strings.py
 msgid "My account"
 msgstr "Mitt konto"
+
+#: cps/spa_strings.py
+msgid "My own cover"
+msgstr ""
 
 #: cps/spa_strings.py
 msgid "My presets"
@@ -7030,6 +7048,10 @@ msgid "Open classic reader"
 msgstr "Öppna klassisk läsare"
 
 #: cps/spa_strings.py
+msgid "Open cover editor"
+msgstr ""
+
+#: cps/spa_strings.py
 msgid "Open navigation"
 msgstr "Öppna navigering"
 
@@ -7337,6 +7359,10 @@ msgstr "Ta bort enhet"
 #: cps/spa_strings.py cps/templates/detail.html
 msgid "Remove from favorites"
 msgstr "Ta bort från favoriter"
+
+#: cps/spa_strings.py
+msgid "Remove from library"
+msgstr ""
 
 #: cps/spa_strings.py cps/templates/detail.html
 msgid "Remove from shelf"
@@ -8037,6 +8063,10 @@ msgstr ""
 msgid "The global library"
 msgstr "Det globala biblioteket"
 
+#: cps/spa_strings.py
+msgid "The library cover is back for you."
+msgstr ""
+
 #: cps/spa_strings.py cps/templates/index.html
 msgid ""
 "The library is shared and holds every book once — what you keep is My "
@@ -8333,6 +8363,15 @@ msgstr "Visa"
 #: cps/spa_strings.py
 msgid "View device library"
 msgstr "Visa enhetsbibliotek"
+
+#: cps/spa_strings.py
+msgid "View highlights"
+msgstr ""
+
+#: cps/spa_strings.py
+#, python-brace-format
+msgid "View highlights, {count} saved annotations"
+msgstr ""
 
 #: cps/spa_strings.py
 msgid "View settings"
@@ -8696,10 +8735,6 @@ msgstr "{percent} % läst"
 #, python-brace-format
 msgid "{seeded} of {total} books seeded"
 msgstr "{seeded} av {total} böcker har fyllts på"
-
-#: cps/spa_strings.py
-msgid "…or paste an image URL"
-msgstr "…eller klistra in en bildwebbadress"
 
 #: cps/spa_strings.py
 msgid "← Back"
@@ -15417,6 +15452,23 @@ msgstr "Exponera valda hyllor via OPDS"
 #: cps/templates/user_table.html
 msgid "Show Read/Unread Section"
 msgstr "Visa avsnittet Läst/oläst"
+
+#~ msgid "Change my cover"
+#~ msgstr "Ändra mitt omslag"
+
+#~ msgid "Fetch"
+#~ msgstr "Hämta"
+
+#, python-brace-format
+#~ msgid "Highlights, {count} saved annotations"
+#~ msgstr "Markeringar, {count} sparade anteckningar"
+
+#~ msgid "More cover options (search providers, e-reader preview)"
+#~ msgstr ""
+#~ "Fler omslagsalternativ (sök leverantörer, förhandsvisning på e-boksläsare)"
+
+#~ msgid "…or paste an image URL"
+#~ msgstr "…eller klistra in en bildwebbadress"
 
 #, python-brace-format
 #~ msgid "More actions for {title}"

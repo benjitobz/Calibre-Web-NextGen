@@ -23,50 +23,6 @@ msgstr ""
 "Generated-By: Babel 2.13.1\n"
 "X-Generator: Poedit 3.9\n"
 
-#: cps/spa_strings.py
-msgid "Remove from library"
-msgstr "Verwijderen uit bibliotheek"
-
-#: cps/spa_strings.py
-msgid "Open cover editor"
-msgstr "Omslageditor openen"
-
-#: cps/spa_strings.py
-msgid "My own cover"
-msgstr "Mijn eigen omslag"
-
-#: cps/spa_strings.py
-msgid "More actions"
-msgstr "Meer acties"
-
-#: cps/spa_strings.py
-msgid "Library cover"
-msgstr "Bibliotheekomslag"
-
-#: cps/spa_strings.py
-msgid "Kobo two-way sync"
-msgstr "Kobo-synchronisatie in twee richtingen"
-
-#: cps/spa_strings.py
-msgid "Edit cover…"
-msgstr "Omslag bewerken…"
-
-#: cps/spa_strings.py
-msgid "Edit cover"
-msgstr "Omslag bewerken"
-
-#: cps/spa_strings.py
-msgid "Cover scope"
-msgstr "Te wijzigen omslag"
-
-#: cps/spa_strings.py
-msgid "Admin only"
-msgstr "Alleen voor beheerders"
-
-#: cps/spa_strings.py
-msgid "Add to library"
-msgstr "Toevoegen aan bibliotheek"
-
 #: cps/about.py cps/spa_strings.py
 msgid "Statistics"
 msgstr "Statistieken"
@@ -88,10 +44,6 @@ msgstr "Bezig met het afsluiten van de server, sluit het venster"
 #: cps/admin.py
 msgid "Success! Database Reconnected"
 msgstr "Gelukt! Database opnieuw verbonden"
-
-#: cps/spa_strings.py
-msgid "The library cover is back for you."
-msgstr "De bibliotheekomslag is voor je hersteld."
 
 #: cps/admin.py
 msgid "Unknown command"
@@ -209,15 +161,6 @@ msgstr "Alles"
 #: cps/admin.py
 msgid "User not found"
 msgstr "Gebruiker niet gevonden"
-
-#: cps/spa_strings.py
-#, python-brace-format
-msgid "View highlights, {count} saved annotations"
-msgstr "Markeringen bekijken, {count} opgeslagen annotaties"
-
-#: cps/spa_strings.py
-msgid "View highlights"
-msgstr "Markeringen bekijken"
 
 #: cps/admin.py
 #, python-brace-format
@@ -4932,12 +4875,20 @@ msgid "Add to favorites"
 msgstr "Toevoegen aan favorieten"
 
 #: cps/spa_strings.py
+msgid "Add to library"
+msgstr "Toevoegen aan bibliotheek"
+
+#: cps/spa_strings.py
 msgid "Admin group"
 msgstr "Beheerdersgroep"
 
 #: cps/spa_strings.py
 msgid "Admin navigation"
 msgstr "Beheernavigatie"
+
+#: cps/spa_strings.py
+msgid "Admin only"
+msgstr "Alleen voor beheerders"
 
 #: cps/spa_strings.py
 msgid "Advanced"
@@ -5235,10 +5186,6 @@ msgstr "Certificaatpad"
 #: cps/spa_strings.py
 msgid "Change library cover"
 msgstr "Bibliotheekomslag wijzigen"
-
-#: cps/spa_strings.py
-msgid "Change my cover"
-msgstr "Mijn omslag wijzigen"
 
 #: cps/spa_strings.py
 msgid "Check again"
@@ -5574,6 +5521,10 @@ msgstr "Omslag vergrendeld"
 #: cps/spa_strings.py
 msgid "Cover not reachable"
 msgstr "Omslag niet bereikbaar"
+
+#: cps/spa_strings.py
+msgid "Cover scope"
+msgstr "Te wijzigen omslag"
 
 #: cps/spa_strings.py
 msgid "Cover size"
@@ -5971,6 +5922,14 @@ msgid "Edit HTML"
 msgstr "HTML bewerken"
 
 #: cps/spa_strings.py
+msgid "Edit cover"
+msgstr "Omslag bewerken"
+
+#: cps/spa_strings.py
+msgid "Edit cover…"
+msgstr "Omslag bewerken…"
+
+#: cps/spa_strings.py
 msgid "Edit custom colours"
 msgstr "Aangepaste kleuren bewerken"
 
@@ -6082,10 +6041,6 @@ msgstr "Favoriet"
 #: cps/spa_strings.py
 msgid "Favorited"
 msgstr "Aan favorieten toegevoegd"
-
-#: cps/spa_strings.py
-msgid "Fetch"
-msgstr "Ophalen"
 
 #: cps/spa_strings.py
 msgid "Fetch metadata from web"
@@ -6326,11 +6281,6 @@ msgid "Highlights and notes"
 msgstr "Markeringen en notities"
 
 #: cps/spa_strings.py
-#, python-brace-format
-msgid "Highlights, {count} saved annotations"
-msgstr "Markeringen, {count} opgeslagen annotaties"
-
-#: cps/spa_strings.py
 msgid "Hot"
 msgstr "Populair"
 
@@ -6483,6 +6433,10 @@ msgid "Kobo two-way annotation sync"
 msgstr "Kobo-annotaties in twee richtingen synchroniseren"
 
 #: cps/spa_strings.py
+msgid "Kobo two-way sync"
+msgstr "Kobo-synchronisatie in twee richtingen"
+
+#: cps/spa_strings.py
 #, python-brace-format
 msgid "Kobo two-way sync: {state}"
 msgstr "Kobo-synchronisatie in twee richtingen: {state}"
@@ -6525,6 +6479,10 @@ msgstr "Links"
 #: cps/spa_strings.py
 msgid "Lettering"
 msgstr "Letters"
+
+#: cps/spa_strings.py
+msgid "Library cover"
+msgstr "Bibliotheekomslag"
 
 #: cps/spa_strings.py
 msgid "Library settings"
@@ -6717,13 +6675,13 @@ msgid "Model"
 msgstr "Model"
 
 #: cps/spa_strings.py
+msgid "More actions"
+msgstr "Meer acties"
+
+#: cps/spa_strings.py
 #, python-brace-format
 msgid "More actions for {name}"
 msgstr "Meer acties voor {name}"
-
-#: cps/spa_strings.py
-msgid "More cover options (search providers, e-reader preview)"
-msgstr "Meer omslagopties (zoekproviders, e-reader voorbeeld)"
 
 #: cps/spa_strings.py
 msgid "Move down"
@@ -6758,6 +6716,10 @@ msgstr ""
 #: cps/spa_strings.py
 msgid "My account"
 msgstr "Mijn account"
+
+#: cps/spa_strings.py
+msgid "My own cover"
+msgstr "Mijn eigen omslag"
 
 #: cps/spa_strings.py
 msgid "My presets"
@@ -7073,6 +7035,10 @@ msgid "Open classic reader"
 msgstr "Klassieke lezer openen"
 
 #: cps/spa_strings.py
+msgid "Open cover editor"
+msgstr "Omslageditor openen"
+
+#: cps/spa_strings.py
 msgid "Open navigation"
 msgstr "Navigatie openen"
 
@@ -7379,6 +7345,10 @@ msgstr "Apparaat verwijderen"
 #: cps/spa_strings.py cps/templates/detail.html
 msgid "Remove from favorites"
 msgstr "Verwijderen uit favorieten"
+
+#: cps/spa_strings.py
+msgid "Remove from library"
+msgstr "Verwijderen uit bibliotheek"
 
 #: cps/spa_strings.py cps/templates/detail.html
 msgid "Remove from shelf"
@@ -8088,6 +8058,10 @@ msgstr ""
 msgid "The global library"
 msgstr "De globale bibliotheek"
 
+#: cps/spa_strings.py
+msgid "The library cover is back for you."
+msgstr "De bibliotheekomslag is voor je hersteld."
+
 #: cps/spa_strings.py cps/templates/index.html
 msgid ""
 "The library is shared and holds every book once — what you keep is My "
@@ -8386,6 +8360,15 @@ msgstr "Toon"
 #: cps/spa_strings.py
 msgid "View device library"
 msgstr "Apparaatbibliotheek bekijken"
+
+#: cps/spa_strings.py
+msgid "View highlights"
+msgstr "Markeringen bekijken"
+
+#: cps/spa_strings.py
+#, python-brace-format
+msgid "View highlights, {count} saved annotations"
+msgstr "Markeringen bekijken, {count} opgeslagen annotaties"
 
 #: cps/spa_strings.py
 msgid "View settings"
@@ -8753,10 +8736,6 @@ msgstr "{percent}% gelezen"
 #, python-brace-format
 msgid "{seeded} of {total} books seeded"
 msgstr "{seeded} van {total} boeken geïnitialiseerd"
-
-#: cps/spa_strings.py
-msgid "…or paste an image URL"
-msgstr "…of plak een afbeelding-URL"
 
 #: cps/spa_strings.py
 msgid "← Back"
@@ -15178,6 +15157,22 @@ msgstr "Synchroniseer geselecteerde boekenplanken met Kobo"
 #, fuzzy
 msgid "Show Read/Unread Section"
 msgstr "Toon gelezen/niet gelezen selectie"
+
+#~ msgid "Change my cover"
+#~ msgstr "Mijn omslag wijzigen"
+
+#~ msgid "Fetch"
+#~ msgstr "Ophalen"
+
+#, python-brace-format
+#~ msgid "Highlights, {count} saved annotations"
+#~ msgstr "Markeringen, {count} opgeslagen annotaties"
+
+#~ msgid "More cover options (search providers, e-reader preview)"
+#~ msgstr "Meer omslagopties (zoekproviders, e-reader voorbeeld)"
+
+#~ msgid "…or paste an image URL"
+#~ msgstr "…of plak een afbeelding-URL"
 
 #~ msgid "Presets"
 #~ msgstr "Voorinstellingen"

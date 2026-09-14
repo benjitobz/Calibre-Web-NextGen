@@ -4841,11 +4841,19 @@ msgid "Add to favorites"
 msgstr "Добавить в избранное"
 
 #: cps/spa_strings.py
+msgid "Add to library"
+msgstr ""
+
+#: cps/spa_strings.py
 msgid "Admin group"
 msgstr "Группа администраторов"
 
 #: cps/spa_strings.py
 msgid "Admin navigation"
+msgstr ""
+
+#: cps/spa_strings.py
+msgid "Admin only"
 msgstr ""
 
 #: cps/spa_strings.py
@@ -5140,10 +5148,6 @@ msgstr "Путь к сертификату"
 
 #: cps/spa_strings.py
 msgid "Change library cover"
-msgstr ""
-
-#: cps/spa_strings.py
-msgid "Change my cover"
 msgstr ""
 
 #: cps/spa_strings.py
@@ -5472,6 +5476,10 @@ msgstr "Обложка заблокирована"
 #: cps/spa_strings.py
 msgid "Cover not reachable"
 msgstr "Обложка недоступна"
+
+#: cps/spa_strings.py
+msgid "Cover scope"
+msgstr ""
 
 #: cps/spa_strings.py
 msgid "Cover size"
@@ -5864,6 +5872,14 @@ msgid "Edit HTML"
 msgstr ""
 
 #: cps/spa_strings.py
+msgid "Edit cover"
+msgstr ""
+
+#: cps/spa_strings.py
+msgid "Edit cover…"
+msgstr ""
+
+#: cps/spa_strings.py
 msgid "Edit custom colours"
 msgstr ""
 
@@ -5975,10 +5991,6 @@ msgstr "Избранное"
 #: cps/spa_strings.py
 msgid "Favorited"
 msgstr "В избранном"
-
-#: cps/spa_strings.py
-msgid "Fetch"
-msgstr "Получить"
 
 #: cps/spa_strings.py
 msgid "Fetch metadata from web"
@@ -6213,11 +6225,6 @@ msgid "Highlights and notes"
 msgstr "Выделения и заметки"
 
 #: cps/spa_strings.py
-#, python-brace-format
-msgid "Highlights, {count} saved annotations"
-msgstr ""
-
-#: cps/spa_strings.py
 msgid "Hot"
 msgstr "Популярное"
 
@@ -6367,6 +6374,10 @@ msgid "Kobo two-way annotation sync"
 msgstr "Двусторонняя синхронизация аннотаций Kobo"
 
 #: cps/spa_strings.py
+msgid "Kobo two-way sync"
+msgstr ""
+
+#: cps/spa_strings.py
 #, python-brace-format
 msgid "Kobo two-way sync: {state}"
 msgstr "Двусторонняя синхронизация Kobo: {state}"
@@ -6408,6 +6419,10 @@ msgstr ""
 
 #: cps/spa_strings.py
 msgid "Lettering"
+msgstr ""
+
+#: cps/spa_strings.py
+msgid "Library cover"
 msgstr ""
 
 #: cps/spa_strings.py
@@ -6601,15 +6616,13 @@ msgid "Model"
 msgstr ""
 
 #: cps/spa_strings.py
+msgid "More actions"
+msgstr ""
+
+#: cps/spa_strings.py
 #, python-brace-format
 msgid "More actions for {name}"
 msgstr "Дополнительные действия для {name}"
-
-#: cps/spa_strings.py
-msgid "More cover options (search providers, e-reader preview)"
-msgstr ""
-"Дополнительные параметры обложки (поиск по провайдерам, предпросмотр для "
-"читалки)"
 
 #: cps/spa_strings.py
 msgid "Move down"
@@ -6642,6 +6655,10 @@ msgstr ""
 #: cps/spa_strings.py
 msgid "My account"
 msgstr "Мой аккаунт"
+
+#: cps/spa_strings.py
+msgid "My own cover"
+msgstr ""
 
 #: cps/spa_strings.py
 msgid "My presets"
@@ -6951,6 +6968,10 @@ msgid "Open classic reader"
 msgstr "Открыть классическую читалку"
 
 #: cps/spa_strings.py
+msgid "Open cover editor"
+msgstr ""
+
+#: cps/spa_strings.py
 msgid "Open navigation"
 msgstr "Открыть навигацию"
 
@@ -7256,6 +7277,10 @@ msgstr "Удалить устройство"
 #: cps/spa_strings.py cps/templates/detail.html
 msgid "Remove from favorites"
 msgstr "Удалить из избранного"
+
+#: cps/spa_strings.py
+msgid "Remove from library"
+msgstr ""
 
 #: cps/spa_strings.py cps/templates/detail.html
 msgid "Remove from shelf"
@@ -7940,6 +7965,10 @@ msgstr ""
 msgid "The global library"
 msgstr ""
 
+#: cps/spa_strings.py
+msgid "The library cover is back for you."
+msgstr ""
+
 #: cps/spa_strings.py cps/templates/index.html
 msgid ""
 "The library is shared and holds every book once — what you keep is My "
@@ -8227,6 +8256,15 @@ msgstr "Просмотр"
 
 #: cps/spa_strings.py
 msgid "View device library"
+msgstr ""
+
+#: cps/spa_strings.py
+msgid "View highlights"
+msgstr ""
+
+#: cps/spa_strings.py
+#, python-brace-format
+msgid "View highlights, {count} saved annotations"
 msgstr ""
 
 #: cps/spa_strings.py
@@ -8584,10 +8622,6 @@ msgstr ""
 #, python-brace-format
 msgid "{seeded} of {total} books seeded"
 msgstr ""
-
-#: cps/spa_strings.py
-msgid "…or paste an image URL"
-msgstr "...или вставьте URL изображения"
 
 #: cps/spa_strings.py
 msgid "← Back"
@@ -15347,6 +15381,17 @@ msgstr "Показывать выбранные полки в OPDS"
 #: cps/templates/user_table.html
 msgid "Show Read/Unread Section"
 msgstr "Показать раздел прочитанного/непрочитанного"
+
+#~ msgid "Fetch"
+#~ msgstr "Получить"
+
+#~ msgid "More cover options (search providers, e-reader preview)"
+#~ msgstr ""
+#~ "Дополнительные параметры обложки (поиск по провайдерам, предпросмотр для "
+#~ "читалки)"
+
+#~ msgid "…or paste an image URL"
+#~ msgstr "...или вставьте URL изображения"
 
 #~ msgid "Only jpg/jpeg/png/webp/bmp files are supported as coverfile"
 #~ msgstr ""

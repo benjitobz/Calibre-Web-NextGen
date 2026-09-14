@@ -4968,12 +4968,20 @@ msgid "Add to favorites"
 msgstr "Aggiungi ai preferiti"
 
 #: cps/spa_strings.py
+msgid "Add to library"
+msgstr ""
+
+#: cps/spa_strings.py
 msgid "Admin group"
 msgstr "Gruppo admin"
 
 #: cps/spa_strings.py
 msgid "Admin navigation"
 msgstr "Navigazione amministratore"
+
+#: cps/spa_strings.py
+msgid "Admin only"
+msgstr ""
 
 #: cps/spa_strings.py
 msgid "Advanced"
@@ -5268,10 +5276,6 @@ msgstr "Percorso del certificato"
 #: cps/spa_strings.py
 msgid "Change library cover"
 msgstr "Cambia la copertina della biblioteca"
-
-#: cps/spa_strings.py
-msgid "Change my cover"
-msgstr "Cambia copertina personale"
 
 #: cps/spa_strings.py
 msgid "Check again"
@@ -5605,6 +5609,10 @@ msgstr "Copertina bloccata"
 #: cps/spa_strings.py
 msgid "Cover not reachable"
 msgstr "Copertina non raggiungibile"
+
+#: cps/spa_strings.py
+msgid "Cover scope"
+msgstr ""
 
 #: cps/spa_strings.py
 msgid "Cover size"
@@ -6006,6 +6014,14 @@ msgid "Edit HTML"
 msgstr "Modifica HTML"
 
 #: cps/spa_strings.py
+msgid "Edit cover"
+msgstr ""
+
+#: cps/spa_strings.py
+msgid "Edit cover…"
+msgstr ""
+
+#: cps/spa_strings.py
 msgid "Edit custom colours"
 msgstr ""
 
@@ -6117,10 +6133,6 @@ msgstr "Preferito"
 #: cps/spa_strings.py
 msgid "Favorited"
 msgstr "Aggiunto ai preferiti"
-
-#: cps/spa_strings.py
-msgid "Fetch"
-msgstr "Recupera"
 
 #: cps/spa_strings.py
 msgid "Fetch metadata from web"
@@ -6360,11 +6372,6 @@ msgid "Highlights and notes"
 msgstr "Evidenziazioni e note"
 
 #: cps/spa_strings.py
-#, python-brace-format
-msgid "Highlights, {count} saved annotations"
-msgstr "Evidenziazioni, {count} annotazioni salvate"
-
-#: cps/spa_strings.py
 msgid "Hot"
 msgstr "Caldi"
 
@@ -6517,6 +6524,10 @@ msgid "Kobo two-way annotation sync"
 msgstr "Sincronizzazione bidirezionale delle annotazioni Kobo"
 
 #: cps/spa_strings.py
+msgid "Kobo two-way sync"
+msgstr ""
+
+#: cps/spa_strings.py
 #, python-brace-format
 msgid "Kobo two-way sync: {state}"
 msgstr "Sincronizzazione bidirezionale Kobo: {state}"
@@ -6558,6 +6569,10 @@ msgstr ""
 
 #: cps/spa_strings.py
 msgid "Lettering"
+msgstr ""
+
+#: cps/spa_strings.py
+msgid "Library cover"
 msgstr ""
 
 #: cps/spa_strings.py
@@ -6751,14 +6766,13 @@ msgid "Model"
 msgstr "Modello"
 
 #: cps/spa_strings.py
+msgid "More actions"
+msgstr ""
+
+#: cps/spa_strings.py
 #, python-brace-format
 msgid "More actions for {name}"
 msgstr "Altre azioni per {name}"
-
-#: cps/spa_strings.py
-msgid "More cover options (search providers, e-reader preview)"
-msgstr ""
-"Altre opzioni per la copertina (provider di ricerca, anteprima e-reader)"
 
 #: cps/spa_strings.py
 msgid "Move down"
@@ -6793,6 +6807,10 @@ msgstr ""
 #: cps/spa_strings.py
 msgid "My account"
 msgstr "Il mio account"
+
+#: cps/spa_strings.py
+msgid "My own cover"
+msgstr ""
 
 #: cps/spa_strings.py
 msgid "My presets"
@@ -7117,6 +7135,10 @@ msgid "Open classic reader"
 msgstr "Apri il lettore classico"
 
 #: cps/spa_strings.py
+msgid "Open cover editor"
+msgstr ""
+
+#: cps/spa_strings.py
 msgid "Open navigation"
 msgstr "Apri menu di navigazione"
 
@@ -7426,6 +7448,10 @@ msgstr "Rimuovi dispositivo"
 #: cps/spa_strings.py cps/templates/detail.html
 msgid "Remove from favorites"
 msgstr "Rimuovi dai preferiti"
+
+#: cps/spa_strings.py
+msgid "Remove from library"
+msgstr ""
 
 #: cps/spa_strings.py cps/templates/detail.html
 msgid "Remove from shelf"
@@ -8135,6 +8161,10 @@ msgstr ""
 msgid "The global library"
 msgstr "Biblioteca globale"
 
+#: cps/spa_strings.py
+msgid "The library cover is back for you."
+msgstr ""
+
 #: cps/spa_strings.py cps/templates/index.html
 msgid ""
 "The library is shared and holds every book once — what you keep is My "
@@ -8436,6 +8466,15 @@ msgstr "Visualizza"
 #: cps/spa_strings.py
 msgid "View device library"
 msgstr "Visualizza la biblioteca del dispositivo"
+
+#: cps/spa_strings.py
+msgid "View highlights"
+msgstr ""
+
+#: cps/spa_strings.py
+#, python-brace-format
+msgid "View highlights, {count} saved annotations"
+msgstr ""
 
 #: cps/spa_strings.py
 msgid "View settings"
@@ -8800,10 +8839,6 @@ msgstr "{percent}% letto"
 #, python-brace-format
 msgid "{seeded} of {total} books seeded"
 msgstr "{seeded} libri di {total} in condicisione"
-
-#: cps/spa_strings.py
-msgid "…or paste an image URL"
-msgstr "…o incolla l'URL di un immagine"
 
 #: cps/spa_strings.py
 msgid "← Back"
@@ -15665,6 +15700,23 @@ msgstr "Sincronizza gli scaffali selezionati con OPDS"
 #: cps/templates/user_table.html
 msgid "Show Read/Unread Section"
 msgstr "Mostra sezione Libri letti e Libri da leggere"
+
+#~ msgid "Change my cover"
+#~ msgstr "Cambia copertina personale"
+
+#~ msgid "Fetch"
+#~ msgstr "Recupera"
+
+#, python-brace-format
+#~ msgid "Highlights, {count} saved annotations"
+#~ msgstr "Evidenziazioni, {count} annotazioni salvate"
+
+#~ msgid "More cover options (search providers, e-reader preview)"
+#~ msgstr ""
+#~ "Altre opzioni per la copertina (provider di ricerca, anteprima e-reader)"
+
+#~ msgid "…or paste an image URL"
+#~ msgstr "…o incolla l'URL di un immagine"
 
 #, python-brace-format
 #~ msgid "More actions for {title}"

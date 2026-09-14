@@ -4686,11 +4686,19 @@ msgid "Add to favorites"
 msgstr ""
 
 #: cps/spa_strings.py
+msgid "Add to library"
+msgstr ""
+
+#: cps/spa_strings.py
 msgid "Admin group"
 msgstr ""
 
 #: cps/spa_strings.py
 msgid "Admin navigation"
+msgstr ""
+
+#: cps/spa_strings.py
+msgid "Admin only"
 msgstr ""
 
 #: cps/spa_strings.py
@@ -4982,10 +4990,6 @@ msgstr ""
 
 #: cps/spa_strings.py
 msgid "Change library cover"
-msgstr ""
-
-#: cps/spa_strings.py
-msgid "Change my cover"
 msgstr ""
 
 #: cps/spa_strings.py
@@ -5313,6 +5317,10 @@ msgstr ""
 
 #: cps/spa_strings.py
 msgid "Cover not reachable"
+msgstr ""
+
+#: cps/spa_strings.py
+msgid "Cover scope"
 msgstr ""
 
 #: cps/spa_strings.py
@@ -5698,6 +5706,14 @@ msgid "Edit HTML"
 msgstr ""
 
 #: cps/spa_strings.py
+msgid "Edit cover"
+msgstr ""
+
+#: cps/spa_strings.py
+msgid "Edit cover…"
+msgstr ""
+
+#: cps/spa_strings.py
 msgid "Edit custom colours"
 msgstr ""
 
@@ -5806,10 +5822,6 @@ msgstr ""
 
 #: cps/spa_strings.py
 msgid "Favorited"
-msgstr ""
-
-#: cps/spa_strings.py
-msgid "Fetch"
 msgstr ""
 
 #: cps/spa_strings.py
@@ -6044,11 +6056,6 @@ msgid "Highlights and notes"
 msgstr ""
 
 #: cps/spa_strings.py
-#, python-brace-format
-msgid "Highlights, {count} saved annotations"
-msgstr ""
-
-#: cps/spa_strings.py
 msgid "Hot"
 msgstr ""
 
@@ -6194,6 +6201,10 @@ msgid "Kobo two-way annotation sync"
 msgstr ""
 
 #: cps/spa_strings.py
+msgid "Kobo two-way sync"
+msgstr ""
+
+#: cps/spa_strings.py
 #, python-brace-format
 msgid "Kobo two-way sync: {state}"
 msgstr ""
@@ -6235,6 +6246,10 @@ msgstr ""
 
 #: cps/spa_strings.py
 msgid "Lettering"
+msgstr ""
+
+#: cps/spa_strings.py
+msgid "Library cover"
 msgstr ""
 
 #: cps/spa_strings.py
@@ -6428,12 +6443,12 @@ msgid "Model"
 msgstr ""
 
 #: cps/spa_strings.py
-#, python-brace-format
-msgid "More actions for {name}"
+msgid "More actions"
 msgstr ""
 
 #: cps/spa_strings.py
-msgid "More cover options (search providers, e-reader preview)"
+#, python-brace-format
+msgid "More actions for {name}"
 msgstr ""
 
 #: cps/spa_strings.py
@@ -6466,6 +6481,10 @@ msgstr ""
 
 #: cps/spa_strings.py
 msgid "My account"
+msgstr ""
+
+#: cps/spa_strings.py
+msgid "My own cover"
 msgstr ""
 
 #: cps/spa_strings.py
@@ -6764,6 +6783,10 @@ msgid "Open classic reader"
 msgstr ""
 
 #: cps/spa_strings.py
+msgid "Open cover editor"
+msgstr ""
+
+#: cps/spa_strings.py
 msgid "Open navigation"
 msgstr ""
 
@@ -7057,6 +7080,10 @@ msgstr ""
 
 #: cps/spa_strings.py cps/templates/detail.html
 msgid "Remove from favorites"
+msgstr ""
+
+#: cps/spa_strings.py
+msgid "Remove from library"
 msgstr ""
 
 #: cps/spa_strings.py cps/templates/detail.html
@@ -7730,6 +7757,10 @@ msgstr ""
 msgid "The global library"
 msgstr ""
 
+#: cps/spa_strings.py
+msgid "The library cover is back for you."
+msgstr ""
+
 #: cps/spa_strings.py cps/templates/index.html
 msgid ""
 "The library is shared and holds every book once — what you keep is My "
@@ -8008,6 +8039,15 @@ msgstr "보기"
 
 #: cps/spa_strings.py
 msgid "View device library"
+msgstr ""
+
+#: cps/spa_strings.py
+msgid "View highlights"
+msgstr ""
+
+#: cps/spa_strings.py
+#, python-brace-format
+msgid "View highlights, {count} saved annotations"
 msgstr ""
 
 #: cps/spa_strings.py
@@ -8341,10 +8381,6 @@ msgstr ""
 #: cps/spa_strings.py
 #, python-brace-format
 msgid "{seeded} of {total} books seeded"
-msgstr ""
-
-#: cps/spa_strings.py
-msgid "…or paste an image URL"
 msgstr ""
 
 #: cps/spa_strings.py
