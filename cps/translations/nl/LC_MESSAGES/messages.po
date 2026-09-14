@@ -7269,6 +7269,10 @@ msgid "Reading positions"
 msgstr "Leesposities"
 
 #: cps/spa_strings.py
+msgid "Recent"
+msgstr "Recent gelezen"
+
+#: cps/spa_strings.py
 msgid "Recipient(s)"
 msgstr "Ontvanger(s)"
 

@@ -185,6 +185,11 @@ export default defineConfig({
       // a series plus an editable book per project. Neither spec is about
       // layout — the sort control, the position badge and the inline editor are
       // the same DOM at 375px — so desktop owning them costs no coverage.
+      //
+      // library-recent-sort is the counter-example, and shows what the trade
+      // costs: its fixture is READING HISTORY, so it cannot share an account
+      // with anything — including a second project running it. It creates a
+      // reader of its own per test instead, and therefore runs here too.
       testIgnore: [
         /subpath\.spec\.ts/,
         /default-library-view\.spec\.ts/,
