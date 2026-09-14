@@ -298,6 +298,12 @@
   font-size: var(--fs-sm, 0.85rem);
 }
 .tagChipLink {
+  /* SC 2.5.8: the smallest hit targets in a chip row must clear 24px — the
+     chips are packed too close to use the spacing exception instead. */
+  display: inline-flex;
+  align-items: center;
+  min-width: 24px;
+  min-height: 24px;
   color: var(--text);
   text-decoration: none;
 }
@@ -308,8 +314,8 @@
   display: inline-flex;
   align-items: center;
   justify-content: center;
-  width: 18px;
-  height: 18px;
+  width: 24px;
+  height: 24px;
   border-radius: var(--r-full);
   border: none;
   background: transparent;
@@ -358,12 +364,33 @@
 }
 
 
-/* Actions row */
+/* Actions row — leads the page under the back link, above the cover/title
+   block (operator ruling 2026-09-14), spanning the container width. */
 .actions {
   display: flex;
   align-items: center;
   gap: var(--sp-3);
+  flex-wrap: nowrap;
+  margin-bottom: var(--sp-5);
+}
+
+/* The three buttons wrap beneath themselves at narrow widths… */
+.actionsGroup {
+  flex: 1 1 auto;
+  min-width: 0;
+  display: flex;
+  align-items: center;
   flex-wrap: wrap;
+  gap: var(--sp-3);
+}
+
+/* …while the gear stays pinned to the top-right of the FIRST row — never a
+   row of its own with an empty band under the buttons. */
+.gearWrap {
+  flex: 0 0 auto;
+  align-self: flex-start;
+  margin-left: auto;
+  display: inline-flex;
 }
 
 /* The TopBar is sticky: focus/anchor scrolling must never park a row control
@@ -557,12 +584,16 @@
 
 /* Description prose. Since #1828 this sits directly under the title/author
    header IN THE DOM — the correct reading order, and the mobile visual order.
-   Desktop keeps its historical arrangement (actions and metadata first,
-   description last) by ordering it after the other info-column items; the
-   mobile media query below resets that to 0 so the grid's auto-placement
-   follows the DOM. */
-.description {
+   Desktop keeps its historical in-column arrangement (metadata first,
+   description last) by ordering the block after the other info-column items;
+   the mobile media query below resets that to 0 so the grid's auto-placement
+   follows the DOM. (The visible action row leads the whole page above the
+   layout grid since the 2026-09-14 ruling, on both viewports.) */
+.descriptionBlock {
   order: 10;
+}
+
+.description {
   color: var(--text);
   line-height: var(--lh-base);
   max-width: 70ch;
@@ -577,6 +608,55 @@
   margin-bottom: 0;
 }
 
+/* Long descriptions clamp to five lines, with a gradient fade over the last
+   visible line. The fade ends at the page's own background token, so it reads
+   as the text dissolving in both light and dark themes. */
+.descriptionClamped {
+  display: -webkit-box;
+  -webkit-box-orient: vertical;
+  -webkit-line-clamp: 5;
+  overflow: hidden;
+  position: relative;
+}
+
+.descriptionClamped::after {
+  content: '';
+  position: absolute;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  height: 1.7em;
+  background: linear-gradient(to bottom, transparent, var(--bg));
+  pointer-events: none;
+}
+
+/* The clamp toggle — a quiet text button (accent colour, no border), directly
+   under the text, left-aligned. */
+.showMore {
+  display: inline-block;
+  margin-top: var(--sp-1);
+  padding: var(--sp-1) 0;
+  min-height: 32px;
+  background: none;
+  border: none;
+  color: var(--accent-text);
+  font: inherit;
+  font-size: var(--fs-sm);
+  font-weight: var(--fw-medium);
+  cursor: pointer;
+  text-align: left;
+}
+
+.showMore:hover {
+  color: var(--accent-hover);
+  text-decoration: underline;
+}
+
+.showMore:focus-visible {
+  outline: 2px solid var(--accent-ring);
+  outline-offset: 2px;
+}
+
 /* Mobile adjustments */
 @media (max-width: 700px) {
   .container { padding: var(--sp-4) var(--sp-3); }
@@ -588,15 +668,17 @@
     font-size: var(--fs-xl);
   }
 
-  /* #1828 reading order: the description's desktop `order: 10` must not carry
-     into the grid, where every item keeps order 0 and auto-placement follows
-     the DOM — header beside the cover, then description, then everything else. */
-  .description { order: 0; }
+  /* #1828 reading order: the description block's desktop `order: 10` must not
+     carry into the grid, where every item keeps order 0 and auto-placement
+     follows the DOM — header beside the cover, then description, then the
+     rest. */
+  .descriptionBlock { order: 0; }
 
   /* #1828 chip compression: the action row keeps 34px chips with tighter gaps
      so the description stays near the first screen. 34px keeps the SC 2.5.8
      24px floor with margin; labels shrink one step. */
-  .actions { gap: var(--sp-2); }
+  .actions,
+  .actionsGroup { gap: var(--sp-2); }
   .actionPrimary,
   .readToggleActive,
   .readToggleGhost {

@@ -253,8 +253,23 @@ test('the book page layout holds on a 375px phone: controls wrap, no horizontal 
   await stubFullAccess(page);
 
   await page.goto(`/app/book/${bookId}`, { waitUntil: 'domcontentloaded' });
-  await expect(page.getByTestId('book-actions-menu')).toBeVisible({ timeout: 10_000 });
-  await assertNoHorizontalOverflow(page);
+  const trigger = page.getByTestId('book-actions-menu');
+  await expect(trigger).toBeVisible({ timeout: 10_000 });
+  // The gear must stay pinned to the TOP-RIGHT of the first row at every
+  // narrow width — never wrapping onto a row of its own (which left an empty
+  // band under the buttons, item 5 review).
+  for (const width of [375, 320]) {
+    await page.setViewportSize({ width, height: 667 });
+    const [gearBox, readBox] = await Promise.all([
+      trigger.boundingBox(),
+      page.getByRole('link', { name: 'Read now' }).boundingBox(),
+    ]);
+    expect(
+      Math.abs(gearBox!.y - readBox!.y),
+      `gear must share the first row with Read now at ${width}px, not drop to its own row`,
+    ).toBeLessThanOrEqual(2);
+    await assertNoHorizontalOverflow(page);
+  }
   // The gear menu stays inside the viewport when open.
   const menu = await openGearMenu(page);
   const box = (await menu.boundingBox())!;
@@ -445,4 +460,61 @@ test('a read book shows a visible Read ✓ state badge; unread shows none', asyn
   await page.reload({ waitUntil: 'domcontentloaded' });
   await expect(page.getByTestId('book-actions-menu')).toBeVisible({ timeout: 10_000 });
   await expect(page.getByTestId('book-read-badge')).toHaveCount(0);
+});
+
+/* Description clamp: long descriptions show ~5 lines with a fade and a
+ * Show more/Show less button; short ones never show the control. The
+ * description HTML is stubbed so the seed's own copy doesn't matter. */
+
+const LONG_DESCRIPTION = Array.from({ length: 12 }, (_, i) =>
+  `<p>Paragraph ${i + 1} of the sentinel long description, padded with enough plain words to overflow a five-line clamp on any viewport width.</p>`,
+).join('');
+
+async function stubDescriptionHtml(page: Page, html: string) {
+  await page.goto('/app');
+  const bookId = await firstBookWithFormats(page);
+  if (bookId == null) return null;
+  await page.route(new RegExp(`/api/v1/books/${bookId}(?:\\?.*)?$`), async (route) => {
+    const got = await fetchJsonSafe(route);
+    if (!got) return;
+    const { response: res, body: book } = got;
+    book.description_html = html;
+    await route.fulfill({ response: res, json: book });
+  });
+  return bookId;
+}
+
+test('a long description clamps to five lines with Show more / Show less', async ({ page }) => {
+  const bookId = await stubDescriptionHtml(page, LONG_DESCRIPTION);
+  test.skip(bookId == null, 'seed has no book with files');
+
+  await page.goto(`/app/book/${bookId}`, { waitUntil: 'domcontentloaded' });
+  const desc = page.getByTestId('book-description');
+  await expect(desc).toBeVisible({ timeout: 10_000 });
+  // Bind by testid, not by name: the accessible name flips with the state.
+  const toggle = page.getByTestId('description-toggle');
+  await expect(toggle).toBeVisible();
+  await expect(toggle).toHaveText('Show more');
+  await expect(toggle).toHaveAttribute('aria-expanded', 'false');
+  // line-clamp truncates the box itself, so overflow can't be probed via
+  // scrollHeight — the clamp's presence is the observable contract.
+  await expect(desc).toHaveCSS('-webkit-line-clamp', '5');
+
+  await toggle.click();
+  await expect(toggle).toHaveText('Show less');
+  await expect(toggle).toHaveAttribute('aria-expanded', 'true');
+  await expect(desc).toHaveCSS('-webkit-line-clamp', 'none');
+
+  await toggle.click();
+  await expect(toggle).toHaveText('Show more');
+  await expect(toggle).toHaveAttribute('aria-expanded', 'false');
+});
+
+test('a short description never shows the clamp control', async ({ page }) => {
+  const bookId = await stubDescriptionHtml(page, '<p>One short sentinel line.</p>');
+  test.skip(bookId == null, 'seed has no book with files');
+
+  await page.goto(`/app/book/${bookId}`, { waitUntil: 'domcontentloaded' });
+  await expect(page.getByTestId('book-description')).toBeVisible({ timeout: 10_000 });
+  await expect(page.getByRole('button', { name: /Show (more|less)/ })).toHaveCount(0);
 });
