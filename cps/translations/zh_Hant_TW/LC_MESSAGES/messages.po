@@ -6988,6 +6988,10 @@ msgid "Reading positions"
 msgstr "閱讀進度"
 
 #: cps/spa_strings.py
+msgid "Recent"
+msgstr ""
+
+#: cps/spa_strings.py
 msgid "Recipient(s)"
 msgstr "收件者"
 

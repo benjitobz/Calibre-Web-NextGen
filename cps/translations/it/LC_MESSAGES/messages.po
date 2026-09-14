@@ -7373,6 +7373,10 @@ msgid "Reading positions"
 msgstr "Progressi di lettura"
 
 #: cps/spa_strings.py
+msgid "Recent"
+msgstr ""
+
+#: cps/spa_strings.py
 msgid "Recipient(s)"
 msgstr "Destinatario/i"
 
