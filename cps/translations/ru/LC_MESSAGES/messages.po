@@ -7722,6 +7722,14 @@ msgid "Show hidden books"
 msgstr "Показать скрытые книги"
 
 #: cps/spa_strings.py
+msgid "Show less"
+msgstr ""
+
+#: cps/spa_strings.py
+msgid "Show more"
+msgstr ""
+
+#: cps/spa_strings.py
 msgid "Show password"
 msgstr "Показать пароль"
 

@@ -7893,6 +7893,14 @@ msgid "Show hidden books"
 msgstr "Mostra i libri nascosti"
 
 #: cps/spa_strings.py
+msgid "Show less"
+msgstr ""
+
+#: cps/spa_strings.py
+msgid "Show more"
+msgstr ""
+
+#: cps/spa_strings.py
 msgid "Show password"
 msgstr "Mostra la password"
 

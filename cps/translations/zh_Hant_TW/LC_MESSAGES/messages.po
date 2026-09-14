@@ -7496,6 +7496,14 @@ msgid "Show hidden books"
 msgstr "顯示隱藏的書籍"
 
 #: cps/spa_strings.py
+msgid "Show less"
+msgstr ""
+
+#: cps/spa_strings.py
+msgid "Show more"
+msgstr ""
+
+#: cps/spa_strings.py
 msgid "Show password"
 msgstr "顯示密碼"
 
