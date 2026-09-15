@@ -7847,6 +7847,10 @@ msgid "Show Read now and edit buttons"
 msgstr "Mostra i bottoni \"Leggi subito\" e \"Modifica\""
 
 #: cps/spa_strings.py
+msgid "Show Reading tags"
+msgstr ""
+
+#: cps/spa_strings.py
 msgid "Show Table view"
 msgstr "Mostra la vista tabellare"
 
@@ -8188,18 +8192,18 @@ msgid ""
 "Nothing is gone: every book, new arrivals included, is under Global Library "
 "in the menu."
 msgstr ""
-"La biblioteca condivisa contiene una sola copia di ogni libro — la Biblioteca "
-"Personale è la tua selezione. Nulla è andato perso: ogni libro, inclusi "
-"quelli nuovi, si trova nel menu sotto Biblioteca globale."
+"La biblioteca condivisa contiene una sola copia di ogni libro — la "
+"Biblioteca Personale è la tua selezione. Nulla è andato perso: ogni libro, "
+"inclusi quelli nuovi, si trova nel menu sotto Biblioteca globale."
 
 #: cps/spa_strings.py cps/templates/index.html
 msgid ""
 "The shared library holds every book once — My Library is your own selection. "
 "Nothing is gone: your administrator manages what enters it."
 msgstr ""
-"La biblioteca condivisa contiene una sola copia di ogni libro — la Biblioteca "
-"Personale è la tua selezione. Nulla è andato perso: il tuo amministratore "
-"gestisce ciò che contiene."
+"La biblioteca condivisa contiene una sola copia di ogni libro — la "
+"Biblioteca Personale è la tua selezione. Nulla è andato perso: il tuo "
+"amministratore gestisce ciò che contiene."
 
 #: cps/spa_strings.py
 msgid ""
@@ -10590,9 +10594,9 @@ msgid ""
 "You can also use Last Resort Restore at the bottom of this page to try "
 "rebuilding your Calibre Database from the OPF files in your library."
 msgstr ""
-"Puoi anche utilizzare l'opzione \"Ripristino del database (ultima speranza)"
-"\" in fondo a questa pagina per provare a ricostruire il database di Calibre "
-"dai file OPF presenti nella tua biblioteca."
+"Puoi anche utilizzare l'opzione \"Ripristino del database (ultima "
+"speranza)\" in fondo a questa pagina per provare a ricostruire il database "
+"di Calibre dai file OPF presenti nella tua biblioteca."
 
 #: cps/templates/config_db.html
 msgid "Location of Calibre Database (metadata.db file)"
@@ -10676,9 +10680,9 @@ msgid ""
 "should remain in <code>/calibre-library</code>, however your library files "
 "can be wherever you desire"
 msgstr ""
-"<b>Separa i file degli Ebook dalla Biblioteca</b> - Il file "
-"<code>metadata.db</code> dovrebbe rimanere in <code>/calibre-library</code>, "
-"tuttavia, i file della biblioteca possono essere salvati dove preferisci"
+"<b>Separa i file degli Ebook dalla Biblioteca</b> - Il file <code>metadata."
+"db</code> dovrebbe rimanere in <code>/calibre-library</code>, tuttavia, i "
+"file della biblioteca possono essere salvati dove preferisci"
 
 #: cps/templates/config_db.html
 msgid "Use Google Drive?"
@@ -11119,8 +11123,8 @@ msgid ""
 msgstr ""
 "Opzionale. Senza una chiave, Google Books è soggetto a un limite di circa "
 "1.000 richieste al giorno per IP, soglia facilmente raggiungibile sui server "
-"condivisi (errore HTTP 429). Ottieni una chiave gratuita su https://"
-"console.cloud.google.com — abilita la \"Books API\" e crea una chiave API."
+"condivisi (errore HTTP 429). Ottieni una chiave gratuita su https://console."
+"cloud.google.com — abilita la \"Books API\" e crea una chiave API."
 
 #: cps/templates/config_edit.html
 msgid "Allow Reverse Proxy Authentication"
@@ -15209,8 +15213,8 @@ msgid ""
 "→ Recreate with \"Re-pull image\" enabled."
 msgstr ""
 "Immagini → scarica l'immagine qui sotto, quindi Container → seleziona "
-"Calibre-Web NextGen → Ricrea (recreate) abilitando \"Riscarica immagine\" "
-"(Re-pull image)."
+"Calibre-Web NextGen → Ricrea (recreate) abilitando \"Riscarica "
+"immagine\" (Re-pull image)."
 
 #: cps/templates/update_now_modal.html
 msgid "Synology Container Manager:"

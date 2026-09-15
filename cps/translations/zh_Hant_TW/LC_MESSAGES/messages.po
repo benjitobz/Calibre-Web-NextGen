@@ -7452,6 +7452,10 @@ msgid "Show Read now and edit buttons"
 msgstr "顯示「立即閱讀」和編輯按鈕"
 
 #: cps/spa_strings.py
+msgid "Show Reading tags"
+msgstr ""
+
+#: cps/spa_strings.py
 msgid "Show Table view"
 msgstr "顯示表格檢視"
 
@@ -7762,13 +7766,17 @@ msgid ""
 "The shared library holds every book once — My Library is your own selection. "
 "Nothing is gone: every book, new arrivals included, is under Global Library "
 "in the menu."
-msgstr "共享書庫中每本書只保留一份——「我的書庫」是你自己的藏書選擇。沒有任何書籍遺失:所有書籍,包括新到館藏,都在選單的「全域書庫」中。"
+msgstr ""
+"共享書庫中每本書只保留一份——「我的書庫」是你自己的藏書選擇。沒有任何書籍遺失:"
+"所有書籍,包括新到館藏,都在選單的「全域書庫」中。"
 
 #: cps/spa_strings.py cps/templates/index.html
 msgid ""
 "The shared library holds every book once — My Library is your own selection. "
 "Nothing is gone: your administrator manages what enters it."
-msgstr "共享書庫中每本書只保留一份——「我的書庫」是你自己的藏書選擇。沒有任何書籍遺失:你的管理員負責管理加入的內容。"
+msgstr ""
+"共享書庫中每本書只保留一份——「我的書庫」是你自己的藏書選擇。沒有任何書籍遺失:"
+"你的管理員負責管理加入的內容。"
 
 #: cps/spa_strings.py
 msgid ""

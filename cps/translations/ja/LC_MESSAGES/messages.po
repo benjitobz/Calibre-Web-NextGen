@@ -7551,6 +7551,10 @@ msgid "Show Read now and edit buttons"
 msgstr ""
 
 #: cps/spa_strings.py
+msgid "Show Reading tags"
+msgstr ""
+
+#: cps/spa_strings.py
 msgid "Show Table view"
 msgstr ""
 
@@ -11591,8 +11595,8 @@ msgid ""
 "innocenat\">innocenat</a>."
 msgstr ""
 "このツールは<a href=\"https://github.com/innocenat\">innocenat</a>氏が作成し"
-"た<a href=\"https://kindle-epub-fix.netlify.app/\">kindle-epub-"
-"fix.netlify.app</a>ツールから移植されました。"
+"た<a href=\"https://kindle-epub-fix.netlify.app/\">kindle-epub-fix.netlify."
+"app</a>ツールから移植されました。"
 
 #: cps/templates/cwa_settings.html
 msgid "Enable KOReader Sync (NextGen Plugin)"

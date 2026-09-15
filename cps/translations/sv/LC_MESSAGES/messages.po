@@ -7759,6 +7759,10 @@ msgid "Show Read now and edit buttons"
 msgstr "Visa knapparna Läs nu och Redigera"
 
 #: cps/spa_strings.py
+msgid "Show Reading tags"
+msgstr ""
+
+#: cps/spa_strings.py
 msgid "Show Table view"
 msgstr "Visa tabellvy"
 
@@ -11964,8 +11968,8 @@ msgid ""
 "\">kindle-epub-fix.netlify.app</a> tool made by <a href=\"https://github.com/"
 "innocenat\">innocenat</a>."
 msgstr ""
-"Detta verktyg har anpassats från verktyget <a href=\"https://kindle-epub-"
-"fix.netlify.app/\">kindle-epub-fix.netlify.app</a> som skapats av <a "
+"Detta verktyg har anpassats från verktyget <a href=\"https://kindle-epub-fix."
+"netlify.app/\">kindle-epub-fix.netlify.app</a> som skapats av <a "
 "href=\"https://github.com/innocenat\">innocenat</a>."
 
 #: cps/templates/cwa_settings.html

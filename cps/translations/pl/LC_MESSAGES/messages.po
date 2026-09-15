@@ -7664,6 +7664,10 @@ msgid "Show Read now and edit buttons"
 msgstr ""
 
 #: cps/spa_strings.py
+msgid "Show Reading tags"
+msgstr ""
+
+#: cps/spa_strings.py
 msgid "Show Table view"
 msgstr "Pokaż widok tabeli"
 
@@ -12361,8 +12365,8 @@ msgid ""
 "Add these two services to your docker-compose file and run \"docker compose "
 "up -d\". After that you stay up to date automatically — no button to press."
 msgstr ""
-"Dodaj te dwie usługi do pliku docker-compose i uruchom \"docker compose up "
-"-d\". Od tej pory aktualizacje odbywają się automatycznie — bez klikania "
+"Dodaj te dwie usługi do pliku docker-compose i uruchom \"docker compose up -"
+"d\". Od tej pory aktualizacje odbywają się automatycznie — bez klikania "
 "żadnego przycisku."
 
 #: cps/templates/cwa_settings.html cps/templates/update_now_modal.html

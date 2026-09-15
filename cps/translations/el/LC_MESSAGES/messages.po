@@ -2490,8 +2490,8 @@ msgstr "Δημιούργησε ένα Ράφι"
 #, fuzzy
 msgid "Sorry you are not allowed to edit this shelf"
 msgstr ""
-"Συγγνώμη αλλά δεν σου επιτρέπεται η αφαίρεση ενός βιβλίου από αυτό το ράφι: %"
-"(sname)s"
+"Συγγνώμη αλλά δεν σου επιτρέπεται η αφαίρεση ενός βιβλίου από αυτό το ράφι: "
+"%(sname)s"
 
 #: cps/shelf.py
 msgid "Edit a shelf"
@@ -7549,6 +7549,10 @@ msgstr ""
 
 #: cps/spa_strings.py
 msgid "Show Read now and edit buttons"
+msgstr ""
+
+#: cps/spa_strings.py
+msgid "Show Reading tags"
 msgstr ""
 
 #: cps/spa_strings.py

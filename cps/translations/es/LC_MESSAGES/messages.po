@@ -7829,6 +7829,10 @@ msgid "Show Read now and edit buttons"
 msgstr "Mostrar los botones «Leer ahora» y «Editar»"
 
 #: cps/spa_strings.py
+msgid "Show Reading tags"
+msgstr ""
+
+#: cps/spa_strings.py
 msgid "Show Table view"
 msgstr "Mostrar vista de tabla"
 
@@ -8175,8 +8179,8 @@ msgid ""
 "Nothing is gone: your administrator manages what enters it."
 msgstr ""
 "La biblioteca compartida contiene cada libro una sola vez — Mi biblioteca es "
-"tu propia selección. No has perdido nada: tu administrador gestiona qué entra "
-"en ella."
+"tu propia selección. No has perdido nada: tu administrador gestiona qué "
+"entra en ella."
 
 #: cps/spa_strings.py
 msgid ""
