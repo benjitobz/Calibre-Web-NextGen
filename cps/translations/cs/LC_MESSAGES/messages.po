@@ -5359,6 +5359,13 @@ msgid "Cover scope"
 msgstr ""
 
 #: cps/spa_strings.py
+msgid ""
+"Cover sources and their API keys belong to this server, not to either cover "
+"choice. They help search for images; choosing one here saves it only in the "
+"scope selected above."
+msgstr ""
+
+#: cps/spa_strings.py
 msgid "Cover size"
 msgstr ""
 
@@ -5742,6 +5749,14 @@ msgstr ""
 
 #: cps/spa_strings.py
 msgid "Edit cover"
+msgstr ""
+
+#: cps/spa_strings.py
+msgid "Edit my private cover"
+msgstr ""
+
+#: cps/spa_strings.py
+msgid "Edit shared library cover"
 msgstr ""
 
 #: cps/spa_strings.py
@@ -6520,6 +6535,10 @@ msgstr ""
 
 #: cps/spa_strings.py
 msgid "My own cover"
+msgstr ""
+
+#: cps/spa_strings.py
+msgid "My private cover"
 msgstr ""
 
 #: cps/spa_strings.py
@@ -7492,6 +7511,11 @@ msgstr ""
 msgid "Setting up…"
 msgstr ""
 
+#: cps/spa_strings.py cps/templates/layout.html cps/templates/read.html
+#: cps/templates/readcbr.html
+msgid "Settings"
+msgstr "Nastavení"
+
 #: cps/spa_strings.py
 msgid "Settings saved."
 msgstr ""
@@ -7871,6 +7895,22 @@ msgstr ""
 
 #: cps/spa_strings.py
 msgid "This shelf is empty. Add books from any book's page."
+msgstr ""
+
+#: cps/spa_strings.py
+msgid "Shared cover"
+msgstr ""
+
+#: cps/spa_strings.py
+msgid ""
+"This changes only your view of this book and copies delivered to your e-"
+"readers. The shared book cover and everyone else’s view stay unchanged."
+msgstr ""
+
+#: cps/spa_strings.py
+msgid ""
+"This changes the cover stored with the book. Everyone who can access the "
+"book sees it."
 msgstr ""
 
 #: cps/spa_strings.py
@@ -13448,10 +13488,6 @@ msgstr "Odhlásit se"
 #: cps/templates/layout.html
 msgid "Support Calibre-Web NextGen"
 msgstr ""
-
-#: cps/templates/layout.html cps/templates/read.html cps/templates/readcbr.html
-msgid "Settings"
-msgstr "Nastavení"
 
 #: cps/templates/layout.html
 #, fuzzy

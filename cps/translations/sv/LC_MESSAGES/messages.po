@@ -5549,6 +5549,13 @@ msgid "Cover scope"
 msgstr ""
 
 #: cps/spa_strings.py
+msgid ""
+"Cover sources and their API keys belong to this server, not to either cover "
+"choice. They help search for images; choosing one here saves it only in the "
+"scope selected above."
+msgstr ""
+
+#: cps/spa_strings.py
 msgid "Cover size"
 msgstr ""
 
@@ -5942,6 +5949,14 @@ msgstr "Redigera HTML"
 
 #: cps/spa_strings.py
 msgid "Edit cover"
+msgstr ""
+
+#: cps/spa_strings.py
+msgid "Edit my private cover"
+msgstr ""
+
+#: cps/spa_strings.py
+msgid "Edit shared library cover"
 msgstr ""
 
 #: cps/spa_strings.py
@@ -6735,6 +6750,10 @@ msgstr "Mitt konto"
 
 #: cps/spa_strings.py
 msgid "My own cover"
+msgstr ""
+
+#: cps/spa_strings.py
+msgid "My private cover"
 msgstr ""
 
 #: cps/spa_strings.py
@@ -7746,6 +7765,11 @@ msgstr ""
 msgid "Setting up…"
 msgstr "Konfigurerar…"
 
+#: cps/spa_strings.py cps/templates/layout.html cps/templates/read.html
+#: cps/templates/readcbr.html
+msgid "Settings"
+msgstr "Inställningar"
+
 #: cps/spa_strings.py
 msgid "Settings saved."
 msgstr "Inställningarna har sparats."
@@ -8156,6 +8180,22 @@ msgstr ""
 #: cps/spa_strings.py
 msgid "This shelf is empty. Add books from any book's page."
 msgstr "Den här hyllan är tom. Lägg till böcker från valfri boksida."
+
+#: cps/spa_strings.py
+msgid "Shared cover"
+msgstr ""
+
+#: cps/spa_strings.py
+msgid ""
+"This changes only your view of this book and copies delivered to your e-"
+"readers. The shared book cover and everyone else’s view stay unchanged."
+msgstr ""
+
+#: cps/spa_strings.py
+msgid ""
+"This changes the cover stored with the book. Everyone who can access the "
+"book sees it."
+msgstr ""
 
 #: cps/spa_strings.py
 msgid "Title A–Z"
@@ -14048,10 +14088,6 @@ msgstr "Logga ut"
 #: cps/templates/layout.html
 msgid "Support Calibre-Web NextGen"
 msgstr "Stöd Calibre-Web NextGen"
-
-#: cps/templates/layout.html cps/templates/read.html cps/templates/readcbr.html
-msgid "Settings"
-msgstr "Inställningar"
 
 #: cps/templates/layout.html
 msgid "Refresh Library"
