@@ -5048,6 +5048,10 @@ msgstr "Aplicar seleccionados"
 msgid "Applying…"
 msgstr "Aplicando…"
 
+#: cps/spa_strings.py
+msgid "Approximate"
+msgstr ""
+
 #: cps/spa_strings.py cps/templates/book_table.html
 #: cps/templates/duplicates.html cps/templates/kobo_reconcile.html
 msgid "Archive"
@@ -5299,6 +5303,10 @@ msgid "Choose an image…"
 msgstr "Elegir una imagen…"
 
 #: cps/spa_strings.py
+msgid "Choose another place"
+msgstr ""
+
+#: cps/spa_strings.py
 msgid "Choose fields"
 msgstr "Elegir campos"
 
@@ -5480,6 +5488,10 @@ msgid "Could not load pairing details."
 msgstr "No se pudieron cargar los detalles del emparejamiento."
 
 #: cps/spa_strings.py
+msgid "Could not load reading places."
+msgstr ""
+
+#: cps/spa_strings.py
 msgid "Could not load reading positions."
 msgstr "No se pudieron cargar las posiciones de lectura."
 
@@ -5510,6 +5522,10 @@ msgstr "No se pudieron cargar los usuarios."
 #: cps/spa_strings.py
 msgid "Could not open that highlight."
 msgstr "No se pudo abrir ese subrayado."
+
+#: cps/spa_strings.py
+msgid "Could not open that reading position."
+msgstr ""
 
 #: cps/spa_strings.py
 msgid "Could not open that search result."
@@ -5861,6 +5877,12 @@ msgid "Device name"
 msgstr "Nombre del dispositivo"
 
 #: cps/spa_strings.py
+msgid ""
+"Device positions are read-only here. Continue reading to save a new Browser "
+"position."
+msgstr ""
+
+#: cps/spa_strings.py
 msgid "Device renamed."
 msgstr "Dispositivo renombrado."
 
@@ -5891,6 +5913,10 @@ msgstr "Dispositivos"
 #: cps/spa_strings.py
 msgid "Devices appear here after their first sync."
 msgstr "Los dispositivos aparecen aquí después de su primera sincronización."
+
+#: cps/spa_strings.py
+msgid "Different edition"
+msgstr ""
 
 #: cps/spa_strings.py
 msgid "Disable standard password login"
@@ -6096,6 +6122,10 @@ msgstr ""
 #: cps/spa_strings.py
 msgid "Every filled field will replace each book's existing values."
 msgstr "Cada campo rellenado sustituirá los valores existentes de cada libro."
+
+#: cps/spa_strings.py
+msgid "Exact place"
+msgstr ""
 
 #: cps/spa_strings.py
 msgid "Excluded"
@@ -6538,6 +6568,15 @@ msgid "Last modified"
 msgstr "Última modificación"
 
 #: cps/spa_strings.py
+msgid "Last reported"
+msgstr ""
+
+#: cps/spa_strings.py
+#, python-brace-format
+msgid "Last reported {time}"
+msgstr ""
+
+#: cps/spa_strings.py
 #, python-brace-format
 msgid "Last seen {when}"
 msgstr "Visto por última vez {when}"
@@ -6600,6 +6639,10 @@ msgstr "Cargando nueva selección de Descubrir."
 #: cps/spa_strings.py
 msgid "Loading pairing details…"
 msgstr "Cargando detalles del emparejamiento…"
+
+#: cps/spa_strings.py
+msgid "Loading reading places…"
+msgstr ""
 
 #: cps/spa_strings.py
 msgid "Loading reading positions…"
@@ -6944,6 +6987,10 @@ msgid "No registered devices."
 msgstr "No hay dispositivos registrados."
 
 #: cps/spa_strings.py
+msgid "No saved reading places yet."
+msgstr ""
+
+#: cps/spa_strings.py
 msgid "No shelves yet — create one below."
 msgstr "Aún no hay estanterías; crea una debajo."
 
@@ -7134,6 +7181,15 @@ msgid "OpenLDAP server"
 msgstr "Servidor OpenLDAP"
 
 #: cps/spa_strings.py
+#, python-brace-format
+msgid "Opened {source} at {percent}%."
+msgstr ""
+
+#: cps/spa_strings.py
+msgid "Opening…"
+msgstr ""
+
+#: cps/spa_strings.py
 msgid ""
 "Opens a prefilled report on GitHub. Nothing is sent until you post it, and "
 "you can edit it first."
@@ -7173,6 +7229,10 @@ msgstr ""
 #: cps/spa_strings.py
 #, python-brace-format
 msgid "Original device attribution restored for {ok} of {total}."
+msgstr ""
+
+#: cps/spa_strings.py
+msgid "Other saved position"
 msgstr ""
 
 #: cps/spa_strings.py
@@ -7251,6 +7311,10 @@ msgid "Pink"
 msgstr "Rosa"
 
 #: cps/spa_strings.py
+msgid "Place saved"
+msgstr ""
+
+#: cps/spa_strings.py
 msgid "Placeholders:"
 msgstr ""
 
@@ -7292,7 +7356,26 @@ msgid "Preview"
 msgstr "Vista previa"
 
 #: cps/spa_strings.py
+msgid ""
+"Preview a saved place in this reader. The device’s saved position will not "
+"change."
+msgstr ""
+
+#: cps/spa_strings.py
+msgid "Preview in reader"
+msgstr ""
+
+#: cps/spa_strings.py
 msgid "Preview of the designed cover"
+msgstr ""
+
+#: cps/spa_strings.py
+msgid "Preview this place"
+msgstr ""
+
+#: cps/spa_strings.py
+#, python-brace-format
+msgid "Previewing {source}. Its saved position will not change."
 msgstr ""
 
 #: cps/spa_strings.py cps/templates/layout.html
@@ -7341,6 +7424,10 @@ msgid "Rating (stars)"
 msgstr "Valoración (estrellas)"
 
 #: cps/spa_strings.py
+msgid "Read from here"
+msgstr ""
+
+#: cps/spa_strings.py
 msgid "Read status"
 msgstr "Estado de lectura"
 
@@ -7355,6 +7442,14 @@ msgstr "Configuración del lector guardada."
 #: cps/spa_strings.py
 msgid "Reading appearance"
 msgstr "Apariencia de lectura"
+
+#: cps/spa_strings.py
+msgid "Reading from here. This is now your Browser position."
+msgstr ""
+
+#: cps/spa_strings.py
+msgid "Reading places"
+msgstr ""
 
 #: cps/spa_strings.py
 msgid "Reading positions"
@@ -7620,6 +7715,11 @@ msgstr "Guardar configuración"
 #: cps/spa_strings.py
 msgid "Save the file, safely eject the Kobo, then restart it."
 msgstr "Guarda el archivo, expulsa el Kobo de forma segura y reinícialo."
+
+#: cps/spa_strings.py
+#, python-brace-format
+msgid "Saved {time}"
+msgstr ""
 
 #: cps/spa_strings.py
 msgid "Saved. Restart the server for the login changes to take effect."
@@ -7991,6 +8091,10 @@ msgid "Source details"
 msgstr "Detalles de la fuente"
 
 #: cps/spa_strings.py
+msgid "Source not recorded"
+msgstr ""
+
+#: cps/spa_strings.py
 msgid ""
 "Start My Library? It begins as everything you can see now, so nothing "
 "changes until you remove books yourself. Your e-reader keeps the same books "
@@ -8023,6 +8127,10 @@ msgstr "Kobo de serie"
 #: cps/spa_strings.py
 msgid "Stock Kobo sync URL"
 msgstr "URL de sincronización del Kobo de serie"
+
+#: cps/spa_strings.py
+msgid "Storyteller is configured but could not be reached."
+msgstr ""
 
 #: cps/spa_strings.py cps/templates/config_edit.html
 #: cps/templates/cover_picker.html
@@ -8127,6 +8235,10 @@ msgstr ""
 #: cps/spa_strings.py
 msgid "That URL is not a usable image."
 msgstr "Esa URL no es una imagen utilizable."
+
+#: cps/spa_strings.py
+msgid "The book is still opening. Try again in a moment."
+msgstr ""
 
 #: cps/spa_strings.py cps/templates/book_edit.html
 #: cps/templates/modal_dialogs.html

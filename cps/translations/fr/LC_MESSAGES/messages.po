@@ -5083,6 +5083,11 @@ msgstr "Appliquer la sélection"
 msgid "Applying…"
 msgstr "Application…"
 
+# Reading sources
+#: cps/spa_strings.py
+msgid "Approximate"
+msgstr "Approximatif"
+
 #: cps/spa_strings.py cps/templates/book_table.html
 #: cps/templates/duplicates.html cps/templates/kobo_reconcile.html
 msgid "Archive"
@@ -5336,6 +5341,10 @@ msgid "Choose an image…"
 msgstr "Choisir une image…"
 
 #: cps/spa_strings.py
+msgid "Choose another place"
+msgstr "Choisir une autre position"
+
+#: cps/spa_strings.py
 msgid "Choose fields"
 msgstr "Choisir les champs"
 
@@ -5520,6 +5529,10 @@ msgid "Could not load pairing details."
 msgstr "Impossible de charger les informations d’association."
 
 #: cps/spa_strings.py
+msgid "Could not load reading places."
+msgstr "Impossible de charger les positions de lecture."
+
+#: cps/spa_strings.py
 msgid "Could not load reading positions."
 msgstr "Impossible de charger les positions de lecture."
 
@@ -5550,6 +5563,10 @@ msgstr "Impossible de charger les utilisateurs."
 #: cps/spa_strings.py
 msgid "Could not open that highlight."
 msgstr "Impossible d'ouvrir ce passage surligné."
+
+#: cps/spa_strings.py
+msgid "Could not open that reading position."
+msgstr "Impossible d’ouvrir cette position de lecture."
 
 #: cps/spa_strings.py
 msgid "Could not open that search result."
@@ -5908,6 +5925,14 @@ msgid "Device name"
 msgstr "Nom de l'appareil"
 
 #: cps/spa_strings.py
+msgid ""
+"Device positions are read-only here. Continue reading to save a new Browser "
+"position."
+msgstr ""
+"Les positions des appareils sont en lecture seule ici. Continuez à lire pour "
+"enregistrer une nouvelle position dans le navigateur."
+
+#: cps/spa_strings.py
 msgid "Device renamed."
 msgstr "Appareil renommé."
 
@@ -5938,6 +5963,10 @@ msgstr "Appareils"
 #: cps/spa_strings.py
 msgid "Devices appear here after their first sync."
 msgstr "Les appareils apparaissent ici après leur première synchronisation."
+
+#: cps/spa_strings.py
+msgid "Different edition"
+msgstr "Édition différente"
 
 #: cps/spa_strings.py
 msgid "Disable standard password login"
@@ -6147,6 +6176,10 @@ msgstr ""
 msgid "Every filled field will replace each book's existing values."
 msgstr ""
 "Chaque champ renseigné remplacera les valeurs existantes de chaque livre."
+
+#: cps/spa_strings.py
+msgid "Exact place"
+msgstr "Position exacte"
 
 #: cps/spa_strings.py
 msgid "Excluded"
@@ -6597,6 +6630,15 @@ msgid "Last modified"
 msgstr "Dernière modification"
 
 #: cps/spa_strings.py
+msgid "Last reported"
+msgstr "Dernier signalement"
+
+#: cps/spa_strings.py
+#, python-brace-format
+msgid "Last reported {time}"
+msgstr "Dernier signalement : {time}"
+
+#: cps/spa_strings.py
 #, python-brace-format
 msgid "Last seen {when}"
 msgstr "Vu pour la dernière fois {when}"
@@ -6659,6 +6701,10 @@ msgstr "Chargement d’une nouvelle sélection Découvrir."
 #: cps/spa_strings.py
 msgid "Loading pairing details…"
 msgstr "Chargement des informations d’association…"
+
+#: cps/spa_strings.py
+msgid "Loading reading places…"
+msgstr "Chargement des positions de lecture…"
 
 #: cps/spa_strings.py
 msgid "Loading reading positions…"
@@ -7009,6 +7055,10 @@ msgid "No registered devices."
 msgstr "Aucun appareil enregistré."
 
 #: cps/spa_strings.py
+msgid "No saved reading places yet."
+msgstr "Aucune position de lecture enregistrée pour le moment."
+
+#: cps/spa_strings.py
 msgid "No shelves yet — create one below."
 msgstr "Aucune étagère pour l’instant — créez-en une ci-dessous."
 
@@ -7201,6 +7251,15 @@ msgid "OpenLDAP server"
 msgstr "Serveur OpenLDAP"
 
 #: cps/spa_strings.py
+#, python-brace-format
+msgid "Opened {source} at {percent}%."
+msgstr "{source} ouvert à {percent} %."
+
+#: cps/spa_strings.py
+msgid "Opening…"
+msgstr "Ouverture…"
+
+#: cps/spa_strings.py
 msgid ""
 "Opens a prefilled report on GitHub. Nothing is sent until you post it, and "
 "you can edit it first."
@@ -7241,6 +7300,10 @@ msgstr "Attribution à l'appareil d'origine rétablie pour {n}."
 #, python-brace-format
 msgid "Original device attribution restored for {ok} of {total}."
 msgstr "Attribution à l'appareil d'origine rétablie pour {ok} sur {total}."
+
+#: cps/spa_strings.py
+msgid "Other saved position"
+msgstr "Autre position enregistrée"
 
 #: cps/spa_strings.py
 msgid "PDF reader"
@@ -7317,6 +7380,10 @@ msgid "Pink"
 msgstr "Rose"
 
 #: cps/spa_strings.py
+msgid "Place saved"
+msgstr "Position enregistrée"
+
+#: cps/spa_strings.py
 msgid "Placeholders:"
 msgstr "Variables :"
 
@@ -7358,8 +7425,29 @@ msgid "Preview"
 msgstr "Aperçu"
 
 #: cps/spa_strings.py
+msgid ""
+"Preview a saved place in this reader. The device’s saved position will not "
+"change."
+msgstr ""
+"Prévisualisez une position enregistrée dans ce lecteur. La position "
+"enregistrée de l’appareil ne changera pas."
+
+#: cps/spa_strings.py
+msgid "Preview in reader"
+msgstr "Prévisualiser dans le lecteur"
+
+#: cps/spa_strings.py
 msgid "Preview of the designed cover"
 msgstr "Aperçu de la couverture créée"
+
+#: cps/spa_strings.py
+msgid "Preview this place"
+msgstr "Prévisualiser cette position"
+
+#: cps/spa_strings.py
+#, python-brace-format
+msgid "Previewing {source}. Its saved position will not change."
+msgstr "Aperçu de {source}. Sa position enregistrée ne changera pas."
 
 #: cps/spa_strings.py cps/templates/layout.html
 msgid "Previous"
@@ -7407,6 +7495,10 @@ msgid "Rating (stars)"
 msgstr "Note (étoiles)"
 
 #: cps/spa_strings.py
+msgid "Read from here"
+msgstr "Lire à partir d’ici"
+
+#: cps/spa_strings.py
 msgid "Read status"
 msgstr "Statut de lecture"
 
@@ -7421,6 +7513,15 @@ msgstr "Paramètres de lecture enregistrés."
 #: cps/spa_strings.py
 msgid "Reading appearance"
 msgstr "Apparence de lecture"
+
+#: cps/spa_strings.py
+msgid "Reading from here. This is now your Browser position."
+msgstr ""
+"Lecture à partir d’ici. C’est maintenant votre position dans le navigateur."
+
+#: cps/spa_strings.py
+msgid "Reading places"
+msgstr "Positions de lecture"
 
 #: cps/spa_strings.py
 msgid "Reading positions"
@@ -7689,6 +7790,11 @@ msgid "Save the file, safely eject the Kobo, then restart it."
 msgstr ""
 "Enregistrez le fichier, éjectez la liseuse Kobo en toute sécurité, puis "
 "redémarrez-la."
+
+#: cps/spa_strings.py
+#, python-brace-format
+msgid "Saved {time}"
+msgstr "Enregistré {time}"
 
 #: cps/spa_strings.py
 msgid "Saved. Restart the server for the login changes to take effect."
@@ -8062,6 +8168,10 @@ msgid "Source details"
 msgstr "Détails de la source"
 
 #: cps/spa_strings.py
+msgid "Source not recorded"
+msgstr "Source non enregistrée"
+
+#: cps/spa_strings.py
 msgid ""
 "Start My Library? It begins as everything you can see now, so nothing "
 "changes until you remove books yourself. Your e-reader keeps the same books "
@@ -8094,6 +8204,10 @@ msgstr "Liseuse Kobo avec logiciel d’origine"
 #: cps/spa_strings.py
 msgid "Stock Kobo sync URL"
 msgstr "URL de synchronisation de la liseuse Kobo avec logiciel d’origine"
+
+#: cps/spa_strings.py
+msgid "Storyteller is configured but could not be reached."
+msgstr "Storyteller est configuré, mais reste inaccessible."
 
 #: cps/spa_strings.py cps/templates/config_edit.html
 #: cps/templates/cover_picker.html
@@ -8198,6 +8312,10 @@ msgstr "Modèles de texte"
 #: cps/spa_strings.py
 msgid "That URL is not a usable image."
 msgstr "Cette URL ne correspond pas à une image utilisable."
+
+#: cps/spa_strings.py
+msgid "The book is still opening. Try again in a moment."
+msgstr "Le livre est encore en cours d’ouverture. Réessayez dans un instant."
 
 #: cps/spa_strings.py cps/templates/book_edit.html
 #: cps/templates/modal_dialogs.html
@@ -12067,9 +12185,9 @@ msgid ""
 "\">kindle-epub-fix.netlify.app</a> tool made by <a href=\"https://github.com/"
 "innocenat\">innocenat</a>."
 msgstr ""
-"Cet outil a été adapté à partir de l'outil <a href=\"https://kindle-epub-"
-"fix.netlify.app/\">kindle-epub-fix.netlify.app</a> créé par <a "
-"href=\"https://github.com/innocenat\">innocenat</a>."
+"Cet outil a été adapté à partir de l'outil <a href=\"https://kindle-epub-fix."
+"netlify.app/\">kindle-epub-fix.netlify.app</a> créé par <a href=\"https://"
+"github.com/innocenat\">innocenat</a>."
 
 #: cps/templates/cwa_settings.html
 msgid "Enable KOReader Sync (NextGen Plugin)"
@@ -15523,91 +15641,6 @@ msgstr "Synchroniser les étagères sélectionnées avec Kobo"
 #: cps/templates/user_table.html
 msgid "Show Read/Unread Section"
 msgstr "Afficher la section Lu / Non lu"
-
-
-# Reading sources
-
-msgid "Approximate"
-msgstr "Approximatif"
-
-msgid "Choose another place"
-msgstr "Choisir une autre position"
-
-msgid "Could not load reading places."
-msgstr "Impossible de charger les positions de lecture."
-
-msgid "Could not open that reading position."
-msgstr "Impossible d’ouvrir cette position de lecture."
-
-msgid "Device positions are read-only here. Continue reading to save a new Browser position."
-msgstr "Les positions des appareils sont en lecture seule ici. Continuez à lire pour enregistrer une nouvelle position dans le navigateur."
-
-msgid "Different edition"
-msgstr "Édition différente"
-
-msgid "Exact place"
-msgstr "Position exacte"
-
-msgid "Last reported"
-msgstr "Dernier signalement"
-
-#, python-brace-format
-msgid "Last reported {time}"
-msgstr "Dernier signalement : {time}"
-
-msgid "Loading reading places…"
-msgstr "Chargement des positions de lecture…"
-
-msgid "No saved reading places yet."
-msgstr "Aucune position de lecture enregistrée pour le moment."
-
-#, python-brace-format
-msgid "Opened {source} at {percent}%."
-msgstr "{source} ouvert à {percent} %."
-
-msgid "Opening…"
-msgstr "Ouverture…"
-
-msgid "Other saved position"
-msgstr "Autre position enregistrée"
-
-msgid "Place saved"
-msgstr "Position enregistrée"
-
-msgid "Preview a saved place in this reader. The device’s saved position will not change."
-msgstr "Prévisualisez une position enregistrée dans ce lecteur. La position enregistrée de l’appareil ne changera pas."
-
-msgid "Preview in reader"
-msgstr "Prévisualiser dans le lecteur"
-
-msgid "Preview this place"
-msgstr "Prévisualiser cette position"
-
-#, python-brace-format
-msgid "Previewing {source}. Its saved position will not change."
-msgstr "Aperçu de {source}. Sa position enregistrée ne changera pas."
-
-msgid "Read from here"
-msgstr "Lire à partir d’ici"
-
-msgid "Reading from here. This is now your Browser position."
-msgstr "Lecture à partir d’ici. C’est maintenant votre position dans le navigateur."
-
-msgid "Reading places"
-msgstr "Positions de lecture"
-
-#, python-brace-format
-msgid "Saved {time}"
-msgstr "Enregistré {time}"
-
-msgid "Source not recorded"
-msgstr "Source non enregistrée"
-
-msgid "Storyteller is configured but could not be reached."
-msgstr "Storyteller est configuré, mais reste inaccessible."
-
-msgid "The book is still opening. Try again in a moment."
-msgstr "Le livre est encore en cours d’ouverture. Réessayez dans un instant."
 
 #~ msgid "Change library cover"
 #~ msgstr "Modifier la couverture de la bibliothèque"

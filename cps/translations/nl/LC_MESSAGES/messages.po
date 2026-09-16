@@ -12,8 +12,8 @@ msgstr ""
 "Automated\n"
 "POT-Creation-Date: 2026-07-17 21:21-0400\n"
 "PO-Revision-Date: 2026-04-26 13:31+0200\n"
-"Last-Translator: Michiel Cornelissen <michiel.cornelissen+gitbhun at "
-"proton.me>\n"
+"Last-Translator: Michiel Cornelissen <michiel.cornelissen+gitbhun at proton."
+"me>\n"
 "Language-Team: ed.driesen@telenet.be\n"
 "Language: nl\n"
 "MIME-Version: 1.0\n"
@@ -4959,6 +4959,11 @@ msgstr "Geselecteerde toepassen"
 msgid "Applying…"
 msgstr "Toepassen…"
 
+# Reading sources
+#: cps/spa_strings.py
+msgid "Approximate"
+msgstr "Bij benadering"
+
 #: cps/spa_strings.py cps/templates/book_table.html
 #: cps/templates/duplicates.html cps/templates/kobo_reconcile.html
 msgid "Archive"
@@ -5212,6 +5217,10 @@ msgid "Choose an image…"
 msgstr "Kies een afbeelding…"
 
 #: cps/spa_strings.py
+msgid "Choose another place"
+msgstr "Een andere positie kiezen"
+
+#: cps/spa_strings.py
 msgid "Choose fields"
 msgstr "Kies velden"
 
@@ -5395,6 +5404,10 @@ msgid "Could not load pairing details."
 msgstr "De koppelingsgegevens konden niet worden geladen."
 
 #: cps/spa_strings.py
+msgid "Could not load reading places."
+msgstr "Kan leesposities niet laden."
+
+#: cps/spa_strings.py
 msgid "Could not load reading positions."
 msgstr "Kan leesposities niet laden."
 
@@ -5425,6 +5438,10 @@ msgstr "Kan gebruikers niet laden."
 #: cps/spa_strings.py
 msgid "Could not open that highlight."
 msgstr "Kan die markering niet openen."
+
+#: cps/spa_strings.py
+msgid "Could not open that reading position."
+msgstr "Kan die leespositie niet openen."
 
 #: cps/spa_strings.py
 msgid "Could not open that search result."
@@ -5779,6 +5796,14 @@ msgid "Device name"
 msgstr "Apparaatnaam"
 
 #: cps/spa_strings.py
+msgid ""
+"Device positions are read-only here. Continue reading to save a new Browser "
+"position."
+msgstr ""
+"Apparaatposities zijn hier alleen-lezen. Lees verder om een nieuwe "
+"browserpositie op te slaan."
+
+#: cps/spa_strings.py
 msgid "Device renamed."
 msgstr "Apparaat hernoemd."
 
@@ -5809,6 +5834,10 @@ msgstr "Apparaten"
 #: cps/spa_strings.py
 msgid "Devices appear here after their first sync."
 msgstr "Apparaten verschijnen hier na hun eerste synchronisatie."
+
+#: cps/spa_strings.py
+msgid "Different edition"
+msgstr "Andere editie"
 
 #: cps/spa_strings.py
 msgid "Disable standard password login"
@@ -6016,6 +6045,10 @@ msgstr ""
 #: cps/spa_strings.py
 msgid "Every filled field will replace each book's existing values."
 msgstr "Elk ingevuld veld vervangt de bestaande waarden van elk boek."
+
+#: cps/spa_strings.py
+msgid "Exact place"
+msgstr "Exacte positie"
 
 #: cps/spa_strings.py
 msgid "Excluded"
@@ -6462,6 +6495,15 @@ msgid "Last modified"
 msgstr "Laatst gewijzigd"
 
 #: cps/spa_strings.py
+msgid "Last reported"
+msgstr "Laatst gemeld"
+
+#: cps/spa_strings.py
+#, python-brace-format
+msgid "Last reported {time}"
+msgstr "Laatst gemeld {time}"
+
+#: cps/spa_strings.py
 #, python-brace-format
 msgid "Last seen {when}"
 msgstr "Laatst gezien {when}"
@@ -6524,6 +6566,10 @@ msgstr "Nieuwe Verkennen-keuzes worden geladen."
 #: cps/spa_strings.py
 msgid "Loading pairing details…"
 msgstr "Koppelingsgegevens laden…"
+
+#: cps/spa_strings.py
+msgid "Loading reading places…"
+msgstr "Leesposities laden…"
 
 #: cps/spa_strings.py
 msgid "Loading reading positions…"
@@ -6869,6 +6915,10 @@ msgid "No registered devices."
 msgstr "Geen geregistreerde apparaten."
 
 #: cps/spa_strings.py
+msgid "No saved reading places yet."
+msgstr "Nog geen leesposities opgeslagen."
+
+#: cps/spa_strings.py
 msgid "No shelves yet — create one below."
 msgstr "Nog geen boekenplanken — maak er hieronder een aan."
 
@@ -7058,6 +7108,15 @@ msgid "OpenLDAP server"
 msgstr "OpenLDAP server"
 
 #: cps/spa_strings.py
+#, python-brace-format
+msgid "Opened {source} at {percent}%."
+msgstr "{source} geopend op {percent}%."
+
+#: cps/spa_strings.py
+msgid "Opening…"
+msgstr "Openen…"
+
+#: cps/spa_strings.py
 msgid ""
 "Opens a prefilled report on GitHub. Nothing is sent until you post it, and "
 "you can edit it first."
@@ -7099,6 +7158,10 @@ msgstr "Toewijzing aan het oorspronkelijke apparaat hersteld voor {n}."
 msgid "Original device attribution restored for {ok} of {total}."
 msgstr ""
 "Toewijzing aan het oorspronkelijke apparaat hersteld voor {ok} van {total}."
+
+#: cps/spa_strings.py
+msgid "Other saved position"
+msgstr "Andere opgeslagen positie"
 
 #: cps/spa_strings.py
 msgid "PDF reader"
@@ -7173,6 +7236,10 @@ msgid "Pink"
 msgstr "Roze"
 
 #: cps/spa_strings.py
+msgid "Place saved"
+msgstr "Positie opgeslagen"
+
+#: cps/spa_strings.py
 msgid "Placeholders:"
 msgstr "Plaatsaanduidingen:"
 
@@ -7214,8 +7281,29 @@ msgid "Preview"
 msgstr "Voorbeeld"
 
 #: cps/spa_strings.py
+msgid ""
+"Preview a saved place in this reader. The device’s saved position will not "
+"change."
+msgstr ""
+"Bekijk een opgeslagen positie in deze lezer. De opgeslagen positie van het "
+"apparaat verandert niet."
+
+#: cps/spa_strings.py
+msgid "Preview in reader"
+msgstr "In lezer bekijken"
+
+#: cps/spa_strings.py
 msgid "Preview of the designed cover"
 msgstr "Voorbeeld van de ontworpen omslag"
+
+#: cps/spa_strings.py
+msgid "Preview this place"
+msgstr "Deze positie bekijken"
+
+#: cps/spa_strings.py
+#, python-brace-format
+msgid "Previewing {source}. Its saved position will not change."
+msgstr "Voorvertoning van {source}. De opgeslagen positie verandert niet."
 
 #: cps/spa_strings.py cps/templates/layout.html
 msgid "Previous"
@@ -7263,6 +7351,10 @@ msgid "Rating (stars)"
 msgstr "Beoordeling (sterren)"
 
 #: cps/spa_strings.py
+msgid "Read from here"
+msgstr "Vanaf hier lezen"
+
+#: cps/spa_strings.py
 msgid "Read status"
 msgstr "Gelezen/ongelezen status"
 
@@ -7277,6 +7369,14 @@ msgstr "Lezerinstellingen opgeslagen."
 #: cps/spa_strings.py
 msgid "Reading appearance"
 msgstr "Leesweergave"
+
+#: cps/spa_strings.py
+msgid "Reading from here. This is now your Browser position."
+msgstr "Je leest vanaf hier. Dit is nu je browserpositie."
+
+#: cps/spa_strings.py
+msgid "Reading places"
+msgstr "Leesposities"
 
 #: cps/spa_strings.py
 msgid "Reading positions"
@@ -7543,6 +7643,11 @@ msgid "Save the file, safely eject the Kobo, then restart it."
 msgstr ""
 "Sla het bestand op, werp de Kobo veilig uit en start de Kobo daarna opnieuw "
 "op."
+
+#: cps/spa_strings.py
+#, python-brace-format
+msgid "Saved {time}"
+msgstr "Opgeslagen {time}"
 
 #: cps/spa_strings.py
 msgid "Saved. Restart the server for the login changes to take effect."
@@ -7913,6 +8018,10 @@ msgid "Source details"
 msgstr "Brondetails"
 
 #: cps/spa_strings.py
+msgid "Source not recorded"
+msgstr "Bron niet vastgelegd"
+
+#: cps/spa_strings.py
 msgid ""
 "Start My Library? It begins as everything you can see now, so nothing "
 "changes until you remove books yourself. Your e-reader keeps the same books "
@@ -7945,6 +8054,10 @@ msgstr "Kobo met standaardsoftware"
 #: cps/spa_strings.py
 msgid "Stock Kobo sync URL"
 msgstr "Synchronisatie-URL voor Kobo met standaardsoftware"
+
+#: cps/spa_strings.py
+msgid "Storyteller is configured but could not be reached."
+msgstr "Storyteller is ingesteld maar kon niet worden bereikt."
 
 #: cps/spa_strings.py cps/templates/config_edit.html
 #: cps/templates/cover_picker.html
@@ -8051,6 +8164,10 @@ msgstr "Tekstsjablonen"
 #: cps/spa_strings.py
 msgid "That URL is not a usable image."
 msgstr "Die URL is geen bruikbare afbeelding."
+
+#: cps/spa_strings.py
+msgid "The book is still opening. Try again in a moment."
+msgstr "Het boek wordt nog geopend. Probeer het zo opnieuw."
 
 #: cps/spa_strings.py cps/templates/book_edit.html
 #: cps/templates/modal_dialogs.html
@@ -9058,8 +9175,8 @@ msgstr "Kies e-mailadressen:"
 #, fuzzy
 msgid "Success! Book queued for sending to the selected address(es)!"
 msgstr ""
-"Het boek is in de wachtrij geplaatst om te worden verstuurd aan %"
-"(eReadermail)s"
+"Het boek is in de wachtrij geplaatst om te worden verstuurd aan "
+"%(eReadermail)s"
 
 #: cps/web.py
 msgid "Please wait one minute to register next user"
@@ -15175,91 +15292,6 @@ msgstr "Synchroniseer geselecteerde boekenplanken met Kobo"
 msgid "Show Read/Unread Section"
 msgstr "Toon gelezen/niet gelezen selectie"
 
-
-# Reading sources
-
-msgid "Approximate"
-msgstr "Bij benadering"
-
-msgid "Choose another place"
-msgstr "Een andere positie kiezen"
-
-msgid "Could not load reading places."
-msgstr "Kan leesposities niet laden."
-
-msgid "Could not open that reading position."
-msgstr "Kan die leespositie niet openen."
-
-msgid "Device positions are read-only here. Continue reading to save a new Browser position."
-msgstr "Apparaatposities zijn hier alleen-lezen. Lees verder om een nieuwe browserpositie op te slaan."
-
-msgid "Different edition"
-msgstr "Andere editie"
-
-msgid "Exact place"
-msgstr "Exacte positie"
-
-msgid "Last reported"
-msgstr "Laatst gemeld"
-
-#, python-brace-format
-msgid "Last reported {time}"
-msgstr "Laatst gemeld {time}"
-
-msgid "Loading reading places…"
-msgstr "Leesposities laden…"
-
-msgid "No saved reading places yet."
-msgstr "Nog geen leesposities opgeslagen."
-
-#, python-brace-format
-msgid "Opened {source} at {percent}%."
-msgstr "{source} geopend op {percent}%."
-
-msgid "Opening…"
-msgstr "Openen…"
-
-msgid "Other saved position"
-msgstr "Andere opgeslagen positie"
-
-msgid "Place saved"
-msgstr "Positie opgeslagen"
-
-msgid "Preview a saved place in this reader. The device’s saved position will not change."
-msgstr "Bekijk een opgeslagen positie in deze lezer. De opgeslagen positie van het apparaat verandert niet."
-
-msgid "Preview in reader"
-msgstr "In lezer bekijken"
-
-msgid "Preview this place"
-msgstr "Deze positie bekijken"
-
-#, python-brace-format
-msgid "Previewing {source}. Its saved position will not change."
-msgstr "Voorvertoning van {source}. De opgeslagen positie verandert niet."
-
-msgid "Read from here"
-msgstr "Vanaf hier lezen"
-
-msgid "Reading from here. This is now your Browser position."
-msgstr "Je leest vanaf hier. Dit is nu je browserpositie."
-
-msgid "Reading places"
-msgstr "Leesposities"
-
-#, python-brace-format
-msgid "Saved {time}"
-msgstr "Opgeslagen {time}"
-
-msgid "Source not recorded"
-msgstr "Bron niet vastgelegd"
-
-msgid "Storyteller is configured but could not be reached."
-msgstr "Storyteller is ingesteld maar kon niet worden bereikt."
-
-msgid "The book is still opening. Try again in a moment."
-msgstr "Het boek wordt nog geopend. Probeer het zo opnieuw."
-
 #~ msgid "Change library cover"
 #~ msgstr "Bibliotheekomslag wijzigen"
 
@@ -15755,11 +15787,10 @@ msgstr "Het boek wordt nog geopend. Probeer het zo opnieuw."
 #~ msgstr ""
 #~ "Deze paden zijn alleen intern voor CWA, je kunt aan de linkerkant naar "
 #~ "hartenlust wijzigen waar ze aan gekoppeld zijn, maar er is geen reden om "
-#~ "de paden aan de rechterkant te wijzigen.<br><br>Als je je "
-#~ "<code>metadata.db</code> bestand op een andere locatie wilt dan de rest "
-#~ "van je bibliotheek, gebruik dan de <b>Scheid Boekbestanden van "
-#~ "Bibliotheek Optie hieronder en voer daar het pad naar de rest van de "
-#~ "bibliotheek in</b>"
+#~ "de paden aan de rechterkant te wijzigen.<br><br>Als je je <code>metadata."
+#~ "db</code> bestand op een andere locatie wilt dan de rest van je "
+#~ "bibliotheek, gebruik dan de <b>Scheid Boekbestanden van Bibliotheek Optie "
+#~ "hieronder en voer daar het pad naar de rest van de bibliotheek in</b>"
 
 #~ msgid "Enable CWA Auto-Convert"
 #~ msgstr "Schakel CWA Auto-Conversie in"

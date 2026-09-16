@@ -4830,6 +4830,10 @@ msgstr ""
 msgid "Applying…"
 msgstr ""
 
+#: cps/spa_strings.py
+msgid "Approximate"
+msgstr ""
+
 #: cps/spa_strings.py cps/templates/book_table.html
 #: cps/templates/duplicates.html cps/templates/kobo_reconcile.html
 msgid "Archive"
@@ -5076,6 +5080,10 @@ msgid "Choose an image…"
 msgstr ""
 
 #: cps/spa_strings.py
+msgid "Choose another place"
+msgstr ""
+
+#: cps/spa_strings.py
 msgid "Choose fields"
 msgstr ""
 
@@ -5253,6 +5261,10 @@ msgid "Could not load pairing details."
 msgstr ""
 
 #: cps/spa_strings.py
+msgid "Could not load reading places."
+msgstr ""
+
+#: cps/spa_strings.py
 msgid "Could not load reading positions."
 msgstr ""
 
@@ -5282,6 +5294,10 @@ msgstr ""
 
 #: cps/spa_strings.py
 msgid "Could not open that highlight."
+msgstr ""
+
+#: cps/spa_strings.py
+msgid "Could not open that reading position."
 msgstr ""
 
 #: cps/spa_strings.py
@@ -5626,6 +5642,12 @@ msgid "Device name"
 msgstr ""
 
 #: cps/spa_strings.py
+msgid ""
+"Device positions are read-only here. Continue reading to save a new Browser "
+"position."
+msgstr ""
+
+#: cps/spa_strings.py
 msgid "Device renamed."
 msgstr ""
 
@@ -5653,6 +5675,10 @@ msgstr ""
 
 #: cps/spa_strings.py
 msgid "Devices appear here after their first sync."
+msgstr ""
+
+#: cps/spa_strings.py
+msgid "Different edition"
 msgstr ""
 
 #: cps/spa_strings.py
@@ -5854,6 +5880,10 @@ msgstr ""
 
 #: cps/spa_strings.py
 msgid "Every filled field will replace each book's existing values."
+msgstr ""
+
+#: cps/spa_strings.py
+msgid "Exact place"
 msgstr ""
 
 #: cps/spa_strings.py
@@ -6287,6 +6317,15 @@ msgid "Last modified"
 msgstr ""
 
 #: cps/spa_strings.py
+msgid "Last reported"
+msgstr ""
+
+#: cps/spa_strings.py
+#, python-brace-format
+msgid "Last reported {time}"
+msgstr ""
+
+#: cps/spa_strings.py
 #, python-brace-format
 msgid "Last seen {when}"
 msgstr ""
@@ -6348,6 +6387,10 @@ msgstr ""
 
 #: cps/spa_strings.py
 msgid "Loading pairing details…"
+msgstr ""
+
+#: cps/spa_strings.py
+msgid "Loading reading places…"
 msgstr ""
 
 #: cps/spa_strings.py
@@ -6688,6 +6731,10 @@ msgid "No registered devices."
 msgstr ""
 
 #: cps/spa_strings.py
+msgid "No saved reading places yet."
+msgstr ""
+
+#: cps/spa_strings.py
 msgid "No shelves yet — create one below."
 msgstr ""
 
@@ -6863,6 +6910,15 @@ msgid "OpenLDAP server"
 msgstr ""
 
 #: cps/spa_strings.py
+#, python-brace-format
+msgid "Opened {source} at {percent}%."
+msgstr ""
+
+#: cps/spa_strings.py
+msgid "Opening…"
+msgstr ""
+
+#: cps/spa_strings.py
 msgid ""
 "Opens a prefilled report on GitHub. Nothing is sent until you post it, and "
 "you can edit it first."
@@ -6896,6 +6952,10 @@ msgstr ""
 #: cps/spa_strings.py
 #, python-brace-format
 msgid "Original device attribution restored for {ok} of {total}."
+msgstr ""
+
+#: cps/spa_strings.py
+msgid "Other saved position"
 msgstr ""
 
 #: cps/spa_strings.py
@@ -6971,6 +7031,10 @@ msgid "Pink"
 msgstr ""
 
 #: cps/spa_strings.py
+msgid "Place saved"
+msgstr ""
+
+#: cps/spa_strings.py
 msgid "Placeholders:"
 msgstr ""
 
@@ -7012,7 +7076,26 @@ msgid "Preview"
 msgstr "Попередній перегляд"
 
 #: cps/spa_strings.py
+msgid ""
+"Preview a saved place in this reader. The device’s saved position will not "
+"change."
+msgstr ""
+
+#: cps/spa_strings.py
+msgid "Preview in reader"
+msgstr ""
+
+#: cps/spa_strings.py
 msgid "Preview of the designed cover"
+msgstr ""
+
+#: cps/spa_strings.py
+msgid "Preview this place"
+msgstr ""
+
+#: cps/spa_strings.py
+#, python-brace-format
+msgid "Previewing {source}. Its saved position will not change."
 msgstr ""
 
 #: cps/spa_strings.py cps/templates/layout.html
@@ -7061,6 +7144,10 @@ msgid "Rating (stars)"
 msgstr ""
 
 #: cps/spa_strings.py
+msgid "Read from here"
+msgstr ""
+
+#: cps/spa_strings.py
 msgid "Read status"
 msgstr ""
 
@@ -7074,6 +7161,14 @@ msgstr ""
 
 #: cps/spa_strings.py
 msgid "Reading appearance"
+msgstr ""
+
+#: cps/spa_strings.py
+msgid "Reading from here. This is now your Browser position."
+msgstr ""
+
+#: cps/spa_strings.py
+msgid "Reading places"
 msgstr ""
 
 #: cps/spa_strings.py
@@ -7329,6 +7424,11 @@ msgstr ""
 
 #: cps/spa_strings.py
 msgid "Save the file, safely eject the Kobo, then restart it."
+msgstr ""
+
+#: cps/spa_strings.py
+#, python-brace-format
+msgid "Saved {time}"
 msgstr ""
 
 #: cps/spa_strings.py
@@ -7688,6 +7788,10 @@ msgid "Source details"
 msgstr ""
 
 #: cps/spa_strings.py
+msgid "Source not recorded"
+msgstr ""
+
+#: cps/spa_strings.py
 msgid ""
 "Start My Library? It begins as everything you can see now, so nothing "
 "changes until you remove books yourself. Your e-reader keeps the same books "
@@ -7716,6 +7820,10 @@ msgstr ""
 
 #: cps/spa_strings.py
 msgid "Stock Kobo sync URL"
+msgstr ""
+
+#: cps/spa_strings.py
+msgid "Storyteller is configured but could not be reached."
 msgstr ""
 
 #: cps/spa_strings.py cps/templates/config_edit.html
@@ -7811,6 +7919,10 @@ msgstr ""
 
 #: cps/spa_strings.py
 msgid "That URL is not a usable image."
+msgstr ""
+
+#: cps/spa_strings.py
+msgid "The book is still opening. Try again in a moment."
 msgstr ""
 
 #: cps/spa_strings.py cps/templates/book_edit.html

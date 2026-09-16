@@ -4749,6 +4749,10 @@ msgstr "套用所選"
 msgid "Applying…"
 msgstr "正在套用…"
 
+#: cps/spa_strings.py
+msgid "Approximate"
+msgstr ""
+
 #: cps/spa_strings.py cps/templates/book_table.html
 #: cps/templates/duplicates.html cps/templates/kobo_reconcile.html
 msgid "Archive"
@@ -4995,6 +4999,10 @@ msgid "Choose an image…"
 msgstr "選擇圖片…"
 
 #: cps/spa_strings.py
+msgid "Choose another place"
+msgstr ""
+
+#: cps/spa_strings.py
 msgid "Choose fields"
 msgstr "選擇欄位"
 
@@ -5172,6 +5180,10 @@ msgid "Could not load pairing details."
 msgstr "無法載入配對詳情。"
 
 #: cps/spa_strings.py
+msgid "Could not load reading places."
+msgstr ""
+
+#: cps/spa_strings.py
 msgid "Could not load reading positions."
 msgstr "無法載入閱讀進度。"
 
@@ -5202,6 +5214,10 @@ msgstr "無法載入使用者。"
 #: cps/spa_strings.py
 msgid "Could not open that highlight."
 msgstr "無法開啟該標記。"
+
+#: cps/spa_strings.py
+msgid "Could not open that reading position."
+msgstr ""
 
 #: cps/spa_strings.py
 msgid "Could not open that search result."
@@ -5545,6 +5561,12 @@ msgid "Device name"
 msgstr "裝置名稱"
 
 #: cps/spa_strings.py
+msgid ""
+"Device positions are read-only here. Continue reading to save a new Browser "
+"position."
+msgstr ""
+
+#: cps/spa_strings.py
 msgid "Device renamed."
 msgstr "裝置已重新命名。"
 
@@ -5573,6 +5595,10 @@ msgstr "裝置"
 #: cps/spa_strings.py
 msgid "Devices appear here after their first sync."
 msgstr "裝置在首次同步後會顯示在這裡。"
+
+#: cps/spa_strings.py
+msgid "Different edition"
+msgstr ""
 
 #: cps/spa_strings.py
 msgid "Disable standard password login"
@@ -5774,6 +5800,10 @@ msgstr ""
 #: cps/spa_strings.py
 msgid "Every filled field will replace each book's existing values."
 msgstr "每個填入的欄位都會替換每本書的現有值。"
+
+#: cps/spa_strings.py
+msgid "Exact place"
+msgstr ""
 
 #: cps/spa_strings.py
 msgid "Excluded"
@@ -6206,6 +6236,15 @@ msgid "Last modified"
 msgstr "上次修改"
 
 #: cps/spa_strings.py
+msgid "Last reported"
+msgstr ""
+
+#: cps/spa_strings.py
+#, python-brace-format
+msgid "Last reported {time}"
+msgstr ""
+
+#: cps/spa_strings.py
 #, python-brace-format
 msgid "Last seen {when}"
 msgstr "上次連線 {when}"
@@ -6268,6 +6307,10 @@ msgstr "正在載入新的探索精選。"
 #: cps/spa_strings.py
 msgid "Loading pairing details…"
 msgstr "正在載入配對詳情…"
+
+#: cps/spa_strings.py
+msgid "Loading reading places…"
+msgstr ""
 
 #: cps/spa_strings.py
 msgid "Loading reading positions…"
@@ -6607,6 +6650,10 @@ msgid "No registered devices."
 msgstr "無已註冊裝置。"
 
 #: cps/spa_strings.py
+msgid "No saved reading places yet."
+msgstr ""
+
+#: cps/spa_strings.py
 msgid "No shelves yet — create one below."
 msgstr "尚無書架—請在下方建立一個。"
 
@@ -6782,6 +6829,15 @@ msgid "OpenLDAP server"
 msgstr "OpenLDAP 伺服器"
 
 #: cps/spa_strings.py
+#, python-brace-format
+msgid "Opened {source} at {percent}%."
+msgstr ""
+
+#: cps/spa_strings.py
+msgid "Opening…"
+msgstr ""
+
+#: cps/spa_strings.py
 msgid ""
 "Opens a prefilled report on GitHub. Nothing is sent until you post it, and "
 "you can edit it first."
@@ -6816,6 +6872,10 @@ msgstr "已還原 {n} 筆資料的原始裝置歸屬。"
 #, python-brace-format
 msgid "Original device attribution restored for {ok} of {total}."
 msgstr "已還原 {total} 筆資料中 {ok} 筆的原始裝置歸屬。"
+
+#: cps/spa_strings.py
+msgid "Other saved position"
+msgstr ""
 
 #: cps/spa_strings.py
 msgid "PDF reader"
@@ -6890,6 +6950,10 @@ msgid "Pink"
 msgstr "粉紅色"
 
 #: cps/spa_strings.py
+msgid "Place saved"
+msgstr ""
+
+#: cps/spa_strings.py
 msgid "Placeholders:"
 msgstr ""
 
@@ -6931,7 +6995,26 @@ msgid "Preview"
 msgstr "預覽"
 
 #: cps/spa_strings.py
+msgid ""
+"Preview a saved place in this reader. The device’s saved position will not "
+"change."
+msgstr ""
+
+#: cps/spa_strings.py
+msgid "Preview in reader"
+msgstr ""
+
+#: cps/spa_strings.py
 msgid "Preview of the designed cover"
+msgstr ""
+
+#: cps/spa_strings.py
+msgid "Preview this place"
+msgstr ""
+
+#: cps/spa_strings.py
+#, python-brace-format
+msgid "Previewing {source}. Its saved position will not change."
 msgstr ""
 
 #: cps/spa_strings.py cps/templates/layout.html
@@ -6980,6 +7063,10 @@ msgid "Rating (stars)"
 msgstr "評分 (星數)"
 
 #: cps/spa_strings.py
+msgid "Read from here"
+msgstr ""
+
+#: cps/spa_strings.py
 msgid "Read status"
 msgstr "閱讀狀態"
 
@@ -6994,6 +7081,14 @@ msgstr "閱讀器設定已儲存。"
 #: cps/spa_strings.py
 msgid "Reading appearance"
 msgstr "閱讀外觀"
+
+#: cps/spa_strings.py
+msgid "Reading from here. This is now your Browser position."
+msgstr ""
+
+#: cps/spa_strings.py
+msgid "Reading places"
+msgstr ""
 
 #: cps/spa_strings.py
 msgid "Reading positions"
@@ -7249,6 +7344,11 @@ msgstr "儲存設定"
 #: cps/spa_strings.py
 msgid "Save the file, safely eject the Kobo, then restart it."
 msgstr "儲存檔案，安全退出 Kobo，然後重新啟動它。"
+
+#: cps/spa_strings.py
+#, python-brace-format
+msgid "Saved {time}"
+msgstr ""
 
 #: cps/spa_strings.py
 msgid "Saved. Restart the server for the login changes to take effect."
@@ -7607,6 +7707,10 @@ msgid "Source details"
 msgstr "來源詳情"
 
 #: cps/spa_strings.py
+msgid "Source not recorded"
+msgstr ""
+
+#: cps/spa_strings.py
 msgid ""
 "Start My Library? It begins as everything you can see now, so nothing "
 "changes until you remove books yourself. Your e-reader keeps the same books "
@@ -7636,6 +7740,10 @@ msgstr "原廠 Kobo"
 #: cps/spa_strings.py
 msgid "Stock Kobo sync URL"
 msgstr "原廠 Kobo 同步 URL"
+
+#: cps/spa_strings.py
+msgid "Storyteller is configured but could not be reached."
+msgstr ""
 
 #: cps/spa_strings.py cps/templates/config_edit.html
 #: cps/templates/cover_picker.html
@@ -7731,6 +7839,10 @@ msgstr ""
 #: cps/spa_strings.py
 msgid "That URL is not a usable image."
 msgstr "該 URL 不是可用的圖片。"
+
+#: cps/spa_strings.py
+msgid "The book is still opening. Try again in a moment."
+msgstr ""
 
 #: cps/spa_strings.py cps/templates/book_edit.html
 #: cps/templates/modal_dialogs.html
