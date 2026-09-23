@@ -74,7 +74,6 @@ def _kill_export_tree(p):
 def _do_calibre_export_blocking(book_id, book_format):
     """Run and reap one calibre export on an OS worker thread."""
     try:
-        quotes = [4, 6]
         tmp_dir = get_temp_dir()
         calibredb_binarypath = get_calibre_binarypath("calibredb")
         temp_file_name = str(uuid4())
@@ -87,16 +86,22 @@ def _do_calibre_export_blocking(book_id, book_format):
         if config.config_calibre_split:
             my_env['CALIBRE_OVERRIDE_DATABASE_PATH'] = os.path.join(config.config_calibre_dir, "metadata.db")
         library_path = config.get_book_path()
+        target = content_server.library_target()
+        library_args = target.args or ['--with-library', library_path]
         opf_command = ([calibredb_binarypath, 'export', '--dont-write-opf', '--dont-save-cover']
-                       + (content_server.library_arguments() or ['--with-library', library_path])
+                       + library_args
                        + ['--to-dir', tmp_dir, '--formats', book_format, "--template", "{}".format(temp_file_name),
                           str(book_id)])
+        # Windows quoting is positional and the library arguments vary in
+        # length, so the indices are derived from the command that was built:
+        # the library itself, and the output directory.
+        quotes = [3 + len(library_args), 5 + len(library_args)]
         embed_timeout = _embed_timeout()
         # Calibre takes an exclusive library lock even for export. Coordinate
         # with other exports and ingest/metadata writers, on this OS worker so
         # waiting never parks the request hub.
         with metadata_db_write_lock(timeout=embed_timeout):
-            p = process_open(opf_command, quotes, my_env)
+            p = process_open(opf_command, quotes, my_env, stdin_payload=target.stdin)
             try:
                 _, err = p.communicate(timeout=embed_timeout)
             except subprocess.TimeoutExpired:
