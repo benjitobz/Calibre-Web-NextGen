@@ -4817,6 +4817,10 @@ msgid "Active"
 msgstr ""
 
 #: cps/spa_strings.py
+msgid "Add group"
+msgstr ""
+
+#: cps/spa_strings.py
 msgid "Add identifier"
 msgstr "Добавить идентификатор"
 
@@ -7365,6 +7369,10 @@ msgid "Remove from shelf"
 msgstr "Удалить с полки"
 
 #: cps/spa_strings.py
+msgid "Remove group"
+msgstr ""
+
+#: cps/spa_strings.py
 msgid "Remove highlight"
 msgstr "Удалить выделение"
 
@@ -7497,6 +7505,10 @@ msgstr ""
 #: cps/spa_strings.py
 msgid "Rows per load"
 msgstr "Строк при подгрузке"
+
+#: cps/spa_strings.py
+msgid "Rule group"
+msgstr ""
 
 #: cps/spa_strings.py
 msgid "Run a sync from the plugin."

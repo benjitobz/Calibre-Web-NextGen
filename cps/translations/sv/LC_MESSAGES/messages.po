@@ -4879,6 +4879,10 @@ msgid "Active"
 msgstr "Aktiv"
 
 #: cps/spa_strings.py
+msgid "Add group"
+msgstr ""
+
+#: cps/spa_strings.py
 msgid "Add identifier"
 msgstr "Lägg till identifierare"
 
@@ -7447,6 +7451,10 @@ msgid "Remove from shelf"
 msgstr "Ta bort från hylla"
 
 #: cps/spa_strings.py
+msgid "Remove group"
+msgstr ""
+
+#: cps/spa_strings.py
 msgid "Remove highlight"
 msgstr "Ta bort markering"
 
@@ -7581,6 +7589,10 @@ msgstr ""
 #: cps/spa_strings.py
 msgid "Rows per load"
 msgstr "Rader per inläsning"
+
+#: cps/spa_strings.py
+msgid "Rule group"
+msgstr ""
 
 #: cps/spa_strings.py
 msgid "Run a sync from the plugin."

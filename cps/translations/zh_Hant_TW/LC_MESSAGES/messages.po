@@ -4642,6 +4642,10 @@ msgid "Active"
 msgstr "啟用"
 
 #: cps/spa_strings.py
+msgid "Add group"
+msgstr ""
+
+#: cps/spa_strings.py
 msgid "Add identifier"
 msgstr "新增識別碼"
 
@@ -7151,6 +7155,10 @@ msgid "Remove from shelf"
 msgstr "從書架中移除"
 
 #: cps/spa_strings.py
+msgid "Remove group"
+msgstr ""
+
+#: cps/spa_strings.py
 msgid "Remove highlight"
 msgstr "移除標記"
 
@@ -7279,6 +7287,10 @@ msgstr ""
 #: cps/spa_strings.py
 msgid "Rows per load"
 msgstr "每次載入列數"
+
+#: cps/spa_strings.py
+msgid "Rule group"
+msgstr ""
 
 #: cps/spa_strings.py
 msgid "Run a sync from the plugin."

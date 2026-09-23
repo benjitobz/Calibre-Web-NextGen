@@ -4975,6 +4975,10 @@ msgid "Active"
 msgstr "Actif"
 
 #: cps/spa_strings.py
+msgid "Add group"
+msgstr "Ajouter un groupe"
+
+#: cps/spa_strings.py
 msgid "Add identifier"
 msgstr "Ajouter un identifiant"
 
@@ -7587,6 +7591,10 @@ msgid "Remove from shelf"
 msgstr "Retirer de l'étagère"
 
 #: cps/spa_strings.py
+msgid "Remove group"
+msgstr "Supprimer le groupe"
+
+#: cps/spa_strings.py
 msgid "Remove highlight"
 msgstr "Supprimer le surlignage"
 
@@ -7605,18 +7613,6 @@ msgstr "Supprimer la note"
 #: cps/spa_strings.py
 msgid "Remove rule"
 msgstr "Supprimer la règle"
-
-#: cps/spa_strings.py
-msgid "Add group"
-msgstr "Ajouter un groupe"
-
-#: cps/spa_strings.py
-msgid "Remove group"
-msgstr "Supprimer le groupe"
-
-#: cps/spa_strings.py
-msgid "Rule group"
-msgstr "Groupe de règles"
 
 #: cps/spa_strings.py
 #, python-brace-format
@@ -7735,6 +7731,10 @@ msgstr "Droite"
 #: cps/spa_strings.py
 msgid "Rows per load"
 msgstr "Lignes par chargement"
+
+#: cps/spa_strings.py
+msgid "Rule group"
+msgstr "Groupe de règles"
 
 #: cps/spa_strings.py
 msgid "Run a sync from the plugin."

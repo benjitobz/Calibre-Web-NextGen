@@ -4742,6 +4742,10 @@ msgid "Active"
 msgstr ""
 
 #: cps/spa_strings.py
+msgid "Add group"
+msgstr ""
+
+#: cps/spa_strings.py
 msgid "Add identifier"
 msgstr ""
 
@@ -7251,6 +7255,10 @@ msgid "Remove from shelf"
 msgstr ""
 
 #: cps/spa_strings.py
+msgid "Remove group"
+msgstr ""
+
+#: cps/spa_strings.py
 msgid "Remove highlight"
 msgstr ""
 
@@ -7378,6 +7386,10 @@ msgstr ""
 
 #: cps/spa_strings.py
 msgid "Rows per load"
+msgstr ""
+
+#: cps/spa_strings.py
+msgid "Rule group"
 msgstr ""
 
 #: cps/spa_strings.py
