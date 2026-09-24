@@ -332,7 +332,8 @@ msgid ""
 "full sync with your Kobo Reader?"
 msgstr ""
 
-#: cps/admin.py cps/templates/modal_dialogs.html cps/templates/user_table.html
+#: cps/admin.py cps/spa_strings.py cps/templates/modal_dialogs.html
+#: cps/templates/user_table.html
 msgid "Deny"
 msgstr "Weigeren"
 
@@ -4805,6 +4806,12 @@ msgid "3:4 (generic)"
 msgstr "3:4 (algemeen)"
 
 #: cps/spa_strings.py
+#, python-brace-format
+msgid "A device calling itself “{name}” wants to connect to your account."
+msgstr ""
+"Een apparaat dat zich ‘{name}’ noemt, wil verbinding maken met je account."
+
+#: cps/spa_strings.py
 msgid ""
 "A duplicate scan is already running. This list updates when it finishes."
 msgstr ""
@@ -4963,6 +4970,23 @@ msgstr "Geselecteerde toepassen"
 msgid "Applying…"
 msgstr "Toepassen…"
 
+# KOReader: pairing by code, ready-made plugin, e-reader shelf wording
+#: cps/spa_strings.py
+msgid "Approve"
+msgstr "Goedkeuren"
+
+#: cps/spa_strings.py
+msgid "Approve only if this is your e-reader."
+msgstr "Keur dit alleen goed als het je eigen e-reader is."
+
+#: cps/spa_strings.py
+#, python-brace-format
+msgid ""
+"Approved. {name} is finishing setup; its library appears in a few seconds."
+msgstr ""
+"Goedgekeurd. {name} rondt de installatie af; de bibliotheek verschijnt over "
+"een paar seconden."
+
 # Reading sources
 #: cps/spa_strings.py
 msgid "Approximate"
@@ -4984,6 +5008,11 @@ msgstr "Indeling"
 #: cps/spa_strings.py
 msgid "Ask in Discord"
 msgstr "Vraag het in Discord"
+
+#: cps/spa_strings.py
+#, python-brace-format
+msgid "Asked {when} from {address}."
+msgstr "Verzoek {when} verstuurd vanaf {address}."
 
 #: cps/spa_strings.py
 msgid "Assign selected to device"
@@ -5131,6 +5160,15 @@ msgstr ""
 "in je bibliotheek hier."
 
 #: cps/spa_strings.py
+msgid ""
+"Books that are not on an e-reader sync shelf then leave the e-reader's "
+"library on its next sync. They stay in your library here."
+msgstr ""
+"Boeken die niet op een met e-readers gesynchroniseerde boekenplank staan, "
+"verdwijnen dan bij de volgende synchronisatie uit de bibliotheek van de e-"
+"reader. Ze blijven wel in je bibliotheek hier."
+
+#: cps/spa_strings.py
 msgid "Built-in"
 msgstr "Ingebouwd"
 
@@ -5193,20 +5231,16 @@ msgid "Certificate path"
 msgstr "Certificaatpad"
 
 #: cps/spa_strings.py
+msgid "Change"
+msgstr "Wijzigen"
+
+#: cps/spa_strings.py
 msgid "Check again"
 msgstr "Opnieuw controleren"
 
 #: cps/spa_strings.py
 msgid "Checking…"
 msgstr "Controleren…"
-
-#: cps/spa_strings.py
-msgid ""
-"Choose Login and sign in with this NextGen account or one of its app "
-"passwords."
-msgstr ""
-"Kies ‘Login’ en meld je aan met dit NextGen-account of een van de app-"
-"wachtwoorden."
 
 #: cps/spa_strings.py
 msgid "Choose a cover"
@@ -5265,6 +5299,10 @@ msgid "Code"
 msgstr "Code"
 
 #: cps/spa_strings.py
+msgid "Code on the e-reader"
+msgstr "Code op de e-reader"
+
+#: cps/spa_strings.py
 msgid "Colour scheme"
 msgstr "Kleurenschema"
 
@@ -5314,6 +5352,10 @@ msgid ""
 msgstr ""
 "Koppel dit account aan een e-reader en synchroniseer eenmaal om te "
 "controleren of de e-reader verbinding met je bibliotheek kan maken."
+
+#: cps/spa_strings.py
+msgid "Continue"
+msgstr "Doorgaan"
 
 #: cps/spa_strings.py cps/tasks/convert.py
 msgid "Convert"
@@ -5651,6 +5693,11 @@ msgid "Date added"
 msgstr "Datum toegevoegd"
 
 #: cps/spa_strings.py
+#, python-brace-format
+msgid "Declined. {name} was not connected."
+msgstr "Geweigerd. {name} is niet gekoppeld."
+
+#: cps/spa_strings.py
 msgid "Default (System Sans-Serif)"
 msgstr "Standaard (systeem sans-serif)"
 
@@ -5894,6 +5941,19 @@ msgid "Download"
 msgstr "Downloaden"
 
 #: cps/spa_strings.py
+msgid "Download ready-made plugin"
+msgstr "Kant-en-klare plug-in downloaden"
+
+#: cps/spa_strings.py
+#, python-brace-format
+msgid ""
+"Downloaded {file}. It holds a password for this account: delete the zip once "
+"the plugin is on the e-reader."
+msgstr ""
+"{file} gedownload. Het bevat een wachtwoord voor dit account: verwijder het "
+"zip-bestand zodra de plug-in op de e-reader staat."
+
+#: cps/spa_strings.py
 msgid "Drawing the cover…"
 msgstr "De omslag wordt getekend…"
 
@@ -5924,6 +5984,10 @@ msgstr "E-reader niet gevonden"
 #: cps/spa_strings.py cps/templates/cover_picker.html
 msgid "E-reader preview"
 msgstr "E-reader voorbeeld"
+
+#: cps/spa_strings.py
+msgid "E-reader sync on"
+msgstr "E-reader sync aan"
 
 #: cps/spa_strings.py
 msgid "E-readers"
@@ -5998,6 +6062,14 @@ msgstr "Slimme boekenplank bewerken"
 msgid "Edit title for {title}"
 msgstr "Titel bewerken voor {title}"
 
+#: cps/spa_strings.py
+msgid ""
+"Eject the e-reader and restart KOReader with Wi-Fi on. Your library appears "
+"in a moment."
+msgstr ""
+"Werp de e-reader uit en start KOReader opnieuw met wifi aan. Je bibliotheek "
+"verschijnt zo."
+
 #: cps/spa_strings.py cps/templates/admin.html cps/templates/register.html
 #: cps/templates/user_edit.html cps/templates/user_table.html
 msgid "Email"
@@ -6031,6 +6103,10 @@ msgstr "E-mailinstellingen opgeslagen."
 msgid "Enable Kobo sync"
 msgstr "Zet Kobo sync aan"
 
+#: cps/spa_strings.py
+msgid "Enable e-reader sync"
+msgstr "Zet e-reader sync aan"
+
 #: cps/spa_strings.py cps/templates/admin.html cps/templates/email_edit.html
 msgid "Encryption"
 msgstr "Encryptie"
@@ -6038,6 +6114,20 @@ msgstr "Encryptie"
 #: cps/spa_strings.py
 msgid "Enter at least 2 characters"
 msgstr "Voer ten minste 2 tekens in"
+
+#: cps/spa_strings.py
+msgid "Enter the 8 letters and digits the e-reader shows, like K7M4-QX2P."
+msgstr ""
+"Voer de 8 letters en cijfers in die de e-reader toont, zoals K7M4-QX2P."
+
+#: cps/spa_strings.py
+msgid "Enter the address as http://host:port or https://host."
+msgstr "Voer het adres in als http://host:poort of https://host."
+
+#: cps/spa_strings.py
+msgid "Enter the code the e-reader shows, or scan its QR code with your phone."
+msgstr ""
+"Voer de code in die de e-reader toont, of scan de QR-code met je telefoon."
 
 #: cps/spa_strings.py
 msgid ""
@@ -6140,6 +6230,14 @@ msgstr "Lettergrootte"
 #: cps/spa_strings.py
 msgid "Fonts per line, wording, cover size"
 msgstr "Lettertypen per regel, tekst, omslaggrootte"
+
+#: cps/spa_strings.py
+msgid ""
+"For an e-reader you can plug into this computer. The plugin already knows "
+"your server and account: nothing to type on the e-reader."
+msgstr ""
+"Voor een e-reader die je op deze computer kunt aansluiten. De plug-in kent "
+"je server en account al: je hoeft niets in te typen op de e-reader."
 
 #: cps/spa_strings.py
 msgid "Forgot password?"
@@ -6375,10 +6473,6 @@ msgid "Imported as"
 msgstr "Geïmporteerd als"
 
 #: cps/spa_strings.py
-msgid "In KOReader, open NextGen Progress Sync and choose Set NextGen Server."
-msgstr "Open in KOReader NextGen Progress Sync en kies ‘Set NextGen Server’."
-
-#: cps/spa_strings.py
 msgid "In your book"
 msgstr "In je boek"
 
@@ -6431,6 +6525,10 @@ msgstr "KOReader"
 #: cps/spa_strings.py cps/templates/detail.html
 msgid "KOReader Progress"
 msgstr "KOReader-voortgang"
+
+#: cps/spa_strings.py
+msgid "KOReader sync is not enabled on this server."
+msgstr "KOReader-synchronisatie is niet ingeschakeld op deze server."
 
 #: cps/spa_strings.py
 msgid "Key file path"
@@ -6878,6 +6976,14 @@ msgid "No duplicate groups found."
 msgstr "Geen duplicaat groepen gevonden."
 
 #: cps/spa_strings.py
+msgid ""
+"No e-reader is waiting with this code. Check it, or get a new code on the e-"
+"reader."
+msgstr ""
+"Er wacht geen e-reader met deze code. Controleer de code of vraag een nieuwe "
+"aan op de e-reader."
+
+#: cps/spa_strings.py
 msgid "No e-readers yet."
 msgstr "Nog geen e-readers."
 
@@ -7052,6 +7158,22 @@ msgstr ""
 "onderstaande link om dit apparaat te autoriseren."
 
 #: cps/spa_strings.py
+msgid ""
+"On the e-reader, open Tools ▸ CWNG library ▸ Connect this device and choose "
+"Connect with a code."
+msgstr ""
+"Open op de e-reader het menu met het moersleutelpictogram ▸ CWNG library ▸ "
+"Connect this device en kies ‘Connect with a code’."
+
+#: cps/spa_strings.py
+msgid ""
+"On the e-reader, open Tools ▸ CWNG library ▸ Connect this device and choose "
+"Sign in with username and password."
+msgstr ""
+"Open op de e-reader het menu met het moersleutelpictogram ▸ CWNG library ▸ "
+"Connect this device en kies ‘Sign in with username and password’."
+
+#: cps/spa_strings.py
 msgid "On this device"
 msgstr "Op dit apparaat"
 
@@ -7198,6 +7320,10 @@ msgid "Pair an e-reader"
 msgstr "Een e-reader koppelen"
 
 #: cps/spa_strings.py
+msgid "Pair with a code"
+msgstr "Koppelen met een code"
+
+#: cps/spa_strings.py
 msgid "Partially seeded books"
 msgstr "Gedeeltelijk geïnitialiseerde boeken"
 
@@ -7209,10 +7335,6 @@ msgstr "Wachtwoord"
 #: cps/spa_strings.py
 msgid "Password (leave blank to keep)"
 msgstr "Wachtwoord (laat leeg om te behouden)"
-
-#: cps/spa_strings.py
-msgid "Paste this server address (the plugin adds /kosync itself):"
-msgstr "Plak dit serveradres (de plug-in voegt zelf /kosync toe):"
 
 #: cps/spa_strings.py
 msgid "Paused after a problem"
@@ -7266,6 +7388,10 @@ msgstr "Herstel van leespositie in wachtrij"
 #: cps/spa_strings.py
 msgid "Preparing your magic link…"
 msgstr "Je magische link voorbereiden…"
+
+#: cps/spa_strings.py
+msgid "Preparing…"
+msgstr "Voorbereiden…"
 
 #: cps/spa_strings.py
 msgid "Preset"
@@ -7385,6 +7511,10 @@ msgstr "Leesposities"
 #: cps/spa_strings.py
 msgid "Reading positions"
 msgstr "Leesposities"
+
+#: cps/spa_strings.py
+msgid "Ready-made plugin (USB)"
+msgstr "Kant-en-klare plug-in (USB)"
 
 #: cps/spa_strings.py
 msgid "Recent"
@@ -7588,10 +7718,6 @@ msgstr "Rijen per keer laden"
 #: cps/spa_strings.py
 msgid "Rule group"
 msgstr "Regelgroep"
-
-#: cps/spa_strings.py
-msgid "Run a sync from the plugin."
-msgstr "Start een synchronisatie vanuit de plug-in."
 
 #: cps/spa_strings.py
 msgid "Run time"
@@ -7832,6 +7958,10 @@ msgstr ""
 msgid "Set up Kobo sync first — then this preference becomes available."
 msgstr ""
 "Stel eerst Kobo-synchronisatie in — daarna wordt deze voorkeur beschikbaar."
+
+#: cps/spa_strings.py
+msgid "Set up by hand"
+msgstr "Handmatig instellen"
 
 #: cps/spa_strings.py
 msgid "Setting up…"
@@ -8125,6 +8255,12 @@ msgid "Sync only selected shelves to Kobo"
 msgstr "Alleen geselecteerde boekenplanken synchroniseren met Kobo"
 
 #: cps/spa_strings.py
+msgid "Sync only selected shelves to e-readers (Kobo and KOReader)"
+msgstr ""
+"Alleen geselecteerde boekenplanken synchroniseren met e-readers (Kobo en "
+"KOReader)"
+
+#: cps/spa_strings.py
 msgid "Table view"
 msgstr "Tabelweergave"
 
@@ -8176,6 +8312,10 @@ msgstr "Tekstsjablonen"
 #: cps/spa_strings.py
 msgid "That URL is not a usable image."
 msgstr "Die URL is geen bruikbare afbeelding."
+
+#: cps/spa_strings.py
+msgid "The KOReader plugin is not part of this installation."
+msgstr "De KOReader-plug-in maakt geen deel uit van deze installatie."
 
 #: cps/spa_strings.py
 msgid "The book is still opening. Try again in a moment."
@@ -8252,6 +8392,10 @@ msgstr ""
 "tot het boek heeft, ziet deze."
 
 #: cps/spa_strings.py
+msgid "This code has already been approved or declined."
+msgstr "Deze code is al goedgekeurd of geweigerd."
+
+#: cps/spa_strings.py
 msgid "This device will no longer sync."
 msgstr "Dit apparaat wordt niet meer gesynchroniseerd."
 
@@ -8270,6 +8414,25 @@ msgstr "Dit formaat wordt geopend in de lezer op volledig scherm."
 #: cps/spa_strings.py
 msgid "This highlight has no saved position"
 msgstr "Deze markering heeft geen opgeslagen positie"
+
+#: cps/spa_strings.py
+msgid ""
+"This is this computer's own address, which the e-reader cannot reach. Choose "
+"Change and enter the address the e-reader can use, such as "
+"http://192.168.1.20:8083."
+msgstr ""
+"Dit is het eigen adres van deze computer, dat de e-reader niet kan bereiken. "
+"Kies ‘Wijzigen’ en voer het adres in dat de e-reader kan gebruiken, zoals "
+"http://192.168.1.20:8083."
+
+#: cps/spa_strings.py
+msgid ""
+"This request came from a different network than the one you are using. If "
+"you did not just ask for a code on your own e-reader, choose Deny."
+msgstr ""
+"Dit verzoek kwam van een ander netwerk dan het netwerk dat je nu gebruikt. "
+"Heb je niet net zelf een code aangevraagd op je eigen e-reader, kies dan "
+"‘Weigeren’."
 
 #: cps/spa_strings.py
 msgid "This magic link can’t be checked. Generate a new one to try again."
@@ -8320,6 +8483,10 @@ msgid "Token URL"
 msgstr "Token URL"
 
 #: cps/spa_strings.py
+msgid "Too many attempts. Wait a minute and try again."
+msgstr "Te veel pogingen. Wacht een minuut en probeer het opnieuw."
+
+#: cps/spa_strings.py
 msgid ""
 "Too many magic-link checks were made from this network. Generate a new link "
 "or try again later."
@@ -8348,12 +8515,28 @@ msgid "Two columns"
 msgstr "Twee kolommen"
 
 #: cps/spa_strings.py
+msgid ""
+"Two ways to connect. Each gives the e-reader its own app password, which you "
+"can revoke on your account page."
+msgstr ""
+"Twee manieren om te verbinden. Elk geeft de e-reader een eigen app-"
+"wachtwoord, dat je op je accountpagina kunt intrekken."
+
+#: cps/spa_strings.py
 msgid "Two-way sync active"
 msgstr "Synchronisatie in twee richtingen actief"
 
 #: cps/spa_strings.py
 msgid "Two-way sync preference saved."
 msgstr "Voorkeur voor synchronisatie in twee richtingen opgeslagen."
+
+#: cps/spa_strings.py
+msgid ""
+"Type the address above, then this account's username and its password or one "
+"of its app passwords."
+msgstr ""
+"Typ het adres hierboven, en daarna de gebruikersnaam van dit account en het "
+"wachtwoord of een van de app-wachtwoorden."
 
 #: cps/spa_strings.py cps/templates/book_table.html
 msgid "Unarchive"
@@ -8410,6 +8593,14 @@ msgstr "Zonder titel"
 #: cps/spa_strings.py
 msgid "Untitled link"
 msgstr "Link zonder titel"
+
+#: cps/spa_strings.py
+msgid ""
+"Unzip the download and copy the cwngsync.koplugin folder into koreader/"
+"plugins on the e-reader (on a Kobo, .adds/koreader/plugins)."
+msgstr ""
+"Pak de download uit en kopieer de map cwngsync.koplugin naar koreader/"
+"plugins op de e-reader (op een Kobo: .adds/koreader/plugins)."
 
 #: cps/spa_strings.py
 msgid "Update failed."
@@ -8577,6 +8768,10 @@ msgstr ""
 msgid "Web reader"
 msgstr "Weblezer"
 
+#: cps/spa_strings.py
+msgid "When it asks for your CWNG address, type the address above."
+msgstr "Typ het adres hierboven wanneer om je CWNG-adres wordt gevraagd."
+
 #: cps/spa_strings.py cps/templates/cover_picker.html
 msgid "When locked, fetching metadata will not overwrite this cover."
 msgstr ""
@@ -8646,6 +8841,21 @@ msgid "Your cover was updated."
 msgstr "Je omslag is bijgewerkt."
 
 #: cps/spa_strings.py
+msgid "Your e-reader will connect to"
+msgstr "Je e-reader maakt verbinding met"
+
+#: cps/spa_strings.py
+msgid ""
+"Your e-readers are still set to sync your whole library, so marking this "
+"shelf does nothing on its own. Switch your account to shelf-only syncing to "
+"make it take effect."
+msgstr ""
+"Je e-readers staan nog ingesteld om je hele bibliotheek te synchroniseren, "
+"dus het markeren van deze boekenplank doet op zichzelf niets. Schakel je "
+"account over naar synchronisatie van alleen boekenplanken om het van kracht "
+"te laten worden."
+
+#: cps/spa_strings.py
 msgid ""
 "Your own cover is private to you and your e-reader deliveries. The library "
 "cover stays unchanged for everyone else."
@@ -8666,6 +8876,10 @@ msgstr ""
 #: cps/spa_strings.py
 msgid "all rules"
 msgstr "alle regels"
+
+#: cps/spa_strings.py
+msgid "an unknown address"
+msgstr "een onbekend adres"
 
 #: cps/spa_strings.py
 msgid "any rule"
@@ -8694,6 +8908,10 @@ msgstr "bijv. Ongelezen sci-fi"
 #: cps/spa_strings.py
 msgid "eReader email subject"
 msgstr "eReader e-mailonderwerp"
+
+#: cps/spa_strings.py
+msgid "just now"
+msgstr "zojuist"
 
 #: cps/spa_strings.py
 msgid "shared"
@@ -9065,12 +9283,6 @@ msgstr "Zowel gebruikersnaam als regels zijn vereist"
 msgid "Shelf name too long (max 100 characters)"
 msgstr ""
 
-#: cps/api/magicshelves.py cps/web.py
-msgid ""
-"Kobo sync for Magic Shelves is disabled globally — this shelf won't reach "
-"your Kobo until 'Sync Magic Shelves to Kobo' is enabled in CWA Settings."
-msgstr ""
-
 #: cps/web.py
 msgid "Error creating shelf"
 msgstr "Fout bij aanmaken boekenplank"
@@ -9348,6 +9560,40 @@ msgstr ""
 #: cps/progress_syncing/protocols/kosync.py
 msgid "KOReader Sync Plugin"
 msgstr "KOReader Synchronisatie Plugin"
+
+#: cps/progress_syncing/protocols/kosync_library.py
+msgid "Not on this device yet"
+msgstr "Nog niet op dit apparaat"
+
+#: cps/progress_syncing/protocols/kosync_library.py
+msgid ""
+"This book is in your library but has not been downloaded to this device."
+msgstr ""
+"Dit boek staat in je bibliotheek, maar is nog niet naar dit apparaat "
+"gedownload."
+
+#: cps/progress_syncing/protocols/kosync_library.py
+msgid "Connect to Wi-Fi and open it from your library: it downloads by itself."
+msgstr ""
+"Maak verbinding met wifi en open het vanuit je bibliotheek: het wordt "
+"vanzelf gedownload."
+
+#: cps/services/ereader_scope.py
+msgid ""
+"E-reader sync for Magic Shelves is disabled globally — this shelf won't "
+"reach your e-readers until 'Sync Magic Shelves to e-readers (Kobo and "
+"KOReader)' is enabled in CWA Settings."
+msgstr ""
+"E-reader-synchronisatie voor magische boekenplanken is voor de hele server "
+"uitgeschakeld — deze boekenplank bereikt je e-readers pas als ‘Magische "
+"boekenplanken synchroniseren met e-readers (Kobo en KOReader)’ is "
+"ingeschakeld in de CWA-instellingen."
+
+#: cps/services/ereader_scope.py
+msgid ""
+"Kobo sync for Magic Shelves is disabled globally — this shelf won't reach "
+"your Kobo until 'Sync Magic Shelves to Kobo' is enabled in CWA Settings."
+msgstr ""
 
 #: cps/services/gmail.py
 msgid "Found no valid gmail.json file with OAuth information"
@@ -12498,6 +12744,22 @@ msgid ""
 "language are not complete."
 msgstr ""
 
+# KOReader: the magic shelf sync setting names e-readers
+#: cps/templates/cwa_settings.html
+msgid "Sync Magic Shelves to e-readers (Kobo and KOReader)"
+msgstr "Magische boekenplanken synchroniseren met e-readers (Kobo en KOReader)"
+
+#: cps/templates/cwa_settings.html
+msgid ""
+"When active, Magic Shelves marked for e-reader sync reach your Kobo as "
+"collections and your KOReader library as shelves. Kobo also needs Kobo Sync "
+"in Basic Configuration."
+msgstr ""
+"Als dit aan staat, komen magische boekenplanken die voor e-reader-"
+"synchronisatie zijn gemarkeerd als collecties op je Kobo en als "
+"boekenplanken in je KOReader-bibliotheek. Voor Kobo moet ook Kobo Sync aan "
+"staan in de basisconfiguratie."
+
 #: cps/templates/cwa_settings.html
 #, fuzzy
 msgid "Sync Magic Shelves to Kobo"
@@ -15305,157 +15567,23 @@ msgstr "Synchroniseer geselecteerde boekenplanken met Kobo"
 msgid "Show Read/Unread Section"
 msgstr "Toon gelezen/niet gelezen selectie"
 
-# KOReader: pairing by code, ready-made plugin, e-reader shelf wording
+#~ msgid ""
+#~ "Choose Login and sign in with this NextGen account or one of its app "
+#~ "passwords."
+#~ msgstr ""
+#~ "Kies ‘Login’ en meld je aan met dit NextGen-account of een van de app-"
+#~ "wachtwoorden."
 
-msgid "Approve"
-msgstr "Goedkeuren"
+#~ msgid ""
+#~ "In KOReader, open NextGen Progress Sync and choose Set NextGen Server."
+#~ msgstr ""
+#~ "Open in KOReader NextGen Progress Sync en kies ‘Set NextGen Server’."
 
-msgid "Approve only if this is your e-reader."
-msgstr "Keur dit alleen goed als het je eigen e-reader is."
+#~ msgid "Paste this server address (the plugin adds /kosync itself):"
+#~ msgstr "Plak dit serveradres (de plug-in voegt zelf /kosync toe):"
 
-#, python-brace-format
-msgid "Approved. {name} is finishing setup; its library appears in a few seconds."
-msgstr "Goedgekeurd. {name} rondt de installatie af; de bibliotheek verschijnt over een paar seconden."
-
-#, python-brace-format
-msgid "Asked {when} from {address}."
-msgstr "Verzoek {when} verstuurd vanaf {address}."
-
-msgid "Books that are not on an e-reader sync shelf then leave the e-reader's library on its next sync. They stay in your library here."
-msgstr "Boeken die niet op een met e-readers gesynchroniseerde boekenplank staan, verdwijnen dan bij de volgende synchronisatie uit de bibliotheek van de e-reader. Ze blijven wel in je bibliotheek hier."
-
-msgid "Change"
-msgstr "Wijzigen"
-
-msgid "Code on the e-reader"
-msgstr "Code op de e-reader"
-
-msgid "Connect to Wi-Fi and open it from your library: it downloads by itself."
-msgstr "Maak verbinding met wifi en open het vanuit je bibliotheek: het wordt vanzelf gedownload."
-
-msgid "Continue"
-msgstr "Doorgaan"
-
-#, python-brace-format
-msgid "Declined. {name} was not connected."
-msgstr "Geweigerd. {name} is niet gekoppeld."
-
-msgid "Download ready-made plugin"
-msgstr "Kant-en-klare plug-in downloaden"
-
-#, python-brace-format
-msgid "Downloaded {file}. It holds a password for this account: delete the zip once the plugin is on the e-reader."
-msgstr "{file} gedownload. Het bevat een wachtwoord voor dit account: verwijder het zip-bestand zodra de plug-in op de e-reader staat."
-
-msgid "E-reader sync on"
-msgstr "E-reader sync aan"
-
-msgid "Eject the e-reader and restart KOReader with Wi-Fi on. Your library appears in a moment."
-msgstr "Werp de e-reader uit en start KOReader opnieuw met wifi aan. Je bibliotheek verschijnt zo."
-
-msgid "Enable e-reader sync"
-msgstr "Zet e-reader sync aan"
-
-msgid "Enter the 8 letters and digits the e-reader shows, like K7M4-QX2P."
-msgstr "Voer de 8 letters en cijfers in die de e-reader toont, zoals K7M4-QX2P."
-
-msgid "Enter the address as http://host:port or https://host."
-msgstr "Voer het adres in als http://host:poort of https://host."
-
-msgid "Enter the code the e-reader shows, or scan its QR code with your phone."
-msgstr "Voer de code in die de e-reader toont, of scan de QR-code met je telefoon."
-
-msgid "For an e-reader you can plug into this computer. The plugin already knows your server and account: nothing to type on the e-reader."
-msgstr "Voor een e-reader die je op deze computer kunt aansluiten. De plug-in kent je server en account al: je hoeft niets in te typen op de e-reader."
-
-msgid "KOReader sync is not enabled on this server."
-msgstr "KOReader-synchronisatie is niet ingeschakeld op deze server."
-
-msgid "No e-reader is waiting with this code. Check it, or get a new code on the e-reader."
-msgstr "Er wacht geen e-reader met deze code. Controleer de code of vraag een nieuwe aan op de e-reader."
-
-msgid "Not on this device yet"
-msgstr "Nog niet op dit apparaat"
-
-msgid "On the e-reader, open Tools ▸ CWNG library ▸ Connect this device and choose Connect with a code."
-msgstr "Open op de e-reader het menu met het moersleutelpictogram ▸ CWNG library ▸ Connect this device en kies ‘Connect with a code’."
-
-msgid "On the e-reader, open Tools ▸ CWNG library ▸ Connect this device and choose Sign in with username and password."
-msgstr "Open op de e-reader het menu met het moersleutelpictogram ▸ CWNG library ▸ Connect this device en kies ‘Sign in with username and password’."
-
-msgid "Pair with a code"
-msgstr "Koppelen met een code"
-
-msgid "Preparing…"
-msgstr "Voorbereiden…"
-
-msgid "Ready-made plugin (USB)"
-msgstr "Kant-en-klare plug-in (USB)"
-
-msgid "Set up by hand"
-msgstr "Handmatig instellen"
-
-msgid "Sync only selected shelves to e-readers (Kobo and KOReader)"
-msgstr "Alleen geselecteerde boekenplanken synchroniseren met e-readers (Kobo en KOReader)"
-
-msgid "The KOReader plugin is not part of this installation."
-msgstr "De KOReader-plug-in maakt geen deel uit van deze installatie."
-
-msgid "This book is in your library but has not been downloaded to this device."
-msgstr "Dit boek staat in je bibliotheek, maar is nog niet naar dit apparaat gedownload."
-
-msgid "This code has already been approved or declined."
-msgstr "Deze code is al goedgekeurd of geweigerd."
-
-msgid "This is this computer's own address, which the e-reader cannot reach. Choose Change and enter the address the e-reader can use, such as http://192.168.1.20:8083."
-msgstr "Dit is het eigen adres van deze computer, dat de e-reader niet kan bereiken. Kies ‘Wijzigen’ en voer het adres in dat de e-reader kan gebruiken, zoals http://192.168.1.20:8083."
-
-msgid "Too many attempts. Wait a minute and try again."
-msgstr "Te veel pogingen. Wacht een minuut en probeer het opnieuw."
-
-msgid "Two ways to connect. Each gives the e-reader its own app password, which you can revoke on your account page."
-msgstr "Twee manieren om te verbinden. Elk geeft de e-reader een eigen app-wachtwoord, dat je op je accountpagina kunt intrekken."
-
-msgid "Type the address above, then this account's username and its password or one of its app passwords."
-msgstr "Typ het adres hierboven, en daarna de gebruikersnaam van dit account en het wachtwoord of een van de app-wachtwoorden."
-
-msgid "Unzip the download and copy the cwngsync.koplugin folder into koreader/plugins on the e-reader (on a Kobo, .adds/koreader/plugins)."
-msgstr "Pak de download uit en kopieer de map cwngsync.koplugin naar koreader/plugins op de e-reader (op een Kobo: .adds/koreader/plugins)."
-
-msgid "When it asks for your CWNG address, type the address above."
-msgstr "Typ het adres hierboven wanneer om je CWNG-adres wordt gevraagd."
-
-msgid "Your e-reader will connect to"
-msgstr "Je e-reader maakt verbinding met"
-
-msgid "Your e-readers are still set to sync your whole library, so marking this shelf does nothing on its own. Switch your account to shelf-only syncing to make it take effect."
-msgstr "Je e-readers staan nog ingesteld om je hele bibliotheek te synchroniseren, dus het markeren van deze boekenplank doet op zichzelf niets. Schakel je account over naar synchronisatie van alleen boekenplanken om het van kracht te laten worden."
-
-msgid "an unknown address"
-msgstr "een onbekend adres"
-
-msgid "just now"
-msgstr "zojuist"
-
-#, python-brace-format
-msgid "A device calling itself “{name}” wants to connect to your account."
-msgstr "Een apparaat dat zich ‘{name}’ noemt, wil verbinding maken met je account."
-
-msgid "This request came from a different network than the one you are using. If you did not just ask for a code on your own e-reader, choose Deny."
-msgstr "Dit verzoek kwam van een ander netwerk dan het netwerk dat je nu gebruikt. Heb je niet net zelf een code aangevraagd op je eigen e-reader, kies dan ‘Weigeren’."
-
-# KOReader: the magic shelf sync setting names e-readers
-
-msgid "Sync Magic Shelves to e-readers (Kobo and KOReader)"
-msgstr "Magische boekenplanken synchroniseren met e-readers (Kobo en KOReader)"
-
-msgid "When active, Magic Shelves marked for e-reader sync reach your Kobo as collections and your KOReader library as shelves. Kobo also needs Kobo Sync in Basic Configuration."
-msgstr "Als dit aan staat, komen magische boekenplanken die voor e-reader-synchronisatie zijn gemarkeerd als collecties op je Kobo en als boekenplanken in je KOReader-bibliotheek. Voor Kobo moet ook Kobo Sync aan staan in de basisconfiguratie."
-
-msgid "E-reader sync for Magic Shelves is disabled globally — this shelf won't reach your e-readers until 'Sync Magic Shelves to e-readers (Kobo and KOReader)' is enabled in CWA Settings."
-msgstr "E-reader-synchronisatie voor magische boekenplanken is voor de hele server uitgeschakeld — deze boekenplank bereikt je e-readers pas als ‘Magische boekenplanken synchroniseren met e-readers (Kobo en KOReader)’ is ingeschakeld in de CWA-instellingen."
-
-
+#~ msgid "Run a sync from the plugin."
+#~ msgstr "Start een synchronisatie vanuit de plug-in."
 
 #~ msgid "Change library cover"
 #~ msgstr "Bibliotheekomslag wijzigen"
