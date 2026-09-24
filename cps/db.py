@@ -14,7 +14,7 @@ from urllib.parse import quote
 import unidecode
 from weakref import WeakSet, WeakKeyDictionary
 from uuid import uuid4
-
+import time
 import sqlite3
 from sqlalchemy import create_engine, event
 from sqlalchemy import Table, Column, ForeignKey, CheckConstraint
@@ -44,7 +44,7 @@ from flask_babel import gettext as _
 from flask_babel import get_locale
 from flask import flash, url_for, has_request_context, g
 
-from . import logger, ub, isoLanguages
+from . import logger, ub, isoLanguages, hierarchy
 from .pagination import Pagination
 from .string_helper import strip_whitespaces
 from .sqlite_utils import network_share_mode_enabled
@@ -2294,6 +2294,77 @@ class CalibreDB:
             cc.append(col)
 
         return cc
+
+    def hierarchical_cc_filter(self, col_id, node):
+        """SQLAlchemy filter matching a hierarchy node and all of its descendants.
+
+        Matches the exact stored spellings the tree counted under ``node``
+        (see hierarchy.subtree_values), so ``Computers..DB`` or
+        ``Fiction . Mystery`` list the same books the tree counts, a
+        different-case ``computers.DB`` stays under its own node, and
+        ``ComputersX`` never matches ``Computers``.
+        """
+        cc = cc_classes[col_id]
+        return cc.value.in_(hierarchy.subtree_values(node))
+
+    def get_hierarchical_column_ids(self, ttl=300):
+        """Return the set of custom column ids that behave as hierarchies.
+
+        A column qualifies only when at least one stored value is a proper
+        prefix (value + separator) of another stored value, e.g. 'Computers'
+        and 'Computers.DB'. This avoids false positives on columns whose
+        values merely contain dots (Dewey '778.3', LCC 'QA76.76.C68', ...).
+        Result is cached process-wide for `ttl` seconds.
+        """
+        now = time.monotonic()
+        cached = getattr(self.__class__, '_hier_cache', None)
+        if cached is not None and now - cached[0] < ttl:
+            return cached[1]
+        ids = set()
+        try:
+            # Only tag-like columns hold dotted paths; int/float/bool/datetime/
+            # rating values are not strings and can never form a hierarchy.
+            text_ids = {row.id for row in self.session.query(CustomColumns.id).filter(
+                CustomColumns.datatype.in_(('text', 'enumeration')))}
+        except OperationalError:
+            return set()
+        for cid in text_ids:
+            cc = cc_classes.get(cid)
+            if cc is None:
+                continue
+            try:
+                values = [r[0] for r in self.session.query(cc.value).distinct()]
+            except OperationalError:
+                continue
+            if hierarchy.is_hierarchical_value_set(values):
+                ids.add(cid)
+        self.__class__._hier_cache = (now, ids)
+        return ids
+
+    def get_hierarchical_tree(self, col_id, apply_common_filters=True, book_filter=None):
+        """Return the nested tree (list of root nodes) for custom column `col_id`,
+        honouring user visibility filters (``book_filter`` replaces the default
+        ``common_filters()``, e.g. OPDS's shelf restriction). See
+        cps/hierarchy.py for the node shape.
+        """
+        cc = cc_classes.get(col_id)
+        if cc is None:
+            return []
+        rel = getattr(Books, 'custom_column_' + str(col_id))
+        q = (self.session.query(Books.id, cc.value)
+            .select_from(Books)
+            .join(rel)
+            .distinct())
+        if book_filter is not None:
+            q = q.filter(book_filter)
+        elif apply_common_filters:
+            q = q.filter(self.common_filters())
+        try:
+            rows = q.all()
+        except OperationalError:
+            log.error("Failed to read custom column %s for hierarchy tree", col_id)
+            return []
+        return hierarchy.parse_tag_hierarchy([(r[0], r[1]) for r in rows])
 
     # read search results from calibre-database and return it (function is used for feed and simple search
     def get_search_results(self, term, config, offset=None, order=None, limit=None, *join,

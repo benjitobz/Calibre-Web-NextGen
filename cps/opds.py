@@ -18,7 +18,7 @@ from flask_babel import lazy_gettext as N_
 from sqlalchemy.sql.expression import func, text, or_, and_, true, false
 from sqlalchemy.exc import InvalidRequestError, OperationalError
 
-from . import logger, config, db, calibre_db, ub, isoLanguages, constants, magic_shelf
+from . import logger, config, db, calibre_db, ub, isoLanguages, constants, magic_shelf, hierarchy
 from .usermanagement import requires_basic_auth_if_no_ano, auth
 from .helper import get_download_link, get_book_cover
 from .pagination import Pagination
@@ -555,7 +555,23 @@ def track_opds_access():
 @requires_basic_auth_if_no_ano
 def feed_index():
     entries = get_opds_root_entries(auth.current_user(), g.allow_anonymous)
+    entries.extend(get_opds_hierarchy_root_entries(auth.current_user()))
     return render_xml_template('index.xml', entries=entries)
+
+
+def get_opds_hierarchy_root_entries(user):
+    """One root entry per browsable custom column whose values form a
+    hierarchy; flat columns stay out of the catalog root."""
+    if not user.check_visibility(constants.SIDEBAR_CATEGORY):
+        return []
+    hierarchical = calibre_db.get_hierarchical_column_ids()
+    return [{
+        'key': 'cc_%d' % col.id,
+        'title': col.name,
+        'description': _('Books by %(name)s, including every sub-category', name=col.name),
+        'url': url_for('opds.feed_cc_category', column_id=col.id),
+    } for col in calibre_db.get_cc_columns(config)
+        if col.id in hierarchical and col.datatype in ('text', 'enumeration')]
 
 
 @opds.route("/opds/osd")
@@ -772,6 +788,62 @@ def feed_letter_category(book_id):
 @requires_basic_auth_if_no_ano
 def feed_category(book_id):
     return render_xml_dataset(db.Tags, book_id)
+
+
+@opds.route("/opds/custom_column/<int:column_id>", defaults={'category_path': ''})
+@opds.route("/opds/custom_column/<int:column_id>/<path:category_path>")
+@requires_basic_auth_if_no_ano
+def feed_cc_category(column_id, category_path):
+    """OPDS navigation/acquisition feed for one hierarchical custom column.
+
+    /opds/custom_column/1                    -> top-level nodes
+    /opds/custom_column/1/Computers          -> child nodes (navigation)
+    /opds/custom_column/1/Computers.DB       -> books under the leaf (acquisition)
+    Nodes with children take precedence over directly attached books;
+    those remain reachable through the OPDS search.
+    """
+    if not auth.current_user().check_visibility(constants.SIDEBAR_CATEGORY):
+        abort(404)
+    if not any(col.id == column_id and col.datatype in ('text', 'enumeration')
+               for col in calibre_db.get_cc_columns(config)):
+        abort(404)
+
+    # '/' is part of a value ("Sci-Fi/Fantasy"), never a separator.
+    path = hierarchy.join_path([category_path or ''])
+    off = int(request.args.get("offset") or 0)
+    cc = calibre_db.get_cc_columns(config, filter_config_custom_read=True)
+    opds_tree = calibre_db.get_hierarchical_tree(
+        column_id, book_filter=get_opds_restricted_common_filter())
+
+    if path:
+        node = hierarchy.get_node_by_path(opds_tree, path)
+        if node is None:
+            abort(404)
+        if node['children']:
+            elements = [{'column_id': column_id, 'path': child['path'],
+                         'name': child['name']} for child in node['children']]
+            pagination = Pagination(1, max(len(elements), 1), len(elements))
+            return render_xml_template('feed.xml', hierarchyelements=elements,
+                                       pagination=pagination, cc=cc)
+
+    if path:
+        entries, __, pagination = fill_opds_indexpage(
+            (int(off) / (int(config.config_books_per_page)) + 1), 0,
+            db.Books,
+            getattr(db.Books, 'custom_column_' + str(column_id)).any(
+                calibre_db.hierarchical_cc_filter(column_id, node)),
+            # Shared map entry, tiebreaker included (#1331) — an inline
+            # [db.Books.timestamp.desc()] here paged plan-dependently.
+            BOOK_SORT_ORDERS["new"],
+            True, config.config_read_column)
+        return render_xml_template('feed.xml', entries=entries,
+                                   pagination=pagination, cc=cc)
+
+    elements = [{'column_id': column_id, 'path': n['path'], 'name': n['name']}
+                for n in opds_tree]
+    pagination = Pagination(1, max(len(elements), 1), len(elements))
+    return render_xml_template('feed.xml', hierarchyelements=elements,
+                               pagination=pagination, cc=cc)
 
 
 @opds.route("/opds/series")
