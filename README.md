@@ -762,7 +762,7 @@ The interface ships with the locales below. Completion is auto-refreshed on ever
 | Language | Completion | Strings | Fuzzy |
 |---|---|---:|---:|
 | English (source) | 100% | source | — |
-| Swedish (`sv`) | `██████████████████░░` 92% | 3111/3368 | 0 |
+| Swedish (`sv`) | `████████████████████` 98% | 3298/3368 | 0 |
 | Italian (`it`) | `██████████████████░░` 92% | 3109/3368 | 0 |
 | Spanish (`es`) | `██████████████████░░` 92% | 3093/3368 | 0 |
 | French (`fr`) | `█████████████████░░░` 84% | 2831/3368 | 125 |
