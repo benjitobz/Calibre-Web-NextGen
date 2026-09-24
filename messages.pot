@@ -2084,6 +2084,11 @@ msgid "description"
 msgstr ""
 
 #: cps/opds.py
+#, python-format
+msgid "Books by %(name)s, including every sub-category"
+msgstr ""
+
+#: cps/opds.py
 #, python-brace-format
 msgid "{} Stars"
 msgstr ""
@@ -8908,6 +8913,11 @@ msgid "File formats list"
 msgstr ""
 
 #: cps/web.py
+#, python-format
+msgid "%(column)s: %(name)s"
+msgstr ""
+
+#: cps/web.py
 msgid "Please configure the SMTP mail settings first..."
 msgstr ""
 
@@ -10231,6 +10241,20 @@ msgstr ""
 
 #: cps/templates/broadcast_email.html
 msgid "Send this announcement to __NUM__ recipient(s)?"
+msgstr ""
+
+#: cps/templates/cc_list.html
+msgid ""
+"Select a category to see the books assigned to it and all of its sub-"
+"categories."
+msgstr ""
+
+#: cps/templates/cc_list.html
+msgid "Expand all"
+msgstr ""
+
+#: cps/templates/cc_list.html
+msgid "Collapse all"
 msgstr ""
 
 #: cps/templates/config_db.html
@@ -13272,6 +13296,10 @@ msgid "Favorite"
 msgstr ""
 
 #: cps/templates/index.html
+msgid "Subcategories"
+msgstr ""
+
+#: cps/templates/index.html
 msgid "Dismiss library introduction"
 msgstr ""
 
@@ -14575,6 +14603,11 @@ msgstr ""
 
 #: cps/templates/user_edit.html
 msgid "Choose which sections to display in your sidebar navigation."
+msgstr ""
+
+#: cps/templates/user_edit.html
+#, python-format
+msgid "Show %(name)s Section"
 msgstr ""
 
 #: cps/templates/user_edit.html

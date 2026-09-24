@@ -2271,6 +2271,11 @@ msgid "description"
 msgstr "descrizione"
 
 #: cps/opds.py
+#, python-format
+msgid "Books by %(name)s, including every sub-category"
+msgstr ""
+
+#: cps/opds.py
 #, python-brace-format
 msgid "{} Stars"
 msgstr "{} stelle"
@@ -9410,6 +9415,11 @@ msgid "File formats list"
 msgstr "Elenco formati di file"
 
 #: cps/web.py
+#, python-format
+msgid "%(column)s: %(name)s"
+msgstr ""
+
+#: cps/web.py
 msgid "Please configure the SMTP mail settings first..."
 msgstr "Configura prima le impostazioni della posta SMTP…"
 
@@ -10804,6 +10814,20 @@ msgstr "Indietro"
 #: cps/templates/broadcast_email.html
 msgid "Send this announcement to __NUM__ recipient(s)?"
 msgstr "Inviare questa comunicazione a __NUM__ destinatario/i?"
+
+#: cps/templates/cc_list.html
+msgid ""
+"Select a category to see the books assigned to it and all of its sub-"
+"categories."
+msgstr ""
+
+#: cps/templates/cc_list.html
+msgid "Expand all"
+msgstr ""
+
+#: cps/templates/cc_list.html
+msgid "Collapse all"
+msgstr ""
 
 #: cps/templates/config_db.html
 msgid "Troubleshooting your DB"
@@ -14355,6 +14379,10 @@ msgid "Favorite"
 msgstr "Preferito"
 
 #: cps/templates/index.html
+msgid "Subcategories"
+msgstr ""
+
+#: cps/templates/index.html
 msgid "Dismiss library introduction"
 msgstr "Nascondi introduzione alla biblioteca"
 
@@ -15757,6 +15785,11 @@ msgstr "Impostazioni di visualizzazione della barra laterale"
 #: cps/templates/user_edit.html
 msgid "Choose which sections to display in your sidebar navigation."
 msgstr "Scegli quali sezioni mostrare nella barra laterale."
+
+#: cps/templates/user_edit.html
+#, python-format
+msgid "Show %(name)s Section"
+msgstr ""
 
 #: cps/templates/user_edit.html
 msgid "Add allowed/Denied Custom Column Values"

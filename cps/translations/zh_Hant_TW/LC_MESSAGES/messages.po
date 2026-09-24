@@ -2112,6 +2112,11 @@ msgid "description"
 msgstr "簡介"
 
 #: cps/opds.py
+#, python-format
+msgid "Books by %(name)s, including every sub-category"
+msgstr ""
+
+#: cps/opds.py
 #, python-brace-format
 msgid "{} Stars"
 msgstr "{} 星"
@@ -8950,6 +8955,11 @@ msgid "File formats list"
 msgstr "文件格式列表"
 
 #: cps/web.py
+#, python-format
+msgid "%(column)s: %(name)s"
+msgstr ""
+
+#: cps/web.py
 msgid "Please configure the SMTP mail settings first..."
 msgstr "請先配置SMTP郵箱設定..."
 
@@ -10319,6 +10329,20 @@ msgstr "後退"
 #: cps/templates/broadcast_email.html
 msgid "Send this announcement to __NUM__ recipient(s)?"
 msgstr "將此公告傳送給 __NUM__ 位收件者？"
+
+#: cps/templates/cc_list.html
+msgid ""
+"Select a category to see the books assigned to it and all of its sub-"
+"categories."
+msgstr ""
+
+#: cps/templates/cc_list.html
+msgid "Expand all"
+msgstr ""
+
+#: cps/templates/cc_list.html
+msgid "Collapse all"
+msgstr ""
 
 #: cps/templates/config_db.html
 msgid "Troubleshooting your DB"
@@ -13424,6 +13448,10 @@ msgid "Favorite"
 msgstr "最愛"
 
 #: cps/templates/index.html
+msgid "Subcategories"
+msgstr ""
+
+#: cps/templates/index.html
 msgid "Dismiss library introduction"
 msgstr "關閉書庫介紹"
 
@@ -14749,6 +14777,11 @@ msgstr "側欄顯示設定"
 #: cps/templates/user_edit.html
 msgid "Choose which sections to display in your sidebar navigation."
 msgstr "選擇要在側邊欄導覽中顯示的區段。"
+
+#: cps/templates/user_edit.html
+#, python-format
+msgid "Show %(name)s Section"
+msgstr ""
 
 #: cps/templates/user_edit.html
 msgid "Add allowed/Denied Custom Column Values"

@@ -2132,6 +2132,11 @@ msgid "description"
 msgstr "설명"
 
 #: cps/opds.py
+#, python-format
+msgid "Books by %(name)s, including every sub-category"
+msgstr ""
+
+#: cps/opds.py
 #, python-brace-format
 msgid "{} Stars"
 msgstr "{} Stars"
@@ -8974,6 +8979,11 @@ msgid "File formats list"
 msgstr "파일 형식 목록"
 
 #: cps/web.py
+#, python-format
+msgid "%(column)s: %(name)s"
+msgstr ""
+
+#: cps/web.py
 msgid "Please configure the SMTP mail settings first..."
 msgstr "SMTP 메일 설정을 해주세요."
 
@@ -10346,6 +10356,20 @@ msgstr "뒤로"
 
 #: cps/templates/broadcast_email.html
 msgid "Send this announcement to __NUM__ recipient(s)?"
+msgstr ""
+
+#: cps/templates/cc_list.html
+msgid ""
+"Select a category to see the books assigned to it and all of its sub-"
+"categories."
+msgstr ""
+
+#: cps/templates/cc_list.html
+msgid "Expand all"
+msgstr ""
+
+#: cps/templates/cc_list.html
+msgid "Collapse all"
 msgstr ""
 
 #: cps/templates/config_db.html
@@ -13484,6 +13508,10 @@ msgid "Favorite"
 msgstr ""
 
 #: cps/templates/index.html
+msgid "Subcategories"
+msgstr ""
+
+#: cps/templates/index.html
 msgid "Dismiss library introduction"
 msgstr ""
 
@@ -14834,6 +14862,11 @@ msgstr "보안 설정"
 
 #: cps/templates/user_edit.html
 msgid "Choose which sections to display in your sidebar navigation."
+msgstr ""
+
+#: cps/templates/user_edit.html
+#, python-format
+msgid "Show %(name)s Section"
 msgstr ""
 
 #: cps/templates/user_edit.html
