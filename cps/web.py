@@ -36,7 +36,7 @@ from . import constants, logger, isoLanguages, services, helper, spa, oauth_auto
 from . import db, ub, config, app, user_library
 from . import calibre_db, kobo_sync_status
 from .services.ereader_send import send_includes_own_address
-from .services import reading_position
+from .services import app_passwords, ereader_scope, reading_position
 from .search import render_search_results, render_adv_search_results
 from .gdriveutils import getFileFromEbooksFolder, do_gdrive_download
 from .helper import check_valid_domain, check_email, check_username, \
@@ -1816,9 +1816,7 @@ def create_magic_shelf():
                 return jsonify({
                     "success": True,
                     "shelf_id": new_shelf.id,
-                    "warning": _("Kobo sync for Magic Shelves is disabled globally — "
-                                 "this shelf won't reach your Kobo until 'Sync Magic "
-                                 "Shelves to Kobo' is enabled in CWA Settings."),
+                    "warning": ereader_scope.magic_shelves_off_warning(),
                 })
             return jsonify({"success": True, "shelf_id": new_shelf.id})
         except Exception as e:
@@ -1832,6 +1830,7 @@ def create_magic_shelf():
                                  opds_expose_enabled=current_user.opds_only_shelves_sync,
                                  opds_expose_checked=False,
                                  kobo_magic_sync_enabled=bool(config.config_kobo_sync_magic_shelves),
+                                 koreader_sync=ereader_scope.koreader_library_on(),
                                  allowed_icons=ALLOWED_ICONS,
                                  rule_schema=magic_shelf.build_rule_schema_for_locale(get_locale()))
 
@@ -1942,9 +1941,7 @@ def edit_magic_shelf(shelf_id):
                 )
                 return jsonify({
                     "success": True,
-                    "warning": _("Kobo sync for Magic Shelves is disabled globally — "
-                                 "this shelf won't reach your Kobo until 'Sync Magic "
-                                 "Shelves to Kobo' is enabled in CWA Settings."),
+                    "warning": ereader_scope.magic_shelves_off_warning(),
                 })
             return jsonify({"success": True})
         except Exception as e:
@@ -1960,6 +1957,7 @@ def edit_magic_shelf(shelf_id):
                                  opds_expose_enabled=current_user.opds_only_shelves_sync,
                                  opds_expose_checked=opds_expose_checked,
                                  kobo_magic_sync_enabled=bool(config.config_kobo_sync_magic_shelves),
+                                 koreader_sync=ereader_scope.koreader_library_on(),
                                  allowed_icons=ALLOWED_ICONS,
                                  rule_schema=magic_shelf.build_rule_schema_for_locale(get_locale()))
 
@@ -3651,8 +3649,6 @@ def profile():
 # prefer not to expose their directory password. Cleartext shown once at create time via
 # Flask flash; only the werkzeug hash is persisted. See `notes/oauth-opds-app-passwords-DESIGN.md`.
 
-import secrets as _secrets
-
 
 @web.route("/me/app-passwords", methods=["POST"])
 @user_login_required
@@ -3663,13 +3659,7 @@ def app_password_create():
         return redirect(url_for("web.profile"))
     if current_user.role_anonymous():
         abort(403)
-    cleartext = _secrets.token_urlsafe(32)
-    row = ub.UserAppPassword(
-        user_id=current_user.id,
-        label=label,
-        password_hash=generate_password_hash(cleartext),
-    )
-    ub.session.add(row)
+    _row, cleartext = app_passwords.mint(current_user.id, label)
     ub.session.commit()
     # Cleartext shown inline on the profile page (fork issue #223). Survives
     # reloads of /me; cleared on navigation to any other route by the

@@ -413,3 +413,26 @@ def spa_shell(path=""):
     # clears the session escape hatch.
     stamp_prefer_spa_cookie(resp)
     return resp
+
+
+@spa.route("/pair")
+def pair_shortcut():
+    """``<server>/pair``: the short address a KOReader device shows for pairing.
+
+    Lands on the web app's e-readers page with the code box open, and filled in
+    when the QR code carried the code. A visitor who is not signed in (often
+    the phone that scanned the code) goes through the sign-in page, which
+    returns to ``next`` afterwards, so the code survives the sign-in. Only a
+    well-formed code is passed on, so nothing typed into this URL reaches the
+    page unchecked.
+    """
+    from .cw_login import current_user
+    from .services.koreader_pairing import normalize_user_code
+    query = {"pair": "1"}
+    code = normalize_user_code(request.args.get("code", ""))
+    if code:
+        query["code"] = code
+    target = "%saccount/devices?%s" % (spa_shell_url(), urlencode(query))
+    if not current_user.is_authenticated or current_user.is_anonymous:
+        return redirect("%slogin?%s" % (spa_shell_url(), urlencode({"next": target})))
+    return redirect(target)

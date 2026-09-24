@@ -312,12 +312,23 @@ def authenticate_user() -> Optional[ub.User]:
         log.info("KOReader auth: User not found: %s", username)
         return None
 
+    # App passwords first (fork issues #586, #95), found by their digest: one
+    # indexed lookup, no slow hash, and never an LDAP bind. KOReader sends
+    # its credentials with every request; when this check came last, each
+    # request from a device paid the LDAP bind (a failed login on the
+    # directory) and the account hash before its own password was looked at.
+    # Successful sign-ins log at DEBUG: a library sync is a burst of requests,
+    # each signed in. Refused ones stay at INFO (#312).
+    if usermanagement._verify_app_password_digest(user, password):
+        log.debug("KOReader auth: authenticated via app password: %s", username)
+        return user
+
     # Check if LDAP authentication is enabled
     if config.config_login_type == constants.LOGIN_LDAP and services.ldap:
         # Try LDAP authentication
         login_result, error = services.ldap.bind_user(user.name, password)
         if login_result:
-            log.info(f"authenticate_user: Successfully authenticated user via LDAP: {user.name}")
+            log.debug("KOReader auth: authenticated via LDAP: %s", user.name)
             return user
 
         # Log LDAP failure but continue to local check (fallback)
@@ -328,16 +339,14 @@ def authenticate_user() -> Optional[ub.User]:
     # Verify password using constant-time comparison
     # Check if user has a local password set before attempting verification
     if user.password and check_password_hash(str(user.password), password):
-        log.info(f"User authenticated successfully: {username}")
+        log.debug("KOReader auth: authenticated: %s", username)
         return user
 
-    # Fork issue #586: OAuth / LDAP-only users have no usable local password,
-    # so the check above always fails for them. Accept per-user app passwords
-    # here the same way the OPDS / web Basic-auth path already does
-    # (usermanagement.verify_password -> _verify_app_password). This login path
-    # is shared by KOReader progress AND annotation sync, so both are covered.
-    if usermanagement._verify_app_password(user, password):
-        log.info("KOReader auth: authenticated via app password: %s", username)
+    # App passwords saved before digests existed cost a slow hash each, so
+    # they come last; the first sign-in with one gives it its digest. This
+    # login path is shared by KOReader progress, annotation and library sync.
+    if usermanagement._verify_app_password_older(user, password):
+        log.debug("KOReader auth: authenticated via app password: %s", username)
         return user
 
     # Fork issue #312: promoted from DEBUG. Invalid-password attempts
@@ -2210,3 +2219,10 @@ def handle_internal_error(error):
 # Imported at the bottom so kosync is fully defined first (the module imports
 # helpers from here). See koreader_annotations.py.
 from . import koreader_annotations  # noqa: E402,F401
+
+# The KOReader library (manifest, placeholders, book files, read status).
+# Imported at the bottom for the same reason as the annotation routes above.
+from . import kosync_library  # noqa: E402,F401
+
+# Connecting a device with a code (pairing). Same reason again.
+from . import kosync_pairing  # noqa: E402,F401

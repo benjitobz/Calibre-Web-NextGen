@@ -508,7 +508,8 @@ class UserAppPassword(Base):
     LDAP users may prefer not to expose their directory password to OPDS / KOSync
     clients. App passwords let any user mint a long random token bound to a
     label (e.g. "Kobo", "KOReader iPad"); the cleartext is shown once at create
-    time and then only its `werkzeug` hash is stored.
+    time. What is kept, and why a fast digest is safe for these secrets, is
+    explained in ``cps/services/app_passwords.py``.
 
     See `notes/oauth-opds-app-passwords-DESIGN.md` and fork issue #95.
     """
@@ -519,10 +520,47 @@ class UserAppPassword(Base):
                      nullable=False, index=True)
     label = Column(String, nullable=False)
     password_hash = Column(String, nullable=False)
+    # SHA-256 hex of the cleartext: how sign-in finds the row. NULL on rows
+    # saved before it existed until their first sign-in fills it in.
+    token_digest = Column(String(64), index=True)
     created_at = Column(DateTime, nullable=False,
                         default=lambda: datetime.now(timezone.utc))
     last_used_at = Column(DateTime)
     revoked = Column(Boolean, nullable=False, default=False)
+
+
+class KOReaderPairing(Base):
+    """One "connect this e-reader with a code" request (a device grant).
+
+    The device shows ``user_code``; a signed-in reader types it on the website
+    and approves or denies. The device polls with its ``device_code``, which
+    is a 256-bit secret stored only as a SHA-256 digest. On the first poll
+    after approval the device receives a freshly minted app password, exactly
+    once; its cleartext is never stored. Rows live ten minutes and are swept
+    by ``clean_database``. See ``cps/services/koreader_pairing.py``.
+    """
+    __tablename__ = 'koreader_pairing'
+
+    id = Column(Integer, primary_key=True)
+    user_code = Column(String(8), nullable=False, unique=True)
+    device_code_hash = Column(String(64), nullable=False, unique=True)
+    device_name = Column(String(100), nullable=False)
+    # The id the device sends with every call: a device asking again replaces
+    # its own waiting code instead of adding another.
+    device_id = Column(String(100))
+    requester_ip = Column(String(64))
+    # What the waiting-code limit counts: the IPv4 address, or the IPv6 /64.
+    requester_net = Column(String(64), index=True)
+    status = Column(String(16), nullable=False, default="pending")
+    user_id = Column(Integer, ForeignKey('user.id', ondelete='CASCADE'),
+                     index=True)
+    created_at = Column(DateTime, nullable=False)
+    expires_at = Column(DateTime, nullable=False, index=True)
+    decided_at = Column(DateTime)
+    claimed_at = Column(DateTime)
+    last_poll_at = Column(DateTime)
+    app_password_id = Column(Integer, ForeignKey('user_app_password.id',
+                                                 ondelete='SET NULL'))
 
 
 # Baseclass representing Shelfs in calibre-web in app.db
@@ -3690,6 +3728,62 @@ def migrate_user_book_cover_table(engine, _session):
     )
 
 
+def migrate_koreader_pairing_table(engine, _session):
+    """Create the e-reader pairing (device grant) table on upgraded app.db
+    files, and give one made by an earlier build the columns it lacks.
+
+    Rows already there get NULL in the new columns; they live ten minutes.
+    """
+    Base.metadata.create_all(
+        engine, tables=[KOReaderPairing.__table__], checkfirst=True,
+    )
+    with engine.connect() as connection:
+        columns = {row[1] for row in connection.execute(
+            text("PRAGMA table_info(koreader_pairing)"))}
+    for name, kind in (("device_id", "VARCHAR(100)"), ("requester_net", "VARCHAR(64)")):
+        if name in columns:
+            continue
+        try:
+            _run_ddl_with_retry(
+                engine, "ALTER TABLE koreader_pairing ADD COLUMN %s %s" % (name, kind))
+        except exc.OperationalError as error:
+            if "duplicate column" not in str(error).lower():
+                raise
+    _run_ddl_with_retry(
+        engine,
+        "CREATE INDEX IF NOT EXISTS ix_koreader_pairing_requester_net "
+        "ON koreader_pairing (requester_net)",
+    )
+
+
+def migrate_user_app_password_digest(engine, _session):
+    """Give app passwords the digest sign-in looks them up by, on upgraded app.db files.
+
+    Rows already there keep a NULL digest; the first sign-in with each fills
+    it in (``cps/services/app_passwords.py``). ``IF NOT EXISTS`` and the
+    duplicate-column tolerance make this safe on every boot.
+    """
+    with engine.connect() as connection:
+        columns = {row[1] for row in connection.execute(
+            text("PRAGMA table_info(user_app_password)"))}
+    if not columns:
+        return
+    if "token_digest" not in columns:
+        try:
+            _run_ddl_with_retry(
+                engine,
+                "ALTER TABLE user_app_password ADD COLUMN token_digest VARCHAR(64)",
+            )
+        except exc.OperationalError as error:
+            if "duplicate column" not in str(error).lower():
+                raise
+    _run_ddl_with_retry(
+        engine,
+        "CREATE INDEX IF NOT EXISTS ix_user_app_password_token_digest "
+        "ON user_app_password (token_digest)",
+    )
+
+
 def migrate_cover_design_preset_tables(engine, _session):
     """Create the saved-cover-design tables on upgraded app.db files."""
     Base.metadata.create_all(
@@ -5092,6 +5186,8 @@ def migrate_Database(_session):
     migrate_kobo_two_way_annotation_sync(engine, _session)
     migrate_book_cover_preview_table(engine, _session)
     migrate_user_book_cover_table(engine, _session)
+    migrate_koreader_pairing_table(engine, _session)
+    migrate_user_app_password_digest(engine, _session)
     migrate_cover_design_preset_tables(engine, _session)
     migrate_notice_tables(engine, _session)
     migrate_kepub_package_repair_disposition(engine, _session)
@@ -5183,6 +5279,10 @@ def clean_database(_session):
     try:
         _session.query(RemoteAuthToken).filter(now > RemoteAuthToken.expiration).\
             filter(RemoteAuthToken.token_type != 1).delete()
+        # Pairing requests are useless once expired; stored times are UTC.
+        _session.query(KOReaderPairing).filter(
+            KOReaderPairing.expires_at
+            < datetime.now(timezone.utc).replace(tzinfo=None)).delete()
         _session.commit()
     except exc.OperationalError:  # Database is not writeable
         print('Settings database is not writeable. Exiting...')
