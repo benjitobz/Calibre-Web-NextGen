@@ -4946,6 +4946,10 @@ msgid "Alignment"
 msgstr ""
 
 #: cps/spa_strings.py
+msgid "All annotations"
+msgstr ""
+
+#: cps/spa_strings.py
 msgid "All books"
 msgstr "Alla böcker"
 
@@ -5187,6 +5191,16 @@ msgstr ""
 msgid ""
 "Books that are not on an e-reader sync shelf then leave the e-reader's "
 "library on its next sync. They stay in your library here."
+msgstr ""
+
+#: cps/spa_strings.py
+msgid "Browser reading sources"
+msgstr ""
+
+#: cps/spa_strings.py
+msgid ""
+"Browsers appear after saving reading progress or annotations. Different "
+"browsers or profiles can appear separately."
 msgstr ""
 
 #: cps/spa_strings.py
@@ -6505,6 +6519,10 @@ msgstr ""
 "vill ha!"
 
 #: cps/spa_strings.py
+msgid "Inventory not reported"
+msgstr ""
+
+#: cps/spa_strings.py
 msgid "Issuer / base URL"
 msgstr "Utfärdare / baswebbadress"
 
@@ -6679,6 +6697,10 @@ msgstr "Läser in läspositioner…"
 #: cps/spa_strings.py cps/templates/cover_picker.html
 msgid "Loading…"
 msgstr "Läser in…"
+
+#: cps/spa_strings.py
+msgid "Location unavailable"
+msgstr ""
 
 #: cps/spa_strings.py cps/templates/cover_picker.html
 msgid "Lock cover"
@@ -7051,10 +7073,6 @@ msgstr "Inte tilldelad"
 #: cps/spa_strings.py
 msgid "Not configured"
 msgstr "Inte konfigurerad"
-
-#: cps/spa_strings.py
-msgid "Not in current file"
-msgstr "Inte i aktuell fil"
 
 #: cps/spa_strings.py
 msgid "Not matched to this library"
@@ -7486,6 +7504,12 @@ msgstr "Läsarinställningarna har sparats."
 #: cps/spa_strings.py
 msgid "Reading appearance"
 msgstr "Läsutseende"
+
+#: cps/spa_strings.py
+msgid ""
+"Reading data is kept. Future browser saves can appear under an unidentified "
+"browser source."
+msgstr ""
 
 #: cps/spa_strings.py
 msgid "Reading from here. This is now your Browser position."
@@ -8367,6 +8391,10 @@ msgid "This code has already been approved or declined."
 msgstr ""
 
 #: cps/spa_strings.py
+msgid "This device has not reported its inventory yet."
+msgstr ""
+
+#: cps/spa_strings.py
 msgid "This device will no longer sync."
 msgstr "Den här enheten synkroniseras inte längre."
 
@@ -8395,12 +8423,6 @@ msgid ""
 msgstr ""
 
 #: cps/spa_strings.py
-msgid ""
-"This request came from a different network than the one you are using. If "
-"you did not just ask for a code on your own e-reader, choose Deny."
-msgstr ""
-
-#: cps/spa_strings.py
 msgid "This magic link can’t be checked. Generate a new one to try again."
 msgstr ""
 "Den här magiska länken kan inte kontrolleras. Skapa en ny för att försöka "
@@ -8421,6 +8443,12 @@ msgid ""
 msgstr ""
 "Det uppstod ett fel på sidan och den kunde inte visas. Ditt bibliotek är "
 "intakt — det brukar lösa sig om du läser in sidan igen."
+
+#: cps/spa_strings.py
+msgid ""
+"This request came from a different network than the one you are using. If "
+"you did not just ask for a code on your own e-reader, choose Deny."
+msgstr ""
 
 #: cps/spa_strings.py
 msgid "This shelf is empty. Add books from any book's page."
@@ -8513,6 +8541,10 @@ msgstr "Ångrar…"
 #: cps/spa_strings.py
 msgid "Unhide"
 msgstr "Visa igen"
+
+#: cps/spa_strings.py
+msgid "Unidentified browser source"
+msgstr ""
 
 #: cps/spa_strings.py
 msgid "Unknown color"
@@ -8686,8 +8718,10 @@ msgid "Waiting for you to authorise…"
 msgstr "Väntar på att du ska auktorisera…"
 
 #: cps/spa_strings.py
-msgid "Warning: this highlight can’t be shown in the book"
-msgstr "Varning: den här markeringen kan inte visas i boken"
+msgid ""
+"Warning: the saved highlight could not be located in the current book. Its "
+"text is preserved."
+msgstr ""
 
 #: cps/spa_strings.py
 msgid ""
@@ -8979,6 +9013,28 @@ msgstr "{name}, {n} markeringar och anteckningar"
 
 #: cps/spa_strings.py
 #, python-brace-format
+msgid "{n} annotations assigned to this source"
+msgstr ""
+
+#: cps/spa_strings.py
+#, python-brace-format
+msgid "{n} annotations assigned to this source will become Unknown device."
+msgstr ""
+
+#: cps/spa_strings.py
+#, python-brace-format
+msgid "{n} annotations from this source"
+msgstr ""
+
+#: cps/spa_strings.py
+#, python-brace-format
+msgid ""
+"{n} annotations were made on this source. They are not deleted. Their origin "
+"history is kept."
+msgstr ""
+
+#: cps/spa_strings.py
+#, python-brace-format
 msgid "{n} assigned to {name}."
 msgstr "{n} har tilldelats {name}."
 
@@ -9006,23 +9062,6 @@ msgstr "{n} hittades"
 #, python-brace-format
 msgid "{n} highlights and notes"
 msgstr "{n} markeringar och anteckningar"
-
-#: cps/spa_strings.py
-#, python-brace-format
-msgid ""
-"{n} highlights and notes assigned to this device will become Unknown device."
-msgstr ""
-"{n} markeringar och anteckningar som tilldelats den här enheten får Okänd "
-"enhet."
-
-#: cps/spa_strings.py
-#, python-brace-format
-msgid ""
-"{n} highlights and notes were made on this device. They are not deleted. "
-"Their origin history is kept."
-msgstr ""
-"{n} markeringar och anteckningar gjordes på den här enheten. De tas inte "
-"bort. Ursprungshistoriken behålls."
 
 #: cps/spa_strings.py
 #, python-brace-format
@@ -15828,6 +15867,28 @@ msgstr "Exponera valda hyllor via OPDS"
 #: cps/templates/user_table.html
 msgid "Show Read/Unread Section"
 msgstr "Visa avsnittet Läst/oläst"
+
+#~ msgid "Not in current file"
+#~ msgstr "Inte i aktuell fil"
+
+#~ msgid "Warning: this highlight can’t be shown in the book"
+#~ msgstr "Varning: den här markeringen kan inte visas i boken"
+
+#, python-brace-format
+#~ msgid ""
+#~ "{n} highlights and notes assigned to this device will become Unknown "
+#~ "device."
+#~ msgstr ""
+#~ "{n} markeringar och anteckningar som tilldelats den här enheten får Okänd "
+#~ "enhet."
+
+#, python-brace-format
+#~ msgid ""
+#~ "{n} highlights and notes were made on this device. They are not deleted. "
+#~ "Their origin history is kept."
+#~ msgstr ""
+#~ "{n} markeringar och anteckningar gjordes på den här enheten. De tas inte "
+#~ "bort. Ursprungshistoriken behålls."
 
 #~ msgid ""
 #~ "Choose Login and sign in with this NextGen account or one of its app "
