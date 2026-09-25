@@ -6610,8 +6610,10 @@ msgstr "「我的書庫」已為 {accounts} 個帳戶啟用。"
 
 #: cps/spa_strings.py
 #, python-brace-format
-msgid "My Library is on for {accounts} accounts; {errors} accounts failed."
-msgstr "「我的書庫」已為 {accounts} 個帳戶啟用；{errors} 個帳戶失敗。"
+msgid ""
+"My Library setup is incomplete for {accounts} account(s). You can retry or "
+"undo."
+msgstr ""
 
 #: cps/spa_strings.py
 msgid "My account"
@@ -7412,6 +7414,12 @@ msgstr "從另一個裝置以 {percent} 繼續閱讀"
 #: cps/spa_strings.py
 msgid "Retry"
 msgstr "重試"
+
+#: cps/spa_strings.py
+msgid ""
+"Retry finishes the remaining accounts without changing completed selections. "
+"Undo restores the settings from before setup began."
+msgstr ""
 
 #: cps/spa_strings.py
 msgid "Reverse-proxy header login"
@@ -15105,6 +15113,10 @@ msgstr "同步所選書架到 Kobo"
 #, fuzzy
 msgid "Show Read/Unread Section"
 msgstr "顯示已讀/未讀選擇"
+
+#, python-brace-format
+#~ msgid "My Library is on for {accounts} accounts; {errors} accounts failed."
+#~ msgstr "「我的書庫」已為 {accounts} 個帳戶啟用；{errors} 個帳戶失敗。"
 
 #~ msgid "Not in current file"
 #~ msgstr "不在目前檔案中"

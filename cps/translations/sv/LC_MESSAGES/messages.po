@@ -6887,10 +6887,10 @@ msgstr "Mitt bibliotek är nu aktiverat för {accounts} konton."
 
 #: cps/spa_strings.py
 #, python-brace-format
-msgid "My Library is on for {accounts} accounts; {errors} accounts failed."
+msgid ""
+"My Library setup is incomplete for {accounts} account(s). You can retry or "
+"undo."
 msgstr ""
-"Mitt bibliotek är aktiverat för {accounts} konton; {errors} konton "
-"misslyckades."
 
 #: cps/spa_strings.py
 msgid "My account"
@@ -7722,6 +7722,12 @@ msgstr "Fortsätt vid {percent} från en annan enhet"
 #: cps/spa_strings.py
 msgid "Retry"
 msgstr "Försök igen"
+
+#: cps/spa_strings.py
+msgid ""
+"Retry finishes the remaining accounts without changing completed selections. "
+"Undo restores the settings from before setup began."
+msgstr ""
 
 #: cps/spa_strings.py
 msgid "Reverse-proxy header login"
@@ -15896,6 +15902,12 @@ msgstr "Exponera valda hyllor via OPDS"
 #: cps/templates/user_table.html
 msgid "Show Read/Unread Section"
 msgstr "Visa avsnittet Läst/oläst"
+
+#, python-brace-format
+#~ msgid "My Library is on for {accounts} accounts; {errors} accounts failed."
+#~ msgstr ""
+#~ "Mitt bibliotek är aktiverat för {accounts} konton; {errors} konton "
+#~ "misslyckades."
 
 #~ msgid "Not in current file"
 #~ msgstr "Inte i aktuell fil"

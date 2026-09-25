@@ -6940,10 +6940,10 @@ msgstr "Mi biblioteca ya está activada para {accounts} cuentas."
 
 #: cps/spa_strings.py
 #, python-brace-format
-msgid "My Library is on for {accounts} accounts; {errors} accounts failed."
+msgid ""
+"My Library setup is incomplete for {accounts} account(s). You can retry or "
+"undo."
 msgstr ""
-"Mi biblioteca está activada para {accounts} cuentas; {errors} cuentas "
-"fallaron."
 
 #: cps/spa_strings.py
 msgid "My account"
@@ -7776,6 +7776,12 @@ msgstr ""
 #: cps/spa_strings.py
 msgid "Retry"
 msgstr "Reintentar"
+
+#: cps/spa_strings.py
+msgid ""
+"Retry finishes the remaining accounts without changing completed selections. "
+"Undo restores the settings from before setup began."
+msgstr ""
 
 #: cps/spa_strings.py
 msgid "Reverse-proxy header login"
@@ -16074,6 +16080,12 @@ msgstr "Exponer las estanterías seleccionadas en OPDS"
 #: cps/templates/user_table.html
 msgid "Show Read/Unread Section"
 msgstr "Mostrar Selección Leidos/No Leidos"
+
+#, python-brace-format
+#~ msgid "My Library is on for {accounts} accounts; {errors} accounts failed."
+#~ msgstr ""
+#~ "Mi biblioteca está activada para {accounts} cuentas; {errors} cuentas "
+#~ "fallaron."
 
 #~ msgid "Not in current file"
 #~ msgstr "No está en el archivo actual"

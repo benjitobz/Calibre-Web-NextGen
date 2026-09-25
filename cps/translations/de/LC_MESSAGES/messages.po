@@ -6796,7 +6796,9 @@ msgstr ""
 
 #: cps/spa_strings.py
 #, python-brace-format
-msgid "My Library is on for {accounts} accounts; {errors} accounts failed."
+msgid ""
+"My Library setup is incomplete for {accounts} account(s). You can retry or "
+"undo."
 msgstr ""
 
 #: cps/spa_strings.py
@@ -7598,6 +7600,12 @@ msgstr "Bei {percent} vom anderen Gerät weiterlesen"
 #: cps/spa_strings.py
 msgid "Retry"
 msgstr "Erneut versuchen"
+
+#: cps/spa_strings.py
+msgid ""
+"Retry finishes the remaining accounts without changing completed selections. "
+"Undo restores the settings from before setup began."
+msgstr ""
 
 #: cps/spa_strings.py
 msgid "Reverse-proxy header login"

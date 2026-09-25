@@ -6951,10 +6951,10 @@ msgstr "La Biblioteca Personale è ora attiva per {accounts} account."
 
 #: cps/spa_strings.py
 #, python-brace-format
-msgid "My Library is on for {accounts} accounts; {errors} accounts failed."
+msgid ""
+"My Library setup is incomplete for {accounts} account(s). You can retry or "
+"undo."
 msgstr ""
-"La Biblioteca Personale è attiva per {accounts} account; operazione fallita "
-"per {errors} account."
 
 #: cps/spa_strings.py
 msgid "My account"
@@ -7797,6 +7797,12 @@ msgstr ""
 #: cps/spa_strings.py
 msgid "Retry"
 msgstr "Riprova"
+
+#: cps/spa_strings.py
+msgid ""
+"Retry finishes the remaining accounts without changing completed selections. "
+"Undo restores the settings from before setup began."
+msgstr ""
 
 #: cps/spa_strings.py
 msgid "Reverse-proxy header login"
@@ -16118,6 +16124,12 @@ msgstr "Sincronizza gli scaffali selezionati con OPDS"
 #: cps/templates/user_table.html
 msgid "Show Read/Unread Section"
 msgstr "Mostra sezione Libri letti e Libri da leggere"
+
+#, python-brace-format
+#~ msgid "My Library is on for {accounts} accounts; {errors} accounts failed."
+#~ msgstr ""
+#~ "La Biblioteca Personale è attiva per {accounts} account; operazione "
+#~ "fallita per {errors} account."
 
 #~ msgid "Not in current file"
 #~ msgstr "Non trovato nel file corrente"

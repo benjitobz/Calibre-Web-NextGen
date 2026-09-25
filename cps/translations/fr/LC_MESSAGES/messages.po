@@ -7022,10 +7022,12 @@ msgstr "Ma bibliothèque est maintenant active pour {accounts} comptes."
 
 #: cps/spa_strings.py
 #, python-brace-format
-msgid "My Library is on for {accounts} accounts; {errors} accounts failed."
+msgid ""
+"My Library setup is incomplete for {accounts} account(s). You can retry or "
+"undo."
 msgstr ""
-"Ma bibliothèque est active pour {accounts} comptes ; {errors} comptes ont "
-"échoué."
+"La configuration de Ma bibliothèque est incomplète pour {accounts} "
+"compte(s). Vous pouvez réessayer ou annuler."
 
 #: cps/spa_strings.py
 msgid "My account"
@@ -7877,6 +7879,15 @@ msgstr "Reprendre à {percent} depuis un autre appareil"
 #: cps/spa_strings.py
 msgid "Retry"
 msgstr "Réessayer"
+
+#: cps/spa_strings.py
+msgid ""
+"Retry finishes the remaining accounts without changing completed selections. "
+"Undo restores the settings from before setup began."
+msgstr ""
+"Réessayer termine la configuration des comptes restants sans modifier les "
+"sélections déjà terminées. Annuler restaure les paramètres précédant la "
+"configuration."
 
 #: cps/spa_strings.py
 msgid "Reverse-proxy header login"
@@ -16005,6 +16016,12 @@ msgstr "Synchroniser les étagères sélectionnées avec Kobo"
 msgid "Show Read/Unread Section"
 msgstr "Afficher la section Lu / Non lu"
 
+#, python-brace-format
+#~ msgid "My Library is on for {accounts} accounts; {errors} accounts failed."
+#~ msgstr ""
+#~ "Ma bibliothèque est active pour {accounts} comptes ; {errors} comptes ont "
+#~ "échoué."
+
 #~ msgid "Not in current file"
 #~ msgstr "Absent du fichier actuel"
 
@@ -17032,19 +17049,3 @@ msgstr "Afficher la section Lu / Non lu"
 #~ msgstr ""
 #~ "Les livres doivent d'abord être archivés et l'appareil synchronisé avant "
 #~ "qu'un livre puisse être supprimé en tout sécurité."
-
-#, python-brace-format
-msgid ""
-"My Library setup is incomplete for {accounts} account(s). You can retry or "
-"undo."
-msgstr ""
-"La configuration de Ma bibliothèque est incomplète pour {accounts} "
-"compte(s). Vous pouvez réessayer ou annuler."
-
-msgid ""
-"Retry finishes the remaining accounts without changing completed selections."
-" Undo restores the settings from before setup began."
-msgstr ""
-"Réessayer termine la configuration des comptes restants sans modifier les "
-"sélections déjà terminées. Annuler restaure les paramètres précédant la "
-"configuration."
