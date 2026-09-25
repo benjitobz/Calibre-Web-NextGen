@@ -68,6 +68,20 @@ taken from KOReader itself rather than written by hand:
 - `engine-words.json` - word ranges reported by KOReader's own crengine for the four books above, from
   `engine/probe.lua` run inside the KOReader linux-arm64 release by `engine/run-probe.sh` (`head-voids`: every
   word, KOReader v2026.07.1, 2026-09-25).
+- `alice-pg11.epub` - Project Gutenberg #11 (*Alice's Adventures in Wonderland*, public domain), today's
+  ebookmaker build (`pg11.epub.noimages`, fetched 2026-09-25): every `.html` chapter carries `<a id="…"/>` or
+  `<div/>`, which the browser's HTML parser reads as OPEN tags while crengine keeps them empty.
+- `alice-pg11.browser.json` - for every 50th word crengine reports in that book (KOReader v2026.07.1, through
+  `engine/run-probe.sh … words`), the CFI real epub.js 0.3.93 gave the same word in Chromium. Rebuild: run the
+  probe, then `engine/browser_requests.py <epub> <words.json> <n>` (from the repo root) and
+  `FRONTEND_DIR=<frontend> node engine/browser_cfis.mjs <epub> <requests.json>`; keep rows whose `text`
+  equals crengine's word (all did).
+- `alice-pg11.kepub.epub` - what CWNG serves a Kobo for `alice-pg11.epub`: `kepubify` v4.0.4 (the release the
+  Dockerfile pins), then `normalize_kepub_package(path, split_chapters=True)`, which splits the Gutenberg chapter
+  files into pieces with new names.
+- `alice-pg11.kobo-spans.json` - every 3rd Kobo span of that KEPUB where crengine itself reports a word starting
+  at the XPointer `kepub_alignment` gives the span, with that word (`engine/kobo_spans.py`, from the full
+  `run-probe.sh … words` output for `alice-pg11.epub`).
 - `rig-web-rows.json`, `rig-engine-check.json` - two highlights as stored by a test server (one made on
   the Kindle, one in the web reader) and crengine's text for each.
 
