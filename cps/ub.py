@@ -1035,8 +1035,9 @@ class KoboDeviceBookEntitlement(Base):
     # Canonical, constituent-preserving book/archive clock encoding that
     # justified the delivered entitlement. A declared renderer-schema
     # transition may replace the fingerprint only while this entire non-null
-    # tuple is byte-identical. NULL is retained for #1925 rows and deliberately
-    # fails open on a changed payload.
+    # tuple is byte-identical. The one-time classification audit stamps it on
+    # a kept #1925 row only when neither clock moved after the row was
+    # written; any other NULL fails open on a changed payload.
     change_basis = Column(Text, nullable=True)
     updated_at = Column(
         DateTime, nullable=False, default=lambda: datetime.now(timezone.utc),
@@ -1137,9 +1138,12 @@ class KoboDeviceEntitlementSeed(Base):
     seeded_at = Column(
         DateTime, nullable=False, default=lambda: datetime.now(timezone.utc),
     )
-    # Version 1 means the per-device rows were audited against the legacy
-    # New/Changed classifier.  Version 0 rows predate #1735 and may include
-    # fingerprints for ChangedEntitlements a device could not apply.
+    # Version 1 means the one-time pre-#2025 audit has run for this device.
+    # Version 0 rows were written by the shipped v4.1.43 seed, which copied
+    # the user-wide flat history onto every Kobo it sealed, and by v4.1.43's
+    # deliveries, recorded when sent.  The audit keeps the rows whose books
+    # the account took delivery of, stamps the change basis each kept row can
+    # vouch for, and clears every recorded tombstone.
     classification_version = Column(
         Integer, nullable=False, default=0, server_default="0",
     )
