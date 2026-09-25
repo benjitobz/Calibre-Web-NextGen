@@ -278,7 +278,8 @@ function SetupFlow:startPairing()
 end
 
 -- `secure`: the https address to try if `server`, guessed as http, fails.
-function SetupFlow:requestPairing(server, secure)
+-- `http_failure`: why that http attempt failed, when this is the https one.
+function SetupFlow:requestPairing(server, secure, http_failure)
     local client = newClient(self, server)
     local pairing = { server = server }
     session.pairing = pairing
@@ -297,8 +298,11 @@ function SetupFlow:requestPairing(server, secure)
                     hostOf(server))
             elseif secure then
                 logger.info("CWNGSync: pairing over http failed, trying https:", hostOf(server), reason)
-                return self:requestPairing(secure)
+                return self:requestPairing(secure, nil, reason)
             else
+                -- A plain http server answers https with garbage; then the
+                -- http attempt's failure is the one that says what is wrong.
+                if http_failure and CWNGSyncClient.notHttps(reason) then reason = http_failure end
                 text = T(_("Could not start pairing with %1: %2\n\nCheck the address, and that KOReader sync is switched on in CWNG's settings."),
                     hostOf(server), CWNGSyncClient.plainReason(reason))
             end
@@ -321,12 +325,18 @@ function SetupFlow:requestPairing(server, secure)
         }
         UIManager:show(pairing.screen)
 
-        local errors = 0
+        -- A slow or unsteady connection is waited out for as long as the code
+        -- lives: the reader may still be approving it. Only then is the last
+        -- answer, or the lack of one, what the reader is told.
+        local out_of_contact = false
         pairing.poll_task = function()
             if pairing.stopped then return end
             if os.time() > expires_at then
                 stopPairing(pairing)
-                UIManager:show(InfoMessage:new{ text = _("The code expired. Choose Connect this device to get a new one.") })
+                UIManager:show(InfoMessage:new{ text = out_of_contact
+                    and T(_("Lost contact with %1 while waiting for approval. Choose Connect this device to try again."),
+                        hostOf(server))
+                    or _("The code expired. Choose Connect this device to get a new one.") })
                 return
             end
             client:pair_poll(body.device_code, function(poll_ok, poll_body, poll_reason)
@@ -348,13 +358,9 @@ function SetupFlow:requestPairing(server, secure)
                     stopPairing(pairing)
                     UIManager:show(InfoMessage:new{ text = _("The code expired. Choose Connect this device to get a new one.") })
                 else
-                    if outcome.state == "error" then errors = errors + 1 end
-                    if errors >= 12 then
-                        stopPairing(pairing)
-                        UIManager:show(InfoMessage:new{
-                            text = T(_("Lost contact with %1 while waiting for approval."), hostOf(server)),
-                        })
-                        return
+                    out_of_contact = outcome.state == "error"
+                    if outcome.state == "slow_down" then
+                        interval = math.max(interval + 5, outcome.interval or 0)
                     end
                     UIManager:scheduleIn(interval, pairing.poll_task)
                 end
