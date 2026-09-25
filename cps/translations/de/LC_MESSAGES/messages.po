@@ -359,12 +359,9 @@ msgstr ""
 #: cps/admin.py
 #, python-brace-format
 msgid ""
-"Book {0} was not in the sync record for user {1}; last_modified bumped so "
-"the device will receive on next sync"
+"Book {0} was not in the sync record for user {1}; the device will receive it "
+"on next sync"
 msgstr ""
-"Buch {0} war nicht im Synchronisationsprotokoll für Benutzer {1}; der "
-"Zeitstempel für last_modified wurde erhöht, sodass das Gerät es bei der "
-"nächsten Synchronisation empfangen wird"
 
 #: cps/admin.py cps/templates/kobo_reconcile.html
 #, python-format
@@ -15514,6 +15511,15 @@ msgstr "Ausgewählte Regale für OPDS freigeben"
 #: cps/templates/user_table.html
 msgid "Show Read/Unread Section"
 msgstr "Zeige Gelesen/Ungelesen-Abschnitt"
+
+#, python-brace-format
+#~ msgid ""
+#~ "Book {0} was not in the sync record for user {1}; last_modified bumped so "
+#~ "the device will receive on next sync"
+#~ msgstr ""
+#~ "Buch {0} war nicht im Synchronisationsprotokoll für Benutzer {1}; der "
+#~ "Zeitstempel für last_modified wurde erhöht, sodass das Gerät es bei der "
+#~ "nächsten Synchronisation empfangen wird"
 
 #~ msgid "Not in current file"
 #~ msgstr "Nicht in der aktuellen Datei"

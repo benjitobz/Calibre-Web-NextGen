@@ -330,10 +330,9 @@ msgstr "已清除書籍 {0} (user {1}) 的同步狀態，裝置會在下次同�
 #: cps/admin.py
 #, python-brace-format
 msgid ""
-"Book {0} was not in the sync record for user {1}; last_modified bumped so "
-"the device will receive on next sync"
+"Book {0} was not in the sync record for user {1}; the device will receive it "
+"on next sync"
 msgstr ""
-"書籍 {0} 不在用戶 {1} 的 last_modified 同步記錄中因此裝置會在下一次接收中同步"
 
 #: cps/admin.py cps/templates/kobo_reconcile.html
 #, python-format
@@ -15147,6 +15146,14 @@ msgstr "同步所選書架到 Kobo"
 #, fuzzy
 msgid "Show Read/Unread Section"
 msgstr "顯示已讀/未讀選擇"
+
+#, python-brace-format
+#~ msgid ""
+#~ "Book {0} was not in the sync record for user {1}; last_modified bumped so "
+#~ "the device will receive on next sync"
+#~ msgstr ""
+#~ "書籍 {0} 不在用戶 {1} 的 last_modified 同步記錄中因此裝置會在下一次接收中"
+#~ "同步"
 
 #~ msgid "Could not load e-readers."
 #~ msgstr "無法載入電子閱讀器。"

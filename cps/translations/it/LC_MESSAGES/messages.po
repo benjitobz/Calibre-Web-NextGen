@@ -360,12 +360,9 @@ msgstr ""
 #: cps/admin.py
 #, python-brace-format
 msgid ""
-"Book {0} was not in the sync record for user {1}; last_modified bumped so "
-"the device will receive on next sync"
+"Book {0} was not in the sync record for user {1}; the device will receive it "
+"on next sync"
 msgstr ""
-"Il libro {0} non era presente nel registro di sincronizzazione dell'utente "
-"{1}; \"Ultima modifica\" aggiornata, il dispositivo lo riceverà alla "
-"prossima sincronizzazione"
 
 #: cps/admin.py cps/templates/kobo_reconcile.html
 #, python-format
@@ -16158,6 +16155,15 @@ msgstr "Sincronizza gli scaffali selezionati con OPDS"
 #: cps/templates/user_table.html
 msgid "Show Read/Unread Section"
 msgstr "Mostra sezione Libri letti e Libri da leggere"
+
+#, python-brace-format
+#~ msgid ""
+#~ "Book {0} was not in the sync record for user {1}; last_modified bumped so "
+#~ "the device will receive on next sync"
+#~ msgstr ""
+#~ "Il libro {0} non era presente nel registro di sincronizzazione "
+#~ "dell'utente {1}; \"Ultima modifica\" aggiornata, il dispositivo lo "
+#~ "riceverà alla prossima sincronizzazione"
 
 #~ msgid "Could not load e-readers."
 #~ msgstr "Impossibile caricare gli e-reader."

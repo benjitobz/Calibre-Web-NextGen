@@ -362,12 +362,9 @@ msgstr ""
 #: cps/admin.py
 #, python-brace-format
 msgid ""
-"Book {0} was not in the sync record for user {1}; last_modified bumped so "
-"the device will receive on next sync"
+"Book {0} was not in the sync record for user {1}; the device will receive it "
+"on next sync"
 msgstr ""
-"Книга {0} отсутствовала в записи синхронизации для пользователя {1}; "
-"значение last_modified было увеличено, поэтому устройство получит её при "
-"следующей синхронизации"
 
 #: cps/admin.py cps/templates/kobo_reconcile.html
 #, python-format
@@ -15849,6 +15846,15 @@ msgstr "Показывать выбранные полки в OPDS"
 #: cps/templates/user_table.html
 msgid "Show Read/Unread Section"
 msgstr "Показать раздел прочитанного/непрочитанного"
+
+#, python-brace-format
+#~ msgid ""
+#~ "Book {0} was not in the sync record for user {1}; last_modified bumped so "
+#~ "the device will receive on next sync"
+#~ msgstr ""
+#~ "Книга {0} отсутствовала в записи синхронизации для пользователя {1}; "
+#~ "значение last_modified было увеличено, поэтому устройство получит её при "
+#~ "следующей синхронизации"
 
 #~ msgid "Could not load e-readers."
 #~ msgstr "Не удалось загрузить читалки."
