@@ -4595,6 +4595,14 @@ msgid "(replace cover)"
 msgstr "（替換封面）"
 
 #: cps/spa_strings.py
+msgid "1 annotation assigned to this source"
+msgstr ""
+
+#: cps/spa_strings.py
+msgid "1 annotation from this source"
+msgstr ""
+
+#: cps/spa_strings.py
 msgid "1 selected."
 msgstr "已選擇 1 本。"
 
@@ -4715,6 +4723,12 @@ msgstr ""
 #: cps/spa_strings.py
 msgid "All books"
 msgstr "所有書籍"
+
+#: cps/spa_strings.py
+msgid ""
+"All browsers and computers signed in to your account share one Browser "
+"reading source."
+msgstr ""
 
 #: cps/spa_strings.py
 msgid "All shelves"
@@ -4955,13 +4969,11 @@ msgid ""
 msgstr ""
 
 #: cps/spa_strings.py
-msgid "Browser reading sources"
+msgid "Browser"
 msgstr ""
 
 #: cps/spa_strings.py
-msgid ""
-"Browsers appear after saving reading progress or annotations. Different "
-"browsers or profiles can appear separately."
+msgid "Browser reading source"
 msgstr ""
 
 #: cps/spa_strings.py
@@ -5224,12 +5236,12 @@ msgid "Could not load device annotations."
 msgstr "無法載入裝置註釋。"
 
 #: cps/spa_strings.py
-msgid "Could not load duplicates."
-msgstr "無法載入重複項。"
+msgid "Could not load devices and browsers."
+msgstr ""
 
 #: cps/spa_strings.py
-msgid "Could not load e-readers."
-msgstr "無法載入電子閱讀器。"
+msgid "Could not load duplicates."
+msgstr "無法載入重複項。"
 
 #: cps/spa_strings.py
 msgid "Could not load highlights and notes."
@@ -5246,6 +5258,10 @@ msgstr ""
 #: cps/spa_strings.py
 msgid "Could not load reading positions."
 msgstr "無法載入閱讀進度。"
+
+#: cps/spa_strings.py
+msgid "Could not load removal details. Try again."
+msgstr ""
 
 #: cps/spa_strings.py
 msgid "Could not load stats."
@@ -5296,8 +5312,16 @@ msgid "Could not reload metadata"
 msgstr "無法重新載入中繼資料"
 
 #: cps/spa_strings.py
+msgid "Could not remove this source. Try again."
+msgstr ""
+
+#: cps/spa_strings.py
 msgid "Could not rename shelf."
 msgstr "無法重新命名書架。"
+
+#: cps/spa_strings.py
+msgid "Could not rename this source. Try again."
+msgstr ""
 
 #: cps/spa_strings.py
 msgid "Could not request deletion from this device."
@@ -5306,6 +5330,10 @@ msgstr "無法向此裝置請求刪除。"
 #: cps/spa_strings.py
 msgid "Could not reset password."
 msgstr "無法重設密碼。"
+
+#: cps/spa_strings.py
+msgid "Could not restore this source. Try again."
+msgstr ""
 
 #: cps/spa_strings.py cps/templates/shelf_reorder.html
 msgid "Could not save order."
@@ -5658,8 +5686,14 @@ msgid "Devices"
 msgstr "裝置"
 
 #: cps/spa_strings.py
-msgid "Devices appear here after their first sync."
-msgstr "裝置在首次同步後會顯示在這裡。"
+msgid "Devices and browsers"
+msgstr ""
+
+#: cps/spa_strings.py
+msgid ""
+"Devices appear after their first sync. Browser appears after saving reading "
+"progress or annotations."
+msgstr ""
 
 #: cps/spa_strings.py
 msgid "Different edition"
@@ -6413,6 +6447,10 @@ msgid "Loading device library…"
 msgstr "正在載入裝置書庫…"
 
 #: cps/spa_strings.py
+msgid "Loading devices and browsers…"
+msgstr ""
+
+#: cps/spa_strings.py
 msgid "Loading new Discover picks."
 msgstr "正在載入新的探索精選。"
 
@@ -6497,8 +6535,8 @@ msgid "Manage admin role from OAuth group"
 msgstr "從 OAuth 群組管理管理員角色"
 
 #: cps/spa_strings.py
-msgid "Manage e-readers"
-msgstr "管理電子閱讀器"
+msgid "Manage devices and browsers"
+msgstr ""
 
 #: cps/spa_strings.py
 msgid "Manage presets"
@@ -6723,6 +6761,10 @@ msgid "No contents found."
 msgstr "找不到內容。"
 
 #: cps/spa_strings.py
+msgid "No devices or browser reading data yet."
+msgstr ""
+
+#: cps/spa_strings.py
 msgid "No duplicate groups found."
 msgstr "未找到重複群組。"
 
@@ -6731,10 +6773,6 @@ msgid ""
 "No e-reader is waiting with this code. Check it, or get a new code on the e-"
 "reader."
 msgstr ""
-
-#: cps/spa_strings.py
-msgid "No e-readers yet."
-msgstr "尚無電子閱讀器。"
 
 #: cps/spa_strings.py
 msgid "No excluded tags"
@@ -7224,8 +7262,8 @@ msgstr "閱讀外觀"
 
 #: cps/spa_strings.py
 msgid ""
-"Reading data is kept. Future browser saves can appear under an unidentified "
-"browser source."
+"Reading data is kept. Browser reappears when you next save reading progress "
+"or annotations."
 msgstr ""
 
 #: cps/spa_strings.py
@@ -8222,10 +8260,6 @@ msgstr "正在復原…"
 #: cps/spa_strings.py
 msgid "Unhide"
 msgstr "取消隱藏"
-
-#: cps/spa_strings.py
-msgid "Unidentified browser source"
-msgstr ""
 
 #: cps/spa_strings.py
 msgid "Unknown color"
@@ -15113,6 +15147,18 @@ msgstr "同步所選書架到 Kobo"
 #, fuzzy
 msgid "Show Read/Unread Section"
 msgstr "顯示已讀/未讀選擇"
+
+#~ msgid "Could not load e-readers."
+#~ msgstr "無法載入電子閱讀器。"
+
+#~ msgid "Devices appear here after their first sync."
+#~ msgstr "裝置在首次同步後會顯示在這裡。"
+
+#~ msgid "Manage e-readers"
+#~ msgstr "管理電子閱讀器"
+
+#~ msgid "No e-readers yet."
+#~ msgstr "尚無電子閱讀器。"
 
 #, python-brace-format
 #~ msgid "My Library is on for {accounts} accounts; {errors} accounts failed."
