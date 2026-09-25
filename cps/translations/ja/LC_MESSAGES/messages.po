@@ -9485,6 +9485,10 @@ msgstr ""
 msgid "Hardcover Sync"
 msgstr "Hardcover同期を有効にする"
 
+#: cps/tasks/hardcover_sync.py
+msgid "Marking books read on Hardcover"
+msgstr ""
+
 #: cps/tasks/kepub_backfill.py
 msgid "Convert Kobo books missing KEPUB"
 msgstr ""

@@ -9623,6 +9623,10 @@ msgstr "Синхронизация добавлений на полку с Hardc
 msgid "Hardcover Sync"
 msgstr "Синхронизация с Hardcover"
 
+#: cps/tasks/hardcover_sync.py
+msgid "Marking books read on Hardcover"
+msgstr ""
+
 #: cps/tasks/kepub_backfill.py
 msgid "Convert Kobo books missing KEPUB"
 msgstr "Конвертировать книги для Kobo, у которых нет формата KEPUB"

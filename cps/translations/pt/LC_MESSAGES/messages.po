@@ -9512,6 +9512,10 @@ msgstr ""
 msgid "Hardcover Sync"
 msgstr "Ativar Kobo sync"
 
+#: cps/tasks/hardcover_sync.py
+msgid "Marking books read on Hardcover"
+msgstr ""
+
 #: cps/tasks/kepub_backfill.py
 msgid "Convert Kobo books missing KEPUB"
 msgstr ""

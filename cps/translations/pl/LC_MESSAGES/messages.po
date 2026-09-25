@@ -9588,6 +9588,10 @@ msgstr "Synchronizowanie dodań na półkach z Hardcover"
 msgid "Hardcover Sync"
 msgstr "Synchronizacja Hardcover"
 
+#: cps/tasks/hardcover_sync.py
+msgid "Marking books read on Hardcover"
+msgstr ""
+
 #: cps/tasks/kepub_backfill.py
 msgid "Convert Kobo books missing KEPUB"
 msgstr ""
