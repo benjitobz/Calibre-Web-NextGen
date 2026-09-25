@@ -4210,6 +4210,14 @@ msgid "Open search"
 msgstr "Otwórz wyszukiwanie"
 
 #: cps/spa_strings.py
+msgid "Browse the Global Library"
+msgstr ""
+
+#: cps/spa_strings.py
+msgid "Open device administration"
+msgstr ""
+
+#: cps/spa_strings.py
 msgid "Editions"
 msgstr "Wydania"
 
