@@ -263,3 +263,20 @@ def test_no_log_record_carries_the_password(content_server, monkeypatch):
     content_server.start()
     assert content_server.log_records
     assert not any(PASSWORD in record for record in content_server.log_records)
+
+
+def test_a_config_without_the_settings_is_treated_as_disabled(content_server, monkeypatch):
+    """The export path reaches this module with whatever config is loaded.
+
+    cps.embed_helper calls library_target() during a metadata export, and the
+    settings only exist once their migration has run. A config without them made
+    the export raise AttributeError instead of falling back to the library path.
+    """
+    monkeypatch.setattr(content_server, "config", types.SimpleNamespace())
+    assert content_server.library_target() == content_server.NO_TARGET
+
+
+def test_every_setting_read_has_a_default(content_server, monkeypatch):
+    monkeypatch.setattr(content_server, "config", types.SimpleNamespace())
+    for name in content_server.SETTING_DEFAULTS:
+        assert content_server.setting(name) == content_server.SETTING_DEFAULTS[name]

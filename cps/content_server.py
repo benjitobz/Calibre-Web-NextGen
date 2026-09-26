@@ -43,23 +43,42 @@ LibraryTarget = namedtuple("LibraryTarget", "args stdin")
 
 NO_TARGET = LibraryTarget([], None)
 
+# These settings arrive with a migration, and the export path reaches this
+# module with whatever configuration the process happens to have loaded, so
+# every read carries a default rather than assuming the attribute is present.
+SETTING_DEFAULTS = {
+    "config_calibre_server_enabled": False,
+    "config_calibre_server_port": 8080,
+    "config_calibre_server_listen": "127.0.0.1",
+    "config_calibre_server_anonymous_writes": False,
+    "config_calibre_server_trusted_ips": "",
+    "config_calibre_server_username": "",
+    "config_calibre_server_password_e": "",
+    "config_calibre_dir": "",
+    "config_binariesdir": "",
+}
+
+
+def setting(name):
+    return getattr(config, name, SETTING_DEFAULTS[name])
+
 
 def library_url():
     return "http://127.0.0.1:{}/#{}".format(
-        config.config_calibre_server_port,
-        os.path.basename(config.config_calibre_dir.rstrip("/")))
+        setting("config_calibre_server_port"),
+        os.path.basename(setting("config_calibre_dir").rstrip("/")))
 
 
 def _auth_enabled():
-    return bool(not config.config_calibre_server_anonymous_writes
-                and config.config_calibre_server_username
-                and config.config_calibre_server_password_e)
+    return bool(not setting("config_calibre_server_anonymous_writes")
+                and setting("config_calibre_server_username")
+                and setting("config_calibre_server_password_e"))
 
 
 def is_answering(timeout=PROBE_TIMEOUT):
     """True when something accepts connections on the content server port."""
     try:
-        with socket.create_connection(("127.0.0.1", int(config.config_calibre_server_port)), timeout):
+        with socket.create_connection(("127.0.0.1", int(setting("config_calibre_server_port"))), timeout):
             return True
     except (OSError, ValueError):
         return False
@@ -74,18 +93,18 @@ def library_target():
     It is what keeps ingest and metadata embedding working while Convert Library
     has the server stopped, and after the server has died.
     """
-    if not config.config_calibre_server_enabled or not config.config_calibre_dir:
+    if not setting("config_calibre_server_enabled") or not setting("config_calibre_dir"):
         return NO_TARGET
     if not is_answering():
         log.warning("Calibre content server is enabled but not answering on port %s, "
-                    "addressing the library by path instead", config.config_calibre_server_port)
+                    "addressing the library by path instead", setting("config_calibre_server_port"))
         return NO_TARGET
     args = ["--with-library", library_url()]
     if _auth_enabled():
         # calibredb reads the password from stdin for the literal value
         # "<stdin>", which keeps it out of the process table.
-        args += ["--username", config.config_calibre_server_username, "--password", "<stdin>"]
-        return LibraryTarget(args, config.config_calibre_server_password_e + "\n")
+        args += ["--username", setting("config_calibre_server_username"), "--password", "<stdin>"]
+        return LibraryTarget(args, setting("config_calibre_server_password_e") + "\n")
     return LibraryTarget(args, None)
 
 
@@ -148,12 +167,12 @@ def _watch(process, db_path):
 
 
 def server_binary():
-    return os.path.join(config.config_binariesdir or "",
+    return os.path.join(setting("config_binariesdir") or "",
                         "calibre-server.exe" if sys.platform == "win32" else "calibre-server")
 
 
 def debug_binary():
-    return os.path.join(config.config_binariesdir or "",
+    return os.path.join(setting("config_binariesdir") or "",
                         "calibre-debug.exe" if sys.platform == "win32" else "calibre-debug")
 
 
@@ -191,16 +210,16 @@ def write_userdb(username, password, userdb=None, binary=None):
 
 def server_arguments():
     """The calibre-server command line for the current configuration."""
-    args = [server_binary(), "--port", str(config.config_calibre_server_port),
-            "--listen-on", config.config_calibre_server_listen or "127.0.0.1",
+    args = [server_binary(), "--port", str(setting("config_calibre_server_port")),
+            "--listen-on", setting("config_calibre_server_listen") or "127.0.0.1",
             "--disable-fallback-to-detected-interface"]
-    if config.config_calibre_server_anonymous_writes:
+    if setting("config_calibre_server_anonymous_writes"):
         args.append("--enable-local-write")
-        if config.config_calibre_server_trusted_ips:
-            args += ["--trusted-ips", config.config_calibre_server_trusted_ips]
+        if setting("config_calibre_server_trusted_ips"):
+            args += ["--trusted-ips", setting("config_calibre_server_trusted_ips")]
     elif _auth_enabled():
         args += ["--enable-auth", "--auth-mode", "basic", "--userdb", userdb_path()]
-    args.append(config.config_calibre_dir)
+    args.append(setting("config_calibre_dir"))
     return args
 
 
@@ -212,13 +231,13 @@ def start():
 def _locked_start():
     global _process, _stopped_on_purpose
     _locked_stop()
-    if not config.config_calibre_server_enabled or not config.config_calibre_dir:
+    if not setting("config_calibre_server_enabled") or not setting("config_calibre_dir"):
         return
     if not os.path.isfile(server_binary()):
         log.error("calibre-server binary not found: %s", server_binary())
         return
-    if _auth_enabled() and not write_userdb(config.config_calibre_server_username,
-                                            config.config_calibre_server_password_e):
+    if _auth_enabled() and not write_userdb(setting("config_calibre_server_username"),
+                                            setting("config_calibre_server_password_e")):
         return
     _stopped_on_purpose = False
     try:
@@ -227,9 +246,9 @@ def _locked_start():
         log.error("Failed to start calibre content server: %s", ex)
         _process = None
         return
-    log.info("Calibre content server started on port %s", config.config_calibre_server_port)
+    log.info("Calibre content server started on port %s", setting("config_calibre_server_port"))
     threading.Thread(target=_watch,
-                     args=(_process, os.path.join(config.config_calibre_dir, "metadata.db")),
+                     args=(_process, os.path.join(setting("config_calibre_dir"), "metadata.db")),
                      daemon=True).start()
 
 
