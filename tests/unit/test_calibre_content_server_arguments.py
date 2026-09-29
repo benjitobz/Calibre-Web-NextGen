@@ -280,3 +280,20 @@ def test_every_setting_read_has_a_default(content_server, monkeypatch):
     monkeypatch.setattr(content_server, "config", types.SimpleNamespace())
     for name in content_server.SETTING_DEFAULTS:
         assert content_server.setting(name) == content_server.SETTING_DEFAULTS[name]
+
+
+def test_a_spent_stdin_handle_is_not_left_for_communicate(tmp_path):
+    """communicate() flushes self.stdin, and flushing a closed pipe raises.
+
+    Python 3.13 tolerates it; every earlier interpreter raises ValueError and
+    fails the export. Dropping the handle keeps the reaping paths working
+    whatever the interpreter does.
+    """
+    from cps.subproc_wrapper import process_open
+    process = process_open(["cat"], stdin_payload="secret\n")
+    try:
+        assert process.stdin is None
+        assert process.communicate(timeout=10)[0] == "secret\n"
+    finally:
+        if process.poll() is None:
+            process.kill()

@@ -50,6 +50,11 @@ def process_open(command, quotes=(), env=None, sout=subprocess.PIPE, serr=subpro
             p.stdin.close()
         except (OSError, ValueError):
             pass
+        # Drop the handle once it is spent. communicate() flushes self.stdin
+        # before reading, and flushing a closed pipe raises ValueError on every
+        # interpreter before 3.13 -- which would fail the download, conversion
+        # and send-to-ereader paths that reap the child that way.
+        p.stdin = None
     return p
 
 
